@@ -13,22 +13,15 @@
 ///////////////////////////////////////
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
-#if PROBLEM==1
-   // a trivial exact solution
-   // for Navier-Stokes equations
-   #include "constant.hh"
-    #warning "Problem: 2d constant Navier-Stokes solution"
-   typedef NSConstant< GridSelector :: GridType >  PhaseProblemType;
-   #define PROBLEM_HAS_SOLUTION
 
-#elif PROBLEM==2
+#if PROBLEM==1
    // a nonstationary exact solution 
    // for Navier-Stokes equations
 #warning "Phaseproblen choosen":
 #if GRIDDIM==2
-#include "phasewaves.hh"
+#include "problem2d.hh"
 #else
-#include "phasewaves1d.hh"
+#include "problem1d.hh"
 #endif
    typedef PhaseWaves< GridSelector :: GridType >  PhaseProblemType;
 
