@@ -1,0 +1,10 @@
+################################
+# Dune module information file #
+################################
+
+#Name of the module
+Module: dune-phasefield
+Version: 0.0
+Maintainer: kraenkel@mathematik.uni-freiburg.de
+#depending on 
+Depends: dune-common dune-geometry dune-grid dune-istl dune-localfunctions dune-fem dune-fem-dg
