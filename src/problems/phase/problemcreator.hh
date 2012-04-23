@@ -16,9 +16,9 @@
 #endif
 
 // local includes
-#include "eulerfluxes.hh"
+#include <dune/fem/eulerfluxes.hh>
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
-#include "projectiondiscretemodelcommon.hh"
+#include <dune/fem/operator/projectiondiscretemodelcommon.hh>
 //#include "discretemodelcommon.hh"
 #include "problemtype.hh"
 #include "phase_model.hh"
