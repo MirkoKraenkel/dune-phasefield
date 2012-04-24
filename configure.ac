@@ -25,11 +25,14 @@ AC_CONFIG_FILES([
   doc/doxygen/Doxyfile
   dune/Makefile
   dune/phasefield/Makefile
+  dune/fem/adaptation/Makefile
   dune/fem/base/Makefile
   dune/fem/util/Makefile
   dune/fem/main/Makefile
   dune/fem/fluxes/Makefile
-  src/problems/phase
+  dune/fem/operator/Makefile
+  src/problems/phase/Makefile
+  src/problems/Makefile
   m4/Makefile
   dune-phasefield.pc
 ])
