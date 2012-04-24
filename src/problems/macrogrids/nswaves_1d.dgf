@@ -1,0 +1,17 @@
+DGF
+
+Interval
+0
+2
+16
+#
+
+GridParameter
+overlap 1
+name 1d_nswaves_str
+#
+
+BoundaryDomain
+default 1    % all boundaries have id 1
+#
+

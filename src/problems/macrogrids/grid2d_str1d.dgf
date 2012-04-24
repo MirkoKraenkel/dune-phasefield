@@ -1,0 +1,15 @@
+DGF
+Interval       
+0 0
+1.0  0.25
+16 4 
+#
+
+PERIODICFACETRANSFORMATION
+% set periodic boundaries in x direction
+1 0, 0 1 + 0 0.25
+#
+
+BOUNDARYDOMAIN
+default 2
+# examplegrid2d.dgf

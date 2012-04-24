@@ -1,0 +1,34 @@
+DGF
+
+Vertex
+0 0
+0.05 0.9
+0.4 0.1
+0.7 0.2
+0.7 0.1
+0.9 0.05
+1 1
+0 1
+1 0
+#
+
+GridParameter
+overlap 1
+#
+
+Simplexgenerator
+min-angle 5 % without: max neigh. vol. ratio: 20, liftfactor: 15.75
+max-area 0.25
+path $HOME/bin 
+#
+
+BoundaryDomain
+default 1    % all boundaries have id 1
+#
+
+
+GridParameter
+name 2d_Unit_Cube
+#
+
+# unitcube2.dgf

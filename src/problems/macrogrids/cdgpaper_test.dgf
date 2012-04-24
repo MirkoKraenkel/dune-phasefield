@@ -1,0 +1,26 @@
+DGF
+
+Vertex
+0 0
+1.7 0
+2 0       # row 1
+0.5 1
+0 1.4
+1.5 1.2
+2 0.8     # row 2
+0 2
+1.7 2
+2 2       # row 3
+#
+
+GridParameter
+overlap 1
+name 2d_nswaves_unstr
+#
+
+Simplexgenerator
+min-angle 30
+max-area 2.
+path /usr/people/slavko/bin/ 
+#
+

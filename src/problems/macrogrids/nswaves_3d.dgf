@@ -1,0 +1,16 @@
+DGF
+
+Interval
+0 0 0
+10 10 10
+4 4 4
+#
+
+GridParameter
+overlap 1
+name 3d_nswaves_str
+#
+
+BOUNDARYDOMAIN
+default 1
+#

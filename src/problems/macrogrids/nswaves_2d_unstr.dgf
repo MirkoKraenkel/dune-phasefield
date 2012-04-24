@@ -1,0 +1,20 @@
+DGF
+
+Interval
+0 0
+2 2
+1 1
+#
+
+
+GridParameter
+overlap 1
+name 2d_nswaves_unstr
+#
+
+Simplexgenerator
+min-angle 30
+max-area 0.3
+path /usr/people/slavko/bin/ 
+#
+
