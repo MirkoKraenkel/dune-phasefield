@@ -5,7 +5,7 @@
 
 
 #include "stepperbase.hh"
-#include "estimator2.hh"
+#include <dune/fem/adaptation/estimator2.hh>
 //#include "estimator1.hh"
 
 

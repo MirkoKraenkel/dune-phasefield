@@ -2,7 +2,7 @@
 #define DUNE_FEM_DG_DISCRETEMODELCOMMON_HH
 
 // Dune includes
-#include <dune/fem/gridpart/gridpart.hh>
+#include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
 // Dune-Fem includes
@@ -16,7 +16,7 @@
 
 // local includes
 #include <dune/fem-dg/operator/limiter/limiter.hh>
-#include "ldgflux.hh"
+#include <dune/fem/fluxes/ldgflux.hh>
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
 
 namespace Dune {

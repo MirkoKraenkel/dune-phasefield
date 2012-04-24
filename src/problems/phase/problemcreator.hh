@@ -16,7 +16,7 @@
 #endif
 
 // local includes
-#include <dune/fem/eulerfluxes.hh>
+#include <dune/fem/fluxes/eulerfluxes.hh>
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
 #include <dune/fem/operator/projectiondiscretemodelcommon.hh>
 //#include "discretemodelcommon.hh"
@@ -108,8 +108,8 @@ struct ProblemGenerator
 
 };
 
-#include "stepper.hh" 
-#include "steppertraits.hh"
+#include <dune/fem/main/stepper.hh>
+#include <dune/fem/main/steppertraits.hh>
 
 
 

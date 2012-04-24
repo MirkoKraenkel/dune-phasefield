@@ -24,7 +24,7 @@ static double minRatioOfSums = 1e+100;
 // Dune includes
 #include <dune/fem/misc/l2error.hh>
 #include <dune/fem/operator/projection/l2projection.hh>
-#include <dune/fem/gridpart/gridpart.hh>
+#include <dune/fem/gridpart/common/gridpart.hh>
 
 #include <dune/fem-dg/solver/smartodesolver.hh>
 
@@ -33,11 +33,10 @@ static double minRatioOfSums = 1e+100;
 #endif
 
 //#include <dune/fem-dg/operator/dg/dgoperatorchoice.hh>
-#include "fluxprojoperator.hh"
+#include <dune/fem/operator/fluxprojoperator.hh>
 //#include "fluxoperator.hh"
 // include local header files
-#include "../../../dune/fem/main/operator2matrix.hh"
-#include "../../../dune/fem/base/baseevolution.hh"
+#include <dune/fem/base/baseevolution.hh>
 
 #include "steppertraits.hh"
 
@@ -163,6 +162,7 @@ struct StepperBase
 
     const double ldt = tp.deltaT();
     // write times to run file 
+    #if 0  
     runfile_.write( tp.time() + ldt, ldt, 
                     odeSolverMonitor_.numberOfElements_,
                     odeSolverMonitor_.operatorTime_, 
@@ -171,6 +171,7 @@ struct StepperBase
                     am.loadBalanceTime(), 
                     overallTimer_.elapsed());
 
+#endif
   }
 
   //! returns data prefix for EOC loops ( default is loop )

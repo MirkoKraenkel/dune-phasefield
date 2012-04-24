@@ -10,8 +10,8 @@
 
 // local includes
 #include "base.hh"
-#include "../operator/cons2prim.hh"
-#include "../operator/energyconverter.hh"
+#include "../util/cons2prim.hh"
+#include "../util/energyconverter.hh"
 /////////////////////////////////////////////////////////////////////////////
 //
 //  EOC output parameter class 

@@ -15,11 +15,11 @@
 #include <dune/fem/misc/threadmanager.hh>
 #include <dune/fem/misc/l2error.hh>
 #include <dune/fem/operator/projection/l2projection.hh>
-#include <dune/fem/gridpart/gridpart.hh>
+#include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/solver/odesolver.hh>
 
 // local includes
-//#include "phasefield.hh"
+#include "phasefield.hh"
 
 #if HAVE_PETSC
 #include <petsc.h>
@@ -132,6 +132,7 @@ int main(int argc, char ** argv, char ** envp) {          /*@LST0S@*/
 #if HAVE_PETSC
     static char help[] = "Petsc-Slepc init";
 #endif
+
 #if HAVE_SLEPC
     SlepcInitialize(&argc,&argv,(char*)0,help);
 #elif HAVE_PETSC 
@@ -153,19 +154,15 @@ int main(int argc, char ** argv, char ** envp) {          /*@LST0S@*/
   int polynomialOrder = 1;
   polynomialOrder = Dune::Parameter :: getValue("femhowto.polynomialOrder", polynomialOrder );
 
-#ifdef BASEFUNCTIONSET_CODEGEN_GENERATE
-  codegen();
-#else 
+// #ifdef BASEFUNCTIONSET_CODEGEN_GENERATE
+//   codegen();
+// #else 
 
   // code for only one polynomial degree 
-#ifdef ONLY_ONE_P 
-  {
-    DG_ONE_P :: simulate();  
-  }
-	
-  // write parameters used 
+
+	simulation :: simulate();  
+	// write parameters used 
   Dune::Parameter::write("parameter.log");
-#endif
   }
   catch (Dune::Exception &e) {                            /*@\label{dg:catch0}@*/
     std::cerr << e << std::endl;
