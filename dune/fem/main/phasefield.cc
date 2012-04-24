@@ -19,7 +19,7 @@
 #include <dune/fem/solver/odesolver.hh>
 
 // local includes
-#include "dgtest.hh"
+//#include "phasefield.hh"
 
 #if HAVE_PETSC
 #include <petsc.h>
