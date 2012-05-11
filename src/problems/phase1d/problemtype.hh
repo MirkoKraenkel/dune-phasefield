@@ -14,21 +14,12 @@
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
 
-#if PROBLEM==1
-   // a nonstationary exact solution 
-   // for Navier-Stokes equations
-#warning "Phaseproblen choosen":
-#if GRIDDIM==2
-#include "problem2d.hh"
-#else
 #include "problem1d.hh"
-#endif
-   typedef PhaseWaves< GridSelector :: GridType >  PhaseProblemType;
+
+typedef PhaseWaves< GridSelector :: GridType >  PhaseProblemType;
 
 #define PROBLEM_HAS_SOLUTION
 
-#else
-   #error "No valid problem number specifiedxx"
-#endif
+
 
 #endif

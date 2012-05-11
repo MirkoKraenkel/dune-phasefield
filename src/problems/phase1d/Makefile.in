@@ -84,7 +84,7 @@ DIST_COMMON = $(phase_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/am/checklog \
 	$(top_srcdir)/am/documentation $(top_srcdir)/am/global-rules \
 	$(top_srcdir)/am/headercheck $(top_srcdir)/am/sourcescheck
-subdir = src/problems/phase
+subdir = src/problems/phase1d
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/dependencies.m4 \
 	$(top_srcdir)/configure.ac
@@ -350,7 +350,7 @@ GRAPE_CPPFLAGS = @GRAPE_CPPFLAGS@
 GRAPE_LDFLAGS = @GRAPE_LDFLAGS@
 GRAPE_LIBS = @GRAPE_LIBS@
 GREP = @GREP@
-GRIDDIM = 2
+GRIDDIM = 1 
 GRIDDIM_CPPFLAGS = @GRIDDIM_CPPFLAGS@
 
 #GRIDTYPE = ALUGRID_CONFORM
@@ -497,7 +497,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
-# install these headers 
+# install these headers
 phasedir = $(includedir)/src/problems/phase
 phase_HEADERS = phase_model.hh problemcreator.hh phasewaves.hh \
 phase_model_spec.hh problemtype.hh
@@ -544,9 +544,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/am/global-rules $(to
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/problems/phase/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/problems/phase1d/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/problems/phase/Makefile
+	  $(AUTOMAKE) --foreign src/problems/phase1d/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

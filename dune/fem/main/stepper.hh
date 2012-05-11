@@ -88,8 +88,8 @@ struct Stepper
   using BaseType :: problem;
   using BaseType :: model;
   using BaseType :: solution_;
-//   using BaseType :: theta_;
-//   using BaseType :: energy_;
+	using BaseType :: theta_;
+	using BaseType :: energy_;
   using BaseType :: adaptationHandler_ ;
   using BaseType :: overallTimer_;
   using BaseType :: adaptationParameters_;
@@ -108,9 +108,12 @@ struct Stepper
   }                                                                        /*@LST1E@*/
   
   virtual DiscreteFunctionType& solution() { return solution_; }
- //  virtual DiscreteGradientType& theta() { return theta_; }
-//   virtual ScalarDFType& energy() { return energy_; }
-  virtual size_t gridSize() const 
+	
+	virtual DiscreteGradientType& theta() { return theta_; }
+	
+	virtual ScalarDFType& energy() { return energy_; }
+  
+	virtual size_t gridSize() const 
   {
     // one of them is not zero, 
     // use int because the unintialized size_t is the largest 
@@ -126,30 +129,30 @@ struct Stepper
 #if NS_USE_ADAPTATION
     if( adaptive_ )
       {
-	if( ! adaptationHandler_ && adaptationParameters_.aposterioriIndicator() )
-	  {
-	    adaptationHandler_ = new AdaptationHandlerType( grid_, tp );
-	    dgIndicator_.setAdaptationHandler( *adaptationHandler_ );
-	  }
+				if( ! adaptationHandler_ && adaptationParameters_.aposterioriIndicator() )
+					{
+						adaptationHandler_ = new AdaptationHandlerType( grid_, tp );
+						dgIndicator_.setAdaptationHandler( *adaptationHandler_ );
+					}
       }
 #endif
-
+		
     typedef SmartOdeSolver< DgType, DgAdvectionType, DgDiffusionType > OdeSolverImpl;
     return new OdeSolverImpl( tp, dgOperator_, 
-			      dgAdvectionOperator_,
-			      dgDiffusionOperator_ );
+															dgAdvectionOperator_,
+															dgDiffusionOperator_ );
   }
 
   
-   void step(TimeProviderType& tp, //DiscreteFunctionType& U,
+	void step(TimeProviderType& tp, //DiscreteFunctionType& U,
             int& newton_iterations, 
             int& ils_iterations,
             int& max_newton_iterations,
             int& max_ils_iterations) 
   {
     DiscreteFunctionType& U = solution();
- //    DiscreteGradientType& theta1=theta();
-//     ScalarDFType& energy1=energy();
+		DiscreteGradientType& theta1=theta();
+		ScalarDFType& energy1=energy();
 
     // reset overall timer
     overallTimer_.reset();
@@ -157,8 +160,8 @@ struct Stepper
     assert(odeSolver_);
     odeSolver_->solve( U, odeSolverMonitor_ );
     
-    //  dgOperator_.gradient(U,theta1);
-  //   dgOperator_.energy(U,theta1, energy1);
+		dgOperator_.gradient(U,theta1);
+		dgOperator_.energy(U,theta1, energy1);
    
 
 #if 0
@@ -170,7 +173,7 @@ struct Stepper
     MyDataWriterType mywrite(grid_, iotup,MyDataOutputParameters());
   
     mywrite.write(tp);   
-		   //limitSolution ();
+		//limitSolution ();
 #endif
     newton_iterations     = odeSolverMonitor_.newtonIterations_;
     ils_iterations        = odeSolverMonitor_.linearSolverIterations_;

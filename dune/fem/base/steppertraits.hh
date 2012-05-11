@@ -29,24 +29,6 @@ struct StepperTraits
   // The first operator is sum of the other two
   // The other two are needed for semi-implicit time discretization
 #ifdef LIMITER
-  #if (not defined EULER) and (defined FLUXDG)
-  #warning "DGAdvectionDiffusionOperator: using LIMITER."
-    typedef Dune :: DGLimitedAdvectionDiffusionOperator< ModelType, FluxType,
-                          DiffusionFluxId,  polynomialOrder >            DgType; /*@LST1E@*/
-  #else
-  #warning "DGAdvectionDiffusionOperator: LIMITER can NOT be used. Not supported -> LIMITER, no EULER, no FLUXDG."
-    typedef Dune :: DGAdvectionDiffusionOperator< ModelType, FluxType,
-                          DiffusionFluxId,  polynomialOrder >            DgType; /*@LST1E@*/
-  #endif
-  #ifndef HIGHER_ORDER_FV 
-  #warning "DGAdvectionOperator: using LIMITER."
-    typedef Dune :: DGLimitedAdvectionOperator< ModelType, FluxType,
-                                 DiffusionFluxId, polynomialOrder >      DgAdvectionType; /*@LST1E@*/
-  #else 
-  #warning "DGAdvectionOperator: using HIGHER ORDER FV."
-    typedef Dune :: DGLimitedAdvectionOperator< ModelType, FluxType,
-                                 DiffusionFluxId, -1 >      DgAdvectionType; /*@LST1E@*/
-  #endif
 #else // no LIMITER 
 #warning "No limiter is applied to the numerical solution !!"
   typedef Dune :: DGAdvectionDiffusionOperator< ModelType, FluxType,

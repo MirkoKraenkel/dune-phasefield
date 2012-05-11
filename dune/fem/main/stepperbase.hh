@@ -105,20 +105,20 @@ struct StepperBase
   using BaseType :: grid_;
   using BaseType :: gridPart_;
   using BaseType :: solution;
-  // using BaseType :: theta;
-//   using BaseType :: energy;
+	using BaseType :: theta;
+	using BaseType :: energy;
   using BaseType :: space;
-//   using BaseType :: energyspace;
+	using BaseType :: energyspace;
   using BaseType :: limitSolution ;
 
   // constructor taking grid 
   StepperBase(GridType& grid) :
     BaseType( grid ),
     solution_( "solution", space() ),
-  //   theta_( "theta", space() ),
-//     energy_("energy",energyspace()),
+		theta_( "theta", space() ),
+		energy_("energy",energyspace()),
     additionalVariables_( Parameter :: getValue< bool >("femhowto.additionalvariables", false) ? 
-			  new DiscreteFunctionType("additional", space() ) : 0 ),
+													new DiscreteFunctionType("additional", space() ) : 0 ),
     problem_( ProblemTraits::problem() ),
     model_( new ModelType( problem() ) ),
     convectionFlux_( *model_ ),
@@ -147,8 +147,10 @@ struct StepperBase
 
   // return reference to discrete function holding solution 
   virtual DiscreteFunctionType& solution() { return solution_; }
-//   virtual DiscreteGradientType& theta() { return theta_; }
-//   virtual ScalarDFType& energy(){return energy_;}c
+
+	virtual DiscreteGradientType& theta() { return theta_; }
+  virtual ScalarDFType& energy(){return energy_;}
+
   // return pointer to additional variables, can be zero 
   virtual DiscreteFunctionType* additionalVariables() { return additionalVariables_; }
 
@@ -333,8 +335,8 @@ protected:
 #endif
   // the solution 
   DiscreteFunctionType   solution_;
-  // DiscreteGradientType   theta_;
-//   ScalarDFType   energy_;
+	DiscreteGradientType   theta_;
+	ScalarDFType   energy_;
   
   DiscreteFunctionType*  additionalVariables_;
 

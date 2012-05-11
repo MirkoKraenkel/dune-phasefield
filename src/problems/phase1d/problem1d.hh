@@ -17,13 +17,6 @@
 #include <dune/fem/probleminterfaces.hh>
 
 
-/***********************************************************
- *                                                   
- * 2d problem                                        
- * PhD thesis Gregor Gassner, pg. 99
- *   Analytical solution for the Navier-Stokes equations
- *                                                  
- **********************************************************/
 
 
 namespace Dune {

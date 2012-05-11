@@ -44,20 +44,6 @@ struct ProblemGenerator
 #warning "FLUX: LLF"
     typedef LLFFlux< ModelType > FluxType;
 #elif (FLUX==2)
-#warning "FLUX: HLL (Dennis)"
-    typedef HLLNumFlux< ModelType > FluxType;
-#elif (FLUX==3)
-#warning "FLUX: HLLC (Dennis)"
-    typedef HLLCNumFlux< ModelType > FluxType;
-#elif (FLUX==4)
-#warning "FLUX: HLL2C"
-    typedef HLL2CFlux< ModelType > FluxType;
-#elif (FLUX==5)
-#warning "FLUX: HLL2"
-    typedef HLL2Flux< ModelType > FluxType;
-#elif (FLUX==6)
-#warning "FLUX: HLLEM (Mhd)"
-    typedef HLLEMNumFlux< ModelType > FluxType;
 #else
 #error "Set the flag FLUX! See Makefile.am for details!"
 #endif
@@ -69,16 +55,6 @@ struct ProblemGenerator
   {
 #if (FLUX==1)
     return "LLF";
-#elif (FLUX==2)
-    return "HLL(Dennis)";
-#elif (FLUX==3)
-    return "HLLC(Dennis)";
-#elif (FLUX==4)
-    return "HLL2C";
-#elif (FLUX==5)
-    return "HLL2";
-#elif (FLUX==6)
-    return "HLLEM(Mhd)";
 #endif
   }
 
