@@ -1,0 +1,59 @@
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+# This file precribes parameters for the testcase found in   
+#
+# Gregor Gassner,
+# PhD thesis
+#
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+
+
+# DATA WRITER
+#------------
+
+fem.prefix: data
+fem.io.datafileprefix: NS
+fem.io.savestep: -0.05 # SaveStep (write data every `saveStep' time period, <=0 deactivates)
+fem.io.savecount: -1 # SaveCount (write data every saveCount time steps, <=0 deactivates)
+
+
+# GENERAL
+#--------
+
+paramfile: ../parameter/paramBase
+
+
+# PROBLEM SETUP
+#--------------
+
+paramfile: ../parameter/paramPhysicalConstants
+
+# WBPROBLEM
+# g: 0.7 # m/(ss)
+# p0: 10. # surface pressure Pa=kg/(mss)
+# diffusion coefficients
+# mu: 0. # kg/(ms)
+mu: 0.1 # kg/(ms)
+g: 0 # m/ss
+Re: 1. #(Reynold's number)
+Pr: 0.72 #(Prandtl's number)
+femhowto.startTime: 0. # s
+femhowto.endTime: 0.1
+gammaGNS: 0.5
+omegaGNS: 1.
+kGNS: 3.1415926535897932385
+
+
+# DOMAIN CONFIGURATION
+#---------------------
+
+fem.io.macroGridFile_1d: ../macrogrids/nswaves_1d.dgf
+fem.io.macroGridFile_2d: ../macrogrids/nswaves_2d.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/nswaves_2d_unstr.dgf
+fem.io.macroGridFile_3d: ../macrogrids/nswaves_3d.dgf
+
+
+# SOLVER CONFIGURATION
+#---------------------
+
+paramfile: ../parameter/paramSolver
+

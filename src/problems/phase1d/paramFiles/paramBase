@@ -1,0 +1,46 @@
+################## D A T A   W R I T E R ##################
+# toggle verbosity of on process 
+# (-1: off, p: process p is verbose, in general 0 is a good choice)
+fem.verboserank: 0 
+
+# format of output: 0 = GRAPE, 1 = VTK, 2 = VTK vertex data
+fem.io.outputformat: 2
+fem.io.grapedisplay: 0
+
+# if you want to add time stemp to eoc file name
+# to avoid overwriting the eoc files
+fem.io.eocFileTimeStamp: 1
+
+# write file with values of numerical solution at
+# the end time along given line
+femhowto.sampleAlongLine: 0
+############ E N D   D A T A   W R I T E R ##############
+
+
+
+############ G E N E R A L  S E T T I N G S #############
+femhowto.eocSteps: 2
+
+# min and max number adaptation levels
+minLevel: 0
+maxLevel: 0
+refineTol: 0.01
+coarsenTol: 0.001
+
+# should loadBalancing be performed?
+# after how many time steps?
+load_balance: 0
+balance_after: 100
+##########  E N D  G E N E R A L  S E T T I N G S ############
+
+
+########### P R O B L E M   C O N F I G U R A T I O N ##########
+reynold: 1.
+prandtl: 1.
+########### E N D  P R O B L E M   C O N F I G U R A T I O N ##########
+
+
+############### D O M A I N   C O N F I G U R A T I O N ###############
+# should one use Trianle for triangulation of the domain
+useTriangleTetgen: 0
+############ E N D   D O M A I N   C O N F I G U R A T I O N #############
