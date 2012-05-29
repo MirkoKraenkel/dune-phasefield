@@ -2,7 +2,7 @@
 #------------
 
 
-fem.prefix: ./data_adapt_p0 # specify directory for data output (is created if not exists)
+fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
 fem.io.savestep: 1e-3 #save data every time interval 
 #fem.io.savecount: 1 # save every i-th step
@@ -43,10 +43,10 @@ visc: 1
 # DOMAIN
 #-------
 
-#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
 #fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
-fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf

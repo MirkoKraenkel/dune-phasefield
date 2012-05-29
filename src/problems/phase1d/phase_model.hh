@@ -8,8 +8,8 @@
 // local includes
 #include <dune/fem-dg/models/defaultmodel.hh>
 //#include "phase_model_spec_rhoinv.hh"
-#include "phase_model_spec_rho.hh"
-
+#include "phase_model_spec.hh"
+//#include "phase_model_spec_rho.hh"
 
 namespace Dune {
 
