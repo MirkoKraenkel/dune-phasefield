@@ -15,11 +15,10 @@
 
 // local includes
 #include "projectiondiscretemodelcommon.hh"
-#include <dune/fem/fluxes/ldgflux.hh>
+#include <dune/fem/fluxes/ldgfluxtheta.hh>
 
 //*************************************************************
 namespace Dune {
-
 
   // GradientModel
   //--------------
@@ -190,11 +189,10 @@ namespace Dune {
                          JacobianRangeType& gDiffLeft,
                          JacobianRangeType& gDiffRight ) const
     {
-      return gradientFlux_.gradientNumericalFlux( 
-						 it, inside(), outside(), time,
-						 faceQuadInner, faceQuadOuter, quadPoint,
-						 uLeft[ uVar ], uRight[ uVar ], 
-						 gLeft, gRight, gDiffLeft, gDiffRight);
+      return gradientFlux_.gradientNumericalFlux( it, inside(), outside(), time,
+																									faceQuadInner, faceQuadOuter, quadPoint,
+																									uLeft[ uVar ], uRight[ uVar ], 
+																									gLeft, gRight, gDiffLeft, gDiffRight);
     }
 
     /**
@@ -620,7 +618,7 @@ namespace Dune {
       // advection
     
       const double wave = BaseType :: 
-	numericalFlux( it, time, faceQuadInner, faceQuadOuter,
+				numericalFlux( it, time, faceQuadInner, faceQuadOuter,
                        quadPoint, uLeft, uRight, jacLeft, jacRight, 
                        gLeft, gRight, gDiffLeft, gDiffRight );
       
@@ -634,9 +632,9 @@ namespace Dune {
           diffFlux_.numericalFlux(it, *this,
                                   time, faceQuadInner, faceQuadOuter, quadPoint,
                                   uLeft[ uVar ], uRight[ uVar ], 
-				  uLeft[ sigmaVar ], uRight[ sigmaVar ], 
-				  uLeft[ thetaVar],uRight[thetaVar],
-				  dLeft, dRight,
+																	uLeft[ sigmaVar ], uRight[ sigmaVar ], 
+																	uLeft[ thetaVar],uRight[thetaVar],
+																	dLeft, dRight,
                                   gDiffLeft, gDiffRight);
 
         gLeft  += dLeft;
@@ -685,12 +683,13 @@ namespace Dune {
         // diffusion boundary flux for Dirichlet boundaries 
         RangeType dLeft;
         diffTimeStep = diffFlux_.boundaryFlux(it, 
-					      *this, 
-					      time, faceQuadInner, quadPoint,
-					      uLeft[ uVar ], uBnd_, // is set during call of  BaseType::boundaryFlux
-					      uLeft[ sigmaVar ], 
-					      dLeft,
-					      gDiffLeft);
+																							*this, 
+																							time, faceQuadInner, quadPoint,
+																							uLeft[ uVar ], uBnd_, // is set during call of  BaseType::boundaryFlux
+																							uLeft[ sigmaVar ], 
+																							uLeft[ thetaVar ],
+																							dLeft,
+																							gDiffLeft);
         gLeft += dLeft;
       }
       else if ( diffusion )

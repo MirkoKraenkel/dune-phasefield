@@ -16,7 +16,7 @@
 
 // local includes
 #include <dune/fem-dg/operator/limiter/limiter.hh>
-#include <dune/fem/fluxes/ldgflux.hh>
+#include <dune/fem/fluxes/ldgfluxtheta.hh>
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
 
 namespace Dune {
@@ -43,7 +43,7 @@ namespace Dune {
     
     typedef DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,CachingStorage >             DiscreteFunctionSpaceType;
   
-    typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage >     ScalarDiscreteFunctionSpaceType;
+    typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage >      ScalarDiscreteFunctionSpaceType;
 
   typedef AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >    DestinationType;
   typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >    ScalarDFType;

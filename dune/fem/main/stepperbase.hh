@@ -32,9 +32,11 @@ static double minRatioOfSums = 1e+100;
 #include <dune/fem/space/basefunctions/codegen.hh>
 #endif
 
-//#include <dune/fem-dg/operator/dg/dgoperatorchoice.hh>
+#if NONCON
+#include <dune/fem/operator/fluxoperator.hh>
+#else
 #include <dune/fem/operator/fluxprojoperator.hh>
-//#include "fluxoperator.hh"
+#endif
 // include local header files
 #include <dune/fem/base/baseevolution.hh>
 

@@ -5,7 +5,7 @@
 #include <string>
 
 // dune-fem includes
-#include <dune/fem/gridpart/gridpart.hh>
+#include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/pass/dgdiscretemodel.hh>
 #include <dune/fem/pass/selection.hh>
 #include <dune/fem/solver/timeprovider.hh>
@@ -47,7 +47,13 @@ namespace Dune {
     typedef NumFlux NumFluxType;
 
     typedef PassTraits< Model, Model::Traits::dimRange, polOrd >     PassTraitsType ;
-    typedef typename PassTraitsType::IndicatorType                   IndicatorType;
+   
+  
+    typedef typename PassTraitsType::ScalarDiscreteFunctionSpaceType ScalarDiscreteFunctionSpaceType;
+    typedef typename PassTraitsType::ScalarDFType ScalarDFType;
+  
+
+		typedef typename PassTraitsType::IndicatorType                   IndicatorType;
     typedef typename IndicatorType::DiscreteFunctionSpaceType        IndicatorSpaceType;
 
     // Pass 2 Model (advection)
@@ -107,6 +113,20 @@ namespace Dune {
     void operator()( const DestinationType& arg, DestinationType& dest ) const {
 	    pass2_( arg, dest );
     }
+
+		void gradient( const DestinationType& arg, Destination1Type& dest ) const {
+      pass1_(arg,dest);
+    }
+    
+		void energy(const DestinationType &u,const Destination1Type& du,  ScalarDFType& en)const
+     {
+       abort();
+       // du.print(cout); 
+     }
+
+
+
+
 
     inline const SpaceType& space() const {
 	    return space2_;

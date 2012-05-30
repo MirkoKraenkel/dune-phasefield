@@ -1,5 +1,5 @@
-#ifndef DUNE_FEM_DG_LDGFLUX_HH
-#define DUNE_FEM_DG_LDGFLUX_HH
+#ifndef DUNE_FEM_DG_LDGFLUXTHETA_HH
+#define DUNE_FEM_DG_LDGFLUXTHETA_HH
 
 // local includes
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
@@ -71,9 +71,9 @@ namespace Dune {
       penaltyTerm_( std::abs(  penalty_ ) > 0 )
     {
       if( Parameter :: verbose () ) 
-      {
-        std::cout << "LDGDiffusionFlux: penalty = " << penalty_ << std::endl;
-      }
+				{
+					std::cout << "LDGDiffusionFlux: penalty = " << penalty_ << std::endl;
+				}
     }
 
     //! returns true if lifting has to be calculated 
@@ -100,19 +100,19 @@ namespace Dune {
      */
     template <class QuadratureImp>
     double gradientNumericalFlux(
-                        const Intersection& intersection,
-                        const EntityType& inside,
-                        const EntityType& outside,
-                        const double time,
-                        const QuadratureImp& faceQuadInner,
-                        const QuadratureImp& faceQuadOuter,
-                        const int quadPoint, 
-                        const RangeType& uLeft,
-                        const RangeType& uRight,
-                        GradientRangeType& gLeft,
-                        GradientRangeType& gRight,
-                        GradientJacobianType& gDiffLeft,
-                        GradientJacobianType& gDiffRight) const
+																 const Intersection& intersection,
+																 const EntityType& inside,
+																 const EntityType& outside,
+																 const double time,
+																 const QuadratureImp& faceQuadInner,
+																 const QuadratureImp& faceQuadOuter,
+																 const int quadPoint, 
+																 const RangeType& uLeft,
+																 const RangeType& uRight,
+																 GradientRangeType& gLeft,
+																 GradientRangeType& gRight,
+																 GradientJacobianType& gDiffLeft,
+																 GradientJacobianType& gDiffRight) const
     {
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
       const DomainType normal = intersection.integrationOuterNormal( x );
@@ -124,23 +124,23 @@ namespace Dune {
       GradientJacobianType diffmatrix; 
 
       if( useInterior ) 
-      {
-        model_.jacobian(inside,         /* inside entity */
-                         time,           /* for time dependent diffusion */
-                         faceQuadInner.point( quadPoint ),      /* inside point on intersection */
-                         uLeft,          /* { u_(x^-) } */
-                         diffmatrix      /* return diffusion tensor */
+				{
+					model_.jacobian(inside,         /* inside entity */
+													time,           /* for time dependent diffusion */
+													faceQuadInner.point( quadPoint ),      /* inside point on intersection */
+													uLeft,          /* { u_(x^-) } */
+													diffmatrix      /* return diffusion tensor */
                           );
-      }
+				}
       else 
-      {
-        model_.jacobian(outside,       /* outside entity */
-                         time,          /* for time dependent diffusion */
-                         faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
-                         uRight,        /* { u_(x^+) } */
-                         diffmatrix     /* return diffusion tensor */
-                        );
-      }
+				{
+					model_.jacobian(outside,       /* outside entity */
+													time,          /* for time dependent diffusion */
+													faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
+													uRight,        /* { u_(x^+) } */
+													diffmatrix     /* return diffusion tensor */
+													);
+				}
 
       // mutliply with normal 
       diffmatrix.mv(normal, gLeft);
@@ -157,7 +157,7 @@ namespace Dune {
 
     /*
      * @brief numerical flux for u given as u_h
-    */
+		 */
     template <class QuadratureImp> 
     double gradientBoundaryFlux(const Intersection& intersection,
                                 const EntityType& inside,
@@ -187,7 +187,7 @@ namespace Dune {
                        xglInside,
                        uBnd,
                        diffmatrix
-                      );
+											 );
 
       // apply normal 
       diffmatrix.mv(normal, gLeft); 
@@ -216,21 +216,21 @@ namespace Dune {
     template <class DiscreteModelImp, 
               class QuadratureImp>
     inline double numericalFlux(const Intersection& intersection,
-                         const DiscreteModelImp& discreteModel,
-                         const double time,
-                         const QuadratureImp& faceQuadInner,
-                         const QuadratureImp& faceQuadOuter,
-                         const int quadPoint, 
-                         const RangeType& uLeft,
-                         const RangeType& uRight,
-                         const GradientRangeType& sigmaLeft,
-                         const GradientRangeType& sigmaRight,
-			 const GradientRangeType& thetaLeft,
-                         const GradientRangeType& thetaRight,
-			 RangeType& gLeft,
-                         RangeType& gRight,
-                         JacobianRangeType& gDiffLeft, // not used here (only for primal passes)
-                         JacobianRangeType& gDiffRight ) const
+																const DiscreteModelImp& discreteModel,
+																const double time,
+																const QuadratureImp& faceQuadInner,
+																const QuadratureImp& faceQuadOuter,
+																const int quadPoint, 
+																const RangeType& uLeft,
+																const RangeType& uRight,
+																const GradientRangeType& sigmaLeft,
+																const GradientRangeType& sigmaRight,
+																const GradientRangeType& thetaLeft,
+																const GradientRangeType& thetaRight,
+																RangeType& gLeft,
+																RangeType& gRight,
+																JacobianRangeType& gDiffLeft, // not used here (only for primal passes)
+																JacobianRangeType& gDiffRight ) const
     {
       FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( sigmaLeft );
       FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacRight( sigmaRight );
@@ -240,7 +240,7 @@ namespace Dune {
       return numericalFlux( intersection, discreteModel, time,
                             faceQuadInner, faceQuadOuter, quadPoint,
                             uLeft, uRight, jacLeft, jacRight,
-			    tensLeft,tensRight,
+														tensLeft,tensRight,
                             gLeft, gRight, gDiffLeft, gDiffRight );
     }
 
@@ -257,9 +257,9 @@ namespace Dune {
                          const RangeType& uRight,
                          const JacobianRangeTypeImp& sigmaLeft,
                          const JacobianRangeTypeImp& sigmaRight,
-			 const JacobianRangeTypeImp& thetaLeft,
+												 const JacobianRangeTypeImp& thetaLeft,
                          const JacobianRangeTypeImp& thetaRight,
-			 RangeType& gLeft,
+												 RangeType& gLeft,
                          RangeType& gRight,
                          JacobianRangeType& gDiffLeft, // not used here (only for primal passes)
                          JacobianRangeType& gDiffRight ) const
@@ -270,9 +270,9 @@ namespace Dune {
       const EntityType& inside  = discreteModel.inside();
       const EntityType& outside = discreteModel.outside();
 
-     /**********************************
-      * Diffusion sigma Flux (Pass 2)  *
-      **********************************/
+			/**********************************
+			 * Diffusion sigma Flux (Pass 2)  *
+			 **********************************/
       JacobianRangeType diffmatrix;
       JacobianRangeType tension;
       tension=thetaLeft;
@@ -287,19 +287,19 @@ namespace Dune {
       const bool useExterior = ! determineDirection(false,0.,0.,intersection );
 
       if( useExterior ) 
-      {
-        model_.diffusion( inside, time, 
-                          faceQuadInner.point( quadPoint ),
-                          uLeft, sigmaLeft, diffmatrix);
+				{
+					model_.diffusion( inside, time, 
+														faceQuadInner.point( quadPoint ),
+														uLeft, sigmaLeft, diffmatrix);
 	
 
-      }
+				}
       else 
-      {
-        model_.diffusion( outside, time, 
-                          faceQuadOuter.point( quadPoint ),
-                          uRight, sigmaRight, diffmatrix);
-      }
+				{
+					model_.diffusion( outside, time, 
+														faceQuadOuter.point( quadPoint ),
+														uRight, sigmaRight, diffmatrix);
+				}
 
       
 
@@ -319,15 +319,15 @@ namespace Dune {
 
       const double diffTimeLeft =
         model_.diffusionTimeStep( intersection,
-            discreteModel.enVolume(),
-            faceVolumeEstimate,
-            time, x, uLeft );
+																	discreteModel.enVolume(),
+																	faceVolumeEstimate,
+																	time, x, uLeft );
 
       const double diffTimeRight =
         model_.diffusionTimeStep( intersection, 
-            discreteModel.nbVolume(),
-            faceVolumeEstimate,
-            time, x, uRight );
+																	discreteModel.nbVolume(),
+																	faceVolumeEstimate,
+																	time, x, uRight );
 
       //////////////////////////////////////////////////////////
       //
@@ -339,15 +339,15 @@ namespace Dune {
       // take minimum to proceed 
       const double diffTimeStep = std::max( diffTimeLeft, diffTimeRight );
       if( penaltyTerm_ )
-      {
-        // add penalty term ( enVolume() is available since we derive from
-        //    DiscreteModelDefaultWithInsideOutside)
-        const double factor = penalty_ * diffTimeStep ;
+				{
+					// add penalty term ( enVolume() is available since we derive from
+					//    DiscreteModelDefaultWithInsideOutside)
+					const double factor = penalty_ * diffTimeStep ;
 
-        RangeType jump( uLeft );
-        jump -= uRight;
-        gLeft.axpy(factor, jump);
-      }
+					RangeType jump( uLeft );
+					jump -= uRight;
+					gLeft.axpy(factor, jump);
+				}
 
       gRight = gLeft ;
 
@@ -367,15 +367,16 @@ namespace Dune {
     template <class DiscreteModelImp, 
               class QuadratureImp> 
     inline double boundaryFlux(const Intersection& intersection,
-                        const DiscreteModelImp& discreteModel,  
-                        const double time, 
-                        const QuadratureImp& faceQuadInner,
-                        const int quadPoint,
-                        const RangeType& uLeft,
-                        const RangeType& uRight,
-                        const GradientRangeType& sigmaLeft,
-			RangeType& gLeft,
-                        JacobianRangeType& gDiffLeft) const   /*@LST0E@*/
+															 const DiscreteModelImp& discreteModel,  
+															 const double time, 
+															 const QuadratureImp& faceQuadInner,
+															 const int quadPoint,
+															 const RangeType& uLeft,
+															 const RangeType& uRight,
+															 const GradientRangeType& sigmaLeft,
+															 const GradientRangeType& thetaLeft,
+															 RangeType& gLeft,
+															 JacobianRangeType& gDiffLeft) const   /*@LST0E@*/
     {
       FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( sigmaLeft );
       FieldMatrixConverter< GradientRangeType, JacobianRangeType> tensLeft(thetaLeft );
@@ -397,7 +398,8 @@ namespace Dune {
                         const RangeType& uLeft,
                         const RangeType& uRight,
                         const JacobianRangeTypeImp& sigmaLeft,
-			RangeType& gLeft,
+											  const JacobianRangeTypeImp& thetaLeft,
+												RangeType& gLeft,
                         JacobianRangeType& gDiffLeft) const   /*@LST0E@*/
     {
       // get local point 
@@ -424,9 +426,9 @@ namespace Dune {
 
       const double diffTimeStep =
         model_.diffusionTimeStep( intersection,
-            discreteModel.enVolume(),
-            faceVolumeEstimate,
-            time, x, uLeft );
+																	discreteModel.enVolume(),
+																	faceVolumeEstimate,
+																	time, x, uLeft );
 
       //////////////////////////////////////////////////////////
       //
@@ -434,14 +436,14 @@ namespace Dune {
       //
       //////////////////////////////////////////////////////////
       if( penaltyTerm_ ) 
-      {
-        // add penalty term
-        const double factor = penalty_ * diffTimeStep;
+				{
+					// add penalty term
+					const double factor = penalty_ * diffTimeStep;
 
-        RangeType jump( uLeft );
-        jump -= uRight;
-        gLeft.axpy(factor, jump);
-      }
+					RangeType jump( uLeft );
+					jump -= uRight;
+					gLeft.axpy(factor, jump);
+				}
 
       // gDiffLeft should be 0 in case of LDG
       gDiffLeft = 0;

@@ -2,7 +2,7 @@
 #define DUNE_STEPPERTRAITS_HH
 
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
-#include <dune/fem/space/dgspace/dgadaptmanager.hh>
+#include <dune/fem/space/dgspace/localrestrictprolong.hh>
 #include <dune/fem/solver/odesolver.hh>
 
 template <class GridImp,

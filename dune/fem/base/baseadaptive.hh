@@ -36,6 +36,7 @@ static void computeAdaptive(Algorithm & algorithm)
     return ;
   }
 
+
   // solution function
   DiscreteFunctionType u( "solution", space );
 #ifdef WRITE_PRIM_VARIABLES
@@ -50,6 +51,7 @@ static void computeAdaptive(Algorithm & algorithm)
 
   // Initialize the DataOutput that writes the solution on the harddisk in a
   // format readable by e.g. Paraview in each adaption step
+
 #ifdef WRITE_PRIM_VARIABLES
   // tuple carrying PDE unknows and additional variables
   IOTupleType dataTup ( &u, &additionalVariables );
@@ -103,9 +105,9 @@ static void computeAdaptive(Algorithm & algorithm)
   int counter=1;
   while ( algorithm.estimateAndMark(u, tolerance) )
   {
+
     // adapt grid and restrict and prolong solution (see AdaptionManager)
     adaptManager.adapt();
-
     // re-calculate solution 
     Dune::FemTimer::start(adaptStepTimer);
     Dune::FemTimer::start(adaptStepTimer, 2);

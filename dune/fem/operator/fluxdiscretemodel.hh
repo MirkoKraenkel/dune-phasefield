@@ -2,7 +2,7 @@
 #define DUNE_FEM_DG_FLUXDISCRETEMODEL_HH
 
 // Dune includes
-#include <dune/fem/gridpart/gridpart.hh>
+#include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
 // Dune-Fem includes
@@ -15,7 +15,7 @@
 
 // local includes
 #include "discretemodelcommon.hh"
-#include "ldgflux.hh"
+#include <dune/fem/fluxes/ldgflux.hh>
 
 //*************************************************************
 namespace Dune {
@@ -65,11 +65,11 @@ namespace Dune {
   template <class Model, class NumFlux, int polOrd, int passUId> /*@LST1S@*/
   class GradientModel :
     public DGDiscreteModelDefaultWithInsideOutside
-      <GradientTraits<Model, NumFlux, polOrd, passUId>, passUId >
+		<GradientTraits<Model, NumFlux, polOrd, passUId>, passUId >
   {
     typedef DGDiscreteModelDefaultWithInsideOutside
-              < GradientTraits< Model, NumFlux, polOrd, passUId >,
-                passUId > BaseType                                   ;
+		< GradientTraits< Model, NumFlux, polOrd, passUId >,
+			passUId > BaseType                                   ;
 
     using BaseType :: inside;
     using BaseType :: outside;
@@ -90,7 +90,7 @@ namespace Dune {
     typedef typename Traits :: GridType                              GridType;
     typedef typename Traits :: JacobianRangeType                     JacobianRangeType;
     typedef typename Traits :: GridPartType
-              :: IntersectionIteratorType                            IntersectionIterator;
+		:: IntersectionIteratorType                            IntersectionIterator;
     typedef typename IntersectionIterator :: Intersection            Intersection;
     typedef typename GridType :: template Codim< 0 > :: Entity       EntityType;
 
@@ -110,10 +110,10 @@ namespace Dune {
       gradientFlux_( numf ),
       cflDiffinv_( 2.0 * ( polOrd + 1) )
     {
-      #if defined TESTOPERATOR
-        std::cerr <<"didn't test how to use TESTOPERATOR with dual formulation";
-        abort();
-      #endif
+#if defined TESTOPERATOR
+			std::cerr <<"didn't test how to use TESTOPERATOR with dual formulation";
+			abort();
+#endif
     }
 
     bool hasSource() const { return false; }
@@ -190,11 +190,10 @@ namespace Dune {
                          JacobianRangeType& gDiffLeft,
                          JacobianRangeType& gDiffRight ) const
     {
-      return gradientFlux_.gradientNumericalFlux( 
-						 it, inside(), outside(), time,
-						 faceQuadInner, faceQuadOuter, quadPoint,
-						 uLeft[ uVar ], uRight[ uVar ], 
-						 gLeft, gRight, gDiffLeft, gDiffRight);
+      return gradientFlux_.gradientNumericalFlux(it, inside(), outside(), time,
+																								 faceQuadInner, faceQuadOuter, quadPoint,
+																								 uLeft[ uVar ], uRight[ uVar ], 
+																								 gLeft, gRight, gDiffLeft, gDiffRight);
     }
 
     /**
@@ -218,20 +217,20 @@ namespace Dune {
       UType uRight;
 
       if( model_.hasBoundaryValue(it,time,x) )
-      {
-        model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
-      }
+				{
+					model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
+				}
       else 
-	{
-        uRight = uLeft[ uVar ];
-      }
+				{
+					uRight = uLeft[ uVar ];
+				}
 
       return gradientFlux_.gradientBoundaryFlux(it, inside(),
-                             time, faceQuadInner, quadPoint,
-                             uLeft[ uVar ],
-                             uRight, 
-                             gLeft,
-                             gDiffLeft );
+																								time, faceQuadInner, quadPoint,
+																								uLeft[ uVar ],
+																								uRight, 
+																								gLeft,
+																								gDiffLeft );
     }
 
     /**
@@ -271,13 +270,13 @@ namespace Dune {
             int polOrd, int passUId, int passGradId, 
             bool advectionPartExists, bool diffusionPartExists >
   struct AdvectionDiffusionLDGTraits 
-  : public AdvectionTraits
-          < Model, NumFlux, polOrd, passUId, passGradId, advectionPartExists>
+		: public AdvectionTraits
+		< Model, NumFlux, polOrd, passUId, passGradId, advectionPartExists>
           
   {
     typedef AdvectionDiffusionLDGModel
-      < Model, NumFlux, polOrd, passUId, passGradId, 
-        advectionPartExists, diffusionPartExists >                   DGDiscreteModelType;
+		< Model, NumFlux, polOrd, passUId, passGradId, 
+			advectionPartExists, diffusionPartExists >                   DGDiscreteModelType;
   };
 
 
@@ -293,8 +292,8 @@ namespace Dune {
   {
   public:
     typedef AdvectionDiffusionLDGTraits
-      < Model, NumFlux, polOrd, passUId, passGradId, 
-          advectionPartExists, diffusionPartExists >  Traits; /*@LST0E@*/
+		< Model, NumFlux, polOrd, passUId, passGradId, 
+			advectionPartExists, diffusionPartExists >  Traits; /*@LST0E@*/
 
     typedef AdvectionModel< Model, NumFlux, polOrd, 
                             passUId, passGradId, advectionPartExists>    BaseType;
@@ -373,35 +372,35 @@ namespace Dune {
      */
     template <class ArgumentTuple, class JacobianTuple >
     double source( const EntityType& en,
-                 const double time, 
-                 const DomainType& x,
-                 const ArgumentTuple& u, 
-                 const JacobianTuple& jac, 
-                 RangeType& s ) const
+									 const double time, 
+									 const DomainType& x,
+									 const ArgumentTuple& u, 
+									 const JacobianTuple& jac, 
+									 RangeType& s ) const
     {
       s = 0;
 
       double dtEst = std::numeric_limits< double > :: max();
 
       if (diffusion)
-      {
-        const double dtStiff = 
-          model_.stiffSource( en, time, x, u[uVar], u[sigmaVar], s );
-        dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
-        maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
-      }
+				{
+					const double dtStiff = 
+						model_.stiffSource( en, time, x, u[uVar], u[sigmaVar], s );
+				dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
+					maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
+				}
 
       if (advection)
-      {
-        RangeType sNonStiff(0);
-        const double dtNon = 
-          model_.nonStiffSource( en, time, x, u[uVar], u[sigmaVar], sNonStiff );
+				{
+					RangeType sNonStiff(0);
+					const double dtNon = 
+						model_.nonStiffSource( en, time, x, u[uVar], u[sigmaVar], sNonStiff );
 
-        s += sNonStiff;
+					s += sNonStiff;
 
-        dtEst = ( dtNon > 0 ) ? std::min( dtEst, dtNon ) : dtEst;
-        maxAdvTimeStep_  = std::max( dtNon, maxAdvTimeStep_ );
-      }
+					dtEst = ( dtNon > 0 ) ? std::min( dtEst, dtNon ) : dtEst;
+					maxAdvTimeStep_  = std::max( dtNon, maxAdvTimeStep_ );
+				}
 
       // return the fastest wave from source terms
       return dtEst;
@@ -455,8 +454,8 @@ namespace Dune {
     {
       // advection
     
-	const double wave = BaseType :: 
-	  numericalFlux( it, time, faceQuadInner, faceQuadOuter,
+			const double wave = BaseType :: 
+				numericalFlux( it, time, faceQuadInner, faceQuadOuter,
                        quadPoint, uLeft, uRight, jacLeft, jacRight, 
                        gLeft, gRight, gDiffLeft, gDiffRight );
      
@@ -464,19 +463,19 @@ namespace Dune {
 
       double diffTimeStep = 0.0;
       if( diffusion ) 
-      {
-        RangeType dLeft, dRight;
-        diffTimeStep = 
-          diffFlux_.numericalFlux(it, *this,
-                                  time, faceQuadInner, faceQuadOuter, quadPoint,
-                                  uLeft[ uVar ], uRight[ uVar ], 
-                                   uLeft[ sigmaVar ], uRight[ sigmaVar ], 
-                                  dLeft, dRight,
-                                  gDiffLeft, gDiffRight);
+				{
+					RangeType dLeft, dRight;
+					diffTimeStep = 
+						diffFlux_.numericalFlux(it, *this,
+																		time, faceQuadInner, faceQuadOuter, quadPoint,
+																		uLeft[ uVar ], uRight[ uVar ], 
+																		uLeft[ sigmaVar ], uRight[ sigmaVar ], 
+																		dLeft, dRight,
+																		gDiffLeft, gDiffRight);
 
-        gLeft  += dLeft;
-        gRight += dRight;
-      }
+					gLeft  += dLeft;
+					gRight += dRight;
+				}
 
       gDiffLeft  = 0;
       gDiffRight = 0;
@@ -516,26 +515,26 @@ namespace Dune {
         model_.hasBoundaryValue( it, time, faceQuadInner.localPoint(0) );
 
       if( diffusion && hasBoundaryValue ) 
-      {
-        // diffusion boundary flux for Dirichlet boundaries 
-        RangeType dLeft;
-        diffTimeStep = diffFlux_.boundaryFlux(it, 
-                               *this, 
-                               time, faceQuadInner, quadPoint,
-                               uLeft[ uVar ], uBnd_, // is set during call of  BaseType::boundaryFlux
-                                uLeft[ sigmaVar ], 
-                               dLeft,
-                               gDiffLeft);
-        gLeft += dLeft;
-      }
+				{
+					// diffusion boundary flux for Dirichlet boundaries 
+					RangeType dLeft;
+					diffTimeStep = diffFlux_.boundaryFlux(it, 
+																								*this, 
+																								time, faceQuadInner, quadPoint,
+																								uLeft[ uVar ], uBnd_, // is set during call of  BaseType::boundaryFlux
+																								uLeft[ sigmaVar ], 
+																								dLeft,
+																								gDiffLeft);
+					gLeft += dLeft;
+				}
       else if ( diffusion )
-      {
-	abort();
-        RangeType diffBndFlux;
-        model_.diffusionBoundaryFlux( it, time, faceQuadInner.localPoint(quadPoint),
-                                      uLeft[uVar], jacLeft[uVar], diffBndFlux );
-        gLeft += diffBndFlux;
-      }
+				{
+					abort();
+					RangeType diffBndFlux;
+					model_.diffusionBoundaryFlux( it, time, faceQuadInner.localPoint(quadPoint),
+																				uLeft[uVar], jacLeft[uVar], diffBndFlux );
+					gLeft += diffBndFlux;
+				}
       else
         gDiffLeft = 0;
 
@@ -544,7 +543,7 @@ namespace Dune {
 
       return std::max( wave, diffTimeStep );
     }
-                                                  /*@LST0S@*/
+		/*@LST0S@*/
     /**
      * @brief analytical flux function$
      */
@@ -563,12 +562,12 @@ namespace Dune {
       // diffusion
       
       if( diffusion ) 
-      {
-        JacobianRangeType diffmatrix;
-        model_.diffusion(en, time, x, u[ uVar ], u[ sigmaVar ], diffmatrix);
-        // ldg case 
-        f += diffmatrix;
-      }
+				{
+					JacobianRangeType diffmatrix;
+					model_.diffusion(en, time, x, u[ uVar ], u[ sigmaVar ], diffmatrix);
+					// ldg case 
+					f += diffmatrix;
+				}
  
     }
   protected:
