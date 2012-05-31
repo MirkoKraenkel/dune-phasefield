@@ -54,12 +54,13 @@ namespace Dune {
 
     // Pass 3 Model (advection)
     typedef AdvectionDiffusionLDGModel< Model, NumFluxType, polOrd, u, acPass, gradPass, advection, diffusion >    DiscreteModel3Type;
+   
+		typedef typename DiscreteModel3Type :: DiffusionFluxType  DiffusionFluxType;
     
 		//Pass  2 (allen-cahn and chemical potential)
-    typedef ThetaModel< Model, polOrd, u, gradPass >  DiscreteModel2Type;
+    typedef ThetaModel< Model,DiffusionFluxType, polOrd, u, gradPass >  DiscreteModel2Type;
     
     // Pass 1 Model (gradient)
-    typedef typename DiscreteModel3Type :: DiffusionFluxType  DiffusionFluxType;
     typedef GradientModel<Model, DiffusionFluxType, polOrd, u >       DiscreteModel1Type;
     
                                                                        /*@LST0E@*/
@@ -103,13 +104,13 @@ namespace Dune {
       space2_(gridPart_),
       space3_(gridPart_),
       diffFlux_( gridPart_, model_ ),
-      problem1_(model_, diffFlux_ ),
-      problem2_(model_),
-      problem3_(model_, numflux_, diffFlux_),
+      discModel1_(model_, diffFlux_ ),
+      discModel2_(model_, diffFlux_),
+      discModel3_(model_, numflux_, diffFlux_),
       pass0_ (),
-      pass1_(problem1_, pass0_, space1_),    /*@\label{ad:initialisepass1}@*/
-      pass2_(problem2_, pass1_, space2_),     /*@\label{ad:initialisepass2}@*/
-      pass3_(problem3_, pass2_, space3_)     /*@\label{ad:initialisepass2}@*/
+      pass1_(discModel1_, pass0_, space1_),    /*@\label{ad:initialisepass1}@*/
+      pass2_(discModel2_, pass1_, space2_),     /*@\label{ad:initialisepass2}@*/
+      pass3_(discModel3_, pass2_, space3_)     /*@\label{ad:initialisepass2}@*/
     { }
 
     void setTime(const double time) {
@@ -149,11 +150,11 @@ namespace Dune {
 
     inline double maxAdvectionTimeStep() const 
     {
-      return problem3_.maxAdvectionTimeStep();
+      return discModel3_.maxAdvectionTimeStep();
     } 
     inline double maxDiffusionTimeStep() const 
     {
-      return problem3_.maxDiffusionTimeStep();
+      return discModel3_.maxDiffusionTimeStep();
     } 
 
     inline void limit(const DestinationType& arg,DestinationType& dest) const
@@ -205,9 +206,9 @@ namespace Dune {
     DiffusionFluxType   diffFlux_;
     
   private:
-    DiscreteModel1Type  problem1_;
-    DiscreteModel2Type  problem2_;
-    DiscreteModel3Type  problem3_;
+    DiscreteModel1Type  discModel1_;
+    DiscreteModel2Type  discModel2_;
+    DiscreteModel3Type  discModel3_;
    
     Pass0Type           pass0_;
     Pass1Type           pass1_;
@@ -411,15 +412,15 @@ namespace Dune {
       , fvSpc_( gridPart_ )
       , indicator_( "Indicator", fvSpc_ )
       , diffFlux_( gridPart_, model_ )
-      , problem1_( model_ )
-      , problem2_( model_, diffFlux_ )
-      , problem3_( model_, numflux_, diffFlux_ )
+      , discModel1_( model_ )
+      , discModel2_( model_, diffFlux_ )
+      , discModel3_( model_, numflux_, diffFlux_ )
       , pass0_()
-      , pass1_(problem1_, pass0_, space1_)    /*@\label{ad:initialisepass1}@*/
-      , pass2_(problem2_, pass1_, space2_)    /*@\label{ad:initialisepass1}@*/
-      , pass3_(problem3_, pass2_, space3_)     /*@\label{ad:initialisepass2}@*/
+      , pass1_(discModel1_, pass0_, space1_)    /*@\label{ad:initialisepass1}@*/
+      , pass2_(discModel2_, pass1_, space2_)    /*@\label{ad:initialisepass1}@*/
+      , pass3_(discModel3_, pass2_, space3_)     /*@\label{ad:initialisepass2}@*/
     {
-      problem1_.setIndicator( &indicator_ );
+      discModel1_.setIndicator( &indicator_ );
     }
 
     ~DGLimitedAdvectionDiffusionOperator() { delete uTmp_; }
@@ -503,9 +504,9 @@ namespace Dune {
     DiffusionFluxType   diffFlux_;
     
   private:
-    DiscreteModel1Type  problem1_;
-    DiscreteModel2Type  problem2_;
-    DiscreteModel3Type  problem3_;
+    DiscreteModel1Type  discModel1_;
+    DiscreteModel2Type  discModel2_;
+    DiscreteModel3Type  discModel3_;
     Pass0Type           pass0_;
     Pass1Type           pass1_;
     Pass2Type           pass2_;
