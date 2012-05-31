@@ -30,25 +30,24 @@ class PhaseFlux
     , delta_( problem.thermodynamics().delta()),
       gamma_( problem.gamma())
   {}
+
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
   inline void jacobian( const RangeType& u, JacobianFluxRangeType& du ) const;
   inline double maxSpeed( const DomainType& n, const RangeType& u ) const;
 
   inline void diffusion( const RangeType& u,
                          const GradientRangeType& du,
-		// 	 const GradientRangeType& tension
-			 JacobianRangeType& f ) const;
+												 JacobianRangeType& f ) const;
 
   template <class JacobianRangeImp>
   inline void diffusion( const RangeType& u,
-			 const JacobianRangeImp& du,
-		// 	 const JacobianRangeImp& tension,
-			 JacobianRangeType& f ) const;
+												 const JacobianRangeImp& du,
+												 JacobianRangeType& f ) const;
   
   template< class JacobianRangeImp >  
   inline void tension ( const RangeType& u,
-			const JacobianRangeImp& du,
-			GradientRangeType& f ) const;
+												const JacobianRangeImp& du,
+												GradientRangeType& f ) const;
 
  
 
@@ -61,10 +60,6 @@ private:
   const PhaseProblemType& problem_;
   const  double delta_;
   const double gamma_;
-//   const double R_d_inv_;
-//   const double Re_inv_;
-//   const double c_v_inv_;
-//   const double c_v_;
 };
 
 

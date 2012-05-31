@@ -13,7 +13,12 @@
 
 // local includes
 // #include "idealthermodynamics2interpol.hh"
+#if WELLBALANCED
+#include "thermodynamicsbase.hh"
+#else
 #include "thermoequal.hh"
+#endif
+
 #include <dune/fem/probleminterfaces.hh>
 
 

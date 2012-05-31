@@ -36,6 +36,7 @@ namespace Dune {
 		typedef FieldVector< double, dimDomain >                  DomainType;
 		typedef FieldVector< double, dimDomain - 1 >              FaceDomainType;
 		typedef FieldVector< double, dimRange >                   RangeType;
+		typedef FieldVector< double, 2 >                          ThetaRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientType;
 		typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientRangeType;
@@ -118,10 +119,47 @@ namespace Dune {
 															 , const RangeType& u
 															 , RangeType& s ) const 
 		{
-   
 			const DomainType& xgl = en.geometry().global(x);
 			return problem_.stiffSource( time, xgl,u, s );
 		}
+		
+
+
+
+
+		
+
+		inline double thetaSource( const EntityType& en,
+															 const double time,
+															 const DomainType& x,
+															 const RangeType& u,
+															 const GradientRangeType& du,
+															 ThetaRangeType & s) const
+		{
+			return thetaSource( en, time, x, u, s );
+		}
+		
+
+ 
+
+		inline double thetaSource( const EntityType& en
+															 , const double time
+															 , const DomainType& x
+															 , const RangeType& u
+															 , ThetaRangeType& s ) const 
+		{
+			const DomainType& xgl = en.geometry().global(x);
+			double mu,reaction;
+			thermodynamics_.chemPotAndReaction(u,mu,reaction);
+			s[0]=reaction;
+			s[1]=mu;
+		}
+
+
+
+		
+
+
 
  
 
