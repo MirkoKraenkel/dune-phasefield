@@ -7,9 +7,7 @@
 
 // local includes
 #include <dune/fem-dg/models/defaultmodel.hh>
-//#include "phase_model_spec_rhoinv.hh"
 #include "phase_model_spec.hh"
-//#include "phase_model_spec_rho.hh"
 
 namespace Dune {
 
@@ -30,8 +28,9 @@ class PhaseModelTraits
   typedef typename GridPart :: GridType                     GridType;
   enum { dimDomain = GridType :: dimensionworld };
   enum { dimRange = dimDomain + 2 };
-  enum { dimGradRange = dimRange * dimDomain };
-  enum { dimGradient = dimDomain + 1 };
+  enum { dimScalGradRange = dimDomain };
+	enum { dimGradRange = dimRange * dimDomain };
+	enum { dimGradient = dimDomain + 1 };
   
   typedef FieldVector< double, dimDomain >                  DomainType;
   typedef FieldVector< double, dimDomain - 1 >              FaceDomainType;
@@ -39,7 +38,8 @@ class PhaseModelTraits
   typedef FieldVector< double, dimGradRange >               GradientType;
   typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
   typedef FieldVector< double, dimGradRange >               GradientRangeType;
-  typedef FieldMatrix< double, dimRange, dimDomain >        JacobianRangeType;
+  typedef FieldVector< double, dimScalGradRange >           ScalarGradientRangeType;
+	typedef FieldMatrix< double, dimRange, dimDomain >        JacobianRangeType;
   typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
 
   typedef typename GridPart :: IntersectionIteratorType     IntersectionIterator;
