@@ -1,5 +1,5 @@
-#ifndef DUNE_FEM_DG_FLUXPROJOPERATOR_HH
-#define DUNE_FEM_DG_FLUXPROJOPERATOR_HH
+#ifndef DUNE_FEM_DG_WELLBALOPERATOR_HH
+#define DUNE_FEM_DG_WELLBALOPERATOR_HH
 
 #include <string>
 
@@ -18,17 +18,14 @@
 //             but it was design in that way. to be removed later!!!!!!
 // local includes
 #include <dune/fem-dg/operator/dg/primaldiscretemodel.hh>
-//#include <dune/fem-dg/operator/dg/fluxdiscretemodel.hh>
-#include "fluxprojdiscretemodel.hh" 
+
+#include "wellbalanceddiscretemodel.hh" 
+
 #include <dune/fem-dg/operator/dg/operatorbase.hh>
 #include <dune/fem-dg/pass/dgpass.hh>
 
-
 namespace Dune {  
-
-  // DGAdvectionDiffusionOperator
-  //-----------------------------
-
+	
   template< class Model, class NumFlux, 
             DGDiffusionFluxIdentifier diffFluxId,
             int polOrd, bool advection = true , bool diffusion = true >
@@ -37,9 +34,9 @@ namespace Dune {
     < typename PassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
     // Id's for the three Passes (including StartPass)
-    enum PassIdType { u, gradPass, projPass,advectPass };    /*@\label{ad:passids}@*/
-    
-  public:
+    enum PassIdType { u, gradPass, acPass,navstkPass };    
+ 
+ public:
     enum { dimRange =  Model::dimRange };
     enum { dimDomain = Model::Traits::dimDomain };
     
@@ -56,9 +53,10 @@ namespace Dune {
     typedef typename IndicatorType::DiscreteFunctionSpaceType        IndicatorSpaceType;
 
     // Pass 3 Model (advection)
-    typedef AdvectionDiffusionLDGModel< Model, NumFluxType, polOrd, u, projPass, gradPass, advection, diffusion >    DiscreteModel3Type;
+    typedef AdvectionDiffusionLDGModel< Model, NumFluxType, polOrd, u, acPass, gradPass, advection, diffusion >    DiscreteModel3Type;
     
-    typedef ProjectionModel< Model, polOrd, u, gradPass >  DiscreteModel2Type;
+		//Pass  2 (allen-cahn and chemical potential)
+    typedef ThetaModel< Model, polOrd, u, gradPass >  DiscreteModel2Type;
     
     // Pass 1 Model (gradient)
     typedef typename DiscreteModel3Type :: DiffusionFluxType  DiffusionFluxType;
@@ -92,8 +90,8 @@ namespace Dune {
     
 
     typedef LocalCDGPass< DiscreteModel1Type, Pass0Type, gradPass >    Pass1Type; /*@\label{ad:typedefpass1}@*/
-    typedef LocalCDGPass< DiscreteModel2Type, Pass1Type, projPass >    Pass2Type; /*@\label{ad:typedefpass1}@*/
-    typedef LocalCDGPass< DiscreteModel3Type, Pass2Type, advectPass >  Pass3Type; /*@\label{ad:typedefpass2}@*//*@LST0E@*/
+    typedef LocalCDGPass< DiscreteModel2Type, Pass1Type, acPass >    Pass2Type; /*@\label{ad:typedefpass1}@*/
+    typedef LocalCDGPass< DiscreteModel3Type, Pass2Type, navstkPass >  Pass3Type; /*@\label{ad:typedefpass2}@*//*@LST0E@*/
     
   public:
     DGAdvectionDiffusionOperator( GridType& grid , const NumFluxType& numf ) :
@@ -261,10 +259,6 @@ namespace Dune {
       std::stringstream stream;
       stream <<"{\\bf Adv. Op.}, flux formulation, order: " << polOrd+1
              <<", {\\bf Adv. Flux:} ";
-      if (FLUX==1)
-        stream <<"LLF";
-      else if (FLUX==2)
-        stream <<"HLL";
       stream <<",\\\\\n";
       return stream.str();
     }
@@ -325,7 +319,7 @@ namespace Dune {
     public SpaceOperatorInterface 
       < typename PassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
-    enum PassIdType { u, limitPassId, gradPassId, advectPassId };    /*@\label{ad:passids}@*/
+    enum PassIdType { u, limitPassId, gradPassId, navstkPassId };    /*@\label{ad:passids}@*/
 
   public:
     enum { dimRange = Model::dimRange };
@@ -334,7 +328,7 @@ namespace Dune {
     typedef NumFlux NumFluxType;
     typedef PassTraits< Model, dimRange, polOrd > PassTraitsType;
 
-    // Pass 2 Model (advectPassId)
+    // Pass 2 Model (navstkPassId)
     typedef AdvectionDiffusionLDGModel
       < Model, NumFluxType, polOrd, limitPassId, gradPassId, advection, true > DiscreteModel3Type;
 
@@ -372,7 +366,7 @@ namespace Dune {
     typedef StartPass< DiscreteFunction3Type, u >                      Pass0Type; /*@LST0S@*/
     typedef LimitDGPass< DiscreteModel1Type, Pass0Type, limitPassId >    Pass1Type; /*@\label{ad:typedefpass1}@*/
     typedef LocalCDGPass< DiscreteModel2Type, Pass1Type, gradPassId >    Pass2Type; /*@\label{ad:typedefpass1}@*/
-    typedef LocalCDGPass< DiscreteModel3Type, Pass2Type, advectPassId >  Pass3Type; /*@\label{ad:typedefpass2}@*//*@LST0E@*/
+    typedef LocalCDGPass< DiscreteModel3Type, Pass2Type, navstkPassId >  Pass3Type; /*@\label{ad:typedefpass2}@*//*@LST0E@*/
 
     typedef typename PassTraitsType::IndicatorType                     IndicatorType;
     typedef typename IndicatorType::DiscreteFunctionSpaceType          IndicatorSpaceType;

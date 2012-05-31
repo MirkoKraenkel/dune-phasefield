@@ -68,7 +68,7 @@ void setupAdditionalVariables( const ConsDiscreteFunctionType& consDF,
       const DomainType& xgl = geo.global( quad.point(qP) );
       // evaluate conservative variables
       consLF.evaluate( quad[qP], cons );
-      model.conservativeToPrimitive( xgl, cons, prim );
+     //  model.conservativeToPrimitive( xgl, cons, prim );
    
       prim *=  quad.weight(qP);
       primLF.axpy( quad[qP] , prim );

@@ -14,7 +14,7 @@
 // local includes
 // #include "idealthermodynamics2interpol.hh"
 #if WELLBALANCED
-#include "thermodynamicsbase.hh"
+#include "thermodynamicswb.hh"
 #else
 #include "thermoequal.hh"
 #endif
@@ -144,7 +144,7 @@ inline double PhaseWaves<GridType>
 :: stiffSource( const double t, const DomainType& x, const RangeType& u,RangeType& res ) const
 {
   double p,Wphi;
-  thermodynamics().pressAndTempEnergyForm(u,p,Wphi);
+  // thermodynamics().pressAndTempEnergyForm(u,p,Wphi);
   res[0]=0;
   res[1]=0;
   res[2]=Wphi;
@@ -203,7 +203,7 @@ template< class RangeImp >
 inline void PhaseWaves<GridType>
 :: pressAndTemp( const RangeImp& u, double& p, double& T ) const
 {
-  thermodynamics().pressAndTempEnergyForm( u, p, T );
+ //  thermodynamics().pressAndTempEnergyForm( u, p, T );
 }
 
 

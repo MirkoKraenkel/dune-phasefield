@@ -34,6 +34,8 @@ static double minRatioOfSums = 1e+100;
 
 #if NONCON
 #include <dune/fem/operator/fluxoperator.hh>
+#elif WELLBALANCED
+#include <dune/fem/operator/wellbalancedoperator.hh>
 #else
 #include <dune/fem/operator/fluxprojoperator.hh>
 #endif

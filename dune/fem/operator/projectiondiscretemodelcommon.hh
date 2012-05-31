@@ -16,7 +16,11 @@
 
 // local includes
 #include <dune/fem-dg/operator/limiter/limiter.hh>
+#if WELLBALANCED
+#include <dune/fem/fluxes/ldgfluxwellbalanced.hh>
+#else
 #include <dune/fem/fluxes/ldgfluxtheta.hh>
+#endif
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
 
 namespace Dune {
@@ -41,18 +45,17 @@ namespace Dune {
     typedef FunctionSpace< ctype, double, dimDomain, dimRange >      FunctionSpaceType;
     typedef FunctionSpace< ctype, double, dimDomain, 1 >      ScalarFunctionSpaceType;
     
-    typedef DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,CachingStorage >             DiscreteFunctionSpaceType;
-  
-    typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage >      ScalarDiscreteFunctionSpaceType;
+    typedef DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,CachingStorage >         DiscreteFunctionSpaceType;
+		typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage > ScalarDiscreteFunctionSpaceType;
 
-  typedef AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >    DestinationType;
-  typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >    ScalarDFType;
-  // Indicator for Limiter
-  typedef FunctionSpace< ctype, double, dimDomain, 3> FVFunctionSpaceType;
-  typedef FiniteVolumeSpace<FVFunctionSpaceType,GridPartType, 0, SimpleStorage> IndicatorSpaceType;
-  typedef AdaptiveDiscreteFunction<IndicatorSpaceType> IndicatorType;
-  
-  typedef AdaptationHandler< GridType, FunctionSpaceType >  AdaptationHandlerType ;
+		typedef AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >    DestinationType;
+		typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >    ScalarDFType;
+	
+		// Indicator for Limiter
+		typedef FunctionSpace< ctype, double, dimDomain, 3> FVFunctionSpaceType;
+		typedef FiniteVolumeSpace<FVFunctionSpaceType,GridPartType, 0, SimpleStorage> IndicatorSpaceType;
+		typedef AdaptiveDiscreteFunction<IndicatorSpaceType> IndicatorType;
+		typedef AdaptationHandler< GridType, FunctionSpaceType >  AdaptationHandlerType ;
 };
 
 // AdvectionProjModel
@@ -299,12 +302,10 @@ public:
     gDiffRight = 0;
     if( advection ) 
       {
-	// std::cout<<"discretemodelcommon advection\n";
-	double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
-                                            time, faceQuadInner, faceQuadOuter, quadPoint, 
- 					    uLeft[ uVar ], uRight[ uVar ],gLeft, gRight);
-
-	return ldt ;
+				double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
+																						time, faceQuadInner, faceQuadOuter, quadPoint, 
+																			uLeft[ uVar ], uRight[ uVar ],gLeft, gRight);
+				return ldt ;
       }
     else 
       {
@@ -686,7 +687,7 @@ public:
 	    class ArgumentTuple, class JacobianTuple>
   double boundaryFlux(const Intersection& it,
 		      const double time, 
-		      const QuadratureImp& faceQuadInner,
+											const QuadratureImp& faceQuadInner,
 		      const int quadPoint,
 		      const ArgumentTuple& uLeft,
 		      const JacobianTuple& jacLeft,
@@ -734,7 +735,7 @@ public:
    */
   template <class ArgumentTuple, class JacobianTuple >
   void analyticalFlux( const EntityType& en,
-		       const double time, 
+											 const double time, 
 		       const DomainType& x,
 		       const ArgumentTuple& u, 
 		       const JacobianTuple& jac, 
@@ -743,12 +744,12 @@ public:
       
     if( advection ) 
       {
-	model_.advection(en, time, x, u[ uVar ],u[sigmaVar], f);
+				model_.advection(en, time, x, u[ uVar ],u[sigmaVar], f);
       }
     else 
       {
-	abort();
-	f = 0;
+				abort();
+				f = 0;
       }
   }
 

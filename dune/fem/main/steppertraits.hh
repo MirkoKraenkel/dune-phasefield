@@ -39,7 +39,7 @@ struct StepperTraits
 
   // The discrete function for the unknown solution is defined in the DgOperator
   typedef typename DgType :: DestinationType                         DiscreteFunctionType;
-  typedef typename DgType :: Destination2Type                        DiscreteGradientType;
+  typedef typename DgType :: Destination1Type                        DiscreteGradientType;
   typedef typename DgType :: ScalarDFType                            ScalarDFType;
 
   // The indicator function in case of limiting 

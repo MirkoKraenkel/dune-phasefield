@@ -1,5 +1,6 @@
 #ifndef DUNE_THERMODYNAMICS_HH
 #define DUNE_THERMODYNAMICS_HH
+#warning "Fagg it"
 
 // system include
 #include <cmath>
@@ -17,7 +18,7 @@ using namespace Dune;
 template< int dimDomain >
 class Thermodynamics
 {
-  enum{ energyId = dimDomain+1 };
+  enum{ phaseId = dimDomain+1 };
 
 public:
   Thermodynamics():
@@ -40,7 +41,19 @@ public:
 
   inline double reactionSource(double& rho,double& phi) const
   { 
-    return 0.;
+    
+		double t1;
+		double t10;
+		double t2;
+		double t4;
+		double t9;
+		
+		t1 = phi-1.0;
+		t2 = t1*t1;
+		t4 = pow(rho-c2_,2);
+		t9 = pow(rho-c1_,2);
+		t10 = phi*phi;
+		return(2.0*phi*(t2+t4)+2.0*(t9+t10)*t1);
 	}
   
 
@@ -48,7 +61,24 @@ public:
   inline double chemicalPotential(double& rho,double& phi)
     const
   {
-		return 0.;
+	 double t1;
+  double t10;
+  double t4;
+  double t5;
+  double t6;
+  double t9;
+  {
+    t1 = rho-c1_;
+    t4 = pow(phi-1.0,2.0);
+    t5 = rho-c2_;
+    t6 = t5*t5;
+    t9 = t1*t1;
+    t10 = phi*phi;
+    return(2.0*t1*(t4+t6)+2.0*(t9+t10)*t5);
+  }
+
+			
+	
 	}
 
 
@@ -66,8 +96,7 @@ public:
 		phi/=rho;
 		
     mu=chemicalPotential(rho,phi);
-    
-    reaction=reactionSource(rho,phi); 
+		reaction=reactionSource(rho,phi); 
     reaction*=-1.;
   
    //  assert( p > 1e-20 );
@@ -94,7 +123,7 @@ public:
   {
     // cons = [rho, rho*v, rho*theta]  
     assert( cons[0] > 1e-20 );
-    assert( cons[energyId] > 1e-20 ); 
+    assert( cons[phaseId] > 1e-20 ); 
 
     
    //  std::cout<<"pressure="<<p<<"\n";
@@ -170,9 +199,9 @@ void Thermodynamics< dimDomain >
   //double p, T;
   //pressAndTempEnergyForm( cons, p, T );
 
-  //prim[energyId-1] = p;
+  //prim[phaseId-1] = p;
   // this is not pot. temp !!!!!!!
-  //prim[energyId] = cons[energyId]/cons[0];
+  //prim[phaseId] = cons[phaseId]/cons[0];
 }
 
 
@@ -198,13 +227,13 @@ void Thermodynamics< dimDomain >
   assert( cons[0] > 0. );
   
   double p, T;
-  pressAndTempEnergyForm( cons, p, T );
+ //  pressAndTempEnergyForm( cons, p, T );
 
   for( int i = 0; i < dimDomain; ++i )
     prim[i] = cons[i+1]/cons[0];
 
-  prim[energyId-1] = p;
-  prim[energyId] = cons[energyId] / cons[0];
+  prim[phaseId-1] = p;
+  prim[phaseId] = cons[phaseId] / cons[0];
 }
 
 

@@ -25,7 +25,11 @@
 #endif
 
 #include "problemtype.hh"
+#if WELLBALANCED
+#include "phase_model_wb.hh"
+#else
 #include "phase_model.hh"
+#endif
 
 
 

@@ -1,13 +1,15 @@
 #ifndef WB_MODEL_HH
 #define WB_MODEL_HH
 
+
+
 // DUNE includes
 #include <dune/common/version.hh>
 #include <dune/fem/misc/fmatrixconverter.hh>
 
 // local includes
 #include <dune/fem-dg/models/defaultmodel.hh>
-#include "phase_model_wb_spec.hh"
+#include "phase_model_spec_wb.hh"
 
 namespace Dune {
 
@@ -38,13 +40,14 @@ namespace Dune {
 		typedef FieldVector< double, dimRange >                   RangeType;
 		typedef FieldVector< double, 2 >                          ThetaRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientType;
+		typedef FieldVector< double, dimScalGradRange >           ThetaGradientRangeType;
+		
 		typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientRangeType;
 		typedef FieldMatrix< double, dimRange, dimDomain >        JacobianRangeType;
 		
 		//For the Ac-equation 1dim reaction diffusion
-		typedef FieldVector< double, dimScalGradRange >           ScalarGradientRangeType;
-		typedef FieldMatrix< double, 1, dimDomain >               ScalarJacobianRangeType;
+		typedef FieldMatrix< double, 1, dimDomain >               ThetaJacobianRangeType;
 		
 
 		typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
@@ -79,9 +82,17 @@ namespace Dune {
 		typedef typename Traits :: FaceDomainType                 FaceDomainType;
 
 		typedef typename Traits :: DomainType                     DomainType;
+
 		typedef typename Traits :: RangeType                      RangeType;
 		typedef typename Traits :: GradientRangeType              GradientRangeType;
 		typedef typename Traits :: JacobianRangeType              JacobianRangeType;
+	
+		typedef typename Traits :: ThetaRangeType                 ThetaRangeType;
+		typedef typename Traits :: ThetaGradientRangeType         ThetaGradientRangeType;
+		typedef typename Traits :: ThetaJacobianRangeType         ThetaJacobianRangeType;
+	
+		
+
 		typedef typename Traits :: JacobianFluxRangeType          JacobianFluxRangeType;
 		typedef typename Traits :: ThermodynamicsType             ThermodynamicsType;
 
@@ -215,8 +226,8 @@ namespace Dune {
 			// get value of mu at temperature T
 			double p;
 			double T;
-			pressAndTemp( u, p, T );
-			// get mu 
+// 			pressAndTemp( u, p, T );
+ 			// get mu 
 			const double mu = problem_.mu(  );
 
 			// ksi = 0.25 
@@ -326,12 +337,12 @@ namespace Dune {
 														 const double time,
 														 const DomainType& x,
 														 const RangeType& u,
-														 const ScalarGradientRangeType& v,
+														 const ThetaGradientRangeType& v,
 														 JacobianRangeType& diff ) const
 		{
-			FieldMatrixConverter< ScalarGradientRangeType, ScalarJacobianRangeType> jac( v );
+			FieldMatrixConverter< ThetaGradientRangeType, ThetaJacobianRangeType> jac( v );
    
-			diffusion( en, time, x, u, jac,diff );
+			allenCahndiffusion( en, time, x, u, jac,diff );
 		}
 
 
@@ -341,9 +352,10 @@ namespace Dune {
 										const DomainType& x,
 										const RangeType& u,
 										const JacobianRangeImp& jac,
-										ScalarJacobianRangeType& diff ) const
+										ThetaJacobianRangeType& diff ) const
 		{
-			nsFlux_.diffusion( u, jac, diff );
+			diff=jac;
+			diff*=thermodynamics_.delta();
 		}
 	
 
@@ -363,17 +375,17 @@ namespace Dune {
 			return 0.;
 		}
 
-		inline void pressAndTemp( const RangeType& u, double& p, double& T ) const
-		{
-			thermodynamics_.pressAndTempEnergyForm( u, p, T );
-		}
+	// 	inline void pressAndTemp( const RangeType& u, double& p, double& T ) const
+// 		{
+// 			thermodynamics_.pressAndTempEnergyForm( u, p, T );
+// 		}
 
-		inline void conservativeToPrimitive( const DomainType& xgl,
-																				 const RangeType& cons, 
-																				 RangeType& prim ) const
-		{
-			thermodynamics_.conservativeToPrimitiveThetaForm( cons, prim );
-		}
+// 		inline void conservativeToPrimitive( const DomainType& xgl,
+// 																				 const RangeType& cons, 
+// 																				 RangeType& prim ) const
+// 		{
+// 			thermodynamics_.conservativeToPrimitiveThetaForm( cons, prim );
+// 		}
 		inline void totalEnergy( const DomainType& xgl,
 														 const RangeType& cons, 
 														 const GradientRangeType& grad,
