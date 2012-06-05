@@ -14,7 +14,7 @@ SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 #GRIDTYPE = ALUGRID_CONFORM
 GRIDTYPE=SPGRID
 #GRIDTYPE = YASPGRID
-GRIDDIM = 2 
+GRIDDIM = 1 
 POLORDER= 1
 
 PROBLEM = 1 # check ./problemtype.hh

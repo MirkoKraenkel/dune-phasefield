@@ -43,13 +43,13 @@ namespace Dune {
  
     // Allow generalization to systems
     typedef FunctionSpace< ctype, double, dimDomain, dimRange >      FunctionSpaceType;
-    typedef FunctionSpace< ctype, double, dimDomain, 1 >      ScalarFunctionSpaceType;
+    typedef FunctionSpace< ctype, double, dimDomain, 1 >             ScalarFunctionSpaceType;
     
     typedef DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,CachingStorage >         DiscreteFunctionSpaceType;
-		typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage > ScalarDiscreteFunctionSpaceType;
+		typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage >   ScalarDiscreteFunctionSpaceType;
 
-		typedef AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >    DestinationType;
-		typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >    ScalarDFType;
+		typedef AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >         DestinationType;
+		typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >   ScalarDFType;
 	
 		// Indicator for Limiter
 		typedef FunctionSpace< ctype, double, dimDomain, 3> FVFunctionSpaceType;
@@ -788,6 +788,7 @@ protected:
 // AdaptiveAdvectionModel
 //
 //////////////////////////////////////////////////////
+#if 0
 template< class Model, 
 	  class NumFlux, 
 	  int polOrd, int passUId, int passGradId,
@@ -1028,6 +1029,7 @@ protected:
   double weight_ ;
 };                                             
 
+#endif
 
 
 

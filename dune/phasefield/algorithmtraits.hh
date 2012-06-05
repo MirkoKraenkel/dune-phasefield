@@ -8,22 +8,23 @@
 
 
 template <class GridImp,
-          class ProblemTraits, 
+          class ProblemGeneratorImp, 
           int polOrd>             
-struct StepperTraits 
+struct AlgorithmTraitsTraits 
 {
   enum { polynomialOrder = polOrd };
 
   // type of Grid
   typedef GridImp                                  GridType;
+	typedef ProblemGeneratorImp                      ProblemGeneratorType;
 
   // Choose a suitable GridView
   typedef Dune :: DGAdaptiveLeafGridPart< GridType >       GridPartType;
 
   // problem dependent types 
-  typedef typename ProblemTraits :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
-  typedef typename ProblemTraits :: template Traits< GridPartType > :: ModelType        ModelType;
-  typedef typename ProblemTraits :: template Traits< GridPartType > :: FluxType         FluxType;
+  typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
+  typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: ModelType        ModelType;
+  typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: FluxType         FluxType;
 
 	typedef Dune :: WellBalancedPhasefieldOperatorr< ModelType, FluxType,DiffusionFluxId,  polynomialOrder >         DiscreteOpType;
 	

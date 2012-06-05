@@ -1,5 +1,5 @@
-#ifndef DUNE_FEM_DG_WELLBALFLUXDISCRETEMODEL_HH
-#define DUNE_FEM_DG_WELLBALFLUXDISCRETEMODEL_HH
+#ifndef DUNE_PHASEFIELD_WELLBALANCEDDISCRETEMODEL_HH
+#define DUNE_PHASEFIELD_WELLBALANCEDDISCRETEMODEL_HH
 
 // Dune includes
 #include <dune/fem/gridpart/common/gridpart.hh>
@@ -60,14 +60,13 @@ namespace Dune {
   // GradientModel
   //--------------
 
-  template <class Model, class NumFlux, int polOrd, int passUId> /*@LST1S@*/
+  template <class Model, class NumFlux, int polOrd, int passUId> 
   class GradientModel :
     public DGDiscreteModelDefaultWithInsideOutside
 		<GradientTraits<Model, NumFlux, polOrd, passUId>, passUId >
   {
     typedef DGDiscreteModelDefaultWithInsideOutside
-		< GradientTraits< Model, NumFlux, polOrd, passUId >,
-			passUId > BaseType                                   ;
+		<GradientTraits< Model, NumFlux, polOrd, passUId >,passUId > BaseType;
 
     using BaseType :: inside;
     using BaseType :: outside;
@@ -102,10 +101,6 @@ namespace Dune {
       gradientFlux_( numf ),
       cflDiffinv_( 2.0 * ( polOrd + 1) )
     {
-#if defined TESTOPERATOR
-			std::cerr <<"didn't test how to use TESTOPERATOR with dual formulation";
-			abort();
-#endif
     }
 
     bool hasSource() const { return false; }
@@ -247,502 +242,319 @@ namespace Dune {
 
 
 
-  //////////////////////////////////////////////////////
-  //
-  // ProjectionModel
-  //
-  //////////////////////////////////////////////////////
-
-	    
-  template< class Model,class NumFlux, 
-						int polOrd, int passUId, int passGradId> 
-						class ThetaModel;
 
 
 
-template <class Model,class NumFlux,int polOrd, int passUId, int passGradId>
-struct ThetaTraits
-{
-	typedef typename Model :: Traits                                 ModelTraits;
-	typedef typename ModelTraits :: GridType                         GridType;
+	// AdvectionDiffusionLDGModel
+	//---------------------------
 
-	enum { dimRange = 2 };
-	enum { dimDomain = ModelTraits::dimDomain };
-
-	typedef PassTraits< Model, dimRange, polOrd >                    Traits;
-	typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
-
-	typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
-	typedef typename Traits :: FaceQuadratureType                    FaceQuadratureType;
-	typedef typename Traits :: GridPartType                          GridPartType;
-	typedef typename Traits :: DiscreteFunctionSpaceType             DiscreteFunctionSpaceType;
-	typedef typename Traits :: DestinationType                       DestinationType;
-	typedef DestinationType                                          DiscreteFunctionType;
-	typedef typename Traits :: IndicatorType                         IndicatorType;
-
-	typedef typename DestinationType :: DomainType                   DomainType;
-	typedef typename DestinationType :: RangeType                    RangeType;
-	typedef typename DestinationType :: RangeFieldType               RangeFieldType;
-	typedef typename DestinationType :: DomainFieldType              DomainFieldType;
-	typedef typename DestinationType :: JacobianRangeType            JacobianRangeType;
-
-	typedef typename Traits :: AdaptationHandlerType  AdaptationHandlerType ;
-
-	typedef ThetaModel< Model,NumFlux, polOrd, passUId, passGradId >       DGDiscreteModelType;
-};
+	template< class Model, 
+						class NumFlux, 
+						int polOrd, int passUId,int passProjId,int passGradId,
+						bool advectionPartExists, bool diffusionPartExists >
+	class AdvectionDiffusionLDGModel;
 
 
-
-template<class Model,class NumFlux,int polOrd, int passUId,int passGradId>
-class ThetaModel:
-	public DGDiscreteModelDefault
-	<ThetaTraits<Model,NumFlux,polOrd,passUId,passGradId>,passUId,passGradId>
-{
-	typedef DGDiscreteModelDefault< ThetaTraits< Model,NumFlux,polOrd,passUId,passGradId> , passUId,passGradId > BaseType ;  
-	integral_constant< int, passUId > uVar;
-	integral_constant< int, passGradId > sigmaVar;
-
-public:
-	typedef ThetaTraits< Model,NumFlux, polOrd, passUId,passGradId >        Traits;
-	typedef FieldVector< double, Traits :: dimDomain >               DomainType;
-	typedef typename Traits :: RangeType                             RangeType;
-	typedef typename Traits :: JacobianRangeType                     JacobianRangeType;
-    
-	typedef typename Traits :: GridType                              GridType; 
-	typedef typename GridType :: template Codim< 0 > :: Entity       EntityType;
- 
-	typedef typename Traits :: GridPartType
-	:: IntersectionIteratorType                            IntersectionIterator;
-	typedef typename IntersectionIterator :: Intersection            Intersection;
-
-	enum { evaluateJacobian = false };
-	static const bool ApplyInverseMassOperator = true;
-
-public:
-    
-	ThetaModel(const Model& mod,const NumFlux& numf):
-		model_(mod),
-		numFlux_(numf){}
-      
-	bool hasSource() const { return true; } 
-	bool hasFlux() const { return true; } 
+	// AdvectionDiffusionLDGTraits
+	//----------------------------
   
-	template <class ArgumentTuple, class JacobianTuple>
-	double source( const EntityType& en, 
-								 const double time,
-								 const DomainType& x,
-								 const ArgumentTuple& u,
-								 const JacobianTuple& jac, 
-								 RangeType& s )
-	{ 
-			
-		s = 0;
-			
-		double dtEst = std::numeric_limits< double > :: max();
-			
-		const double dtStiff = model_.thetaSource( en, time, x, u[uVar], u[sigmaVar], s );
-			
-		return dtStiff;
-	} 
-
-	template <class QuadratureImp, class ArgumentTupleVector > 
-	void initializeIntersection(const Intersection& it,
-															const double time,
-															const QuadratureImp& quadInner, 
-															const QuadratureImp& quadOuter,
-															const ArgumentTupleVector& uLeftVec,
-															const ArgumentTupleVector& uRightVec) 
-	{
-	}
-
-	template <class QuadratureImp, class ArgumentTupleVector > 
-	void initializeBoundary(const Intersection& it,
-													const double time,
-													const QuadratureImp& quadInner, 
-													const ArgumentTupleVector& uLeftVec)
-	{
-	}
-
-	template <class QuadratureImp,class ArgumentTuple, class JacobianTuple>
-	double boundaryFlux(const Intersection& it,
-											double time, 
-											const QuadratureImp& faceQuadInner,
-											const int quadPoint,
-											const ArgumentTuple& uLeft,
-											const JacobianTuple& jacLeft,
-											RangeType& gLeft,
-											JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
-	{
-		return 0;
-	}
-
-	template <class ArgumentTuple, class JacobianTuple>    /*@LST1S@*/
-	void analyticalFlux(const EntityType& en,
-											const double time, const DomainType& x,
-											const ArgumentTuple& u, 
-											const JacobianTuple& jac,
-											JacobianRangeType& f)
-	{
-    
-	}                                
-	template< class QuadratureImp,
-						class ArgumentTuple, 
-						class JacobianTuple >          /*@LST0S@*/
-	double numericalFlux(const Intersection& it,
-											 const double time,
-											 const QuadratureImp& faceQuadInner,
-											 const QuadratureImp& faceQuadOuter,
-											 const int quadPoint, 
-											 const ArgumentTuple& uLeft,
-											 const ArgumentTuple& uRight,
-											 const JacobianTuple& jacLeft,
-											 const JacobianTuple& jacRight,
-											 RangeType& gLeft,
-											 RangeType& gRight,
-											 JacobianRangeType& gDiffLeft,
-											 JacobianRangeType& gDiffRight )
-	{
-									
-		RangeType dLeft, dRight;
-		
- 		double diffTimeStep =0.; 
-//numFlux_.allenCahnNumericalFlux(it, *this,
-// 																													 time, faceQuadInner, faceQuadOuter, quadPoint,
-// 																													 uLeft[ uVar ], uRight[ uVar ], 
-// 																													 uLeft[ sigmaVar ], uRight[ sigmaVar ], 
-// 																													 dLeft, dRight,
-// 																													 gDiffLeft, gDiffRight);
-				
-		gLeft  += dLeft;
-		gRight += dRight;
-		
-
-
-
-		return diffTimeStep;
-	}
-
-
-
-
-
-private:
-	const Model& model_;
-	const NumFlux & numFlux_;
-};
-
-
-// AdvectionDiffusionLDGModel
-//---------------------------
-
-template< class Model, 
-					class NumFlux, 
-					int polOrd, int passUId,int passProjId,int passGradId,
-					bool advectionPartExists, bool diffusionPartExists >
-class AdvectionDiffusionLDGModel;
-
-
-// AdvectionDiffusionLDGTraits
-//----------------------------
-  
-template <class Model, class NumFlux,
-					int polOrd, int passUId, int passProjId, int passGradId, 
-					bool advectionPartExists, bool diffusionPartExists >
-struct AdvectionDiffusionLDGTraits 
-	: public AdvectionProjTraits< Model, NumFlux, polOrd, passUId,passProjId, passGradId, advectionPartExists>
+	template <class Model, class NumFlux,
+						int polOrd, int passUId, int passProjId, int passGradId, 
+						bool advectionPartExists, bool diffusionPartExists >
+	struct AdvectionDiffusionLDGTraits 
+		: public AdvectionProjTraits< Model, NumFlux, polOrd, passUId,passProjId, passGradId, advectionPartExists>
           
-{
-	typedef AdvectionDiffusionLDGModel
-	< Model, NumFlux, polOrd, passUId,passProjId, passGradId, 
-		advectionPartExists, diffusionPartExists >                   DGDiscreteModelType;
-};
+	{
+		typedef AdvectionDiffusionLDGModel
+		< Model, NumFlux, polOrd, passUId,passProjId, passGradId, 
+			advectionPartExists, diffusionPartExists >                   DGDiscreteModelType;
+	};
 
 
-// AdvectionDiffusionLDGModel
-//---------------------------
+	// AdvectionDiffusionLDGModel
+	//---------------------------
+	template< class Model, 
+						class NumFlux, 
+						int polOrd, int passUId, int passProjId,int passGradId,
+						bool advectionPartExists, bool diffusionPartExists >
+	class AdvectionDiffusionLDGModel :
+		public AdvectionProjModel< Model, NumFlux, polOrd, passUId, passProjId, passGradId, advectionPartExists > 
+	{
+	public:
+		typedef AdvectionDiffusionLDGTraits< Model, 
+																				 NumFlux, 
+																				 polOrd,
+																				 passUId, 
+																				 passProjId,
+																				 passGradId,
+																				 advectionPartExists, 
+																				 diffusionPartExists >  Traits; 
+		
+		typedef AdvectionProjModel< Model, 
+																NumFlux, 
+																polOrd, 
+																passUId,
+																passProjId,
+																passGradId, 
+																advectionPartExists>    BaseType;
+		
+		using BaseType :: inside ;
+		using BaseType :: outside ;
+		using BaseType :: model_;
+		using BaseType :: uBnd_;
 
-template< class Model, 
-					class NumFlux, 
-					int polOrd, int passUId, int passProjId,int passGradId,
-					bool advectionPartExists, bool diffusionPartExists >
-class AdvectionDiffusionLDGModel :
-	public AdvectionProjModel< Model, NumFlux, polOrd, passUId, passProjId, passGradId, advectionPartExists > 
-{
-public:
-	typedef AdvectionDiffusionLDGTraits< Model, 
-																			 NumFlux, 
-																			 polOrd,
-																			 passUId, 
-																			 passProjId,
-																			 passGradId,
-																			 advectionPartExists, 
-																			 diffusionPartExists >  Traits; 
-	typedef AdvectionProjModel< Model, 
-															NumFlux, 
-															polOrd, 
-															passUId,
-															passProjId,
-															passGradId, 
-															advectionPartExists>    BaseType;
-
-	using BaseType :: inside ;
-	using BaseType :: outside ;
-	using BaseType :: model_;
-	using BaseType :: uBnd_;
-
-	using BaseType :: uVar;
+		using BaseType :: uVar;
     
-	// defined in AdvectionModel 
-	using BaseType :: maxAdvTimeStep_ ;
-	using BaseType :: maxDiffTimeStep_ ;
+		// defined in AdvectionModel 
+		using BaseType :: maxAdvTimeStep_ ;
+		using BaseType :: maxDiffTimeStep_ ;
 
 
-	integral_constant< int, passGradId> sigmaVar;
+		integral_constant< int, passGradId> sigmaVar;
 
-	integral_constant< int, passProjId> thetaVar;
+		integral_constant< int, passProjId> thetaVar;
     
-public:
-	enum { dimDomain = Traits :: dimDomain };
-	enum { dimRange  = Traits :: dimRange };
+	public:
+		enum { dimDomain = Traits :: dimDomain };
+		enum { dimRange  = Traits :: dimRange };
 
-	enum { advection = advectionPartExists };
-	enum { diffusion = diffusionPartExists };
+		enum { advection = advectionPartExists };
+		enum { diffusion = diffusionPartExists };
 
-	typedef FieldVector< double, dimDomain >               DomainType;
-	typedef FieldVector< double, dimDomain-1 >             FaceDomainType;
+		typedef FieldVector< double, dimDomain >               DomainType;
+		typedef FieldVector< double, dimDomain-1 >             FaceDomainType;
 
 #if defined TESTOPERATOR
-	static const bool ApplyInverseMassOperator = false;
+		static const bool ApplyInverseMassOperator = false;
 #else
-	static const bool ApplyInverseMassOperator = true;
+		static const bool ApplyInverseMassOperator = true;
 #endif
 
-	typedef typename Traits :: GridPartType                            GridPartType;
-	typedef typename Traits :: GridType                                GridType;
-	typedef typename GridPartType :: IntersectionIteratorType          IntersectionIterator;
-	typedef typename IntersectionIterator :: Intersection              Intersection;
-	typedef typename GridType :: template Codim< 0 > :: Entity         EntityType;
-	typedef typename GridType :: template Codim< 0 > :: EntityPointer  EntityPointerType;
-	typedef typename Traits :: RangeFieldType                          RangeFieldType;
-	typedef typename Traits :: DomainFieldType                         DomainFieldType;
-	typedef typename Traits :: RangeType                               RangeType;
-	typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
+		typedef typename Traits :: GridPartType                            GridPartType;
+		typedef typename Traits :: GridType                                GridType;
+		typedef typename GridPartType :: IntersectionIteratorType          IntersectionIterator;
+		typedef typename IntersectionIterator :: Intersection              Intersection;
+		typedef typename GridType :: template Codim< 0 > :: Entity         EntityType;
+		typedef typename GridType :: template Codim< 0 > :: EntityPointer  EntityPointerType;
+		typedef typename Traits :: RangeFieldType                          RangeFieldType;
+		typedef typename Traits :: DomainFieldType                         DomainFieldType;
+		typedef typename Traits :: RangeType                               RangeType;
+		typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
+// 		typedef typename Traits :: RangeType                               RangeType;
+// 		typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
 
-	typedef typename Traits :: DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
+	
+		typedef typename Traits :: DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
 
-	typedef LDGDiffusionFlux< DiscreteFunctionSpaceType, Model> DiffusionFluxType;
-	enum { evaluateJacobian = false };
-public:
-	/**
-	 * @brief constructor
-	 */
-	AdvectionDiffusionLDGModel(const Model& mod,
-														 const NumFlux& numf,
-														 DiffusionFluxType& diffflux)
-		: BaseType( mod, numf ),
-			diffFlux_( diffflux ),
-			penalty_( 1.0 ),
-			cflDiffinv_( 8.0 * ( polOrd + 1) )
-	{}
+		typedef LDGDiffusionFlux< DiscreteFunctionSpaceType, Model> DiffusionFluxType;
+		enum { evaluateJacobian = false };
+	public:
+		/**
+		 * @brief constructor
+		 */
+		AdvectionDiffusionLDGModel(const Model& mod,
+															 const NumFlux& numf,
+															 DiffusionFluxType& diffflux)
+			: BaseType( mod, numf ),
+				diffFlux_( diffflux ),
+				penalty_( 1.0 ),
+				cflDiffinv_( 8.0 * ( polOrd + 1) )
+		{}
 
-	bool hasSource() const
-	{                
-		return ( model_.hasNonStiffSource() || model_.hasStiffSource() );
-	} 
+		bool hasSource() const
+		{                
+			return ( model_.hasNonStiffSource() || model_.hasStiffSource() );
+		} 
 
-	bool hasFlux() const { return advection || diffusion; };      
-	/**
-	 * @brief analytical flux function$
-	 */
-	template <class ArgumentTuple, class JacobianTuple >
-	double source( const EntityType& en,
-								 const double time, 
-								 const DomainType& x,
-								 const ArgumentTuple& u, 
-								 const JacobianTuple& jac, 
-								 RangeType& s ) const
-	{
-		s = 0;
-
-		double dtEst = std::numeric_limits< double > :: max();
-
-		if (diffusion)
-			{
-				const double dtStiff = model_.stiffSource( en, time, x, u[uVar], u[sigmaVar], s );
-				dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
-				maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
-			}
-
-		if (model_.hasNonStiffSource())
-			{
-
-				RangeType sNonStiff(0);
-				const double dtNon = 
-					model_.nonStiffSource( en, time, x, u[uVar], u[sigmaVar], sNonStiff );
-
-				s += sNonStiff;
-
-				dtEst = ( dtNon > 0 ) ? std::min( dtEst, dtNon ) : dtEst;
-				maxAdvTimeStep_  = std::max( dtNon, maxAdvTimeStep_ );
-			}
-
-		// return the fastest wave from source terms
-		return dtEst;
-	}
-
-	void switchUpwind() const 
-	{ 
-		BaseType :: switchUpwind(); 
-		diffFlux_.switchUpwind(); 
-	}
-
-public:
-	template< class QuadratureImp,
-						class ArgumentTuple, 
-						class JacobianTuple >          /*@LST0S@*/
-						double numericalFlux(const Intersection& it,
-																 const double time,
-																 const QuadratureImp& faceQuadInner,
-																 const QuadratureImp& faceQuadOuter,
-																 const int quadPoint, 
-																 const ArgumentTuple& uLeft,
-																 const ArgumentTuple& uRight,
-																 const JacobianTuple& jacLeft,
-																 const JacobianTuple& jacRight,
-																 RangeType& gLeft,
-																 RangeType& gRight,
-																 JacobianRangeType& gDiffLeft,
-																 JacobianRangeType& gDiffRight )
-{
-	// advection
-								
-	const double wave = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter,
-																								 quadPoint, uLeft, uRight, jacLeft, jacRight, 
-																								 gLeft, gRight, gDiffLeft, gDiffRight );
-      
-	// diffusion
-
-	double diffTimeStep = 0.0;
-	if( diffusion ) 
+		bool hasFlux() const { return advection || diffusion; };      
+		/**
+		 * @brief analytical flux function$
+		 */
+		template <class ArgumentTuple, class JacobianTuple >
+		double source( const EntityType& en,
+									 const double time, 
+									 const DomainType& x,
+									 const ArgumentTuple& u, 
+									 const JacobianTuple& jac, 
+									 RangeType& s ) const
 		{
-			RangeType dLeft, dRight;
-			diffTimeStep = diffFlux_.numericalFlux(it, *this,
-																						 time, faceQuadInner, faceQuadOuter, quadPoint,
-																						 uLeft[ uVar ], uRight[ uVar ], 
-																						 uLeft[ sigmaVar ], uRight[ sigmaVar ], 
-																						 dLeft, dRight,
-																						 gDiffLeft, gDiffRight);
+			s = 0;
+			//we need \sigma_phi= u[sigmaVar][dimDomain+1]
+			//        \theta_1=u[thetaVar][1]
+			//        \nablan\theta_2 jac[thetatVar]
+			double dtEst = std::numeric_limits< double > :: max();
 
-			gLeft  += dLeft;
-			gRight += dRight;
+			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar], s );
+
+
+			dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
+			maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
+	
+			
+			// return the fastest wave from source terms
+			return dtEst;
+		}
+
+		void switchUpwind() const 
+		{ 
+			BaseType :: switchUpwind(); 
+			diffFlux_.switchUpwind(); 
+		}
+
+	public:
+		template< class QuadratureImp,
+							class ArgumentTuple, 
+							class JacobianTuple >          /*@LST0S@*/
+		double numericalFlux(const Intersection& it,
+												 const double time,
+												 const QuadratureImp& faceQuadInner,
+												 const QuadratureImp& faceQuadOuter,
+												 const int quadPoint, 
+												 const ArgumentTuple& uLeft,
+												 const ArgumentTuple& uRight,
+												 const JacobianTuple& jacLeft,
+												 const JacobianTuple& jacRight,
+												 RangeType& gLeft,
+												 RangeType& gRight,
+												 JacobianRangeType& gDiffLeft,
+												 JacobianRangeType& gDiffRight )
+		{
+			// advection
+								
+			const double wave = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter,
+																										 quadPoint, uLeft, uRight, jacLeft, jacRight, 
+																										 gLeft, gRight, gDiffLeft, gDiffRight );
+      
+			// diffusion
+
+			double diffTimeStep = 0.0;
+			if( diffusion ) 
+				{
+					RangeType dLeft, dRight;
+					diffTimeStep = diffFlux_.numericalFlux(it, *this,
+																								 time, faceQuadInner, faceQuadOuter, quadPoint,
+																								 uLeft[ uVar ], uRight[ uVar ], 
+																								 uLeft[ sigmaVar ], uRight[ sigmaVar ], 
+																								 dLeft, dRight,
+																								 gDiffLeft, gDiffRight);
+
+					gLeft  += dLeft;
+					gRight += dRight;
+				}
+
+			RangeType nonCons;
+			
+			model_.nonConProduct(uLeft[ uVar ], uRight[ uVar ], uLeft[ thetaVar ], uRight[ thetaVar ],nonCons); 
+	
+			gLeft+=nonCons;
+			gRight-=nonCons;
+			
+			gDiffLeft  = 0;
+			gDiffRight = 0;
+
+			maxAdvTimeStep_  = std::max( wave, maxAdvTimeStep_ );
+			maxDiffTimeStep_ = std::max( diffTimeStep, maxDiffTimeStep_ );
+
+			return std::max( wave, diffTimeStep );
 		}
 
 
-	gDiffLeft  = 0;
-	gDiffRight = 0;
-
-	maxAdvTimeStep_  = std::max( wave, maxAdvTimeStep_ );
-	maxDiffTimeStep_ = std::max( diffTimeStep, maxDiffTimeStep_ );
-
-	return std::max( wave, diffTimeStep );
-}
-
-
-						/**
-						 * @brief same as numericalFlux() but for fluxes over boundary interfaces
-						 */
-	template <class QuadratureImp, 
-						class ArgumentTuple, class JacobianTuple>
-	double boundaryFlux(const Intersection& it,
-											const double time, 
-											const QuadratureImp& faceQuadInner,
-											const int quadPoint,
-											const ArgumentTuple& uLeft,
-											const JacobianTuple& jacLeft,
-											RangeType& gLeft,
-											JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
-{
+		/**
+		 * @brief same as numericalFlux() but for fluxes over boundary interfaces
+		 */
+		template <class QuadratureImp, 
+							class ArgumentTuple, class JacobianTuple>
+		double boundaryFlux(const Intersection& it,
+												const double time, 
+												const QuadratureImp& faceQuadInner,
+												const int quadPoint,
+												const ArgumentTuple& uLeft,
+												const JacobianTuple& jacLeft,
+												RangeType& gLeft,
+												JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
+		{
 
 #if 0
-	// advection
+			// advection
 
-	const double wave = BaseType :: 
-		boundaryFlux( it, time, faceQuadInner, quadPoint,
-									uLeft, jacLeft, gLeft, gDiffLeft );
+			const double wave = BaseType :: 
+				boundaryFlux( it, time, faceQuadInner, quadPoint,
+											uLeft, jacLeft, gLeft, gDiffLeft );
                                   
-	// diffusion
+			// diffusion
       
-	double diffTimeStep = 0.0;
+			double diffTimeStep = 0.0;
 
-	bool hasBoundaryValue = 
-		model_.hasBoundaryValue( it, time, faceQuadInner.localPoint(0) );
+			bool hasBoundaryValue = 
+				model_.hasBoundaryValue( it, time, faceQuadInner.localPoint(0) );
 
-	if( diffusion && hasBoundaryValue ) 
-		{
-			// diffusion boundary flux for Dirichlet boundaries 
-			RangeType dLeft;
-			diffTimeStep = diffFlux_.boundaryFlux(it, 
-																						*this, 
-																						time, faceQuadInner, quadPoint,
-																						uLeft[ uVar ], uBnd_, // is set during call of  BaseType::boundaryFlux
-																						uLeft[ sigmaVar ], 
-																						uLeft[ thetaVar ],
-																						dLeft,
-																						gDiffLeft);
-			gLeft += dLeft;
-		}
-	else if ( diffusion )
-		{
-			RangeType diffBndFlux;
-			model_.diffusionBoundaryFlux( it, time, faceQuadInner.localPoint(quadPoint),
-																		uLeft[uVar], jacLeft[uVar], diffBndFlux );
-			gLeft += diffBndFlux;
-		}
-	else
-		gDiffLeft = 0;
+			if( diffusion && hasBoundaryValue ) 
+				{
+					// diffusion boundary flux for Dirichlet boundaries 
+					RangeType dLeft;
+					diffTimeStep = diffFlux_.boundaryFlux(it, 
+																								*this, 
+																								time, faceQuadInner, quadPoint,
+																								uLeft[ uVar ], uBnd_, // is set during call of  BaseType::boundaryFlux
+																								uLeft[ sigmaVar ], 
+																								uLeft[ thetaVar ],
+																								dLeft,
+																								gDiffLeft);
+					gLeft += dLeft;
+				}
+			else if ( diffusion )
+				{
+					RangeType diffBndFlux;
+					model_.diffusionBoundaryFlux( it, time, faceQuadInner.localPoint(quadPoint),
+																				uLeft[uVar], jacLeft[uVar], diffBndFlux );
+					gLeft += diffBndFlux;
+				}
+			else
+				gDiffLeft = 0;
 
-	maxAdvTimeStep_  = std::max( wave, maxAdvTimeStep_ );
-	maxDiffTimeStep_ = std::max( diffTimeStep, maxDiffTimeStep_ );
+			maxAdvTimeStep_  = std::max( wave, maxAdvTimeStep_ );
+			maxDiffTimeStep_ = std::max( diffTimeStep, maxDiffTimeStep_ );
 
-	return std::max( wave, diffTimeStep );
+			return std::max( wave, diffTimeStep );
 #endif
-	return 0;
-}
-/*@LST0S@*/
-/**
- * @brief analytical flux function$
- */
-template <class ArgumentTuple, class JacobianTuple >
-void analyticalFlux( const EntityType& en,
-										 const double time, 
-										 const DomainType& x,
-										 const ArgumentTuple& u, 
-										 const JacobianTuple& jac, 
-										 JacobianRangeType& f ) const
-{
-	// advection
+			return 0;
+		}
+		/*@LST0S@*/
+		/**
+		 * @brief analytical flux function$
+		 */
+		template <class ArgumentTuple, class JacobianTuple >
+		void analyticalFlux( const EntityType& en,
+												 const double time, 
+												 const DomainType& x,
+												 const ArgumentTuple& u, 
+												 const JacobianTuple& jac, 
+												 JacobianRangeType& f ) const
+		{
+			// advection
     
-	BaseType :: analyticalFlux( en, time, x, u, jac, f );
+			BaseType :: analyticalFlux( en, time, x, u, jac, f );
 
-	// diffusion
+			// diffusion
    
       
-	if( diffusion ) 
-		{
-			JacobianRangeType diffmatrix;
-			JacobianRangeType tensionmatrix;
-			model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
-			// ldg case 
-			f += diffmatrix;
-			f += tensionmatrix;
-		}
+			if( diffusion ) 
+				{
+					JacobianRangeType diffmatrix;
+					JacobianRangeType tensionmatrix;
+					model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
+					// ldg case 
+					f += diffmatrix;
+					f += tensionmatrix;
+				}
  
-}
-protected:
-mutable DiffusionFluxType& diffFlux_;
-const double penalty_;
-const double cflDiffinv_;
-};                                              /*@LST0E@*/
+		}
+	protected:
+		mutable DiffusionFluxType& diffFlux_;
+		const double penalty_;
+		const double cflDiffinv_;
+	};                                              /*@LST0E@*/
 
 }
+#include "thetadiscretemodel.hh"
 #endif

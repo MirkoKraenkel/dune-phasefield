@@ -164,16 +164,47 @@ private:
 				tp.init( fixedTimeStep_ );
 		else
 			tp.init();
-
-		for( ; tp.time() < endTime; )    /*@\label{fv:timeLoop}@*/
-			{}
+		
+		for( ; tp.time() < endTime; )   
+			{
+			}
+		writeData( eocDataOutput, tp, true );
+		averagedt /= double(tp.timeStep());
+		if(verbose)
+			{
+				std::cout << "Minimum dt: " << mindt
+									<< "\nMaximum dt: " << maxdt
+									<< "\nAverage dt: " << averagedt << std::endl;
+			}
+		finalizeStep( tp );                                  
+    
+		// increase loop counter
+		++loop_;
+		
+		// prepare the fixed time step for the next eoc loop
+		fixedTimeStep_ /= fixedTimeStepEocLoopFactor_; 
+	}
 	
+	virtual void finalizeStep(TimeProviderType& tp)
+	{ 
+		DiscreteFunctionType& u = solution();
+		
+		bool doFemEoc = problem().calculateEOC( tp, u, eocId_ );
+
+    // ... and print the statistics out to a file
+    if( doFemEoc )
+      FemEoc::setErrors(eocId_, error(tp, u ));
+		delete odeSolver_;
+    odeSolver_ = 0;
+    delete adaptationHandler_;
+    adaptationHandler_ = 0;
+	}
 
 
-}
 
-	virtual void finalizeStep(TimeProviderType& tp) = 0;
-	
+
+
+
 	//! restore all data from check point (overload to do something)
 	virtual void restoreFromCheckPoint(TimeProviderType& tp) {} 
 
@@ -208,6 +239,30 @@ private:
     return new OdeSolverImpl( tp, dgOperator_ );
   }
 
+	virtual void finalize( const int eocloop ) 
+		{
+			DiscreteFunctionType& U = solution(); 
+			DiscreteGradientType& theta1 = theta(); 
+			
+			//    theta1.print(cout);    
+			DiscreteFunctionType* addVars = additionalVariables();
+
+			if( eocLoopData_ == 0 ) 
+				{
+					eocDataTup_ = IOTupleType( &U,addVars, indicator() ); 
+					eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
+				}
+
+			if( addVars ) 
+				{
+					problem().finalizeSimulation( *addVars, eocloop );
+				}
+			else 
+				{
+					problem().finalizeSimulation( U,  eocloop );
+				}
+			eocLoopData_->writeData( eocloop );
+		}
 
 
 

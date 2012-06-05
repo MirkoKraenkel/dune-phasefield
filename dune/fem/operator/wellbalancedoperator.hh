@@ -58,7 +58,7 @@ namespace Dune {
 		typedef typename DiscreteModel3Type :: DiffusionFluxType  DiffusionFluxType;
     
 		//Pass  2 (allen-cahn and chemical potential)
-    typedef ThetaModel< Model,DiffusionFluxType, polOrd, u, gradPass >  DiscreteModel2Type;
+    typedef ThetaModel< Model, polOrd, u, gradPass >  DiscreteModel2Type;
     
     // Pass 1 Model (gradient)
     typedef GradientModel<Model, DiffusionFluxType, polOrd, u >       DiscreteModel1Type;
@@ -105,7 +105,7 @@ namespace Dune {
       space3_(gridPart_),
       diffFlux_( gridPart_, model_ ),
       discModel1_(model_, diffFlux_ ),
-      discModel2_(model_, diffFlux_),
+      discModel2_(model_),
       discModel3_(model_, numflux_, diffFlux_),
       pass0_ (),
       pass1_(discModel1_, pass0_, space1_),    /*@\label{ad:initialisepass1}@*/

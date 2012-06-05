@@ -94,11 +94,14 @@ void compute(Algorithm& algorithm)
     int total_ils_iterations = 0;
     int max_newton_iterations = 0;
     int max_ils_iterations = 0;
+#if MYALGO
+		algorithm()
 
+#else
     algorithm( avgTimeStep, minTimeStep, maxTimeStep,
                counter, total_newton_iterations, total_ils_iterations,
                max_newton_iterations, max_ils_iterations );
-
+#endif
     double runTime = Dune::FemTimer::stop(femTimerId);
 
     Dune::FemTimer::printFile("./timer.out");
