@@ -33,6 +33,7 @@ femhowto.delta: 0.1
 mu: 0.0001
 #c2: 0.5518191617
 #c1: 0.3678794412
+phasefield.penalty: 1
 c1:1
 c2:2
 smear: 0.25

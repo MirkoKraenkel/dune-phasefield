@@ -31,23 +31,23 @@ namespace Dune {
 		enum { dimDomain = GridType :: dimensionworld };
 		enum { dimRange = dimDomain + 2 };
 		enum { dimThetaRange =  2 };
-		enum { dimScalGradRange = dimDomain };
+		enum { dimThetaGradRange = dimThetaRange*dimDomain };
 		enum { dimGradRange = dimRange * dimDomain };
 		enum { dimGradient = dimDomain + 1 };
   
 		typedef FieldVector< double, dimDomain >                  DomainType;
 		typedef FieldVector< double, dimDomain - 1 >              FaceDomainType;
 		typedef FieldVector< double, dimRange >                   RangeType;
-		typedef FieldVector< double, 2 >                          ThetaRangeType;
+		typedef FieldVector< double, dimThetaRange >              ThetaRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientType;
-		typedef FieldVector< double, dimScalGradRange >           ThetaGradientRangeType;
+		typedef FieldVector< double, dimThetaGradRange >          ThetaGradientRangeType;
 		
 		typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientRangeType;
 		typedef FieldMatrix< double, dimRange, dimDomain >        JacobianRangeType;
 		
 		//For the Ac-equation 1dim reaction diffusion
-		typedef FieldMatrix< double, 1, dimDomain >               ThetaJacobianRangeType;
+		typedef FieldMatrix< double, dimThetaRange, dimDomain >               ThetaJacobianRangeType;
 		
 
 		typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
@@ -110,35 +110,33 @@ namespace Dune {
 		inline bool hasNonStiffSource() const { return false; }
 		inline bool hasFlux() const { return true ; }
 
+	 
+		inline void nonConProduct(const RangeType & uL, 
+															const RangeType & uR,
+															const ThetaRangeType& thetaL,
+															const ThetaRangeType& thetaR,
+															RangeType& ret) const
+		{
+			//{rho}[theta1]
+			nsFlux_.nonConProduct(uL, uR,thetaL,thetaR,ret);
+		}
+		
 		
 		inline double stiffSource( const EntityType& en,
 															 const double time,
 															 const DomainType& x,
 															 const RangeType& u,
 															 const GradientRangeType& du,
+															 const ThetaRangeType& theta,
+															 const ThetaJacobianRangeType& dtheta,
 															 RangeType & s) const
-		{
-			return stiffSource( en, time, x, u, s );
-		}
-
-
- 
-
-		inline double stiffSource( const EntityType& en
-															 , const double time
-															 , const DomainType& x
-															 , const RangeType& u
-															 , RangeType& s ) const 
-		{
-			const DomainType& xgl = en.geometry().global(x);
-			return problem_.stiffSource( time, xgl,u, s );
-		}
-		
-
-
-
+		{	
+			nsFlux_.stiffSource(u,du,theta,dtheta,s);
+			return 1;
+ 		}
 
 		
+		 
 
 		inline double thetaSource( const EntityType& en,
 															 const double time,
@@ -149,9 +147,6 @@ namespace Dune {
 		{
 			return thetaSource( en, time, x, u, s );
 		}
-		
-
- 
 
 		inline double thetaSource( const EntityType& en
 															 , const double time
@@ -162,44 +157,33 @@ namespace Dune {
 			const DomainType& xgl = en.geometry().global(x);
 			double mu,reaction;
 			thermodynamics_.chemPotAndReaction(u,mu,reaction);
-			s[0]=reaction;
-			s[1]=mu;
+			s[0]=mu;
+			s[1]=reaction;
+			return 1.;
 		}
 
+// 		inline double nonStiffSource( const EntityType& en,
+// 																	const double time,
+// 																	const DomainType& x,
+// 																	const RangeType& u,
+// 																	const GradientRangeType& du,
+// 																	RangeType & s) const
+// 		{
+// 			FieldMatrixConverter< GradientRangeType, JacobianRangeType > jac( du );
+// 			return nonStiffSource( en, time, x, u, jac, s );
+// 		}
 
-
-		
-
-
-
- 
-
-
-		inline double nonStiffSource( const EntityType& en,
-																	const double time,
-																	const DomainType& x,
-																	const RangeType& u,
-																	const GradientRangeType& du,
-																	RangeType & s) const
-		{
-			FieldMatrixConverter< GradientRangeType, JacobianRangeType > jac( du );
-			return nonStiffSource( en, time, x, u, jac, s );
-		}
-
-
-
-		template< class JacobianRangeTypeImp >
-		inline double nonStiffSource( const EntityType& en,
-																	const double time,
-																	const DomainType& x,
-																	const RangeType& u,
-																	const JacobianRangeTypeImp& jac,
-																	RangeType& s) const
-		{
-
-			abort();
-			return 0.;
-		}
+// 		template< class JacobianRangeTypeImp >
+// 		inline double nonStiffSource( const EntityType& en,
+// 																	const double time,
+// 																	const DomainType& x,
+// 																	const RangeType& u,
+// 																	const JacobianRangeTypeImp& jac,
+// 																	RangeType& s) const
+// 		{
+// 			abort();
+// 			return 0.;
+// 		}
 
   
 
@@ -332,39 +316,17 @@ namespace Dune {
 		}
 	
 
-
-		void allenCahndiffusion( const EntityType& en,
-														 const double time,
-														 const DomainType& x,
-														 const RangeType& u,
-														 const ThetaGradientRangeType& v,
-														 JacobianRangeType& diff ) const
+		
+		void allenCahnDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
 		{
-			FieldMatrixConverter< ThetaGradientRangeType, ThetaJacobianRangeType> jac( v );
-   
-			allenCahndiffusion( en, time, x, u, jac,diff );
-		}
-
-
+			FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
+			allenCahnDiffusion(u,jac,dv);
+		}	
 		template <class JacobianRangeImp>
-		void allencCahndiffusion( const EntityType& en,
-										const double time,
-										const DomainType& x,
-										const RangeType& u,
-										const JacobianRangeImp& jac,
-										ThetaJacobianRangeType& diff ) const
+		void allenCahnDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
-			diff=jac;
-			diff*=thermodynamics_.delta();
+			nsFlux_.allenCahn(u,du,dv);
 		}
-	
-
-
-
-
-
-	
-
 		inline double boundaryFlux( const IntersectionType& it
 																, const double time
 																, const FaceDomainType& x
@@ -375,17 +337,7 @@ namespace Dune {
 			return 0.;
 		}
 
-	// 	inline void pressAndTemp( const RangeType& u, double& p, double& T ) const
-// 		{
-// 			thermodynamics_.pressAndTempEnergyForm( u, p, T );
-// 		}
-
-// 		inline void conservativeToPrimitive( const DomainType& xgl,
-// 																				 const RangeType& cons, 
-// 																				 RangeType& prim ) const
-// 		{
-// 			thermodynamics_.conservativeToPrimitiveThetaForm( cons, prim );
-// 		}
+	
 		inline void totalEnergy( const DomainType& xgl,
 														 const RangeType& cons, 
 														 const GradientRangeType& grad,
@@ -405,9 +357,9 @@ namespace Dune {
 	protected:
 		const ThermodynamicsType& thermodynamics_;
 		const ProblemType& problem_;
-		const PhaseFlux< dimDomain > nsFlux_;
+		const PhasePhysics< dimDomain > nsFlux_;
 		const double visc_;
-	};
+		};
 
 
 

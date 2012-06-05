@@ -13,7 +13,6 @@
 ///////////////////////////////////////
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
-
 #include "problem1d.hh"
 
 typedef PhaseWaves< GridSelector :: GridType >  PhaseProblemType;

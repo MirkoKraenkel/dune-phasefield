@@ -1,6 +1,5 @@
 #ifndef DUNE_THERMODYNAMICS_HH
 #define DUNE_THERMODYNAMICS_HH
-#warning "Fagg it"
 
 // system include
 #include <cmath>
@@ -76,7 +75,7 @@ public:
     t10 = phi*phi;
     return(2.0*t1*(t4+t6)+2.0*(t9+t10)*t5);
   }
-
+	
 			
 	
 	}
