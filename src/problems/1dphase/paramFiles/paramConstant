@@ -1,0 +1,80 @@
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+#
+# A constant solution
+#                                                            
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+
+# also include data from the following parameter files
+paramfile: paramFiles/paramBase
+paramfile: paramFiles/paramPhysicalConstants
+
+################## D A T A   W R I T E R ##################
+fem.prefix: ./data/constant
+fem.io.datafileprefix: C
+
+# SaveStep (write data every `saveStep' time period, <=0 deactivates)
+# SaveCount (write data every saveCount time steps, <=0 deactivates)
+fem.io.savestep: 0.05
+fem.io.savecount: -1
+############ E N D   D A T A   W R I T E R ##############
+
+
+############ G E N E R A L  S E T T I N G S #############
+femhowto.eocSteps: 2
+##########  E N D  G E N E R A L  S E T T I N G S ############
+
+
+########### P R O B L E M   C O N F I G U R A T I O N ##########
+g: 0. # m/(ss)
+femhowto.startTime: 0.
+femhowto.endTime: 0.1
+
+# horizontal speed coefficient U_s (in m/s)
+# z_s is parameter for prescribing velocity in m
+hSpeed0: 0.
+vSpeed0: 0.
+
+# surface pressure p00 (in Pa)
+p0: 101300.
+rho0: 1.125
+
+# diffusion coefficients
+mu: 0.1 # kg/(ms)
+########### E N D  P R O B L E M   C O N F I G U R A T I O N ##########
+
+
+
+############### D O M A I N   C O N F I G U R A T I O N ###############
+# name of the macro grid
+fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
+fem.io.macroGridFile_3d: ../macrogrids/unitcube3.dgf
+############ E N D   D O M A I N   C O N F I G U R A T I O N #############
+
+
+############ S O L V E R   C O N F I G U R A T I O N #############
+fem.timeprovider.factor: 0.45
+
+fem.ode.verbose: cfl
+fem.ode.cflincrease: 1.25
+fem.ode.cflStart: 1.     
+
+femhowto.polynomialOrder: 1
+
+# ODE solver can be: EX, IM, IMEX
+femhowto.odesolver: IM 
+
+# choises are: CDG2, CDG, IP, NIPG, BO
+dgdiffusionflux.method: IP 
+
+# use available parameters from the linear theory
+dgdiffusionflux.theoryparameters: 0
+
+# penalty coefficient
+dgdiffusionflux.penalty: 0.
+
+# factor term in front of the product of the lifting operators
+dgdiffusionflux.liftfactor: 1.
+
+# when 0 then use dynamic time step
+fixedTimeStep: 0.
+############ E N D   S O L V E R   C O N F I G U R A T I O N #############
