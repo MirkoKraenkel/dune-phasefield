@@ -18,9 +18,9 @@
  */
 template< class ConsDiscreteFunctionType,class GradientFunctionType, class ModelType, class EnergyFunctionType >
 void energyconverter( const ConsDiscreteFunctionType& consDF, 
-                               const GradientFunctionType& gradDF,
-			       const ModelType& model,
-                               EnergyFunctionType& energy) 
+                      const GradientFunctionType& gradDF,
+          	          const ModelType& model,
+                      EnergyFunctionType& energy) 
 {
   typedef typename ConsDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
     ConsDiscreteFunctionSpaceType;
