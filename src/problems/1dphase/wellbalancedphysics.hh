@@ -299,7 +299,7 @@ double PhasePhysics<1> :: maxSpeed( const FieldVector<double,1>& n
 	//Navier Stokes Tensor
 	template< >
 	template< class JacobianRangeImp >
-	void PhasePhysics<1> 
+	void PhasePhysics<2> 
 	:: diffusion( const RangeType& u,
 								const JacobianRangeImp& du,
 								JacobianRangeType& diff ) const 
@@ -335,7 +335,7 @@ double PhasePhysics<1> :: maxSpeed( const FieldVector<double,1>& n
 
 template< >
 template< class JacobianRangeImp >
-void PhasePhysics<1> 
+void PhasePhysics<2> 
 :: allenCahn( const RangeType& u,
               const JacobianRangeImp& du,
 							ThetaJacobianRangeType& diff ) const 

@@ -87,8 +87,8 @@ DIST_COMMON = $(phase_HEADERS) $(srcdir)/Makefile.am \
 	$(top_srcdir)/am/headercheck $(top_srcdir)/am/sourcescheck
 subdir = src/problems/1dphase
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/dune-phasefield.m4 \
-	$(top_srcdir)/dependencies.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/dependencies.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d

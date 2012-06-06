@@ -4,13 +4,13 @@
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 #include <dune/fem/space/dgspace/localrestrictprolong.hh>
 #include <dune/fem/solver/odesolver.hh>
-
+#include <dune/fem/operator/wellbalancedoperator.hh>
 
 
 template <class GridImp,
           class ProblemGeneratorImp, 
           int polOrd>             
-struct AlgorithmTraitsTraits 
+struct AlgorithmTraits 
 {
   enum { polynomialOrder = polOrd };
 
@@ -25,18 +25,26 @@ struct AlgorithmTraitsTraits
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: ModelType        ModelType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: FluxType         FluxType;
-
-	typedef Dune :: WellBalancedPhasefieldOperatorr< ModelType, FluxType,DiffusionFluxId,  polynomialOrder >         DiscreteOpType;
 	
-  typedef typename DiscreteOpType :: DestinationType                         DiscreteFunctionType;
-  typedef typename DiscreteOpType :: Destination1Type                        DiscreteGradientType;
-	typedef typename DiscreteOpType :: Destination2Type                        DiscreteThetaType;
-	typedef typename DiscreteOpType :: ScalarDFType                            ScalarDFType;
-	// ... as well as the Space type
-  typedef typename DgType :: SpaceType                               DiscreteSpaceType;
-  typedef typename DgType :: Space2Type                              DiscreteThetaSpaceType;
+	//typedef Dune :: WellBalancedPhasefieldOperator< ModelType, FluxType,DiffusionFluxId,  polynomialOrder >    DiscreteOperatorType;
+	
+	typedef Dune :: DGAdvectionDiffusionOperator< ModelType, FluxType, polynomialOrder >    DiscreteOperatorType;
+	
 
-  typedef typename DgType :: ScalarDiscreteFunctionSpaceType         ScalarDiscreteSpaceType;
+
+	// Types of all Discretefuntions used in the simulation: Destinations of the passes, Scalarspace for energy calculation
+  typedef typename DiscreteOperatorType :: DestinationType                         DiscreteFunctionType;
+  
+	typedef typename DiscreteOperatorType :: Destination1Type                        DiscreteSigmaType;
+	
+	typedef typename DiscreteOperatorType :: Destination2Type                        DiscreteThetaType;
+	typedef typename DiscreteOperatorType :: DiscreteScalarType                      DiscreteScalarType;
+
+	// ... as well as the Space type
+	typedef typename  DiscreteOperatorType :: SpaceType                              DiscreteSpaceType;
+  typedef typename  DiscreteOperatorType :: Space1Type                             SigmaDiscreteSpaceType;   
+	typedef typename  DiscreteOperatorType :: Space2Type                             ThetaDiscreteSpaceType;
+  typedef typename  DiscreteOperatorType :: ScalarDiscreteFunctionSpaceType        ScalarDiscreteSpaceType;
 	
 
 	// The ODE Solvers                                                         /*@LST1S@*/

@@ -44,11 +44,11 @@ visc: 1
 # DOMAIN
 #-------
 
-fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
-#fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
-#fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
+fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitgrid2d_unstr_2.dgf

@@ -159,7 +159,7 @@ struct Stepper
 
     assert(odeSolver_);
     odeSolver_->solve( U, odeSolverMonitor_ );
-    
+		
 		dgOperator_.gradient(U,theta1);
 // 		dgOperator_.energy(U,theta1, energy1);
    

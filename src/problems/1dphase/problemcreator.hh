@@ -91,10 +91,12 @@ struct ProblemGenerator
   }
 
 };
-
+#if MYALGO
+#include<dune/phasefield/phasefieldalgorithm.hh>
+#else
 #include <dune/fem/main/stepper.hh>
 #include <dune/fem/main/steppertraits.hh>
-
+#endif
 
 
 #endif // FEMHOWTO_NSEQ_RPOBLEMCREATOR_HH

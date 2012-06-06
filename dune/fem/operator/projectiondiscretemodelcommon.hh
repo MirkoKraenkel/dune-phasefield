@@ -46,11 +46,11 @@ namespace Dune {
     typedef FunctionSpace< ctype, double, dimDomain, 1 >             ScalarFunctionSpaceType;
     
     typedef DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,CachingStorage >         DiscreteFunctionSpaceType;
-		typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage >   ScalarDiscreteFunctionSpaceType;
-
+		typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage >   ScalarDiscreteSpaceType;
+		typedef ScalarDiscreteSpaceType ScalarDiscreteFunctionSpaceType;
 		typedef AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >         DestinationType;
-		typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >   ScalarDFType;
-	
+		typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >   DiscreteScalarType;
+		typedef DiscreteScalarType ScalarDFType;
 		// Indicator for Limiter
 		typedef FunctionSpace< ctype, double, dimDomain, 3> FVFunctionSpaceType;
 		typedef FiniteVolumeSpace<FVFunctionSpaceType,GridPartType, 0, SimpleStorage> IndicatorSpaceType;

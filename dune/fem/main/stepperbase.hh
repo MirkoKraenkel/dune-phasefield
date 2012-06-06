@@ -58,7 +58,8 @@ struct StepperBase
 {
   // my traits class 
   typedef StepperTraits< GridImp, ProblemTraits, polynomialOrder> Traits ;
-  typedef AlgorithmBase< Traits > BaseType;
+  
+	typedef AlgorithmBase< Traits > BaseType;
 
 
   // type of Grid
@@ -91,7 +92,7 @@ struct StepperBase
   // ... as well as the Space type
  
   typedef typename Traits :: DiscreteSpaceType         DiscreteSpaceType;
-  typedef typename Traits :: ScalarDiscreteSpaceType         ScalarDiscreteSpaceType;
+  typedef typename Traits :: ScalarDiscreteSpaceType    ScalarDiscreteSpaceType;
   
 
   // The ODE Solvers

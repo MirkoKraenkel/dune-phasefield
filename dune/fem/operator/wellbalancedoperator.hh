@@ -1,6 +1,6 @@
 #ifndef DUNE_FEM_DG_WELLBALOPERATOR_HH
 #define DUNE_FEM_DG_WELLBALOPERATOR_HH
-
+#warning "WELLBALANCEDOP"
 #include <string>
 
 // dune-fem includes
@@ -24,12 +24,16 @@
 #include <dune/fem-dg/operator/dg/operatorbase.hh>
 #include <dune/fem-dg/pass/dgpass.hh>
 
+
+
+//PassTraits are defined  in <dune-phasefield/dune/fem/opeartor/projdiscretemodelcommon.hh>
+
+
 namespace Dune {  
 	
   template< class Model, class NumFlux, 
-            DGDiffusionFluxIdentifier diffFluxId,
-            int polOrd, bool advection = true , bool diffusion = true >
-  class DGAdvectionDiffusionOperator : 
+						int polOrd, bool advection = true , bool diffusion = true >
+  class  DGAdvectionDiffusionOperator : 
     public SpaceOperatorInterface 
     < typename PassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
@@ -45,7 +49,9 @@ namespace Dune {
     typedef PassTraits< Model, Model::Traits::dimRange, polOrd >     PassTraitsType ;
     
     typedef typename PassTraitsType::ScalarDiscreteFunctionSpaceType ScalarDiscreteFunctionSpaceType;
-    typedef typename PassTraitsType::ScalarDFType ScalarDFType;
+    
+		typedef typename PassTraitsType::DiscreteScalarType DiscreteScalarType;
+		typedef DiscreteScalarType ScalarDFType;
     
 
  
@@ -74,13 +80,19 @@ namespace Dune {
     typedef typename Traits3 :: DiscreteFunctionType                   DiscreteFunction3Type;
     
   //   typedef typename Traits3 :: DiscreteFunctionType                   DiscreteFunction3Type;
-    typedef typename Traits1 :: DiscreteFunctionSpaceType              Space1Type;
+		//Space of Gradient
+		typedef typename Traits1 :: DiscreteFunctionSpaceType              Space1Type;
+		//Space of Theta
     typedef typename Traits2 :: DiscreteFunctionSpaceType              Space2Type;
-    typedef typename Traits3 :: DiscreteFunctionSpaceType              Space3Type;
+    //Space of the solutionvector
+		typedef typename Traits3 :: DiscreteFunctionSpaceType              Space3Type;
    
+		//sigma
     typedef typename Traits1 :: DestinationType                        Destination1Type;
-    typedef typename Traits2 :: DestinationType                        Destination2Type;
-    typedef typename Traits3 :: DestinationType                        Destination3Type;
+    //theta
+		typedef typename Traits2 :: DestinationType                        Destination2Type;
+    //solutionn
+		typedef typename Traits3 :: DestinationType                        Destination3Type;
   
     typedef Destination3Type                                           DestinationType;
     typedef Space3Type                                                 SpaceType;
@@ -91,11 +103,11 @@ namespace Dune {
     
 
     typedef LocalCDGPass< DiscreteModel1Type, Pass0Type, gradPass >    Pass1Type; /*@\label{ad:typedefpass1}@*/
-    typedef LocalCDGPass< DiscreteModel2Type, Pass1Type, acPass >    Pass2Type; /*@\label{ad:typedefpass1}@*/
+    typedef LocalCDGPass< DiscreteModel2Type, Pass1Type, acPass >      Pass2Type; /*@\label{ad:typedefpass1}@*/
     typedef LocalCDGPass< DiscreteModel3Type, Pass2Type, navstkPass >  Pass3Type; /*@\label{ad:typedefpass2}@*//*@LST0E@*/
     
   public:
-    DGAdvectionDiffusionOperator( GridType& grid , const NumFluxType& numf ) :
+		DGAdvectionDiffusionOperator(GridType& grid , const NumFluxType& numf ) :
       grid_( grid ),
       model_( numf.model() ),
       numflux_( numf ),

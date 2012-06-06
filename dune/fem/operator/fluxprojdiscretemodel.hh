@@ -735,7 +735,7 @@ namespace Dune {
 
         // ldg case 
         f += diffmatrix;
-	f += tensionmatrix;
+				f += tensionmatrix;
       }
  
     }

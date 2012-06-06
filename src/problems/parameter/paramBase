@@ -61,16 +61,16 @@ fem.adaptation.coarsenPercent: 0.95
 # finest level that should be present
 fem.adaptation.coarsestLevel: 12
 fem.adaptation.finestLevel: 14
-tolerance: 0.6
+tolerance: 0.0
 # marking strategy 
 # shockind = shock indicator, 
 # apost    = aposteriori based indicator, 
 # grad     = gradient based indicator 
 fem.adaptation.markingStrategy: grad 
 
-fem.adaptation.adaptcount: 10 # after this many time step, 0 disables adaptation
+fem.adaptation.adaptcount: 0 # after this many time step, 0 disables adaptation
 
 
 # DOMAIN CONFIGURATION
 #---------------------
-femhowto.startLevel: 10
+femhowto.startLevel: 1 
