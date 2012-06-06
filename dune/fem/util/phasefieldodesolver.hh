@@ -48,15 +48,12 @@ protected:
   bool imex_ ;
 public:
   PhaseFieldOdeSolver( TimeProviderBase& tp,
-                  OperatorType& op, 
-                  AdvectionOperatorType& advOp,
-                  DiffusionOperatorType& diffOp,
-                  const PhaseFieldOdeSolverParameters& parameter= PhaseFieldOdeSolverParameters() )
+											 OperatorType& op, 
+											 const PhaseFieldOdeSolverParameters& parameter= PhaseFieldOdeSolverParameters() )
    : operator_( op ), 
      timeProvider_( tp ),
      param_( parameter.clone() ),
      odeSolver_( 0 ),
-     explFactor_( param_->explicitFactor() ),
      verbose_( param_->verbose() ),
      rkSteps_( obtainRungeKuttaSteps() ),
      odeSolverType_( obtainOdeSolverType() ),
@@ -116,10 +113,7 @@ public:
       assert( odeSolver_ );
       odeSolver_->solve( U, monitor );
 
-      maxAdvStep  = advectionOperator_.maxAdvectionTimeStep();
-      maxDiffStep = diffusionOperator_.maxDiffusionTimeStep();
-      ++imexCounter_ ;
-
+     
       const int iterationSteps = monitor.newtonIterations_ * monitor.linearSolverIterations_ ;
       minIterationSteps_ = std::min( minIterationSteps_, iterationSteps );
       maxIterationSteps_ = std::max( maxIterationSteps_, iterationSteps );
