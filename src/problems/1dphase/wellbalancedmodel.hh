@@ -47,7 +47,7 @@ namespace Dune {
 		typedef FieldMatrix< double, dimRange, dimDomain >        JacobianRangeType;
 		
 		//For the Ac-equation 1dim reaction diffusion
-		typedef FieldMatrix< double, dimThetaRange, dimDomain >               ThetaJacobianRangeType;
+		typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
 		
 
 		typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
@@ -69,7 +69,7 @@ namespace Dune {
   public:
 		typedef ProblemImp                                        ProblemType;
 		typedef typename GridPartType::GridType                   GridType;
-		typedef PhaseModelTraits< GridPartType >                     Traits;
+		typedef PhaseModelTraits< GridPartType >                   Traits;
 
 		enum { dimDomain = Traits :: dimDomain };
 		enum { dimRange  = Traits :: dimRange  };
@@ -102,6 +102,8 @@ namespace Dune {
 			, problem_( problem )
 			, nsFlux_( problem )
 			, visc_(Parameter::getValue<double>("visc"))
+			, alpha1_(Parameter::getValue<double>("alpha1"))
+		
 		{
     
 		}
@@ -336,15 +338,22 @@ namespace Dune {
 			gLeft = 0.;
 			return 0.;
 		}
-
+		
+		inline void conservativeToPrimitive( const DomainType& xgl,
+																				 const RangeType& cons, 
+																				 RangeType& prim ) const
+		{
+			thermodynamics_.conservativeToPrimitive( cons, prim );
+		}
+		
 	
 		inline void totalEnergy( const DomainType& xgl,
 														 const RangeType& cons, 
 														 const GradientRangeType& grad,
-														 double& res ) const
+														 FieldVector<double,1>& energy ) const
 		{
     
-			thermodynamics_.totalEnergy(cons, grad,res );
+			thermodynamics_.totalEnergy(cons,grad,energy );
 		}
 
 
@@ -352,13 +361,14 @@ namespace Dune {
 		inline const double mu( const double T ) const { return problem_.mu(T); }
 		inline const double delta( ) const {return problem_.delta();}
 		inline const double visc( ) const {return visc_;}
- 
-
+		inline const double alpha1() const {return alpha1_;}
+		
 	protected:
 		const ThermodynamicsType& thermodynamics_;
 		const ProblemType& problem_;
 		const PhasePhysics< dimDomain > nsFlux_;
 		const double visc_;
+		const double alpha1_;
 		};
 
 

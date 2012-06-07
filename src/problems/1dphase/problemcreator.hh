@@ -48,14 +48,19 @@ struct ProblemGenerator
            = Dune :: method_general ;
 
 // ******************************** NUMERICAL FLUX *****************************
+#if WELLBALANCED
+#warning "FLUX: WB"
+		typedef WBFlux< ModelType > FluxType;
+#else
 #if (FLUX==1)
 #warning "FLUX: LLF"
     typedef LLFFlux< ModelType > FluxType;
 #elif (FLUX==2)
+
 #else
 #error "Set the flag FLUX! See Makefile.am for details!"
 #endif
-    
+#endif    
 // ****************************** END NUMERICAL FLUX ***************************
   };
 
@@ -63,8 +68,10 @@ struct ProblemGenerator
   {
 #if (FLUX==1)
     return "LLF";
+#elif (FLUX==2)
+		return "WB";
 #endif
-  }
+ }
 
   static inline std::string diffusionFluxName()
   {

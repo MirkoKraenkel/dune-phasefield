@@ -8,13 +8,15 @@
 #include <dune/fem/base/base.hh>
 
 
-//Note Problen shoul be independent of Operator/Scheme
+//Note Problen should be independent of Operator/Scheme
 #include<dune/phasefield/algorithmtraits.hh>
 
 
 // include std libs
 #include <iostream>
 #include <string>
+// fem includes
+
 #include <dune/fem/misc/l2error.hh>
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
@@ -27,8 +29,8 @@
 #include <dune/fem/solver/odesolver.hh>
 #include <dune/fem/util/wb_energyconverter.hh>
 
-//Note Problen shoul be independent of Operator/Scheme
-#include<dune/phasefield/algorithmtraits.hh>
+
+#include <dune/fem/util/cons2prim.hh>
 /////////////////////////////////////////////////////////////////////////////
 //
 //  EOC output parameter class 
@@ -90,7 +92,7 @@ public:
 	typedef Dune::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
 
 	// type of IOTuple 
-	typedef Dune::tuple< DiscreteFunctionType*,  DiscreteFunctionType*,DiscreteScalarType* > IOTupleType; 
+	typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType* > IOTupleType; 
 	// type of data writer 
 	typedef Dune::DataWriter< GridType, IOTupleType >    DataWriterType;
 	
@@ -162,7 +164,7 @@ public:
 		sigma_(Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : 0),
 		theta_(Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : 0 ),
 		energy_(Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
-		additionalVariables_( Parameter :: getValue< bool >("femhowto.additionalvariables", false) ? 
+		additionalVariables_( Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
 													new DiscreteFunctionType("additional", space() ) : 0 ),
 		problem_( ProblemGeneratorType ::problem() ),
     model_( new ModelType( problem() ) ),
@@ -195,7 +197,9 @@ public:
 		delete additionalVariables_; 
 		additionalVariables_ = 0;
   }
+
 	//some acces methods
+	//spacs
 	DiscreteSpaceType& space()
 	{
 		return space_;
@@ -259,8 +263,8 @@ public:
     l2pro(problem(), U );          
     odeSolver_->initialize( U );  
 	}
-#if 0
-  void step(TimeProviderType& tp
+#if 1
+  void step(TimeProviderType& tp,
 						int& newton_iterations,
 						int& ils_iterations,
 						int& max_newton_iterations,
@@ -303,7 +307,7 @@ public:
 									const bool reallyWrite )
 	{
 
-#if 1
+
 		if( reallyWrite )
 			{
 				 
@@ -312,12 +316,12 @@ public:
 				if ( addVariables )
 					{
 						// calculate additional variables from the current num. solution
-						//  setupAdditionalVariables( solution(), model(), *additionalVariables );
+					  setupAdditionalVariables( solution(), model(), *addVariables );
 					}
 
 				//	energyconverter(solution(),sigma(),model(),energy());
 			}
-#endif
+
 		// write the data 
 		eocDataOutput.write( tp );
 	}

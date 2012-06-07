@@ -135,9 +135,9 @@ public:
   < Traits, passUId, passProjId, passGradId >                          BaseType;
 
   // These type definitions allow a convenient access to arguments of paesss.
-  integral_constant< int, passUId > uVar;
+  integral_constant< int, passUId >    uVar;
   integral_constant< int, passGradId > sigmaVar;    
-  integral_constant<int , passProjId> thetaVar;
+  integral_constant<int , passProjId>  thetaVar;
 
 public:
   enum { dimDomain = Traits :: dimDomain };
@@ -302,9 +302,15 @@ public:
     gDiffRight = 0;
     if( advection ) 
       {
+#if WELLBALANCED
+					double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
+																							time, faceQuadInner, faceQuadOuter, quadPoint, 
+																							uLeft[ uVar ], uRight[ uVar ],uLeft[thetaVar],uRight[thetaVar],gLeft, gRight);
+#else
 				double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
 																						time, faceQuadInner, faceQuadOuter, quadPoint, 
-																			uLeft[ uVar ], uRight[ uVar ],gLeft, gRight);
+																						uLeft[ uVar ], uRight[ uVar ],gLeft, gRight);
+#endif
 				return ldt ;
       }
     else 

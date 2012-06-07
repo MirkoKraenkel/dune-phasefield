@@ -707,6 +707,7 @@ newphasefield_wb-phasefield_pol.o:  \
   /windows/Work/Dune/dune-fem/dune/fem/solver/oemsolver/bicgsq.h \
   /windows/Work/Dune/dune-fem/dune/fem/operator/matrix/spmatrix.cc \
   ../../../dune/fem/util/wb_energyconverter.hh \
+  ../../../dune/fem/util/cons2prim.hh \
   /windows/Work/Dune/dune-grid/dune/grid/io/visual/grapedatadisplay.hh \
   /windows/Work/Dune/dune-grid/dune/grid/io/visual/grapegriddisplay.hh \
   /windows/Work/Dune/dune-grid/dune/grid/io/visual/grape/grapedatadisplay.cc
@@ -2232,6 +2233,8 @@ wellbalancedphysics.hh:
 /windows/Work/Dune/dune-fem/dune/fem/operator/matrix/spmatrix.cc:
 
 ../../../dune/fem/util/wb_energyconverter.hh:
+
+../../../dune/fem/util/cons2prim.hh:
 
 /windows/Work/Dune/dune-grid/dune/grid/io/visual/grapedatadisplay.hh:
 

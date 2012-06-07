@@ -27,20 +27,42 @@ public:
     gamma_(Parameter::getValue<double>("gamma"))
   {
     delta_inv_     = 1. / delta_;
-    
-  }
+	}
 
   inline void init();
   inline double helmholtz(double& rho,double& phi) const
   {
 		return 0.;
 	}
+	inline double  pressure( double& rho, double& phi) const
+  {
+		double t1;
+		double t10;
+		double t11;
+		double t4;
+		double t5;
+		double t6;
+		double t7;
+		double t9;
+		
+    t1 = rho-c1_;
+    t4 = pow(phi-1.0,2.0);
+    t5 = rho-c2_;
+    t6 = t5*t5;
+    t7 = t4+t6;
+    t9 = t1*t1;
+    t10 = phi*phi;
+    t11 = t9+t10;
+    return(rho*(2.0*t1*t7+2.0*t11*t5)-t11*t7);
   
-  
+	}
+
+
+	
 
   inline double reactionSource(double& rho,double& phi) const
   { 
-    
+		
 		double t1;
 		double t10;
 		double t2;
@@ -57,27 +79,23 @@ public:
   
 
 
-  inline double chemicalPotential(double& rho,double& phi)
-    const
+  inline double chemicalPotential(double& rho,double& phi) const
   {
-	 double t1;
-  double t10;
-  double t4;
-  double t5;
-  double t6;
-  double t9;
-  {
-    t1 = rho-c1_;
-    t4 = pow(phi-1.0,2.0);
-    t5 = rho-c2_;
-    t6 = t5*t5;
-    t9 = t1*t1;
-    t10 = phi*phi;
-    return(2.0*t1*(t4+t6)+2.0*(t9+t10)*t5);
-  }
-	
-			
-	
+		double t1;
+		double t10;
+		double t4;
+		double t5;
+		double t6;
+		double t9;
+		
+		t1 = rho-c1_;
+		t4 = pow(phi-1.0,2.0);
+		t5 = rho-c2_;
+		t6 = t5*t5;
+		t9 = t1*t1;
+		t10 = phi*phi;
+		return(2.0*t1*(t4+t6)+2.0*(t9+t10)*t5);
+		
 	}
 
 
@@ -98,8 +116,8 @@ public:
 		reaction=reactionSource(rho,phi); 
     reaction*=-1.;
   
-   //  assert( p > 1e-20 );
-    // assert( T > 1e-20 );
+    //assert( p > 1e-20 );
+		  // assert( T > 1e-20 );
   }
 
 
@@ -131,13 +149,11 @@ public:
   }
 
   template< class RangeType >
-  void conservativeToPrimitiveThetaForm( const RangeType& cons, RangeType& prim ) const;
+  void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
   
   template< class RangeType,class GradRangeType >
   void totalEnergy( const RangeType& cons, const GradRangeType& grad, double& res ) const;
   
-  template< class RangeType >
-  void conservativeToPrimitiveEnergyForm( const RangeType& cons, RangeType& prim ) const;
 
 public:
 
@@ -171,68 +187,26 @@ inline void Thermodynamics< dimDomain >
   
 }
 
-
-
-/** \brief converts conservative variables in the energy form to primitive ones
- *
- *  Converts conservative variables \f$[\rho\boldsymbol{v},p,\rho e\f$
- *  to primitive ones \f$[\boldsymbol{v},p,\theta]\f$, where \f$e\f$ is the sum
- *  of internal and kinetic energy, and \f$\theta\f$ potential temperature.
- *
- *  \param[in] cons Conservative variables
- *  \param[out] prim Primitive variables
- *
- *  \tparam dimDomain dimension of the domain
- *  \tparam RangeType type of the range value
- */
 template< int dimDomain >
 template< class RangeType >
 void Thermodynamics< dimDomain >
-:: conservativeToPrimitiveEnergyForm( const RangeType& cons, RangeType& prim ) const
-{
-  std::cerr <<"conservativeToPrimitiveEnergyForm not implemented" <<std::endl;
-  abort();
-
-  //const double rho_inv = 1./ cons[0];
-
-  //double p, T;
-  //pressAndTempEnergyForm( cons, p, T );
-
-  //prim[phaseId-1] = p;
-  // this is not pot. temp !!!!!!!
-  //prim[phaseId] = cons[phaseId]/cons[0];
-}
-
-
-/** \brief converts conservative variables in the theta form to primitive ones
- *
- *  Converts conservative variables \f$[\rho\boldsymbol{v},p,\rho\theta]\f$
- *  to primitive ones \f$[\boldsymbol{v},p,\theta]\f$, where \f$\theta\f$ is
- *  potential temperature
- *
- *  \param[in] cons Conservative variables
- *  \param[out] prim Primitive variables
- *
- *  \tparam dimDomain dimension of the domain
- *  \tparam RangeType type of the range value
- */
-template< int dimDomain >
-template< class RangeType >
-void Thermodynamics< dimDomain >
-:: conservativeToPrimitiveThetaForm( const RangeType& cons, RangeType& prim ) const
+:: conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
 {
   
   
   assert( cons[0] > 0. );
   
-  double p, T;
- //  pressAndTempEnergyForm( cons, p, T );
+  double p,rho,phi;
+	rho=cons[0];
+	phi=cons[phaseId]/rho;
+  p=pressure(rho,phi);
+	
 
   for( int i = 0; i < dimDomain; ++i )
     prim[i] = cons[i+1]/cons[0];
 
   prim[phaseId-1] = p;
-  prim[phaseId] = cons[phaseId] / cons[0];
+  prim[phaseId] = phi;
 }
 
 
@@ -241,23 +215,17 @@ template< class RangeType,class GradRangeType >
 void Thermodynamics< dimDomain >
 :: totalEnergy( const RangeType& cons,const GradRangeType& grad,double& res ) const
 {
-	abort();
   assert( cons[0] > 0. );
   double rho = cons[0];
   double rho_inv = 1. /rho;
-  double phi=cons[dimDomain+1]*rho_inv;
+  double phi=cons[dimDomain+1];
   
   const double v = cons[1]*rho_inv;
   double kin= cons[1]*v*0.5;
   const double dxrho     = grad[0]; //drho/dx
-
-   const double dxrhophi  = grad[2]; //d(rho*phi)/dx
-   
-  const double rhodxphi = (dxrhophi - phi*dxrho);
-  //double tens=gamma_*rhodxphi*rhodxphi*rho_inv;
-  double tens=gamma_*delta_*rhodxphi*rhodxphi*rho_inv*rho_inv;
-  
-  //double tens=gamma_*rhodxphi*rhodxphi*rho_inv*rho_inv*rho_inv;
+	const double dxphi     = grad[2]; //d(rho*phi)/dx
+	 
+	double tens=gamma_*delta_*dxphi*dxphi;
   double helm=helmholtz( rho,phi);
   res=helm+tens+kin;
 
