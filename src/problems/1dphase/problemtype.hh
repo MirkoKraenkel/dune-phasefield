@@ -1,5 +1,5 @@
-#ifndef FEMHOWTO_NSEQ_PROBLEMTYPE_HH
-#define FEMHOWTO_NSEQ_PROBLEMTYPE_HH
+#ifndef PHASEFIELD_PROBLEMTYPE_HH
+#define PHASEFIELD_PROBLEMTYPE_HH
 
 #include <dune/common/version.hh>
 #include <dune/fem/io/parameter.hh>
