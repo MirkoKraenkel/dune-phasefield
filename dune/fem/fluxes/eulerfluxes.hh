@@ -181,7 +181,7 @@ public:
 		ThetaRangeType newvisc;
 		newvisc=thetaLeft;
 		newvisc-=thetaRight;
-
+		newvis*=alpha1_;
 		FluxRangeType anaflux;
    
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
@@ -224,7 +224,9 @@ public:
 				gLeft[i] -= visc[i];
 		
 			}
-		gLeft *= 0.5*len;
+
+		gLeft[0]-=newvisc[1];
+		gLeft *= 0.5*len; 
 		gRight = gLeft;
 
 

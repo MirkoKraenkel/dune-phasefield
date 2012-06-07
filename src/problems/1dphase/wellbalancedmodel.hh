@@ -329,6 +329,7 @@ namespace Dune {
 		{
 			nsFlux_.allenCahn(u,du,dv);
 		}
+
 		inline double boundaryFlux( const IntersectionType& it
 																, const double time
 																, const FaceDomainType& x
@@ -416,6 +417,7 @@ namespace Dune {
 		//v=0 
 		for(int i=0;i<dimDomain+1;i++)
 			uRight[i]=0.;      
+		
 		//Neumann Boundary for \phi and \rho
 		uRight[0]=uLeft[0];
 		uRight[dimDomain+1]=uLeft[dimDomain+1];

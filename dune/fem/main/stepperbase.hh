@@ -104,8 +104,9 @@ struct StepperBase
 
   typedef AdaptationHandler< GridType, 
            typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
-
-  typedef RunFile< GridType >  RunFileType;
+	typedef Estimator1< DiscreteFunctionType >        EstimatorType;
+  
+	typedef RunFile< GridType >  RunFileType;
 
   using BaseType :: grid_;
   using BaseType :: gridPart_;
@@ -203,19 +204,16 @@ struct StepperBase
     DiscreteFunctionType& U = solution();
 
     if( odeSolver_ == 0 ) odeSolver_ = this->createOdeSolver( tp );
-
-#if defined TESTOPERATOR
-//    analyseOperator( dgDiffusionOperator_ );
-#endif
+f
     assert( odeSolver_ );
 
-    L2Projection< double, double,                         /*@\label{dg:l2pro0}@*/
+    L2Projection< double, double,                         
                   InitialDataType, DiscreteFunctionType > l2pro;
-    l2pro(problem(), U );                                   /*@\label{dg:l2pro1}@*/
+    l2pro(problem(), U );                               
 
     // ode.initialize applies the DG Operator once to get an initial
     // estimate on the time step. This does not change the initial data u.
-    odeSolver_->initialize( U );                               /*@\label{dg:odeinit}@*/
+    odeSolver_->initialize( U );                               
   }
 ;
 

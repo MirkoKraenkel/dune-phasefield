@@ -29,7 +29,7 @@
 #include <dune/fem/solver/odesolver.hh>
 #include <dune/fem/util/wb_energyconverter.hh>
 
-
+#include <dune/fem/adaptation/estimator1.hh>
 #include <dune/fem/util/cons2prim.hh>
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -383,7 +383,29 @@ public:
 		else
 			tp.init();
 		
+
+
+		// adapt the grid to the initial data
+		int startCount = 0;
+		if( adaptCount > 0 )
+			while( startCount < maxAdaptationLevel )
+				{
+					estimateMarkAdapt( adaptManager );
+					
+					initializeStep( tp );
+
+					if( verbose )
+						std::cout << "start: " << startCount << " grid size: " << grid_.size(0)
+											<< std::endl;
+					++startCount;
+				}
+		
+		
+
 		writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
+		
+
+
 		
 		for( ; tp.time() < endTime; )   
 			{ 
