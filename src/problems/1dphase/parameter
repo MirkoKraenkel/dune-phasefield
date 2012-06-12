@@ -61,8 +61,8 @@ fem.io.macroGridFile_3d: ../macrogrids/unitcube3.dgf
 
 # SOLVER
 #-------
-dgiffusionflux.upwind: -1 -3.141
-#dgdiffusionflux.upwind: -1 
+#dgiffusionflux.upwind: -1 -3.141
+dgdiffusionflux.upwind: -1 
 paramfile: ../parameter/paramSolver
 femhowto.maxTimeStep: 0.5
 
