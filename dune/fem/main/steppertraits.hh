@@ -10,7 +10,7 @@ template <class GridImp,
           int polOrd>             
 struct StepperTraits 
 {
-  enum { polynomialOrder = polOrd };gr
+  enum { polynomialOrder = polOrd };
 
   // type of Grid
   typedef GridImp                                   GridType;

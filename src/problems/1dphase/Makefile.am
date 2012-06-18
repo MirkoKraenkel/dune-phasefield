@@ -14,7 +14,7 @@ SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 #GRIDTYPE = ALUGRID_CONFORM
 GRIDTYPE=SPGRID
 #GRIDTYPE = YASPGRID
-GRIDDIM = 2 
+GRIDDIM = 1 
 POLORDER= 1
 
 PROBLEM = 1 # check ./problemtype.hh
@@ -35,7 +35,7 @@ AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)
 
 check_PROGRAMS = phasefield phasefield_nc phasefield_wb newphasefield_wb
 phasefield_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER)
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO
 phasefield_nc_SOURCES = $(SOURCES) 
 phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DNONCON
 phasefield_wb_SOURCES = $(SOURCES) 

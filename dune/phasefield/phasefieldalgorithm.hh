@@ -21,13 +21,21 @@
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/util/phasefieldodesolver.hh>
+#if WELLBALANCED
 #include <dune/fem/operator/wellbalancedoperator.hh>
+#else
+#include <dune/fem/operator/fluxprojoperator.hh>
+#endif
 #include <dune/fem-dg/misc/runfile.hh>
 #include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 #include <dune/fem/space/dgspace/localrestrictprolong.hh>
 #include <dune/fem/solver/odesolver.hh>
+#if WELLBALANCED
 #include <dune/fem/util/wb_energyconverter.hh>
+#else
+#include <dune/fem/util/energyconverter.hh>
+#endif
 
 #include <dune/fem/adaptation/estimator1.hh>
 #include <dune/fem/util/cons2prim.hh>

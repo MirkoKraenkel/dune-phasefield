@@ -7,7 +7,7 @@
 
 // local includes
 #include <dune/fem-dg/models/defaultmodel.hh>
-#include "phase_model_spec.hh"
+#include "physics.hh"
 
 namespace Dune {
 
@@ -112,8 +112,12 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                       , RangeType& s ) const 
   {
    
-    const DomainType& xgl = en.geometry().global(x);
-    return problem_.stiffSource( time, xgl,u, s );
+		double reaction,pressure;
+		thermodynamics_.pressureAndReaction(u,pressure,reaction);
+	  s[0]=0.;
+		s[1]=0.;
+		s[2]=reaction;
+		return 1;
   }
 
  
@@ -319,14 +323,14 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 
   inline void pressAndTemp( const RangeType& u, double& p, double& T ) const
   {
-    thermodynamics_.pressAndTempEnergyForm( u, p, T );
+    thermodynamics_.pressureAndReaction( u, p, T );
   }
 
   inline void conservativeToPrimitive( const DomainType& xgl,
                                        const RangeType& cons, 
                                        RangeType& prim ) const
   {
-    thermodynamics_.conservativeToPrimitiveThetaForm( cons, prim );
+    thermodynamics_.conservativeToPrimitive( cons, prim );
   }
   inline void totalEnergy( const DomainType& xgl,
 			   const RangeType& cons, 

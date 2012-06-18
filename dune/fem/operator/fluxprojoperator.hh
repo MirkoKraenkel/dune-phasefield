@@ -1,6 +1,6 @@
 #ifndef DUNE_FEM_DG_FLUXPROJOPERATOR_HH
 #define DUNE_FEM_DG_FLUXPROJOPERATOR_HH
-
+#warning "FLUXPROJOPERATOR"
 #include <string>
 
 // dune-fem includes
@@ -48,7 +48,8 @@ namespace Dune {
     typedef PassTraits< Model, Model::Traits::dimRange, polOrd >     PassTraitsType ;
     
     typedef typename PassTraitsType::ScalarDiscreteFunctionSpaceType ScalarDiscreteFunctionSpaceType;
-    typedef typename PassTraitsType::ScalarDFType ScalarDFType;
+		typedef typename PassTraitsType::DiscreteScalarType DiscreteScalarType;   
+		typedef typename PassTraitsType::ScalarDFType ScalarDFType;
     
 
  

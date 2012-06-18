@@ -25,10 +25,11 @@
 #endif
 
 #include "problemtype.hh"
+
 #if WELLBALANCED
 #include "wellbalancedmodel.hh"
 #else
-#include "model.hh"
+#include "standardmodel.hh"
 #endif
 
 

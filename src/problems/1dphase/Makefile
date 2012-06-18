@@ -222,11 +222,9 @@ ALBERTA_INCLUDE_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/alberta/in
 ALBERTA_LDFLAGS = $(ALBERTA$(ALBERTA_DIM)D_LDFLAGS)
 ALBERTA_LIBPATHFLAGS = 
 ALBERTA_LIBS = $(ALBERTA$(ALBERTA_DIM)D_LIBS)
-ALGLIB_CPPFLAGS = 
-ALGLIB_LIBS = 
-ALL_PKG_CPPFLAGS =   -I/usr/people/kraenkel/Dune/dune-common  -I/usr/people/kraenkel/Dune/dune-geometry  -I/usr/people/kraenkel/Dune/dune-grid  -I/usr/people/kraenkel/Dune/dune-istl  -I/usr/people/kraenkel/Dune/dune-localfunctions  -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -DENABLE_UMFPACK=1 -I/usr/people/kraenkel/Dune/dune-fem  -I/usr/people/kraenkel/Dune/dune-fem-dg  -I/usr/people/kraenkel/Dune/dune-spgrid   ${DUNEMPICPPFLAGS} -I/usr/people/kraenkel/Dune/dune-common ${GMP_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-geometry -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE) ${ALBERTA_CPPFLAGS} ${UG_CPPFLAGS} ${DUNEMPICPPFLAGS} -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/serial -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/duneinterface -DENABLE_ALUGRID -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/parallel -I/usr/people/kraenkel/Dune/dune-grid ${SUPERLU_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-istl -I/usr/people/kraenkel/Dune/dune-localfunctions -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -DENABLE_UMFPACK=1 -I/usr/people/kraenkel/Dune/dune-fem -I/usr/people/kraenkel/Dune/dune-fem-dg -I/usr/people/kraenkel/Dune/dune-spgrid
-ALL_PKG_LDFLAGS =             -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib        ${DUNEMPILDFLAGS}     ${ALBERTA_LDFLAGS} ${UG_LDFLAGS} ${DUNEMPILDFLAGS}     -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib   
-ALL_PKG_LIBS =   /usr/people/kraenkel/Dune/dune-fem/lib/libdunefem.la   ${SUPERLU_LIBS} /usr/people/kraenkel/Dune/dune-grid/lib/libdunegrid.la -L/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/lib -lalugrid ${DUNEMPILIBS} ${UG_LIBS} ${ALBERTA_LIBS}  /usr/people/kraenkel/Dune/dune-geometry/lib/libdunegeometry.la ${GMP_LIBS} /usr/people/kraenkel/Dune/dune-common/lib/libdunecommon.la ${DUNEMPILIBS}  -lumfpack -lamd   /usr/people/kraenkel/Dune/dune-fem/lib/libdunefem.la   /usr/people/kraenkel/Dune/dune-grid/lib/libdunegrid.la /usr/people/kraenkel/Dune/dune-geometry/lib/libdunegeometry.la /usr/people/kraenkel/Dune/dune-common/lib/libdunecommon.la       -lumfpack -lamd    -lm 
+ALL_PKG_CPPFLAGS =   -I/usr/people/kraenkel/Dune/dune-common  -I/usr/people/kraenkel/Dune/dune-geometry  -I/usr/people/kraenkel/Dune/dune-grid  -I/usr/people/kraenkel/Dune/dune-istl  -I/usr/people/kraenkel/Dune/dune-localfunctions  -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -DENABLE_UMFPACK=1 -I/usr/people/kraenkel/Dune/dune-fem  -I/usr/people/kraenkel/Dune/dune-fem-dg  -I/usr/people/kraenkel/Dune/dune-spgrid   ${DUNEMPICPPFLAGS} -I/usr/people/kraenkel/Dune/dune-common -I/usr/people/kraenkel/Dune/dune-geometry -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE) ${ALBERTA_CPPFLAGS} ${UG_CPPFLAGS} ${DUNEMPICPPFLAGS} -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/serial -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/duneinterface -DENABLE_ALUGRID -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/parallel -I/usr/people/kraenkel/Dune/dune-grid ${SUPERLU_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-istl ${GMP_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-localfunctions -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -DENABLE_UMFPACK=1 -I/usr/people/kraenkel/Dune/dune-fem -I/usr/people/kraenkel/Dune/dune-fem-dg -I/usr/people/kraenkel/Dune/dune-spgrid
+ALL_PKG_LDFLAGS =             -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib        ${DUNEMPILDFLAGS}    ${ALBERTA_LDFLAGS} ${UG_LDFLAGS} ${DUNEMPILDFLAGS}      -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib   
+ALL_PKG_LIBS =   /usr/people/kraenkel/Dune/dune-fem/lib/libdunefem.la  ${GMP_LIBS}  ${SUPERLU_LIBS} /usr/people/kraenkel/Dune/dune-grid/lib/libdunegrid.la -L/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/lib -lalugrid ${DUNEMPILIBS} ${UG_LIBS} ${ALBERTA_LIBS}  /usr/people/kraenkel/Dune/dune-geometry/lib/libdunegeometry.la /usr/people/kraenkel/Dune/dune-common/lib/libdunecommon.la ${DUNEMPILIBS}  -lumfpack -lamd   /usr/people/kraenkel/Dune/dune-fem/lib/libdunefem.la   /usr/people/kraenkel/Dune/dune-grid/lib/libdunegrid.la /usr/people/kraenkel/Dune/dune-geometry/lib/libdunegeometry.la /usr/people/kraenkel/Dune/dune-common/lib/libdunecommon.la       -lumfpack -lamd    -lm 
 ALUGRID_CPPFLAGS = ${DUNEMPICPPFLAGS} -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/serial -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/duneinterface -DENABLE_ALUGRID -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/include/parallel
 ALUGRID_LDFLAGS = ${DUNEMPILDFLAGS}
 ALUGRID_LIBS = -L/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.50/lib -lalugrid ${DUNEMPILIBS}
@@ -271,6 +269,7 @@ CXXFLAGS =
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
+DLLTOOL = false
 DOT = dot
 DOXYGEN = doxygen
 DSYMUTIL = 
@@ -384,7 +383,7 @@ GRAPE_LDFLAGS =
 GRAPE_LIBS = 
 GREP = /bin/grep
 #GRIDTYPE = YASPGRID
-GRIDDIM = 2 
+GRIDDIM = 1 
 GRIDDIM_CPPFLAGS = -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE)
 
 #GRIDTYPE = ALUGRID_CONFORM
@@ -405,6 +404,7 @@ LIPO =
 LN_S = ln -s
 LTLIBOBJS = 
 MAKEINFO = ${SHELL} /usr/people/kraenkel/Dune/dune-phasefield/missing --run makeinfo
+MANIFEST_TOOL = :
 METIS = 
 METIS_INCLUDE = 
 METIS_LDFLAGS = 
@@ -460,9 +460,9 @@ SUPERLU_DIST_LDFLAGS = -L/usr/local/
 SUPERLU_DIST_LIBS = 
 SUPERLU_LIBS = 
 TEX = latex
-UG_CPPFLAGS = -I/disk1/Work/Mymodules/UG/include/ug   -DENABLE_UG
+UG_CPPFLAGS = 
 UG_LDFLAGS = 
-UG_LIBS = -L/disk1/Work/Mymodules/UG/lib   -lugS2 -lugS3 -ldevS
+UG_LIBS = 
 UMFPACK_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -DENABLE_UMFPACK=1
 UMFPACK_LDFLAGS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib
 UMFPACK_LIBS = -lumfpack -lamd
@@ -478,6 +478,7 @@ abs_builddir = /usr/people/kraenkel/Dune/dune-phasefield/src/problems/1dphase
 abs_srcdir = /usr/people/kraenkel/Dune/dune-phasefield/src/problems/1dphase
 abs_top_builddir = /usr/people/kraenkel/Dune/dune-phasefield
 abs_top_srcdir = /usr/people/kraenkel/Dune/dune-phasefield
+ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_CXX = 
 ac_ct_DUMPBIN = 
@@ -546,7 +547,7 @@ POLORDER = 1
 PROBLEM = 1 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 phasefield_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER)
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO
 phasefield_nc_SOURCES = $(SOURCES) 
 phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DNONCON
 phasefield_wb_SOURCES = $(SOURCES) 

@@ -4,15 +4,15 @@
 
 fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-#fem.io.savestep: 1e-3 #save data every time interval 
-fem.io.savecount: 1 # save every i-th step
+fem.io.savestep: 1e-4 #save data every time interval 
+#fem.io.savecount: 1 # save every i-th step
 
 # GRID SOLUTION
 #--------------
 
 gridsol.savestep: 0.01
 gridsol.firstwrite: 0.1
-gridsol.filename: heat-checkpoint
+gridsol.filename: phasefield-checkpoint
 
 
 #--------

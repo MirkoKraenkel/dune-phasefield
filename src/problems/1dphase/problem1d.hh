@@ -13,7 +13,7 @@
 
 // local includes
 // #include "idealthermodynamics2interpol.hh"
-#if WELLBALANCED
+#if 1
 #include "thermodynamicswb.hh"
 #else
 #include "thermoequal.hh"

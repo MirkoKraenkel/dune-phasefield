@@ -17,7 +17,7 @@
 
 typedef PhaseWaves< GridSelector :: GridType >  PhaseProblemType;
 
-#define PROBLEM_HAS_SOLUTION
+#define PROBLEM_HAS_SOLUTIONx
 
 
 

@@ -20,7 +20,7 @@ fem.parallel.runfile: 1
 # (-1: off, p: process p is verbose, in general 0 is a good choice)
 fem.verboserank: 0 
 
-fem.io.outputformat: vtk-cell # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-cell
+fem.io.outputformat: gnuplot # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-cell
 fem.io.subsamplinglevel: 1
 em.io.grapedisplay: 0 
 

@@ -119,6 +119,24 @@ public:
     //assert( p > 1e-20 );
 		  // assert( T > 1e-20 );
   }
+	template< class RangeType >
+  inline void pressureAndReaction( const RangeType& cons, 
+																	 double& p,double& reaction ) const
+  {
+    assert( cons[0] > 1e-20 );
+  
+		double rho=cons[0];
+    double phi=cons[dimDomain+1];
+    
+		phi/=rho;
+		
+    p=pressure(rho,phi);
+		reaction=reactionSource(rho,phi); 
+    reaction*=-1.;
+  
+    //assert( p > 1e-20 );
+		  // assert( T > 1e-20 );
+  }
 
 
 

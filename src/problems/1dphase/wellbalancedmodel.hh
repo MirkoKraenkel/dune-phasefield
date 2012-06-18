@@ -102,7 +102,7 @@ namespace Dune {
 			, problem_( problem )
 			, nsFlux_( problem )
 			, visc_(Parameter::getValue<double>("visc"))
-			, alpha1_(Parameter::getValue<double>("alpha1"))
+			, alpha1_(Parameter::getValue<double>("alpha1",1.))
 		
 		{
     
