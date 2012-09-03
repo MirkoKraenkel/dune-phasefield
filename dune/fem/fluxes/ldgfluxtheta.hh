@@ -66,7 +66,7 @@ namespace Dune {
     LDGDiffusionFlux(GridPartType& gridPart,
                      const Model& model ) :
       BaseType( model, true ),
-      penalty_(Parameter::getValue<double>("dgdiffusionflux.penalty")),
+      penalty_(Fem::Parameter::getValue<double>("dgdiffusionflux.penalty")),
       // Set CFL number for penalty term (compare diffusion in first pass)
       penaltyTerm_( std::abs(  penalty_ ) > 0 )
     {
@@ -232,10 +232,10 @@ namespace Dune {
 																JacobianRangeType& gDiffLeft, // not used here (only for primal passes)
 																JacobianRangeType& gDiffRight ) const
     {
-      FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( sigmaLeft );
-      FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacRight( sigmaRight );
-      FieldMatrixConverter< GradientRangeType, JacobianRangeType> tensLeft( thetaLeft );
-      FieldMatrixConverter< GradientRangeType, JacobianRangeType> tensRight( thetaRight );
+			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( sigmaLeft );
+      Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacRight( sigmaRight );
+      Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> tensLeft( thetaLeft );
+      Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> tensRight( thetaRight );
    
       return numericalFlux( intersection, discreteModel, time,
                             faceQuadInner, faceQuadOuter, quadPoint,
@@ -378,8 +378,8 @@ namespace Dune {
 															 RangeType& gLeft,
 															 JacobianRangeType& gDiffLeft) const   /*@LST0E@*/
     {
-      FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( sigmaLeft );
-      FieldMatrixConverter< GradientRangeType, JacobianRangeType> tensLeft(thetaLeft );
+      Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( sigmaLeft );
+      Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> tensLeft(thetaLeft );
       return boundaryFlux( intersection, discreteModel, time,
                            faceQuadInner, quadPoint, uLeft, uRight,
                            jacLeft, tensLeft,gLeft, gDiffLeft );

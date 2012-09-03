@@ -34,7 +34,7 @@ namespace Dune {
   template< class Model, class NumFlux, 
 						int polOrd, bool advection = true , bool diffusion = true >
   class  DGAdvectionDiffusionOperator : 
-    public SpaceOperatorInterface 
+    public Fem::SpaceOperatorInterface 
     < typename PassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
     // Id's for the three Passes (including StartPass)
@@ -99,7 +99,7 @@ namespace Dune {
   
     typedef typename Traits1 :: GridPartType                           GridPartType;
     
-    typedef StartPass< DiscreteFunction3Type, u >                      Pass0Type; /*@LST0S@*/
+    typedef Fem::StartPass< DiscreteFunction3Type, u >                      Pass0Type; /*@LST0S@*/
     
 
     typedef LocalCDGPass< DiscreteModel1Type, Pass0Type, gradPass >    Pass1Type; /*@\label{ad:typedefpass1}@*/
@@ -564,7 +564,7 @@ namespace Dune {
     DGAdaptationIndicatorOperator( GridType& grid , const NumFluxType& numf ) 
       : BaseType( grid, numf )
     {
-      if (Parameter::verbose())
+      if (Fem::Parameter::verbose())
       {
         std::cerr <<"\nWARNING: The adaptation indicator based on Ohlberger's a-posteriori\n";
         std::cerr <<"         error estimator is not ment to be used with flux formulation.\n\n";

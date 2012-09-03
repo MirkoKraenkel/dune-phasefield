@@ -57,7 +57,7 @@ void setupAdditionalVariables( const ConsDiscreteFunctionType& consDF,
     const Geometry& geo = entity.geometry(); 
 
     // Get quadrature rule for L2 projection
-    Dune::CachingQuadrature< GridPartType, 0 > quad( entity, 2*space.order()+1 );
+    Dune::Fem::CachingQuadrature< GridPartType, 0 > quad( entity, 2*space.order()+1 );
   
     ConsLocalFuncType consLF = consDF.localFunction( entity );
     PrimLocalFuncType primLF = primDF.localFunction( entity );

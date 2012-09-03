@@ -35,7 +35,7 @@ public:
 
 protected:
   OperatorType&          operator_;
-  TimeProviderBase&      timeProvider_; 
+  Fem::TimeProviderBase&      timeProvider_; 
   const PhaseFieldOdeSolverParameters* param_;
 	
 	OdeSolverInterfaceType* odeSolver_;
@@ -47,7 +47,7 @@ protected:
   int minIterationSteps_, maxIterationSteps_ ;
   bool imex_ ;
 public:
-  PhaseFieldOdeSolver( TimeProviderBase& tp,
+  PhaseFieldOdeSolver( Fem::TimeProviderBase& tp,
 											 OperatorType& op, 
 											 const PhaseFieldOdeSolverParameters& parameter= PhaseFieldOdeSolverParameters() )
    : operator_( op ), 
@@ -165,20 +165,20 @@ protected:
     // methods
     static const std::string odeSolver[]  = { "EX", "IM" };
     std::string key( "fem.ode.odesolver" );
-    if( Parameter :: exists( key ) )
-      return Parameter::getEnum( "fem.ode.odesolver", odeSolver, 0 );
+    if( Fem::Parameter :: exists( key ) )
+      return Fem::Parameter::getEnum( "fem.ode.odesolver", odeSolver, 0 );
     else 
     {
       std::cerr << "WARNING: deprecated key, use `fem.ode.odesolver' instread!" << std::endl;
-      return Parameter::getEnum( "femhowto.odesolver", odeSolver, 0 );
+      return Fem::Parameter::getEnum( "femhowto.odesolver", odeSolver, 0 );
     }
   }
 
   int obtainRungeKuttaSteps() const
   {
     std::string key("fem.ode.order");
-    if ( Parameter :: exists( key ) )
-      return Parameter::getValue< int > ( key );
+    if ( Fem::Parameter :: exists( key ) )
+      return Fem::Parameter::getValue< int > ( key );
     else
       return operator_.space().order() + 1;
   }

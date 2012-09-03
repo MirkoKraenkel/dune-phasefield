@@ -52,8 +52,8 @@ namespace Dune
 
     static const int dimension = GridType :: dimension;
 
-    typedef CachingQuadrature< GridPartType, 0 > ElementQuadratureType;
-    typedef CachingQuadrature< GridPartType, 1 > FaceQuadratureType;
+    typedef Fem::CachingQuadrature< GridPartType, 0 > ElementQuadratureType;
+    typedef Fem::CachingQuadrature< GridPartType, 1 > FaceQuadratureType;
     typedef std :: vector< double > ErrorIndicatorType;
 
   protected:
@@ -72,25 +72,25 @@ namespace Dune
 
   public:
     explicit Estimator1 (const DiscreteFunctionType &uh,
-			 GridType &grid)
+												 GridType &grid)
       :  uh_( uh ),
          beta_(1.),
-	 dfSpace_( uh.space() ),
-	 gridPart_( dfSpace_.gridPart() ),
-	 indexSet_( gridPart_.indexSet() ),
-	 grid_( grid ),
-	 indicator_( indexSet_.size( 0 )),
-	 totalIndicator2_(0),
-	 maxIndicator_(0),
-	 theta_( Dune::Parameter::getValue("femhowto.adaptive.theta",0.) ),
-	 maxLevel_(Dune::Parameter::getValue<int>("fem.adaptation.finestLevel")),
-	 coarsen_(Dune::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1))
+				 dfSpace_( uh.space() ),
+				 gridPart_( dfSpace_.gridPart() ),
+				 indexSet_( gridPart_.indexSet() ),
+				 grid_( grid ),
+				 indicator_( indexSet_.size( 0 )),
+				 totalIndicator2_(0),
+				 maxIndicator_(0),
+				 theta_( Dune::Fem::Parameter::getValue("femhowto.adaptive.theta",0.) ),
+				 maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
+				 coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1))
     {
-	   clear();
+			clear();
     }
     
     // make this class behave as required for a LocalFunctionAdapter
-    typedef FunctionSpace< double, double, dimension, 1 > FunctionSpaceType;
+    typedef Fem::FunctionSpace< double, double, dimension, 1 > FunctionSpaceType;
     void init(const ElementType &en)
     {
       enIndex_ = indexSet_.index(en);
@@ -372,7 +372,7 @@ namespace Dune
                                 double &errorInside, double &errorOutside)
     {
       // use IntersectionQuadrature to create appropriate face quadratures 
-      typedef IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType;
+      typedef Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType;
       typedef typename IntersectionQuadratureType :: FaceQuadratureType QuadratureImp;
 
       // create intersection quadrature 

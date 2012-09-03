@@ -20,7 +20,7 @@ struct AlgorithmTraits
 	typedef ProblemGeneratorImp                      ProblemGeneratorType;
 
   // Choose a suitable GridView
-  typedef Dune :: DGAdaptiveLeafGridPart< GridType >       GridPartType;
+  typedef Dune :: Fem::DGAdaptiveLeafGridPart< GridType >       GridPartType;
 
   // problem dependent types 
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
@@ -52,7 +52,7 @@ struct AlgorithmTraits
 	// The ODE Solvers                                                         /*@LST1S@*/
   typedef DuneODE :: OdeSolverInterface< DiscreteFunctionType > OdeSolverType ;
   // type of restriction/prolongation projection for adaptive simulations 
-  typedef Dune :: RestrictProlongDefault< DiscreteFunctionType > RestrictionProlongationType;
+  typedef Dune :: Fem::RestrictProlongDefault< DiscreteFunctionType > RestrictionProlongationType;
 };
 
 

@@ -51,9 +51,9 @@ protected:
   : BaseType( space_ ),
 #endif
     space_(),
-    writeGridSolution_( Parameter::getValue<bool>("gridsol.writesolution", false) ),
-    saveStep_( Parameter :: getValue< double >("gridsol.firstwrite") ),
-    saveInterval_( Parameter :: getValue< double >("gridsol.savestep") ),
+    writeGridSolution_( Fem::Parameter::getValue<bool>("gridsol.writesolution", false) ),
+    saveStep_( Fem::Parameter :: getValue< double >("gridsol.firstwrite") ),
+    saveInterval_( Fem::Parameter :: getValue< double >("gridsol.savestep") ),
     writeCounter_( 0 )
   {
   }

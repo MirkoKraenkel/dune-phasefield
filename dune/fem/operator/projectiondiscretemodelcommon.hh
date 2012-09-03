@@ -38,23 +38,23 @@ namespace Dune {
     typedef typename GridType :: ctype                               ctype;
     static const int dimDomain = Model :: Traits :: dimDomain;
 
-    typedef CachingQuadrature< GridPartType, 0 >                     VolumeQuadratureType;
-    typedef CachingQuadrature< GridPartType, 1 >                     FaceQuadratureType;
+    typedef Fem::CachingQuadrature< GridPartType, 0 >                     VolumeQuadratureType;
+    typedef Fem::CachingQuadrature< GridPartType, 1 >                     FaceQuadratureType;
  
     // Allow generalization to systems
-    typedef FunctionSpace< ctype, double, dimDomain, dimRange >      FunctionSpaceType;
-    typedef FunctionSpace< ctype, double, dimDomain, 1 >             ScalarFunctionSpaceType;
+    typedef Fem::FunctionSpace< ctype, double, dimDomain, dimRange >      FunctionSpaceType;
+    typedef Fem::FunctionSpace< ctype, double, dimDomain, 1 >             ScalarFunctionSpaceType;
     
-    typedef DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,CachingStorage >         DiscreteFunctionSpaceType;
-		typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage >   ScalarDiscreteSpaceType;
+    typedef Fem::DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >         DiscreteFunctionSpaceType;
+		typedef Fem::DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >   ScalarDiscreteSpaceType;
 		typedef ScalarDiscreteSpaceType ScalarDiscreteFunctionSpaceType;
-		typedef AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >         DestinationType;
-		typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >   DiscreteScalarType;
+		typedef Fem::AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >         DestinationType;
+		typedef Fem::AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >   DiscreteScalarType;
 		typedef DiscreteScalarType ScalarDFType;
 		// Indicator for Limiter
-		typedef FunctionSpace< ctype, double, dimDomain, 3> FVFunctionSpaceType;
-		typedef FiniteVolumeSpace<FVFunctionSpaceType,GridPartType, 0, SimpleStorage> IndicatorSpaceType;
-		typedef AdaptiveDiscreteFunction<IndicatorSpaceType> IndicatorType;
+		typedef Fem::FunctionSpace< ctype, double, dimDomain, 3> FVFunctionSpaceType;
+		typedef Fem::FiniteVolumeSpace<FVFunctionSpaceType,GridPartType, 0, Fem::SimpleStorage> IndicatorSpaceType;
+		typedef Fem::AdaptiveDiscreteFunction<IndicatorSpaceType> IndicatorType;
 		typedef AdaptationHandler< GridType, FunctionSpaceType >  AdaptationHandlerType ;
 };
 
@@ -121,7 +121,7 @@ template< class Model,
 	  int polOrd, int passUId, int passProjId,int passGradId,
 	  bool returnAdvectionPart> 
 class AdvectionProjModel :
-  public DGDiscreteModelDefaultWithInsideOutside
+		public Fem::DGDiscreteModelDefaultWithInsideOutside
   <AdvectionProjTraits<Model, NumFlux, polOrd, passUId, passProjId, passGradId, returnAdvectionPart>,
    passUId, passProjId, passGradId>
 {
@@ -131,7 +131,7 @@ public:
   typedef Model   ModelType ;
   typedef NumFlux NumFluxType ;
 
-  typedef DGDiscreteModelDefaultWithInsideOutside
+  typedef Fem::DGDiscreteModelDefaultWithInsideOutside
   < Traits, passUId, passProjId, passGradId >                          BaseType;
 
   // These type definitions allow a convenient access to arguments of paesss.
@@ -490,7 +490,7 @@ template< class Model,
 	  int polOrd, int passUId, int passGradId,
 	  bool returnAdvectionPart> 
 class AdvectionModel :
-  public DGDiscreteModelDefaultWithInsideOutside
+  public Fem::DGDiscreteModelDefaultWithInsideOutside
   <AdvectionTraits<Model, NumFlux, polOrd, passUId, passGradId, returnAdvectionPart>,
    passUId, passGradId>
 {
@@ -501,7 +501,7 @@ public:
   typedef Model   ModelType ;
   typedef NumFlux NumFluxType ;
 
-  typedef DGDiscreteModelDefaultWithInsideOutside
+  typedef Fem::DGDiscreteModelDefaultWithInsideOutside
   < Traits, passUId, passGradId >                          BaseType;
 
   // These type definitions allow a convenient access to arguments of paesss.

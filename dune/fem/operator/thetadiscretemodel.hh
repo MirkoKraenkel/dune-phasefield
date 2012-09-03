@@ -73,12 +73,12 @@ namespace Dune {
 
 	template<class Model,int polOrd, int passUId,int passGradId>
 	class ThetaModel:
-		public DGDiscreteModelDefaultWithInsideOutside
+		public Fem::DGDiscreteModelDefaultWithInsideOutside
 		<ThetaTraits<Model,polOrd,passUId,passGradId>,passUId, passGradId>
 	{
  			public:
 
-		typedef DGDiscreteModelDefaultWithInsideOutside
+		typedef Fem::DGDiscreteModelDefaultWithInsideOutside
 		<ThetaTraits<Model,polOrd,passUId,passGradId>,passUId, passGradId> BaseType;
 
 		using BaseType :: inside;
@@ -109,7 +109,7 @@ namespace Dune {
 	public:
     
 		ThetaModel(const Model& mod):
-			acpenalty_(Parameter::getValue<double>("phasefield.penalty")),
+			acpenalty_(Fem::Parameter::getValue<double>("phasefield.penalty")),
 			model_(mod){}
       
 		bool hasSource() const { return true; } 

@@ -62,7 +62,7 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
    
 		const double volume = geo.volume();
     // Get quadrature rule for L2 projection
-    Dune::CachingQuadrature< GridPartType, 0 > quad( entity, 2*space.order()+1 );
+    Dune::Fem::CachingQuadrature< GridPartType, 0 > quad( entity, 2*space.order()+1 );
   
     ConsLocalFuncType   consLF   = consDF.localFunction( entity );
     GradLocalFuncType   gradLF   = gradDF.localFunction( entity );

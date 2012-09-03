@@ -62,10 +62,10 @@ namespace Dune {
 
   template <class Model, class NumFlux, int polOrd, int passUId> 
   class GradientModel :
-    public DGDiscreteModelDefaultWithInsideOutside
+    public Fem::DGDiscreteModelDefaultWithInsideOutside
 		<GradientTraits<Model, NumFlux, polOrd, passUId>, passUId >
   {
-    typedef DGDiscreteModelDefaultWithInsideOutside
+    typedef Fem::DGDiscreteModelDefaultWithInsideOutside
 		<GradientTraits< Model, NumFlux, polOrd, passUId >,passUId > BaseType;
 
     using BaseType :: inside;

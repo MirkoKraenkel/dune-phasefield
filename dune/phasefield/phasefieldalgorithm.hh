@@ -46,7 +46,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 struct EocDataOutputParameters :   /*@LST1S@*/
-  public Dune::LocalParameter<Dune::DataWriterParameters,EocDataOutputParameters>
+  public Dune::Fem::LocalParameter<Dune::Fem::DataWriterParameters,EocDataOutputParameters>
 {
   std::string loop_;
   EocDataOutputParameters(int loop, const std::string& name) {
@@ -97,15 +97,15 @@ public:
   typedef typename OdeSolverType :: MonitorType  OdeSolverMonitorType ;	
 
 	// type of adaptation manager 
-	typedef Dune::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
+	typedef Dune::Fem::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
 
 	// type of IOTuple 
 	typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType* > IOTupleType; 
 	// type of data writer 
-	typedef Dune::DataWriter< GridType, IOTupleType >    DataWriterType;
+	typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
 	
 	// type of time provider organizing time for time loops 
-	typedef Dune::GridTimeProvider< GridType >                 TimeProviderType;
+	typedef Dune::Fem::GridTimeProvider< GridType >                 TimeProviderType;
 	
 
   typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
@@ -121,7 +121,7 @@ private:
 	ThetaDiscreteSpaceType*  thetaSpace_;
 	SigmaDiscreteSpaceType*  sigmaSpace_;
 	ScalarDiscreteSpaceType* energySpace_;
-	Dune::IOInterface*       eocLoopData_;
+	Dune::Fem::IOInterface*       eocLoopData_;
 	IOTupleType             eocDataTup_; 
 	unsigned int            timeStepTimer_; 
 	unsigned int            loop_ ; 
@@ -159,20 +159,20 @@ public:
 		grid_(grid)	,
 		gridPart_( grid_ ),
 		space_( gridPart_ ),
-		sigmaSpace_( Parameter :: getValue< bool >("phasefield.energy", false) ? new SigmaDiscreteSpaceType(gridPart_ ) : 0 ),
-		thetaSpace_( Parameter :: getValue< bool >("phasefield.theta", false)  ? new ThetaDiscreteSpaceType(gridPart_ ) : 0 ),
-		energySpace_(Parameter :: getValue< bool >("phasefield.energy", false) ? new ScalarDiscreteSpaceType(gridPart_ ) : 0 ),
+		sigmaSpace_( Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new SigmaDiscreteSpaceType(gridPart_ ) : 0 ),
+		thetaSpace_( Fem::Parameter :: getValue< bool >("phasefield.theta", false)  ? new ThetaDiscreteSpaceType(gridPart_ ) : 0 ),
+		energySpace_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new ScalarDiscreteSpaceType(gridPart_ ) : 0 ),
  		eocLoopData_( 0 ),
  		eocDataTup_(),
  		timeStepTimer_( Dune::FemTimer::addTo("max time/timestep") ),
  		loop_( 0 ),
- 		fixedTimeStep_( Dune::Parameter::getValue<double>("fixedTimeStep",0) ),
- 		fixedTimeStepEocLoopFactor_( Dune::Parameter::getValue<double>("fixedTimeStepEocLoopFactor",1.) ), // algorithmbase
+ 		fixedTimeStep_( Dune::Fem::Parameter::getValue<double>("fixedTimeStep",0) ),
+ 		fixedTimeStepEocLoopFactor_( Dune::Fem::Parameter::getValue<double>("fixedTimeStepEocLoopFactor",1.) ), // algorithmbase
 		solution_( "solution", space() ),
-		sigma_(Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : 0),
-		theta_(Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : 0 ),
-		energy_(Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
-		additionalVariables_( Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
+		sigma_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : 0),
+		theta_(Fem::Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : 0 ),
+		energy_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
+		additionalVariables_( Fem::Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
 													new DiscreteFunctionType("additional", space() ) : 0 ),
 		problem_( ProblemGeneratorType ::problem() ),
     model_( new ModelType( problem() ) ),
@@ -180,9 +180,9 @@ public:
     adaptationHandler_( 0 ),
     runfile_( grid.comm(), true ),
     overallTimer_(),
-    eocId_( FemEoc::addEntry(std::string("$L^2$-error")) ),
+    eocId_( Fem::FemEoc::addEntry(std::string("$L^2$-error")) ),
     odeSolver_( 0 ),
-    adaptive_( Dune::AdaptationMethod< GridType >( grid_ ).adaptive() ),
+    adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
 		dgOperator_(grid,convectionFlux_)
 	{}
@@ -341,23 +341,23 @@ public:
 
 		int counter;
 		//some setup stuff
-		const bool verbose = Dune::Parameter :: verbose ();
-		int printCount = Dune::Parameter::getValue<int>("femhowto.printCount", -1);
+		const bool verbose = Dune::Fem::Parameter :: verbose ();
+		int printCount = Dune::Fem::Parameter::getValue<int>("femhowto.printCount", -1);
 		// if adaptCount is 0 then no dynamics grid adaptation
 		int adaptCount = 0;
 		int maxAdaptationLevel = 0;
-		Dune::AdaptationMethod< GridType > am( grid_ );
+		Dune::Fem::AdaptationMethod< GridType > am( grid_ );
 		if( am.adaptive() )
 			{
-				adaptCount = Dune::Parameter::getValue<int>("fem.adaptation.adaptcount");
-				maxAdaptationLevel = Dune::Parameter::getValue<int>("fem.adaptation.finestLevel");
+				adaptCount = Dune::Fem::Parameter::getValue<int>("fem.adaptation.adaptcount");
+				maxAdaptationLevel = Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel");
 			}
 
-		double maxTimeStep =Dune::Parameter::getValue("femhowto.maxTimeStep", std::numeric_limits<double>::max());
-		const double startTime = Dune::Parameter::getValue<double>("femhowto.startTime", 0.0);
-		const double endTime   = Dune::Parameter::getValue<double>("femhowto.endTime");	
+		double maxTimeStep =Dune::Fem::Parameter::getValue("femhowto.maxTimeStep", std::numeric_limits<double>::max());
+		const double startTime = Dune::Fem::Parameter::getValue<double>("femhowto.startTime", 0.0);
+		const double endTime   = Dune::Fem::Parameter::getValue<double>("femhowto.endTime");	
 		const int maximalTimeSteps =
-			Dune::Parameter::getValue("femhowto.maximaltimesteps", std::numeric_limits<int>::max());
+			Dune::Fem::Parameter::getValue("femhowto.maximaltimesteps", std::numeric_limits<int>::max());
 
 		TimeProviderType tp(startTime, grid_ ); 
 
@@ -482,7 +482,7 @@ public:
 	inline double error(TimeProviderType& tp, DiscreteFunctionType& u)
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
-		L2Error<DiscreteFunctionType> L2err;
+		Fem::L2Error<DiscreteFunctionType> L2err;
 		// Compute L2 error of discretized solution ...
 		RangeType error = L2err.norm(problem(), u, tp.time());
 		return error.two_norm();
@@ -496,7 +496,7 @@ public:
 
 		// ... and print the statistics out to a file
 		if( doFemEoc )
-			FemEoc::setErrors(eocId_, error(tp, u));
+			Fem::FemEoc::setErrors(eocId_, error(tp, u));
 	
 		delete odeSolver_;
 		odeSolver_ = 0;
