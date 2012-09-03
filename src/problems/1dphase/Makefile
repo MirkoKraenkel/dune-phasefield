@@ -460,9 +460,9 @@ SUPERLU_DIST_LDFLAGS = -L/usr/local/
 SUPERLU_DIST_LIBS = 
 SUPERLU_LIBS = 
 TEX = latex
-UG_CPPFLAGS = 
+UG_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UG_r8413/include/ug   -DENABLE_UG
 UG_LDFLAGS = 
-UG_LIBS = 
+UG_LIBS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UG_r8413/lib   -lugS2 -lugS3 -ldevS
 UMFPACK_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -DENABLE_UMFPACK=1
 UMFPACK_LDFLAGS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib
 UMFPACK_LIBS = -lumfpack -lamd
@@ -1142,6 +1142,12 @@ headercheck-am:
 	  if ! (test $$SUCCESS -eq 0 && test -e $$OFILE); then \
 	    echo "Error in $$HEADER"; \
             test $V -ne 1 && echo "run with V=1 to show details" || cat $$LOGFILE; \
+	  fi; \
+	  warnings=`grep 'warning' $$LOGFILE`; \
+	  FOUNDWARNINGS=$$?; \
+	  if ( test $$FOUNDWARNINGS -eq 0 && test -e $$OFILE ); then \
+	    echo "Warnings in $$HEADER"; \
+	    test $V -ne 1 && echo "run with V=1 to show details" || cat $$LOGFILE; \
 	  fi; \
 	  rm -f $$OFILE; \
 	  rm -f $$CCFILE; \

@@ -28,13 +28,13 @@ namespace Dune {
 
 template <class GridType>
 class PhaseWaves : public EvolutionProblemInterface<
-                  Dune::FunctionSpace< double, double, GridType::dimension, GridType::dimension + 2 >,
+                  Dune::Fem::FunctionSpace< double, double, GridType::dimension, GridType::dimension + 2 >,
                   true >,
                 public Thermodynamics< GridType::dimensionworld >
 {
   PhaseWaves( const PhaseWaves& );
   public:
-  typedef FunctionSpace<typename GridType::ctype,
+  typedef Fem::FunctionSpace<typename GridType::ctype,
                         double, GridType::dimensionworld,
                         GridType::dimensionworld + 2 > FunctionSpaceType ;
 
@@ -48,14 +48,14 @@ class PhaseWaves : public EvolutionProblemInterface<
 
   PhaseWaves() : ThermodynamicsType(),
 		 myName_( "PhaseWaves" ),
-		 endTime_ ( Parameter::getValue<double>( "femhowto.endTime" )), 
-		 mu_( Parameter :: getValue< double >( "mu" )),
-		 delta_(Parameter::getValue<double>( "femhowto.delta" )),
-		 c1_(Parameter :: getValue< double >( "c1")),
-		 c2_(Parameter ::getValue< double> ("c2")),
-		 smear_( Parameter::getValue<double> ("smear")),
-		 phiscale_(Parameter::getValue<double> ("phiscale")),
-		 gamma_(Parameter::getValue<double> ("gamma"))
+		 endTime_ ( Fem::Parameter::getValue<double>( "femhowto.endTime" )), 
+		 mu_( Fem::Parameter :: getValue< double >( "mu" )),
+		 delta_(Fem::Parameter::getValue<double>( "femhowto.delta" )),
+		 c1_(Fem::Parameter :: getValue< double >( "c1")),
+		 c2_(Fem::Parameter ::getValue< double> ("c2")),
+		 smear_( Fem::Parameter::getValue<double> ("smear")),
+		 phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+		 gamma_(Fem::Parameter::getValue<double> ("gamma"))
     
   {
   }

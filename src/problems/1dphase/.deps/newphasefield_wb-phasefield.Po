@@ -193,8 +193,9 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
  /usr/include/assert.h \
  /usr/people/kraenkel/Dune/dune-common/dune/common/ftraits.hh \
  /usr/people/kraenkel/Dune/dune-common/dune/common/matvectraits.hh \
+ /usr/people/kraenkel/Dune/dune-common/dune/common/promotiontraits.hh \
+ /usr/people/kraenkel/Dune/dune-common/dune/common/dotproduct.hh \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/type.hh \
- /usr/people/kraenkel/Dune/dune-common/dune/common/geometrytype.hh \
  /usr/people/kraenkel/Dune/dune-common/dune/common/exceptions.hh \
  /usr/people/kraenkel/Dune/dune-grid/dune/grid/common/gridenums.hh \
  /usr/people/kraenkel/Dune/dune-grid/dune/grid/common/exceptions.hh \
@@ -218,7 +219,6 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/topologytypes.hh \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/referencedomain.hh \
  /usr/people/kraenkel/Dune/dune-common/dune/common/array.hh \
- /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/conversion.hh \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/hybridmapping.hh \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/cachedmapping.hh \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/referenceelements.hh \
@@ -233,6 +233,7 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/subtopologies.hh \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/mappingprovider.hh \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/maximum.hh \
+ /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericreferenceelements.hh \
  /usr/people/kraenkel/Dune/dune-grid/dune/grid/common/entity.hh \
  /usr/people/kraenkel/Dune/dune-grid/dune/grid/common/grid.hh \
  /usr/people/kraenkel/Dune/dune-grid/dune/grid/common/entitypointer.hh \
@@ -355,34 +356,11 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/quadratureimp_inline.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/quadratureimp.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/defaultquadratures.hh \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/femquadratures.hh \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/gausspoints.hh \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/gausspoints_implementation.hh \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/pyramidpoints.hh \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/simplexpoints.hh \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/pardg.hh \
- /usr/include/sys/times.h \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/timer.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/communicator.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/thread.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/emptycommunicator.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/vector.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/blas.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/subblas.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/blas.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/quadrature.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/function.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/function.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/ode_solver.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/communicator.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/limiter.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/dynamical_object.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/iterative_solver.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/linear_solver.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/matrix.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/vector.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/linear_solver.hpp \
- /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/femquadratures_inline.hh \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/dunequadratures.hh \
+ /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/quadraturerules.hh \
+ /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/quadraturerules/cube_imp.hh \
+ /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/quadraturerules/jacobi_1_0_imp.hh \
+ /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/quadraturerules/jacobi_2_0_imp.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/elementpointlist.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/elementpointlistbase.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/quadrature.hh \
@@ -406,7 +384,7 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
  /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.3/include/g++-v4/bits/stl_list.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/4.5.3/include/g++-v4/bits/list.tcc \
  /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/typeindex.hh \
- /usr/people/kraenkel/Dune/dune-common/dune/common/geometrytypeindex.hh \
+ /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/type.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/caching/cacheprovider.cc \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/cachingpointlist.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/elementpointlist.hh \
@@ -614,11 +592,32 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/gridpart/common/capabilities.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/gridpart/common/gridpartview.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/odesolver.hh \
+ /usr/include/sys/times.h \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/operator/common/spaceoperatorif.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/timeprovider.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/misc/commhelper.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/rungekutta.hh \
  /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/pardg.hh \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/timer.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/communicator.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/thread.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/emptycommunicator.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/vector.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/blas.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/subblas.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/blas.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/quadrature.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/function.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/function.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/ode_solver.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/communicator.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/limiter.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/dynamical_object.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/iterative_solver.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/linear_solver.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/matrix.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/vector.hpp \
+ /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/linear_solver.hpp \
  ../../../dune/fem/main/phasefield.hh
 
 ../../../config.h:
@@ -1063,9 +1062,11 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
 
 /usr/people/kraenkel/Dune/dune-common/dune/common/matvectraits.hh:
 
-/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/type.hh:
+/usr/people/kraenkel/Dune/dune-common/dune/common/promotiontraits.hh:
 
-/usr/people/kraenkel/Dune/dune-common/dune/common/geometrytype.hh:
+/usr/people/kraenkel/Dune/dune-common/dune/common/dotproduct.hh:
+
+/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/type.hh:
 
 /usr/people/kraenkel/Dune/dune-common/dune/common/exceptions.hh:
 
@@ -1113,8 +1114,6 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
 
 /usr/people/kraenkel/Dune/dune-common/dune/common/array.hh:
 
-/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/conversion.hh:
-
 /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/hybridmapping.hh:
 
 /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/cachedmapping.hh:
@@ -1142,6 +1141,8 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
 /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/mappingprovider.hh:
 
 /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericgeometry/maximum.hh:
+
+/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/genericreferenceelements.hh:
 
 /usr/people/kraenkel/Dune/dune-grid/dune/grid/common/entity.hh:
 
@@ -1387,61 +1388,15 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
 
 /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/defaultquadratures.hh:
 
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/femquadratures.hh:
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/dunequadratures.hh:
 
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/gausspoints.hh:
+/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/quadraturerules.hh:
 
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/gausspoints_implementation.hh:
+/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/quadraturerules/cube_imp.hh:
 
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/pyramidpoints.hh:
+/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/quadraturerules/jacobi_1_0_imp.hh:
 
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/simplexpoints.hh:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/pardg.hh:
-
-/usr/include/sys/times.h:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/timer.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/communicator.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/thread.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/emptycommunicator.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/vector.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/blas.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/subblas.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/blas.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/quadrature.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/function.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/function.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/ode_solver.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/communicator.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/limiter.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/dynamical_object.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/iterative_solver.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/linear_solver.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/matrix.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/vector.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/linear_solver.hpp:
-
-/usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/femquadratures_inline.hh:
+/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/quadraturerules/jacobi_2_0_imp.hh:
 
 /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/elementpointlist.hh:
 
@@ -1489,7 +1444,7 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
 
 /usr/people/kraenkel/Dune/dune-geometry/dune/geometry/typeindex.hh:
 
-/usr/people/kraenkel/Dune/dune-common/dune/common/geometrytypeindex.hh:
+/usr/people/kraenkel/Dune/dune-geometry/dune/geometry/type.hh:
 
 /usr/people/kraenkel/Dune/dune-fem/dune/fem/quadrature/caching/cacheprovider.cc:
 
@@ -1947,6 +1902,8 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
 
 /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/odesolver.hh:
 
+/usr/include/sys/times.h:
+
 /usr/people/kraenkel/Dune/dune-fem/dune/fem/operator/common/spaceoperatorif.hh:
 
 /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/timeprovider.hh:
@@ -1956,5 +1913,45 @@ newphasefield_wb-phasefield.o: ../../../dune/fem/main/phasefield.cc \
 /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/rungekutta.hh:
 
 /usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/pardg.hh:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/timer.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/communicator.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/thread.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/emptycommunicator.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/vector.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/blas.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/subblas.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/blas.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/quadrature.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/function.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/function.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/ode_solver.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/communicator.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/limiter.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/dynamical_object.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/iterative_solver.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/linear_solver.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/matrix.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/vector.hpp:
+
+/usr/people/kraenkel/Dune/dune-fem/dune/fem/solver/ode/linear_solver.hpp:
 
 ../../../dune/fem/main/phasefield.hh:

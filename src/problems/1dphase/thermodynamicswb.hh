@@ -21,10 +21,10 @@ class Thermodynamics
 
 public:
   Thermodynamics():
-    delta_ (Parameter::getValue< double >( "femhowto.delta" )),
-    epsilon_ (Parameter::getValue< double >( "epsilon",1. )),
-    b_(Parameter::getValue<double>("pressure")),
-    gamma_(Parameter::getValue<double>("gamma"))
+    delta_ (Fem::Parameter::getValue< double >( "femhowto.delta" )),
+    epsilon_ (Fem::Parameter::getValue< double >( "epsilon",1. )),
+    b_(Fem::Parameter::getValue<double>("pressure")),
+    gamma_(Fem::Parameter::getValue<double>("gamma"))
   {
     delta_inv_     = 1. / delta_;
 	}
@@ -196,11 +196,11 @@ template< int dimDomain >
 inline void Thermodynamics< dimDomain >
 :: init()
 {
-  c1_      = Parameter::getValue< double >( "c1",0.1 );
-  c2_      = Parameter::getValue< double >( "c2",0.9 );
-  delta_   = Parameter::getValue< double >( "femhowto.delta" );
-  epsilon_ = Parameter::getValue< double >( "epsilon",1. );
-  b_= Parameter::getValue< double >( "pessure" );
+  c1_      = Fem::Parameter::getValue< double >( "c1",0.1 );
+  c2_      = Fem::Parameter::getValue< double >( "c2",0.9 );
+  delta_   = Fem::Parameter::getValue< double >( "femhowto.delta" );
+  epsilon_ = Fem::Parameter::getValue< double >( "epsilon",1. );
+  b_= Fem::Parameter::getValue< double >( "pessure" );
   delta_inv_     = 1. / delta_;
   
 }

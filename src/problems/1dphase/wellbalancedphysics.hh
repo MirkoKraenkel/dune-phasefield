@@ -31,7 +31,7 @@ class PhasePhysics
 	typedef Dune::FieldMatrix< double, dimThetaRange, dimDomain > ThetaJacobianRangeType;
 
   typedef Dune::FieldMatrix< double, dimGradRange, dimDomain > JacobianFluxRangeType;
-  typedef Dune::FieldMatrixConverter< GradientRangeType, JacobianRangeType > 
+  typedef Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType > 
     ConvertedJacobianRangeType;
 
   PhasePhysics( const PhaseProblemType& problem )

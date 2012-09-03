@@ -101,8 +101,8 @@ namespace Dune {
 			: thermodynamics_( problem.thermodynamics() )
 			, problem_( problem )
 			, nsFlux_( problem )
-			, visc_(Parameter::getValue<double>("visc"))
-			, alpha1_(Parameter::getValue<double>("alpha1",1.))
+			, visc_(Fem::Parameter::getValue<double>("visc"))
+			, alpha1_(Fem::Parameter::getValue<double>("alpha1",1.))
 		
 		{
     
@@ -256,7 +256,7 @@ namespace Dune {
 																				 const GradientRangeType& gradLeft,
 																				 RangeType& gLeft ) const  
 		{
-			FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( gradLeft );
+			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( gradLeft );
 			return diffusionBoundaryFlux( it, time, x, uLeft, jacLeft, gLeft );
 		}
 
@@ -301,7 +301,7 @@ namespace Dune {
 										const GradientRangeType& v,
 										JacobianRangeType& diff ) const
 		{
-			FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
+			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
 			diffusion( en, time, x, u, jac,diff );
 		}
 
@@ -321,7 +321,7 @@ namespace Dune {
 		
 		void allenCahnDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
 		{
-			FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
+			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
 			allenCahnDiffusion(u,jac,dv);
 		}	
 		template <class JacobianRangeImp>
