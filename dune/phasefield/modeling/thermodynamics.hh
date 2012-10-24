@@ -1,6 +1,5 @@
 #ifndef DUNEPHASEFIELD_THERMODYNAMICS_HH
 #define DUNEPHASEFIELD_THERMODYNAMICS_HH
-
 // system include
 #include <cmath>
 #include <iomanip>
@@ -15,7 +14,7 @@ class Thermodynamics
 {
 
 public:
-  Thermodynamics():
+  Thermodynamics()
   {
 	}
 

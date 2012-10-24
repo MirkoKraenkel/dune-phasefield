@@ -58,9 +58,9 @@ namespace Dune {
 		typedef typename GridType :: template Codim<0> :: Entity  EntityType;
 		typedef typename EntityType :: EntityPointer              EntityPointerType;
 
-		typedef Thermodynamics< dimDomain >                       ThermodynamicsType;
-	};
-
+		typedef Thermodynamics                       ThermodynamicsType;
+	  
+  };
 
 
 	template< class GridPartType , class ProblemImp >
@@ -69,11 +69,15 @@ namespace Dune {
   public:
 		typedef ProblemImp                                        ProblemType;
 		typedef typename GridPartType::GridType                   GridType;
-		typedef PhaseModelTraits< GridPartType >                   Traits;
-
-		enum { dimDomain = Traits :: dimDomain };
+  	typedef PhaseModelTraits< GridPartType >                   Traits;
+    
+  
+ 		enum { dimDomain = Traits :: dimDomain };
 		enum { dimRange  = Traits :: dimRange  };
 		enum { dimGradRange = Traits::dimGradRange } ;
+    
+    typedef PhasefieldPhysics< dimDomain > PhysicsType;
+
 
 		typedef typename Traits :: EntityType                     EntityType;
 		typedef typename Traits :: EntityPointerType              EntityPointerType;
@@ -97,9 +101,9 @@ namespace Dune {
 		typedef typename Traits :: ThermodynamicsType             ThermodynamicsType;
 
 	public:
-		PhaseModel( const ProblemType& problem ) 
-			, problem_( problem )
-			, phasefieldPhysics_( problem )
+		PhaseModel( const ProblemType& problem ): 
+			 problem_( problem ),
+			 phasefieldPhysics_( problem )
 		{
 		}
 
@@ -126,7 +130,6 @@ namespace Dune {
 															 const ThetaJacobianRangeType& dtheta,
 															 RangeType & s) const
 		{	
-			phasefieldPhysics_.stiffSource(u,du,theta,dtheta,s);
 			return 1;
  		}
 
@@ -148,8 +151,10 @@ namespace Dune {
 		{
 			const DomainType& xgl = en.geometry().global(x);
 			double mu,reaction;
-		  phasefieldOhysics__.chemPotAndReaction(u,mu,reaction);
-			s[0]=mu;
+ 
+		  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
+
+      s[0]=mu;
 			s[1]=reaction;
 			return 1.;
 		}
@@ -260,6 +265,9 @@ namespace Dune {
 		}
 
 
+     inline double visc() const { return 1.;} 
+
+
 		template <class JacobianRangeImp>
 		void diffusion( const EntityType& en,
 										const double time,
@@ -308,15 +316,15 @@ namespace Dune {
 														 const GradientRangeType& grad,
 														 FieldVector<double,1>& energy ) const
 		{
-		  phasefieldPhysics.totalEnergy(cons,grad,energy );
+		  phasefieldPhysics_.totalEnergy(cons,grad,energy );
 		}
 
 
-		inline const ProblemType& problem() const { return problem_; }
+//		inline const ProblemType& problem() const { return problem_; }
 		
 	protected:
 		const ProblemType& problem_;
-		const PhasePhysics< dimDomain > phasefieldPhysics_;
+		const PhysicsType& phasefieldPhysics_;
 		};
 
 
