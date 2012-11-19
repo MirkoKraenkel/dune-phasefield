@@ -32,18 +32,19 @@
 #include <dune/fem/space/dgspace/localrestrictprolong.hh>
 #include <dune/fem/solver/odesolver.hh>
 #if WELLBALANCED
-#include <dune/fem/util/wb_energyconverter.hh>
+#include <dune/phasefield/util/wb_energyconverter.hh>
 #else
-#include <dune/fem/util/energyconverter.hh>
+#include <dune/phasefield/util/energyconverter.hh>
 #endif
-
+#include <dune/fem-dg/operator/adaptation/adaptation.hh>
 #include <dune/fem/adaptation/estimator1.hh>
-#include <dune/fem/util/cons2prim.hh>
+#include <dune/phasefield/util/cons2prim.hh>
 /////////////////////////////////////////////////////////////////////////////
 //
 //  EOC output parameter class 
 //
 /////////////////////////////////////////////////////////////////////////////
+namespace Dune{
 
 struct EocDataOutputParameters :   /*@LST1S@*/
   public Dune::Fem::LocalParameter<Dune::Fem::DataWriterParameters,EocDataOutputParameters>
@@ -110,7 +111,7 @@ public:
 
   typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
 
-  typedef RunFile< GridType >  RunFileType;
+  typedef Dune::RunFile< GridType >  RunFileType;
 	
 	//MemberVaribles
 	
@@ -568,7 +569,7 @@ public:
 
 
 
-
+}//end namespace Dune
 
 
 

@@ -1,5 +1,5 @@
-/..#ifndef DUNE_phasefield.hh
-#define DUNE_phasefield.hh
+#ifndef DUNE_PHASEFIELD_HH
+#define DUNE_PHASEFIELD_HH
 
 // add your classes here
 
