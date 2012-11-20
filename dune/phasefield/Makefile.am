@@ -1,4 +1,3 @@
-SUBDIRS = util modeling
 include $(top_srcdir)/am/global-rules
 
 phasefieldincludedir = $(includedir)/dune/phasefield

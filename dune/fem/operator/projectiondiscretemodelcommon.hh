@@ -1,5 +1,7 @@
-#ifndef DUNE_FEM_DG_DISCRETEMODELCOMMON_HH
-#define DUNE_FEM_DG_DISCRETEMODELCOMMON_HH
+#ifndef DUNE_THETA_DISCRETEMODELCOMMON_HH
+#define DUNE_THETA_DISCRETEMODELCOMMON_HH
+
+#include<limits>
 
 // Dune includes
 #include <dune/fem/gridpart/common/gridpart.hh>

@@ -17,7 +17,7 @@
 // note to me: it doesn't make sense to include primaldiscretemodel.hh
 //             but it was design in that way. to be removed later!!!!!!
 // local includes
-#include <dune/fem-dg/operator/dg/primaldiscretemodel.hh>
+//#include <dune/fem-dg/operator/dg/primaldiscretemodel.hh>
 //#include <dune/fem-dg/operator/dg/fluxdiscretemodel.hh>
 #include "fluxprojdiscretemodel.hh" 
 #include <dune/fem-dg/operator/dg/operatorbase.hh>
@@ -33,7 +33,7 @@ namespace Dune {
             DGDiffusionFluxIdentifier diffFluxId,
             int polOrd, bool advection = true , bool diffusion = true >
   class DGAdvectionDiffusionOperator : 
-    public SpaceOperatorInterface 
+  public Dune::Fem::SpaceOperatorInterface 
     < typename PassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
     // Id's for the three Passes (including StartPass)
@@ -75,7 +75,6 @@ namespace Dune {
     typedef typename Traits3 :: DomainType                             DomainType;
     typedef typename Traits3 :: DiscreteFunctionType                   DiscreteFunction3Type;
     
-  //   typedef typename Traits3 :: DiscreteFunctionType                   DiscreteFunction3Type;
     typedef typename Traits1 :: DiscreteFunctionSpaceType              Space1Type;
     typedef typename Traits2 :: DiscreteFunctionSpaceType              Space2Type;
     typedef typename Traits3 :: DiscreteFunctionSpaceType              Space3Type;
@@ -89,13 +88,13 @@ namespace Dune {
   
     typedef typename Traits1 :: GridPartType                           GridPartType;
     
-    typedef StartPass< DiscreteFunction3Type, u >                      Pass0Type; /*@LST0S@*/
+    typedef Dune::Fem::StartPass< DiscreteFunction3Type, u >                      Pass0Type;
     
 
-    typedef LocalCDGPass< DiscreteModel1Type, Pass0Type, gradPass >    Pass1Type; /*@\label{ad:typedefpass1}@*/
-    typedef LocalCDGPass< DiscreteModel2Type, Pass1Type, projPass >    Pass2Type; /*@\label{ad:typedefpass1}@*/
-    typedef LocalCDGPass< DiscreteModel3Type, Pass2Type, advectPass >  Pass3Type; /*@\label{ad:typedefpass2}@*//*@LST0E@*/
-    
+    typedef LocalCDGPass< DiscreteModel1Type, Pass0Type, gradPass >    Pass1Type; 
+    typedef LocalCDGPass< DiscreteModel2Type, Pass1Type, projPass >    Pass2Type;
+    typedef LocalCDGPass< DiscreteModel3Type, Pass2Type, advectPass >  Pass3Type; 
+
   public:
     DGAdvectionDiffusionOperator( GridType& grid , const NumFluxType& numf ) :
       grid_( grid ),
@@ -187,10 +186,6 @@ namespace Dune {
              <<", $\\eta = ";
       diffFlux_.diffusionFluxPenalty( stream );
       stream <<"$, {\\bf Adv. Flux:} ";
-      if (FLUX==1)
-        stream <<"LLF";
-      else if (FLUX==2)
-        stream <<"HLL";
       stream <<",\\\\\n";
       return stream.str();
     }
@@ -221,7 +216,7 @@ namespace Dune {
 
   // LDGAdvectionTraits
   //-------------------
-
+#if 0
   template <class Mod, class NumFlux, 
             int pOrd,
             bool advection>
@@ -262,15 +257,11 @@ namespace Dune {
       std::stringstream stream;
       stream <<"{\\bf Adv. Op.}, flux formulation, order: " << polOrd+1
              <<", {\\bf Adv. Flux:} ";
-      if (FLUX==1)
-        stream <<"LLF";
-      else if (FLUX==2)
-        stream <<"HLL";
       stream <<",\\\\\n";
       return stream.str();
     }
   };
-
+#endif
 
   // DGDiffusionOperator
   //--------------------
@@ -486,10 +477,6 @@ namespace Dune {
              <<", penalty: ";
       diffFlux_.diffusionFluxPenalty( stream );
       stream <<", {\\bf Adv. Flux:} ";
-      if (FLUX==1)
-        stream <<"LLF";
-      else if (FLUX==2)
-        stream <<"HLL";
       stream <<",\\\\\n";
       return stream.str();
     }
@@ -523,7 +510,7 @@ namespace Dune {
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
-
+#if 0
   template <class Mod, class NumFlux, 
             DGDiffusionFluxIdentifier diffFluxId,
             int pOrd, 
@@ -558,7 +545,7 @@ namespace Dune {
     DGAdaptationIndicatorOperator( GridType& grid , const NumFluxType& numf ) 
       : BaseType( grid, numf )
     {
-      if (Parameter::verbose())
+      if (Dune::Fem::Parameter::verbose())
       {
         std::cerr <<"\nWARNING: The adaptation indicator based on Ohlberger's a-posteriori\n";
         std::cerr <<"         error estimator is not ment to be used with flux formulation.\n\n";
@@ -582,6 +569,6 @@ namespace Dune {
     using BaseType::discreteModel_;
     using BaseType::numflux_;
   };
-
+#endif
 }
 #endif

@@ -7,12 +7,12 @@
 namespace Dune {
 
 
-  // LDGDiffusionFlux
+  // ThetFlux
   //-----------------
 
   template <class DiscreteFunctionSpaceImp, 
             class Model>
-  class LDGDiffusionFlux :
+  class ThetaDiffusionFlux :
     public DGDiffusionFluxBase< DiscreteFunctionSpaceImp, Model>
   {
     typedef DGDiffusionFluxBase< DiscreteFunctionSpaceImp, Model> BaseType;
@@ -49,7 +49,7 @@ namespace Dune {
 
   private:
     // no copying 
-    LDGDiffusionFlux(const LDGDiffusionFlux& other);
+    ThetaDiffusionFlux(const ThetaDiffusionFlux& other);
   protected:
     using BaseType :: determineDirection;
     using BaseType :: model_;
@@ -63,14 +63,14 @@ namespace Dune {
     /**
      * @brief constructor
      */
-    LDGDiffusionFlux(GridPartType& gridPart,
-                     const Model& model ) :
+    ThetaDiffusionFlux(GridPartType& gridPart,
+                        const Model& model ) :
       BaseType( model, true ),
-      penalty_(Fem::Parameter::getValue<double>("dgdiffusionflux.penalty")),
+      penalty_(Dune::Fem::Parameter::getValue<double>("dgdiffusionflux.penalty")),
       // Set CFL number for penalty term (compare diffusion in first pass)
       penaltyTerm_( std::abs(  penalty_ ) > 0 )
     {
-      if( Parameter :: verbose () ) 
+      if( Dune::Fem::Parameter :: verbose () ) 
 				{
 					std::cout << "LDGDiffusionFlux: penalty = " << penalty_ << std::endl;
 				}

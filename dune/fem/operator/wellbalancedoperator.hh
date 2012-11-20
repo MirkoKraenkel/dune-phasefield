@@ -17,7 +17,7 @@
 // note to me: it doesn't make sense to include primaldiscretemodel.hh
 //             but it was design in that way. to be removed later!!!!!!
 // local includes
-#include <dune/fem/operator/primaldiscretemodel.hh>
+//#include <dune/fem/operator/primaldiscretemodel.hh>
 
 #include "wellbalanceddiscretemodel.hh" 
 
@@ -231,7 +231,7 @@ namespace Dune {
 
   // LDGAdvectionTraits
   //-------------------
-
+#if 0
   template <class Mod, class NumFlux, 
             int pOrd,
             bool advection>
@@ -276,7 +276,7 @@ namespace Dune {
       return stream.str();
     }
   };
-
+#endif
 
   // DGDiffusionOperator
   //--------------------
@@ -529,7 +529,7 @@ namespace Dune {
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
-
+#if 0
   template <class Mod, class NumFlux, 
             DGDiffusionFluxIdentifier diffFluxId,
             int pOrd, 
@@ -588,6 +588,6 @@ namespace Dune {
     using BaseType::discreteModel_;
     using BaseType::numflux_;
   };
-
+#endif
 }
 #endif

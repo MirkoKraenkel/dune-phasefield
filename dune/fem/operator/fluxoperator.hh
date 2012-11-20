@@ -18,7 +18,7 @@
 // note to me: it doesn't make sense to include primaldiscretemodel.hh
 //             but it was design in that way. to be removed later!!!!!!
 // local includes
-#include <dune/fem-dg/operator/dg/primaldiscretemodel.hh>
+//#include <dune/fem-dg/operator/dg/primaldiscretemodel.hh>
 //#include <dune/fem-dg/operator/dg/fluxdiscretemodel.hh>
 #include "fluxdiscretemodel.hh" 
 #include <dune/fem-dg/operator/dg/operatorbase.hh>

@@ -63,12 +63,11 @@ namespace Dune {
 
   template <class Model, class NumFlux, int polOrd, int passUId> /*@LST1S@*/
   class GradientModel :
-    public DGDiscreteModelDefaultWithInsideOutside
+    public Dune::Fem::DGDiscreteModelDefaultWithInsideOutside
       <GradientTraits<Model, NumFlux, polOrd, passUId>, passUId >
   {
-    typedef DGDiscreteModelDefaultWithInsideOutside
-              < GradientTraits< Model, NumFlux, polOrd, passUId >,
-                passUId > BaseType                                   ;
+    typedef Dune::Fem::DGDiscreteModelDefaultWithInsideOutside
+              < GradientTraits< Model, NumFlux, polOrd, passUId >,passUId > BaseType;
 
     using BaseType :: inside;
     using BaseType :: outside;
@@ -302,10 +301,10 @@ namespace Dune {
 
   template<class Model,int polOrd, int passUId,int passGradId>
   class ProjectionModel:
-    public DGDiscreteModelDefault
+    public Dune::Fem::DGDiscreteModelDefault
       <ProjectionTraits<Model,polOrd,passUId,passGradId>,passUId,passGradId>
   {
-    typedef DGDiscreteModelDefault< ProjectionTraits< Model,polOrd,passUId,passGradId> , passUId,passGradId > BaseType ;  
+    typedef Dune::Fem::DGDiscreteModelDefault< ProjectionTraits< Model,polOrd,passUId,passGradId> , passUId,passGradId > BaseType ;  
     integral_constant< int, passUId > uVar;
     integral_constant< int, passGradId > sigmaVar;
 
@@ -507,7 +506,7 @@ namespace Dune {
 
     typedef typename Traits :: DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
 
-    typedef LDGDiffusionFlux< DiscreteFunctionSpaceType, Model> DiffusionFluxType;
+    typedef ThetaDiffusionFlux< DiscreteFunctionSpaceType, Model> DiffusionFluxType;
     enum { evaluateJacobian = false };
   public:
     /**
