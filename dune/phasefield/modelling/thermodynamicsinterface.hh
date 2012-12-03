@@ -15,8 +15,7 @@ class Thermodynamics
 {
 
 public:
-  Thermodynamics(double delta):
-    delta_(delta)
+  Thermodynamics()
   {
 	}
 
@@ -49,7 +48,7 @@ public:
     return static_cast<Impl>(*this);
   }
 	
-  double delta_;
+ 
   
 };
 

@@ -21,8 +21,7 @@
 namespace Dune {
 
   // GradientModel
-  //--------------
-  
+  // Discrete Model for firt approximating \sigma 
   template <class Model, class NumFlux, int polOrd, int passUId> /*@LST1S@*/
   class GradientModel;
 
@@ -73,11 +72,7 @@ namespace Dune {
     using BaseType :: outside;
 
     // This type definition allows a convenient access to arguments of passes.
-#if DUNE_VERSION_NEWER_REV(DUNE_COMMON,2,1,0)
     integral_constant< int, passUId > uVar;
-#else
-    Int2Type<passUId> uVar;
-#endif
 
   public:
     typedef GradientTraits< Model, NumFlux, polOrd, passUId >        Traits;
@@ -108,10 +103,6 @@ namespace Dune {
       gradientFlux_( numf ),
       cflDiffinv_( 2.0 * ( polOrd + 1) )
     {
-      #if defined TESTOPERATOR
-        std::cerr <<"didn't test how to use TESTOPERATOR with dual formulation";
-        abort();
-      #endif
     }
 
     bool hasSource() const { return false; }
@@ -219,9 +210,9 @@ namespace Dune {
          model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
        }
        else 
-	{
-	  uRight = uLeft[ uVar ];
-	}
+      	{
+	      uRight = uLeft[ uVar ];
+	      } 
       
       return gradientFlux_.gradientBoundaryFlux(it, inside(),
 						time, faceQuadInner, quadPoint,
@@ -231,10 +222,7 @@ namespace Dune {
 						gDiffLeft );
     }
 
-    /**
-     * @brief method required by LocalDGPass
-     */
-    template <class ArgumentTuple, class JacobianTuple>    /*@LST1S@*/
+    template <class ArgumentTuple, class JacobianTuple>    
     void analyticalFlux(const EntityType& en,
                         const double time, const DomainType& x,
                         const ArgumentTuple& u, 
@@ -242,8 +230,7 @@ namespace Dune {
                         JacobianRangeType& f)
     {
       model_.jacobian(en, time, x, u[ uVar ], f);
-    }                                /*@LST1E@*/
-
+    }                               
   private:
     const Model& model_;
     const NumFlux& gradientFlux_;

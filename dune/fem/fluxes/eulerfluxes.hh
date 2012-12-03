@@ -146,8 +146,11 @@ public:
 	WBFlux( const Model& mod )
     : model_(mod),
       visc_(model_.visc()),
-			alpha1_(model_.alpha1())
-  {}
+			alpha1_(-1.)
+  {
+    std::cout<<"Specify alpha correctly!\n";
+    abort();
+  }
 
   static std::string name () { return "WB"; }
 

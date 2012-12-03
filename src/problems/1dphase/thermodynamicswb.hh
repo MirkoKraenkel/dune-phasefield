@@ -1,6 +1,6 @@
 #ifndef DUNE_THERMODYNAMICS_HH
 #define DUNE_THERMODYNAMICS_HH
-
+#warning "DON'T INCLUDE ME NOMORE"
 // system include
 #include <cmath>
 #include <iomanip>
@@ -13,6 +13,8 @@
 using namespace Dune;
 // Thermodynamics
 // see simplehelmholtz.mv
+
+
 
 template< int dimDomain >
 class Thermodynamics

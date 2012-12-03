@@ -175,8 +175,8 @@ public:
 		energy_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
 		additionalVariables_( Fem::Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
 													new DiscreteFunctionType("additional", space() ) : 0 ),
-		problem_( ProblemGeneratorType ::problem() ),
-    model_( new ModelType( problem() ) ),
+		problem_( ProblemGeneratorType::problem() ),
+    model_( new ModelType( problem().thermodynamics() ) ),
     convectionFlux_( *model_ ),
     adaptationHandler_( 0 ),
     runfile_( grid.comm(), true ),

@@ -22,7 +22,7 @@ class PhaseFlux
   typedef Dune::FieldVector< double, dimGradRange > GradientRangeType;
   typedef Dune::FieldMatrix< double, dimRange, dimDomain > JacobianRangeType;
   typedef Dune::FieldMatrix< double, dimGradRange, dimDomain > JacobianFluxRangeType;
-  typedef Dune::FieldMatrixConverter< GradientRangeType, JacobianRangeType > 
+  typedef Dune::Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType > 
     ConvertedJacobianRangeType;
 
   PhaseFlux( const PhaseProblemType& problem )

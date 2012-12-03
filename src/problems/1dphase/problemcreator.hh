@@ -27,9 +27,9 @@
 #include "problemtype.hh"
 
 #if WELLBALANCED
-#include "wellbalancedmodel.hh"
+#include <dune/phasefield/modelling/wellbalancedmodel.hh>
 #else
-#include "standardmodel.hh"
+#include <dune/phasefield/modelling/standardmodel.hh>
 #endif
 
 
@@ -43,7 +43,8 @@ struct ProblemGenerator
   struct Traits
   {
     typedef ProblemType InitialDataType;
-    typedef Dune::PhaseModel< GridPart, InitialDataType > ModelType;
+
+    typedef Dune::PhaseModel< GridPart, InitialDataType::ThermodynamicsType > ModelType;
     // choice of diffusion flux (see diffusionflux.hh for methods)
     static const Dune :: DGDiffusionFluxIdentifier PrimalDiffusionFluxId 
            = Dune :: method_general ;
@@ -94,7 +95,6 @@ struct ProblemGenerator
 
   static ProblemType* problem()
   {
-    // choice of explicit or implicit ode solver
     return new ProblemType ();
   }
 

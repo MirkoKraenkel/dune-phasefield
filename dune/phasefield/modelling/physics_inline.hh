@@ -7,8 +7,8 @@ namespace Dune{
 //for all dim
 //
 //================================================
-  template<int dimDomain >
-  inline void PhasefieldPhysics< dimDomain >
+  template<int dimDomain,class Thermodynamics >
+  inline void PhasefieldPhysics< dimDomain, Thermodynamics>
   :: conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
   {
   	assert( cons[0] > 0. );
@@ -24,8 +24,8 @@ namespace Dune{
   
   }
 
-  template< int dimDomain >
-  inline void PhasefieldPhysics< dimDomain >
+  template< int dimDomain,class Thermodynamics > 
+  inline void PhasefieldPhysics< dimDomain,Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const GradientRangeType& grad , 
                   double& res ) const
@@ -52,8 +52,8 @@ namespace Dune{
 
   }
 
-  template< int dimDomain >
-  inline void PhasefieldPhysics< dimDomain >
+  template< int dimDomain,class Thermodynamics >
+  inline void PhasefieldPhysics< dimDomain,Thermodynamics >
   ::chemPotAndReaction( const RangeType& cons, 
 												double& mu,
 												double& reaction ) const
@@ -69,8 +69,8 @@ namespace Dune{
 		reaction*=-1.;
 	}
 
-  template< int dimDomain >
-	inline void PhasefieldPhysics< dimDomain >
+  template< int dimDomain,class Thermodynamics>
+	inline void PhasefieldPhysics< dimDomain,Thermodynamics >
   ::pressureAndReaction( const RangeType& cons, 
                          double& p,
 												 double& reaction ) const
@@ -96,8 +96,8 @@ namespace Dune{
 //
 //================================================
 
-  template< >
-  inline void  PhasefieldPhysics<1>
+  template<typename Thermodynamics >
+  inline void  PhasefieldPhysics<1,Thermodynamics>
   ::analyticalFlux( const RangeType& u, JacobianRangeType& f ) const
   {
 		assert( u[0] > 1e-10 );
@@ -106,15 +106,14 @@ namespace Dune{
 		double p;
 		double W;
    
-		JacobianRangeType phiT(0.);
 		f[0][0] = u[1];
 		f[1][0] = v*u[1];
-		f[phaseId][0] = u[phaseId]*v;
+		f[2][0] = u[2]*v;
   }
 
-template<>
-  inline void PhasefieldPhysics<1>
-  ::jacobian( const RangeType& u, JacobianFluxRangeType& a) const
+  template<class Thermodynamics> 
+  inline void PhasefieldPhysics<1, Thermodynamics>
+  ::jacobian( const RangeType & u, JacobianFluxRangeType& a) const
   {
     assert(u[0] > 1e-10);
 
@@ -123,8 +122,8 @@ template<>
     a[2][0] = u[2]/u[0];//(rho phi)/rho
   }
 
-	template<>
- 	inline void   PhasefieldPhysics<1>
+	template<class Thermodynamics>
+ 	inline void   PhasefieldPhysics<1,Thermodynamics>
 	::nonConProduct(const RangeType & uL, 
 									const RangeType & uR,
 									const ThetaRangeType& thetaL,
@@ -134,8 +133,8 @@ template<>
 		ret[1]=0.5*(uL[0]+uR[0])*(thetaL[0]-thetaR[0]);
  	}
 	
-	template<>
-	inline double PhasefieldPhysics<1>
+	template<class Thermodynamics>
+	inline double PhasefieldPhysics<1,Thermodynamics  >
 	::stiffSource(const RangeType& u,
 								const GradientRangeType& du,
 								const ThetaRangeType& theta,
@@ -147,9 +146,9 @@ template<>
 			f[2]=theta[1];
 	}
 
-  template<>
+  template<class Thermodynamics>
   template< class JacobianRangeImp >
-  inline void PhasefieldPhysics<1>
+  inline void PhasefieldPhysics<1,Thermodynamics>
   ::diffusion( const RangeType& u,
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
@@ -166,9 +165,9 @@ template<>
 		diff[1][0]=muLoc*dxv;
    
   }
-  template<>
+  template<class Thermodynamics>
   template< class JacobianRangeImp >
-  inline void PhasefieldPhysics<1>
+  inline void PhasefieldPhysics<1,Thermodynamics>
   ::allenCahn( const RangeType& u,
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
@@ -180,8 +179,8 @@ template<>
 
   }
 
- template<>
- inline double PhasefieldPhysics<1>
+ template<class Thermodynamics>
+ inline double PhasefieldPhysics<1,Thermodynamics>
  ::maxSpeed( const DomainType& n, const RangeType& u) const
  {
    abort();

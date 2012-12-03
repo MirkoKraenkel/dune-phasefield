@@ -1,20 +1,17 @@
-
-#ifndef PhaseWAVES_HH
-#define PhaseWAVES_HH
+#ifndef PROBLEM_HH
+#define PROBLEM_HH
 
 #include <dune/common/version.hh>
 
 // dune-fem includes
-#if DUNE_VERSION_NEWER_REV(DUNE_FEM,1,1,0)
 #include <dune/fem/misc/linesegmentsampler.hh>
-#endif
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/functionspace.hh>
 
 // local includes
 // #include "idealthermodynamics2interpol.hh"
 #if 1
-#include "thermodynamicswb.hh"
+#include <dune/phasefield/modelling/thermodynamicswb.hh>
 #else
 #include "thermoequal.hh"
 #endif
@@ -27,12 +24,12 @@
 namespace Dune {
 
 template <class GridType>
-class PhaseWaves : public EvolutionProblemInterface<
-                  Dune::Fem::FunctionSpace< double, double, GridType::dimension, GridType::dimension + 2 >,
-                  true >,
-                public Thermodynamics< GridType::dimensionworld >
+class PhaseProblem : public EvolutionProblemInterface<
+                    Dune::Fem::FunctionSpace< double, double, GridType::dimension, GridType::dimension + 2 >,
+                    true >
+                  
 {
-  PhaseWaves( const PhaseWaves& );
+ 
   public:
   typedef Fem::FunctionSpace<typename GridType::ctype,
                         double, GridType::dimensionworld,
@@ -44,10 +41,10 @@ class PhaseWaves : public EvolutionProblemInterface<
   typedef typename FunctionSpaceType :: DomainType        DomainType;
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
   typedef typename FunctionSpaceType :: RangeType         RangeType;
-  typedef Thermodynamics< dimension >                     ThermodynamicsType;
+  typedef SimpleThermodynamics                           ThermodynamicsType;
 
-  PhaseWaves() : ThermodynamicsType(),
-		 myName_( "PhaseWaves" ),
+  PhaseProblem() : 
+		 myName_( "Problem1" ),
 		 endTime_ ( Fem::Parameter::getValue<double>( "femhowto.endTime" )), 
 		 mu_( Fem::Parameter :: getValue< double >( "mu" )),
 		 delta_(Fem::Parameter::getValue<double>( "femhowto.delta" )),
@@ -55,10 +52,11 @@ class PhaseWaves : public EvolutionProblemInterface<
 		 c2_(Fem::Parameter ::getValue< double> ("c2")),
 		 smear_( Fem::Parameter::getValue<double> ("smear")),
 		 phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
-		 gamma_(Fem::Parameter::getValue<double> ("gamma"))
-    
-  {
-  }
+		 gamma_(Fem::Parameter::getValue<double> ("gamma")),
+     thermodyn_()
+     {
+      thermodyn_.init();
+     }
 
 
   // initialize A and B 
@@ -89,9 +87,6 @@ class PhaseWaves : public EvolutionProblemInterface<
   }
 
 
-  // pressure and temperature 
-  template< class RangeImp >
-  inline void pressAndTemp( const RangeImp& u, double& p, double& T ) const;
 
   template< class DiscreteFunctionType >
   void finalizeSimulation( DiscreteFunctionType& variablesToOutput,
@@ -99,7 +94,7 @@ class PhaseWaves : public EvolutionProblemInterface<
   {}
 
 
-  const ThermodynamicsType& thermodynamics() const { return *this; }
+  const ThermodynamicsType& thermodynamics() const { return thermodyn_;}
   void printmyInfo( std::string filename ) const {}
   inline double endtime() const { return endTime_; }
   inline std::string myName() const { return myName_; }
@@ -120,11 +115,12 @@ protected:
   const double smear_;
   const double phiscale_;
   const double gamma_;
+  const ThermodynamicsType thermodyn_;
 };
 
 
 template <class GridType>
-inline double PhaseWaves<GridType>
+inline double PhaseProblem<GridType>
 :: init(const bool returnA ) const 
 {
 
@@ -134,13 +130,13 @@ inline double PhaseWaves<GridType>
 
 
 template <class GridType>
-inline void PhaseWaves<GridType>
+inline void PhaseProblem<GridType>
 :: printInitInfo() const
 {}
 
 
 template <class GridType>
-inline double PhaseWaves<GridType>
+inline double PhaseProblem<GridType>
 :: stiffSource( const double t, const DomainType& x, const RangeType& u,RangeType& res ) const
 {
   double p,Wphi;
@@ -153,7 +149,7 @@ inline double PhaseWaves<GridType>
 
 
 template <class GridType>
-inline double PhaseWaves<GridType>
+inline double PhaseProblem<GridType>
 :: nonStiffSource( const double t, const DomainType& x, const RangeType& u,RangeType& res ) const
 {
   abort();
@@ -165,7 +161,7 @@ inline double PhaseWaves<GridType>
 
 
 template <class GridType>
-inline void PhaseWaves<GridType>
+inline void PhaseProblem<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
     
@@ -198,25 +194,15 @@ inline void PhaseWaves<GridType>
 
 
 
-template <class GridType>
-template< class RangeImp >
-inline void PhaseWaves<GridType>
-:: pressAndTemp( const RangeImp& u, double& p, double& T ) const
-{
- //  thermodynamics().pressAndTempEnergyForm( u, p, T );
-}
+
 
 
 template <class GridType>
-inline std::string PhaseWaves<GridType>
+inline std::string PhaseProblem<GridType>
 :: description() const
 {
   std::ostringstream stream;
-
-
-
   std::string returnString = stream.str();
-
   return returnString;
 }
 

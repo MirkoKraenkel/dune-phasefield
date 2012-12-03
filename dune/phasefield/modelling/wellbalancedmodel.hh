@@ -58,17 +58,16 @@ namespace Dune {
 		typedef typename GridType :: template Codim<0> :: Entity  EntityType;
 		typedef typename EntityType :: EntityPointer              EntityPointerType;
 
-		typedef Thermodynamics                       ThermodynamicsType;
 	  
   };
 
 
-	template< class GridPartType , class ProblemImp >
+	template< class GridPartType , class Thermodynamics>
 	class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 	{
   public:
-		typedef ProblemImp                                        ProblemType;
-		typedef typename GridPartType::GridType                   GridType;
+		typedef Thermodynamics          ThermodynamicsType;
+    typedef typename GridPartType::GridType                   GridType;
   	typedef PhaseModelTraits< GridPartType >                   Traits;
     
   
@@ -76,7 +75,7 @@ namespace Dune {
 		enum { dimRange  = Traits :: dimRange  };
 		enum { dimGradRange = Traits::dimGradRange } ;
     
-    typedef PhasefieldPhysics< dimDomain > PhysicsType;
+    typedef PhasefieldPhysics< dimDomain,ThermodynamicsType > PhysicsType;
 
 
 		typedef typename Traits :: EntityType                     EntityType;
@@ -98,12 +97,10 @@ namespace Dune {
 		
 
 		typedef typename Traits :: JacobianFluxRangeType          JacobianFluxRangeType;
-		typedef typename Traits :: ThermodynamicsType             ThermodynamicsType;
 
 	public:
-		PhaseModel( const ProblemType& problem ): 
-			 problem_( problem ),
-			 phasefieldPhysics_( problem )
+		PhaseModel( const ThermodynamicsType& thermo ): 
+			 phasefieldPhysics_( thermo )
 		{
 		}
 
@@ -152,7 +149,7 @@ namespace Dune {
 			const DomainType& xgl = en.geometry().global(x);
 			double mu,reaction;
  
-		  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
+	//	  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
 
       s[0]=mu;
 			s[1]=reaction;
@@ -307,7 +304,9 @@ namespace Dune {
 																				 const RangeType& cons, 
 																				 RangeType& prim ) const
 		{
-			phasefieldPhysics_.conservativeToPrimitive( cons, prim );
+  std::cout<<"Implement const2prim\n";
+      abort();
+//			phasefieldPhysics_.conservativeToPrimitive( cons, prim );
 		}
 		
 	
@@ -316,14 +315,15 @@ namespace Dune {
 														 const GradientRangeType& grad,
 														 FieldVector<double,1>& energy ) const
 		{
-		  phasefieldPhysics_.totalEnergy(cons,grad,energy );
+ std::cout<<"Implement \n";
+      abort();
+///		  phasefieldPhysics_.totalEnergy(cons,grad,energy );
 		}
 
 
 //		inline const ProblemType& problem() const { return problem_; }
 		
 	protected:
-		const ProblemType& problem_;
 		const PhysicsType& phasefieldPhysics_;
 		};
 

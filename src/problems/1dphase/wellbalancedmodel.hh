@@ -58,7 +58,7 @@ namespace Dune {
 		typedef typename GridType :: template Codim<0> :: Entity  EntityType;
 		typedef typename EntityType :: EntityPointer              EntityPointerType;
 
-		typedef Thermodynamics< dimDomain >                       ThermodynamicsType;
+//		typedef Thermodynamics< dimDomain >                       ThermodynamicsType;
 	};
 
 
@@ -98,9 +98,8 @@ namespace Dune {
 
 	public:
 		PhaseModel( const ProblemType& problem ) 
-			: thermodynamics_( problem.thermodynamics() )
-			, problem_( problem )
-			, nsFlux_( problem )
+			: problem_( problem )
+			, phasePhysics( problem )
 			, visc_(Fem::Parameter::getValue<double>("visc"))
 			, alpha1_(Fem::Parameter::getValue<double>("alpha1",1.))
 		
@@ -120,7 +119,7 @@ namespace Dune {
 															RangeType& ret) const
 		{
 			//{rho}[theta1]
-			nsFlux_.nonConProduct(uL, uR,thetaL,thetaR,ret);
+			phasePhysics_.nonConProduct(uL, uR,thetaL,thetaR,ret);
 		}
 		
 		
@@ -133,7 +132,7 @@ namespace Dune {
 															 const ThetaJacobianRangeType& dtheta,
 															 RangeType & s) const
 		{	
-			nsFlux_.stiffSource(u,du,theta,dtheta,s);
+			phasePhysics_.stiffSource(u,du,theta,dtheta,s);
 			return 1;
  		}
 
@@ -158,7 +157,7 @@ namespace Dune {
 		{
 			const DomainType& xgl = en.geometry().global(x);
 			double mu,reaction;
-			thermodynamics_.chemPotAndReaction(u,mu,reaction);
+			phasePhysics_.chemPotAndReaction(u,mu,reaction);
 			s[0]=mu;
 			s[1]=reaction;
 			return 1.;
@@ -196,7 +195,7 @@ namespace Dune {
 													 JacobianRangeType& f ) const 
 		{
   
-			nsFlux_.analyticalFlux(u, f);
+			phasePhysics_.analyticalFlux(u, f);
     
 		}
 
@@ -229,7 +228,7 @@ namespace Dune {
 													, JacobianFluxRangeType& a ) const 
 		{
     
-			nsFlux_.jacobian( u, a );
+			phasePhysics_.jacobian( u, a );
 		}
   
 
@@ -289,7 +288,7 @@ namespace Dune {
 													double& advspeed,
 													double& totalspeed ) const 
 		{
-			advspeed = nsFlux_.maxSpeed( normal , u );
+			advspeed = phasePhysics_.maxSpeed( normal , u );
 			totalspeed=advspeed;
 		}
 
@@ -314,7 +313,7 @@ namespace Dune {
 										const JacobianRangeImp& jac,
 										JacobianRangeType& diff ) const
 		{
-			nsFlux_.diffusion( u, jac, diff );
+			phasePhysics_.diffusion( u, jac, diff );
 		}
 	
 
@@ -327,7 +326,7 @@ namespace Dune {
 		template <class JacobianRangeImp>
 		void allenCahnDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
-			nsFlux_.allenCahn(u,du,dv);
+			phasePhysics_.allenCahn(u,du,dv);
 		}
 
 		inline double boundaryFlux( const IntersectionType& it
@@ -367,7 +366,7 @@ namespace Dune {
 	protected:
 		const ThermodynamicsType& thermodynamics_;
 		const ProblemType& problem_;
-		const PhasePhysics< dimDomain > nsFlux_;
+		const PhasePhysics< dimDomain > phasePhysics_;
 		const double visc_;
 		const double alpha1_;
 		};

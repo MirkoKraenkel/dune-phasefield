@@ -15,9 +15,9 @@
 ///////////////////////////////////////
 #include "problem1d.hh"
 
-typedef PhaseWaves< GridSelector :: GridType >  PhaseProblemType;
+typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
 
-#define PROBLEM_HAS_SOLUTIONx
+#define PROBLEM_HAS_SOLUTION
 
 
 
