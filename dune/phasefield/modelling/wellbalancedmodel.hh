@@ -149,7 +149,7 @@ namespace Dune {
 			const DomainType& xgl = en.geometry().global(x);
 			double mu,reaction;
  
-	//	  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
+//		  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
 
       s[0]=mu;
 			s[1]=reaction;
@@ -304,9 +304,7 @@ namespace Dune {
 																				 const RangeType& cons, 
 																				 RangeType& prim ) const
 		{
-  std::cout<<"Implement const2prim\n";
-      abort();
-//			phasefieldPhysics_.conservativeToPrimitive( cons, prim );
+			phasefieldPhysics_.conservativeToPrimitive( cons, prim );
 		}
 		
 	
@@ -315,9 +313,7 @@ namespace Dune {
 														 const GradientRangeType& grad,
 														 FieldVector<double,1>& energy ) const
 		{
- std::cout<<"Implement \n";
-      abort();
-///		  phasefieldPhysics_.totalEnergy(cons,grad,energy );
+		  phasefieldPhysics_.totalEnergy(cons,grad,energy );
 		}
 
 

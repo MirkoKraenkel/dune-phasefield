@@ -7,8 +7,8 @@ namespace Dune{
 //for all dim
 //
 //================================================
-  template<int dimDomain,class Thermodynamics >
-  inline void PhasefieldPhysics< dimDomain, Thermodynamics>
+  template<class Thermodynamics >
+  inline void PhasefieldPhysics< 1, Thermodynamics>
   :: conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
   {
   	assert( cons[0] > 0. );
@@ -16,21 +16,22 @@ namespace Dune{
   	double p,rho,phi;
   	rho=cons[0];
   	phi=cons[phaseId]/rho;
-  	for( int i = 0; i < dimDomain; ++i )
-	  	prim[i] = cons[i+1]/cons[0];
+	  prim[0] = cons[1]/cons[0];
+    
 
   	prim[phaseId-1] = p;
   	prim[phaseId] = phi;
   
   }
 
-  template< int dimDomain,class Thermodynamics > 
-  inline void PhasefieldPhysics< dimDomain,Thermodynamics >
+  template<class Thermodynamics > 
+  inline void PhasefieldPhysics<1,Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const GradientRangeType& grad , 
                   double& res ) const
   {
-  	assert( cons[0] > 0. );
+  dimDomain=1;  
+    assert( cons[0] > 0. );
 	  double rho = cons[0];
 	  double rho_inv = 1. /rho;
 	  double phi = cons[dimDomain+1];
@@ -52,8 +53,8 @@ namespace Dune{
 
   }
 
-  template< int dimDomain,class Thermodynamics >
-  inline void PhasefieldPhysics< dimDomain,Thermodynamics >
+  template< class Thermodynamics >
+  inline void PhasefieldPhysics< 1,Thermodynamics >
   ::chemPotAndReaction( const RangeType& cons, 
 												double& mu,
 												double& reaction ) const
@@ -69,8 +70,8 @@ namespace Dune{
 		reaction*=-1.;
 	}
 
-  template< int dimDomain,class Thermodynamics>
-	inline void PhasefieldPhysics< dimDomain,Thermodynamics >
+  template< class Thermodynamics>
+	inline void PhasefieldPhysics<1,Thermodynamics >
   ::pressureAndReaction( const RangeType& cons, 
                          double& p,
 												 double& reaction ) const
