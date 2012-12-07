@@ -232,9 +232,9 @@ ALBERTA_INCLUDE_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/alberta/in
 ALBERTA_LDFLAGS = $(ALBERTA$(ALBERTA_DIM)D_LDFLAGS)
 ALBERTA_LIBPATHFLAGS = 
 ALBERTA_LIBS = $(ALBERTA$(ALBERTA_DIM)D_LIBS)
-ALL_PKG_CPPFLAGS =   -I/usr/people/kraenkel/NewDune/dune-common  -I/usr/people/kraenkel/NewDune/dune-geometry  -I/usr/people/kraenkel/NewDune/dune-grid  -I/usr/people/kraenkel/NewDune/dune-istl  -I/usr/people/kraenkel/NewDune/dune-localfunctions  -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1 -I/hosts/raid5/arwen/tomalk/dune/petsc/include  -DENABLE_PETSC=1 -DHAVE_PETSC_HYPRE=1 -I/usr/people/kraenkel/NewDune/dune-fem  -I/usr/people/kraenkel/NewDune/dune-fem-dg  -I/usr/people/kraenkel/NewDune/dune-spgrid   ${DUNEMPICPPFLAGS} ${GMP_CPPFLAGS} -I/usr/people/kraenkel/NewDune/dune-common -I/usr/people/kraenkel/NewDune/dune-geometry -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE) ${ALBERTA_CPPFLAGS} ${UG_CPPFLAGS} ${DUNEMPICPPFLAGS} -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/serial -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/duneinterface -DENABLE_ALUGRID -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/parallel -I/usr/people/kraenkel/NewDune/dune-grid ${SUPERLU_CPPFLAGS} -I/usr/people/kraenkel/NewDune/dune-istl -I/usr/people/kraenkel/NewDune/dune-localfunctions -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1 -I/usr/people/kraenkel/NewDune/dune-fem -I/usr/people/kraenkel/NewDune/dune-fem-dg -I/usr/people/kraenkel/NewDune/dune-spgrid
-ALL_PKG_LDFLAGS =             -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib -L/hosts/raid5/arwen/tomalk/dune/petsc/lib  -Wl,--rpath -Wl,/hosts/raid5/arwen/tomalk/dune/petsc/lib        ${DUNEMPILDFLAGS}     ${ALBERTA_LDFLAGS} ${UG_LDFLAGS} ${DUNEMPILDFLAGS}     -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib   
-ALL_PKG_LIBS =   /usr/people/kraenkel/NewDune/dune-fem/lib/libdunefem.la -L/hosts/raid5/arwen/tomalk/dune/petsc/lib -lpetsc  -L/usr/X11R6/lib -lX11 -llapack -lblas -lm   -lHYPRE   /usr/people/kraenkel/NewDune/dune-grid/lib/libdunegrid.la /usr/people/kraenkel/NewDune/dune-geometry/lib/libdunegeometry.la /usr/people/kraenkel/NewDune/dune-common/lib/libdunecommon.la       -lumfpack -lamd      /usr/people/kraenkel/NewDune/dune-fem/lib/libdunefem.la   ${SUPERLU_LIBS} /usr/people/kraenkel/NewDune/dune-grid/lib/libdunegrid.la -L/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/lib -lalugrid ${DUNEMPILIBS} ${UG_LIBS} ${ALBERTA_LIBS}  /usr/people/kraenkel/NewDune/dune-geometry/lib/libdunegeometry.la /usr/people/kraenkel/NewDune/dune-common/lib/libdunecommon.la ${GMP_LIBS} ${DUNEMPILIBS}  -lumfpack -lamd -lm 
+ALL_PKG_CPPFLAGS =   -I/usr/people/kraenkel/NewDune/dune-common  -I/usr/people/kraenkel/NewDune/dune-geometry  -I/usr/people/kraenkel/NewDune/dune-grid  -I/usr/people/kraenkel/NewDune/dune-istl  -I/usr/people/kraenkel/NewDune/dune-localfunctions  -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1 -I/usr/people/kraenkel/NewDune/dune-fem  -I/usr/people/kraenkel/NewDune/dune-fem-dg  -I/usr/people/kraenkel/NewDune/dune-spgrid   ${DUNEMPICPPFLAGS} ${GMP_CPPFLAGS} -I/usr/people/kraenkel/NewDune/dune-common -I/usr/people/kraenkel/NewDune/dune-geometry -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE) ${ALBERTA_CPPFLAGS} ${UG_CPPFLAGS} ${DUNEMPICPPFLAGS} -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/serial -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/duneinterface -DENABLE_ALUGRID -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/parallel -I/usr/people/kraenkel/NewDune/dune-grid ${SUPERLU_CPPFLAGS} -I/usr/people/kraenkel/NewDune/dune-istl -I/usr/people/kraenkel/NewDune/dune-localfunctions -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1 -I/usr/people/kraenkel/NewDune/dune-fem -I/usr/people/kraenkel/NewDune/dune-fem-dg -I/usr/people/kraenkel/NewDune/dune-spgrid
+ALL_PKG_LDFLAGS =             -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib        ${DUNEMPILDFLAGS}     ${ALBERTA_LDFLAGS} ${UG_LDFLAGS} ${DUNEMPILDFLAGS}     -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib   
+ALL_PKG_LIBS =   /usr/people/kraenkel/NewDune/dune-fem/lib/libdunefem.la   /usr/people/kraenkel/NewDune/dune-grid/lib/libdunegrid.la /usr/people/kraenkel/NewDune/dune-geometry/lib/libdunegeometry.la /usr/people/kraenkel/NewDune/dune-common/lib/libdunecommon.la       -lumfpack -lamd      /usr/people/kraenkel/NewDune/dune-fem/lib/libdunefem.la   ${SUPERLU_LIBS} /usr/people/kraenkel/NewDune/dune-grid/lib/libdunegrid.la -L/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/lib -lalugrid ${DUNEMPILIBS} ${UG_LIBS} ${ALBERTA_LIBS}  /usr/people/kraenkel/NewDune/dune-geometry/lib/libdunegeometry.la /usr/people/kraenkel/NewDune/dune-common/lib/libdunecommon.la ${GMP_LIBS} ${DUNEMPILIBS}  -lumfpack -lamd -lm 
 ALUGRID_CPPFLAGS = ${DUNEMPICPPFLAGS} -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/serial -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/duneinterface -DENABLE_ALUGRID -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/parallel
 ALUGRID_LDFLAGS = ${DUNEMPILDFLAGS}
 ALUGRID_LIBS = -L/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/lib -lalugrid ${DUNEMPILIBS}
@@ -447,9 +447,9 @@ PARMETIS_LIBS =
 PATH_SEPARATOR = :
 PERL = perl
 PETSC = 
-PETSC_CPPFLAGS = -I/hosts/raid5/arwen/tomalk/dune/petsc/include  -DENABLE_PETSC=1 -DHAVE_PETSC_HYPRE=1
-PETSC_LDFLAGS = -L/hosts/raid5/arwen/tomalk/dune/petsc/lib  -Wl,--rpath -Wl,/hosts/raid5/arwen/tomalk/dune/petsc/lib
-PETSC_LIBS = -L/hosts/raid5/arwen/tomalk/dune/petsc/lib -lpetsc  -L/usr/X11R6/lib -lX11 -llapack -lblas -lm   -lHYPRE
+PETSC_CPPFLAGS =  -DENABLE_PETSC=1
+PETSC_LDFLAGS = -L/disk1/Work/Mymodules/petsc-3.3-p4/lib  -Wl,--rpath -Wl,/disk1/Work/Mymodules/petsc-3.3-p4/lib
+PETSC_LIBS = -lpetsc -llapack -lblas -lX11 
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
@@ -474,9 +474,9 @@ SUPERLU_DIST_LDFLAGS = -L/usr/local/
 SUPERLU_DIST_LIBS = 
 SUPERLU_LIBS = 
 TEX = latex
-UG_CPPFLAGS = 
+UG_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UG_8441/include   -DENABLE_UG
 UG_LDFLAGS = 
-UG_LIBS = 
+UG_LIBS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UG_8441/lib   -lugS2 -lugS3 -ldevS
 UMFPACK_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1
 UMFPACK_LDFLAGS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib
 UMFPACK_LIBS = -lumfpack -lamd
@@ -557,7 +557,7 @@ phase_model_spec.hh problemtype.hh
 LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUNEMPILIBS) 
 BASEDIR = ../../../dune/fem/main
 SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
-POLORDER = 1
+POLORDER = 2 
 PROBLEM = 1 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 phasefield_SOURCES = $(SOURCES) 

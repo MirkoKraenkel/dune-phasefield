@@ -75,7 +75,7 @@ namespace Dune {
 		enum { dimRange  = Traits :: dimRange  };
 		enum { dimGradRange = Traits::dimGradRange } ;
     
-    typedef PhasefieldPhysics< dimDomain,ThermodynamicsType > PhysicsType;
+    typedef PhasefieldPhysics< dimDomain, ThermodynamicsType > PhysicsType;
 
 
 		typedef typename Traits :: EntityType                     EntityType;
