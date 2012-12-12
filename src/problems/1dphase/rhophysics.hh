@@ -123,8 +123,6 @@ void PhaseFlux<1>
 {
   assert( u[0] > 1e-10 );
   double rho_inv = 1. / u[0];
-//   const double v = u[1]*rho_inv;
-//   const double v2 = v*v;
   double p;
   double T;
   problem_.pressAndTemp( u, p, T );

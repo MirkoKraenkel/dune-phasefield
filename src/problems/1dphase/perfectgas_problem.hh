@@ -10,11 +10,7 @@
 
 // local includes
 // #include "idealthermodynamics2interpol.hh"
-#if 1
-#include <dune/phasefield/modelling/combinedthermodynamics.hh>
-#else
-#include "thermoequal.hh"
-#endif
+#include <dune/phasefield/modelling/thermodynamicsperfectgas.hh>
 
 #include <dune/fem/probleminterfaces.hh>
 
@@ -42,7 +38,7 @@ class PhaseProblem : public EvolutionProblemInterface<
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
-  typedef CombinedThermodynamics<VapourDynamics,LiquidDynamics>  ThermodynamicsType;
+  typedef PGThermodynamics  ThermodynamicsType;
 
   PhaseProblem() : 
 		 myName_( "Problem1" ),
@@ -54,9 +50,7 @@ class PhaseProblem : public EvolutionProblemInterface<
 		 smear_( Fem::Parameter::getValue<double> ("smear")),
 		 phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
 		 gamma_(Fem::Parameter::getValue<double> ("gamma")),
-     liqdyn_(),
-     vapdyn_(),
-     thermodyn_(vapdyn_,liqdyn_)
+     thermodyn_()
      {
       thermodyn_.init();
      }
@@ -71,9 +65,6 @@ class PhaseProblem : public EvolutionProblemInterface<
   // source implementations 
   inline bool hasStiffSource() { return true; }
   inline bool hasNonStiffSource() { return false; }
-  inline double stiffSource( const double t, const DomainType& x,const RangeType& u,RangeType& res ) const;
-  inline double nonStiffSource( const double t, const DomainType& x,const RangeType& u, RangeType& res ) const;
-
   // this is the initial data
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
@@ -118,8 +109,6 @@ protected:
   const double smear_;
   const double phiscale_;
   const double gamma_;
-  const   LiquidDynamics  liqdyn_;
-  const VapourDynamics vapdyn_;
   const ThermodynamicsType thermodyn_;
   
 };
@@ -139,32 +128,6 @@ template <class GridType>
 inline void PhaseProblem<GridType>
 :: printInitInfo() const
 {}
-
-
-template <class GridType>
-inline double PhaseProblem<GridType>
-:: stiffSource( const double t, const DomainType& x, const RangeType& u,RangeType& res ) const
-{
-  double p,Wphi;
-  // thermodynamics().pressAndTempEnergyForm(u,p,Wphi);
-  res[0]=0;
-  res[1]=0;
-  res[2]=Wphi;
-  return 0.;
-}
-
-
-template <class GridType>
-inline double PhaseProblem<GridType>
-:: nonStiffSource( const double t, const DomainType& x, const RangeType& u,RangeType& res ) const
-{
-  abort();
-
-  // time step restriction
-  return 0.0;
-}
-
-
 
 template <class GridType>
 inline void PhaseProblem<GridType>

@@ -13,7 +13,7 @@
 ///////////////////////////////////////
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
-#include "problem1d.hh"
+#include "perfectgas_problem.hh"
 
 typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
 
