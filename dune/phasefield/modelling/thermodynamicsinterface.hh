@@ -43,6 +43,10 @@ public:
 	  return asImp().pressure(rho,phi); 
 	}
 
+  inline double a(double &rho,double& phi) const
+  {
+    return asImp().a(rho,phi);
+  }
   Impl& asImp()
   {
     return static_cast<Impl>(*this);

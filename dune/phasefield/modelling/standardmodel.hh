@@ -12,8 +12,8 @@
 namespace Dune {
 
 // forward declaration of PhaseFlux
-template< int >
-struct PhaseFlux;
+//template< int >
+//struct PhaseFlux;
 
 //////////////////////////////////////////////////////
 //
@@ -48,18 +48,17 @@ class PhaseModelTraits
   typedef typename GridType :: template Codim<0> :: Entity  EntityType;
   typedef typename EntityType :: EntityPointer              EntityPointerType;
 
-  typedef Thermodynamics< dimDomain >                       ThermodynamicsType;
 };
 
 
 
-template< class GridPartType , class ProblemImp >
+template< class GridPartType , class Thermodynamics  >
 class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 {
   public:
-  typedef ProblemImp                                        ProblemType;
+  typedef Thermodynamics                                    ThermodynamicsType;
   typedef typename GridPartType::GridType                   GridType;
-  typedef PhaseModelTraits< GridPartType >                     Traits;
+  typedef PhaseModelTraits< GridPartType >                  Traits;
 
   enum { dimDomain = Traits :: dimDomain };
   enum { dimRange  = Traits :: dimRange  };
@@ -70,20 +69,18 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   typedef typename Traits :: IntersectionIterator           IntersectionIterator;
   typedef typename Traits :: Intersection                   IntersectionType;
   typedef typename Traits :: FaceDomainType                 FaceDomainType;
+  
+  typedef PhasefieldPhysics< dimDomain, ThermodynamicsType> PhysicsType;
 
   typedef typename Traits :: DomainType                     DomainType;
   typedef typename Traits :: RangeType                      RangeType;
   typedef typename Traits :: GradientRangeType              GradientRangeType;
   typedef typename Traits :: JacobianRangeType              JacobianRangeType;
   typedef typename Traits :: JacobianFluxRangeType          JacobianFluxRangeType;
-  typedef typename Traits :: ThermodynamicsType             ThermodynamicsType;
 
  public:
-  PhaseModel( const ProblemType& problem ) 
-    : thermodynamics_( problem.thermodynamics() )
-    , problem_( problem )
-    , nsFlux_( problem )
-    , visc_(Dune::Fem::Parameter::getValue<double>("visc"))
+  PhaseModel( const ThermodynamicsType& thermo ) 
+    : phasefieldPhysics_( thermo  )
   {
     
   }
@@ -103,8 +100,6 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   }
 
 
- 
-
   inline double stiffSource( const EntityType& en
                       , const double time
                       , const DomainType& x
@@ -113,14 +108,12 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   {
    
 		double reaction,pressure;
-		thermodynamics_.pressureAndReaction(u,pressure,reaction);
+		phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
 	  s[0]=0.;
 		s[1]=0.;
 		s[2]=reaction;
 		return 1;
   }
-
- 
 
 
   inline double nonStiffSource( const EntityType& en,
@@ -133,7 +126,6 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     Dune::Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType > jac( du );
     return nonStiffSource( en, time, x, u, jac, s );
   }
-
 
 
   template< class JacobianRangeTypeImp >
@@ -150,16 +142,13 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   }
 
   
-
   inline void advection( const EntityType& en,
                          const double time,
                          const DomainType& x,
                          const RangeType& u,
-			 JacobianRangeType& f ) const 
+	                  		 JacobianRangeType& f ) const 
   {
-  
-    nsFlux_.analyticalFlux(u, f);
-    
+    phasefieldPhysics_.analyticalFlux(u, f);
   }
 
   inline double diffusionTimeStep( const IntersectionType& it,
@@ -176,7 +165,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     double T;
     pressAndTemp( u, p, T );
     // get mu 
-    const double mu = problem_.mu(  );
+    const double mu = 1;
 
     // ksi = 0.25 
     
@@ -190,8 +179,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                         , const RangeType& u 
                         , JacobianFluxRangeType& a ) const 
   {
-    
-    nsFlux_.jacobian( u, a );
+    phasefieldPhysics_.jacobian( u, a );
   }
   
 
@@ -222,8 +210,6 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     return diffusionBoundaryFlux( it, time, x, uLeft, jacLeft, gLeft );
   }
 
-  /** \brief boundary flux for the diffusion part
-   */
   template <class JacobianRangeImp>
   inline double diffusionBoundaryFlux( const IntersectionType& it,
                                        const double time,
@@ -251,7 +237,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                         double& advspeed,
                         double& totalspeed ) const 
   {
-    advspeed = nsFlux_.maxSpeed( normal , u );
+    advspeed = phasefieldPhysics_.maxSpeed( normal , u );
     totalspeed=advspeed;
   }
 
@@ -264,9 +250,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 		  JacobianRangeType& diff ) const
   {
     Dune::Fem:: FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
-  //   FieldMatrixConverter< GradientRangeType, JacobianRangeType> tension( tens );
-    
-     diffusion( en, time, x, u, jac,diff );
+    diffusion( en, time, x, u, jac,diff );
   }
 
 
@@ -275,39 +259,40 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                   const double time,
                   const DomainType& x,
                   const RangeType& u,
-		  const JacobianRangeImp& jac,
-		  JacobianRangeType& diff ) const
-  {
-     nsFlux_.diffusion( u, jac, diff );
+	            	  const JacobianRangeImp& jac,
+		               JacobianRangeType& diff ) const
+  { 
+    phasefieldPhysics_.diffusion( u, jac, diff );
   }
-   void tension( const EntityType& en,
-		 const double time,
-		 const DomainType& x,
-		 const RangeType& u,
-		 const GradientRangeType& v,
-		 JacobianRangeType& diff )const
+  
+  void tension( const EntityType& en,
+	              const double time,
+		            const DomainType& x,
+		            const RangeType& u,
+		            const GradientRangeType& v,
+		            JacobianRangeType& diff )const
   {    
     Dune::Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
     diff=jac;
   }
   
-   void tension( const EntityType& en,
-		 const double time,
-		 const DomainType& x,
-		 const RangeType& u,
-		 const GradientRangeType& v,
-		 GradientRangeType& diff )const
+  void tension( const EntityType& en,
+	              const double time,
+		            const DomainType& x,
+		            const RangeType& u,
+		            const GradientRangeType& v,
+		            GradientRangeType& diff )const
   {
     Dune::Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
-     tension( u, jac, diff );
+    tension( u, jac, diff );
   }
   
   template <class JacobianRangeImp>
    void tension( const RangeType& u,
-		 const JacobianRangeImp& jac,
-		 GradientRangeType& diff ) const
+            		 const JacobianRangeImp& jac,
+		             GradientRangeType& diff ) const
   { 
-    nsFlux_.tension( u, jac, diff );
+    phasefieldPhysics_.tension( u, jac, diff );
   }
 
 
@@ -321,38 +306,38 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     return 0.;
   }
 
+
   inline void pressAndTemp( const RangeType& u, double& p, double& T ) const
   {
-    thermodynamics_.pressureAndReaction( u, p, T );
+    phasefieldPhysics_.pressureAndReaction( u, p, T );
   }
+
 
   inline void conservativeToPrimitive( const DomainType& xgl,
                                        const RangeType& cons, 
                                        RangeType& prim ) const
   {
-    thermodynamics_.conservativeToPrimitive( cons, prim );
+    phasefieldPhysics_.conservativeToPrimitive( cons, prim );
   }
+  
+  
   inline void totalEnergy( const DomainType& xgl,
-			   const RangeType& cons, 
-			   const GradientRangeType& grad,
-			   double& res ) const
+		                  	   const RangeType& cons, 
+			                     const GradientRangeType& grad,
+			                     double& res ) const
   {
-    
-    thermodynamics_.totalEnergy(cons, grad,res );
+    phasefieldPhysics_.totalEnergy(cons, grad,res );
   }
 
-
-  inline const ProblemType& problem() const { return problem_; }
-  inline const double mu( const double T ) const { return problem_.mu(T); }
-  inline const double delta( ) const {return problem_.delta();}
-	    inline const double visc( ) const {return visc_;}
+  inline double visc() const 
+  {
+    std::cout<<"REVISE ME\n!"; 
+    return 1.;
+  }
+  
  
-
-	    protected:
-	    const ThermodynamicsType& thermodynamics_;
-	    const ProblemType& problem_;
-	    const PhaseFlux< dimDomain > nsFlux_;
-	    const double visc_;
+ protected:
+  const PhysicsType& phasefieldPhysics_;
 };
 
 

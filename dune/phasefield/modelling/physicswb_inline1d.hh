@@ -1,5 +1,6 @@
-#ifndef PHYSICS_INLINE1D_HH
-#define PHYSICS_INLINE1D_HH
+#ifndef PHYSICSWB_INLINE1D_HH
+#define PHYSICSWB_INLINE1D_HH
+#define MIN_RHO 1e-8
 namespace Dune{
 //================================================
 //
@@ -88,20 +89,14 @@ class PhasefieldPhysics<1,Thermodynamics>
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
 	
-  template< class JacobianRangeImp >
-  inline void tension( const RangeType& u,
-                       const JacobianRangeImp& du,
-                       GradientRangeType& tens) const;
-
-
+  
 
 public:
 
 	inline double delta()const {return delta_;}
-	inline double delta_inv(){return delta_inv_;}
-	inline double mu1()const {return thermoDynamics_.mu1();}
-	inline double mu2(){return 1;}
-
+	inline double delta_inv()const{return delta_inv_;}
+  inline double mu1() const {thermoDynamics_.mu1();}
+ 	inline double mu2() const {abort();}
 
 
 protected:
@@ -204,14 +199,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		const double v = u[1]*rho_inv;
 		double p;
 		double W;
-  	double rho=u[0];
-    double phi=u[phaseId];
-    phi*=rho_inv;
-    p=thermoDynamics_.pressure(rho,phi);
- 
-  
+   
  		f[0][0] = u[1];
-		f[1][0] = v*u[1]+p;
+		f[1][0] = v*u[1];
 		f[2][0] = u[2]*v;
   }
 
@@ -222,8 +212,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     assert(u[0] > 1e-10);
 
     a[0][0] = u[0]; //rho
-    a[1][0] = u[1];//(rho v) 
-    a[2][0] = u[2];//(rho phi)
+    a[1][0] = u[1]/u[0];//(rho v)/rho
+    a[2][0] = u[2]/u[0];//(rho phi)/rho
   }
 
 	template< class Thermodynamics >
@@ -234,7 +224,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 									const ThetaRangeType& thetaR,
 									RangeType& ret) const
 	{
-	abort();
+		ret[1]=0.5*(uL[0]+uR[0])*(thetaL[0]-thetaR[0]);
  	}
 	
 	template< class Thermodynamics >
@@ -258,38 +248,31 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                JacobianRangeType& diff) const
   {
     assert( u[0] > 1e-10 );
-    double rho=u[0];
-    double rho_inv = 1. / rho;
-    double p;
-    double T;
- 
-    const double muLoc = mu1 ();
+		double rho_inv = 1. / u[0];
+		double p;
+		double T;
+		const double muLoc = mu1();
+  	const double dxv   = du[1][0]; //dv/dx
 
-    const double v   =  u[1]*rho_inv;
-   double phi =  u[2]*rho_inv;
-    const double dxrho     = du[0][0]; //drho/dx
-    const double dxrhou    = du[1][0]; //d(rho*v)/dx
-    const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
-    thermoDynamics_.pressure( rho,phi);
-  
-    const double dxv   = rho_inv*(dxrhou - v*dxrho);
-    const double rhodxphi = (dxrhophi - phi*dxrho);
-    double delta_inv=1./delta_;
 
-    diff[0][0]=0.;
-    diff[1][0]=muLoc*dxv;
-    diff[2][0]=rhodxphi*delta_inv;
-    
+
+		diff[0][0]=0.;
+		diff[2][0]=0.;
+		diff[1][0]=muLoc*dxv;
+   
   }
-  
-  template< class Thermodynamics>
+  template<class Thermodynamics>
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1, Thermodynamics>
   ::allenCahn( const RangeType& u,
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
-   abort(); 
+   assert( u[0] > 1e-10 );
+	 
+	 diff[0][0]=0.;
+	 diff[1][0]=delta_*du[2][0];
+
   }
 
  template< class Thermodynamics >
@@ -298,39 +281,12 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  {
   assert(u[0] > MIN_RHO);
   double u_normal=u[1]*n[0]/u[0];
-  double c=thermoDynamics_.a(u[0],u[3]);   
+  double c=thermoDynamics_.a(u[0],u[2]);
   return std::abs(u_normal)+sqrt(c);
- 
+
  } 
 
 
-#if 1 
-// template< class Thermodynamics >
-// template< class JacobianRangeImp>
- template< class Thermodynamics>
- template< class JacobianRangeImp >
- inline void PhasefieldPhysics< 1, Thermodynamics>
- ::tension( const RangeType& u,
-            const JacobianRangeImp& du,
-            GradientRangeType& diff ) const
-  { 
-    assert( u[0] > 1e-10 );
-    double rho_inv = 1. / u[0];
-      
-    const double phi =  u[2]*rho_inv;
-    const double dxrho     = du[0][0]; //drho/dx
-    const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
-           
-    const double rhodxphi = (dxrhophi - phi*dxrho);
-    const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
-    double tension =delta_*(dxphi*dxphi*rho_inv-0.5*dxphi*dxphi*rho_inv);
-                  
-    diff[0]=0.;
-    diff[1]=tension;
-    diff[2]=0;
-                          
-  }
-#endif
 
 }//end namespace Dune
 #endif// PHYSICS_INLINE_HH

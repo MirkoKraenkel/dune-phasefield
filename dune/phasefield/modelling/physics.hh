@@ -1,6 +1,6 @@
-#ifndef DUNEPHASEFIELD_WBPHYSICS_HH
-#define DUNEPHASEFIELD_WBPHYSICS_HH
-
+#ifndef DUNEPHASEFIELD_PHYSICS_HH
+#define DUNEPHASEFIELD_PHYSICS_HH
+#define MIN_RHO 1e-10
 // system include
 #include <cmath>
 #include <iomanip>
@@ -90,27 +90,37 @@ class PhasefieldPhysics
 												 const JacobianRangeImp& du,
 												 JacobianRangeType& f ) const;
   
+  //f|phi-div(f|nabla phi)
   template< class JacobianRangeImp >
 	inline void allenCahn( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
-	
-  
+ 
+  template< class JacobianRangeImp>
+  inline void tension( const RangeType& u,
+                       const JacobianRangeImp& du,
+                       GradientRangeType& tens) const;
 
-public:
+  public:
 
 	inline double delta()const {return delta_;}
 	inline double delta_inv(){return delta_inv_;}
-protected:
+	inline double mu1() const {return 1.;}
+	inline double mu2(){return 1.;}
+  
+  protected:
 	const double delta_; 
 	double delta_inv_;
  };
 }
 
-
+#if WELLBALANCED
+#include "physicswb_inline1d.hh"
+#include "physicswb_inline2d.hh"
+#else
 #include "physics_inline1d.hh"
 #include "physics_inline2d.hh"
-
+#endif
 	//end namspace DUNE
 
-#endif // DUNEPHASEFIELD_WBPHYSICS_HH
+#endif // DUNEPHASEFIELD_PHYSICS_HH

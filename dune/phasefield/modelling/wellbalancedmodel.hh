@@ -117,7 +117,8 @@ namespace Dune {
 		{
 			phasefieldPhysics_.nonConProduct(uL, uR,thetaL,thetaR,ret);
 		}
-		
+
+
 		inline double stiffSource( const EntityType& en,
 															 const double time,
 															 const DomainType& x,
@@ -130,6 +131,7 @@ namespace Dune {
 			return 1;
  		}
 
+
 		inline double thetaSource( const EntityType& en,
 															 const double time,
 															 const DomainType& x,
@@ -140,6 +142,7 @@ namespace Dune {
 			return thetaSource( en, time, x, u, s );
 		}
 
+
 		inline double thetaSource( const EntityType& en
 															 , const double time
 															 , const DomainType& x
@@ -149,23 +152,23 @@ namespace Dune {
 			const DomainType& xgl = en.geometry().global(x);
 			double mu,reaction;
  
-//		  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
+		  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
 
       s[0]=mu;
 			s[1]=reaction;
 			return 1.;
 		}
 
+    
 		inline void advection( const EntityType& en,
 													 const double time,
 													 const DomainType& x,
 													 const RangeType& u,
 													 JacobianRangeType& f ) const 
 		{
-  
 			phasefieldPhysics_.analyticalFlux(u, f);
-    
 		}
+
 
 		inline double diffusionTimeStep( const IntersectionType& it,
 																		 const double enVolume,
@@ -184,7 +187,6 @@ namespace Dune {
 													, const RangeType& u 
 													, JacobianFluxRangeType& a ) const 
 		{
-    
 			phasefieldPhysics_.jacobian( u, a );
 		}
   
@@ -216,8 +218,7 @@ namespace Dune {
 			return diffusionBoundaryFlux( it, time, x, uLeft, jacLeft, gLeft );
 		}
 
-		/** \brief boundary flux for the diffusion part
-		 */
+
 		template <class JacobianRangeImp>
 		inline double diffusionBoundaryFlux( const IntersectionType& it,
 																				 const double time,
@@ -262,8 +263,12 @@ namespace Dune {
 		}
 
 
-     inline double visc() const { return 1.;} 
-
+    inline double visc() const 
+    {
+      std::cout<<"REVISE ME\n!"; 
+      return 1.;
+    }
+  
 
 		template <class JacobianRangeImp>
 		void diffusion( const EntityType& en,
@@ -284,11 +289,13 @@ namespace Dune {
 			allenCahnDiffusion(u,jac,dv);
 		}	
 
+    
     template <class JacobianRangeImp>
 		void allenCahnDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
 			phasefieldPhysics_.allenCahn(u,du,dv);
 		}
+
 
 		inline double boundaryFlux( const IntersectionType& it
 																, const double time
@@ -300,6 +307,7 @@ namespace Dune {
 			return 0.;
 		}
 		
+
 		inline void conservativeToPrimitive( const DomainType& xgl,
 																				 const RangeType& cons, 
 																				 RangeType& prim ) const
@@ -317,11 +325,10 @@ namespace Dune {
 		}
 
 
-//		inline const ProblemType& problem() const { return problem_; }
 		
 	protected:
 		const PhysicsType& phasefieldPhysics_;
-		};
+};
 
 
 
