@@ -1,8 +1,3 @@
-#if defined GRIDDIM
-#ifndef CODEDIM
-#define CODEDIM GRIDDIM
-#endif
-#endif
 
 // include host specific macros set by configure script   /*@LST0S@*/
 #include <config.h>
@@ -33,7 +28,7 @@
 /**
  * @return 0 we don't program bugs. :)
  */
-int main(int argc, char ** argv, char ** envp) {          /*@LST0S@*/
+int main(int argc, char ** argv, char ** envp) {        
 
   /* Initialize MPI (always do this even if you are not using MPI) */
   Dune::Fem::MPIManager :: initialize( argc, argv );
@@ -50,12 +45,12 @@ int main(int argc, char ** argv, char ** envp) {          /*@LST0S@*/
 #endif
 
   // *** Initialization
-		Dune::Fem::Parameter::append(argc,argv);                           /*@\label{dg:param0}@*/
+		Dune::Fem::Parameter::append(argc,argv);                      
   if (argc == 2) {
     Dune::Fem::Parameter::append(argv[1]);
   } else {
-    Dune::Fem::Parameter::append("parameter");                       /*@\label{dg:paramfile}@*/
-  }                                                       /*@\label{dg:param1}@*/
+    Dune::Fem::Parameter::append("parameter");                   
+  }                                                     
 
   // get number of desired threads (default is 1)
   int numThreads = Dune::Fem::Parameter::getValue< int >("fem.parallel.numberofthreads", 1);
@@ -68,13 +63,13 @@ int main(int argc, char ** argv, char ** envp) {          /*@LST0S@*/
 	// write parameters used 
   Dune::Fem::Parameter::write("parameter.log");
   }
-  catch (Dune::Exception &e) {                            /*@\label{dg:catch0}@*/
+  catch (Dune::Exception &e) {                           
     std::cerr << e << std::endl;
     return 1;
   } catch (...) {
     std::cerr << "Generic exception!" << std::endl;
     return 2;
-  }                                                      /*@\label{dg:catch1}@*/
+  }                                                     
 
   return 0;
 }

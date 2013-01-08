@@ -1,6 +1,5 @@
 #ifndef PHYSICSWB_INLINE1D_HH
 #define PHYSICSWB_INLINE1D_HH
-#define MIN_RHO 1e-8
 namespace Dune{
 //================================================
 //
@@ -38,7 +37,7 @@ class PhasefieldPhysics<1,Thermodynamics>
    typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
    typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
   protected:
-    const ThermodynamicsType& thermoDynamics_;
+    const ThermodynamicsType thermoDynamics_;
   public:
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
     thermoDynamics_(thermodyn),
@@ -48,10 +47,11 @@ class PhasefieldPhysics<1,Thermodynamics>
 	}
  
   inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
-  
+ 
+  template< class JacobianRangeImp >
   inline void totalEnergy( const RangeType& cons, 
-                           const GradientRangeType& grad,
-                          double& res ) const;
+                           const JacobianRangeImp& grad,
+                           double& res ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -95,12 +95,12 @@ public:
 
 	inline double delta()const {return delta_;}
 	inline double delta_inv()const{return delta_inv_;}
-  inline double mu1() const {thermoDynamics_.mu1();}
- 	inline double mu2() const {abort();}
+  inline double mu1() const {return thermoDynamics_.mu1();}
+ 	inline double mu2() const {abort();return 0.;}
 
 
 protected:
-	const double delta_; 
+  const double delta_; 
 	double delta_inv_;
  };
 
@@ -125,10 +125,11 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   
   }
 
-  template< class Thermodynamics > 
-  inline void PhasefieldPhysics<1,Thermodynamics >
+ template< class Thermodynamics > 
+ template<class JacobianRangeImp>   
+ inline void PhasefieldPhysics<1,Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
-                  const GradientRangeType& grad , 
+                  const JacobianRangeImp& grad , 
                   double& res ) const
   {
     assert( cons[0] > 0. );
@@ -197,8 +198,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		assert( u[0] > 1e-10 );
 		double rho_inv = 1. / u[0];
 		const double v = u[1]*rho_inv;
-		double p;
-		double W;
    
  		f[0][0] = u[1];
 		f[1][0] = v*u[1];
@@ -238,7 +237,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 			f[0]=0;
 			f[1]=dtheta[0]*u[0]+du[2]*theta[1];
 			f[2]=theta[1];
-	}
+	  return 1; 
+  }
 
   template< class Thermodynamics >
   template< class JacobianRangeImp >
@@ -248,9 +248,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                JacobianRangeType& diff) const
   {
     assert( u[0] > 1e-10 );
-		double rho_inv = 1. / u[0];
-		double p;
-		double T;
 		const double muLoc = mu1();
   	const double dxv   = du[1][0]; //dv/dx
 

@@ -392,11 +392,11 @@ GRAPE_CPPFLAGS =
 GRAPE_LDFLAGS = 
 GRAPE_LIBS = 
 GREP = /bin/grep
-#GRIDTYPE = YASPGRID
-GRIDDIM = 1 
+#GRIDTYPE = ALBERTAGRID
+GRIDDIM = 2 
 GRIDDIM_CPPFLAGS = -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE)
 
-#GRIDTYPE = ALUGRID_CONFORM
+#GRIDTYPE = ONEDGRID
 GRIDTYPE = SPGRID
 INKSCAPE = inkscape
 INSTALL = /usr/bin/install -c
@@ -447,9 +447,9 @@ PARMETIS_LIBS =
 PATH_SEPARATOR = :
 PERL = perl
 PETSC = 
-PETSC_CPPFLAGS =  -DENABLE_PETSC=1
-PETSC_LDFLAGS = -L/disk1/Work/Mymodules/petsc-3.3-p4/lib  -Wl,--rpath -Wl,/disk1/Work/Mymodules/petsc-3.3-p4/lib
-PETSC_LIBS = -lpetsc -llapack -lblas -lX11 
+PETSC_CPPFLAGS = 
+PETSC_LDFLAGS = 
+PETSC_LIBS = 
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
@@ -474,9 +474,9 @@ SUPERLU_DIST_LDFLAGS = -L/usr/local/
 SUPERLU_DIST_LIBS = 
 SUPERLU_LIBS = 
 TEX = latex
-UG_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UG_8441/include   -DENABLE_UG
+UG_CPPFLAGS = 
 UG_LDFLAGS = 
-UG_LIBS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UG_8441/lib   -lugS2 -lugS3 -ldevS
+UG_LIBS = 
 UMFPACK_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1
 UMFPACK_LDFLAGS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib
 UMFPACK_LIBS = -lumfpack -lamd

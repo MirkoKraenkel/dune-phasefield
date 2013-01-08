@@ -1,8 +1,3 @@
-#if defined GRIDDIM
-#ifndef CODEDIM
-#define CODEDIM GRIDDIM
-#endif
-#endif
 
 // in dbug mode also enable FieldVector checking and dune devel mode
 #ifndef DNDEBUG 
@@ -28,7 +23,6 @@
 #endif
 #endif
 
-//#include "codegen.hh"
 
 #include <dune/fem/base/base.hh>
 

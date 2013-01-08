@@ -37,19 +37,22 @@ class PhasefieldPhysics<1,Thermodynamics>
    typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
    typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
   protected:
-    const ThermodynamicsType& thermoDynamics_;
+    const ThermodynamicsType thermoDynamics_;
   public:
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
     thermoDynamics_(thermodyn),
     delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
     delta_inv_(1./delta_)
   {
-	}
+   std::cout<<"PHYSICS";
+   std::cout<<"================"<<thermoDynamics_.delta()<<"==========\n";
+  }
  
   inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
-  
+ 
+  template < class JacobianRangeImp >
   inline void totalEnergy( const RangeType& cons, 
-                           const GradientRangeType& grad,
+                           const JacobianRangeImp& grad,
                           double& res ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
@@ -131,9 +134,10 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   }
 
   template< class Thermodynamics > 
+  template< class JacobianRangeImp >
   inline void PhasefieldPhysics<1,Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
-                  const GradientRangeType& grad , 
+                  const JacobianRangeImp& grad , 
                   double& res ) const
   {
     assert( cons[0] > 0. );
@@ -203,7 +207,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		double rho_inv = 1. / u[0];
 		const double v = u[1]*rho_inv;
 		double p;
-		double W;
   	double rho=u[0];
     double phi=u[phaseId];
     phi*=rho_inv;
@@ -248,7 +251,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 			f[0]=0;
 			f[1]=dtheta[0]*u[0]+du[2]*theta[1];
 			f[2]=theta[1];
-	}
+	  return 1.;
+  }
 
   template< class Thermodynamics >
   template< class JacobianRangeImp >
@@ -260,8 +264,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     assert( u[0] > 1e-10 );
     double rho=u[0];
     double rho_inv = 1. / rho;
-    double p;
-    double T;
  
     const double muLoc = mu1 ();
 
@@ -321,7 +323,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
            
-    const double rhodxphi = (dxrhophi - phi*dxrho);
+ //   const double rhodxphi = (dxrhophi - phi*dxrho);
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
     double tension =delta_*(dxphi*dxphi*rho_inv-0.5*dxphi*dxphi*rho_inv);
                   

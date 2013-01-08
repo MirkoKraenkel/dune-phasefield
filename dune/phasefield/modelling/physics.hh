@@ -1,6 +1,7 @@
 #ifndef DUNEPHASEFIELD_PHYSICS_HH
 #define DUNEPHASEFIELD_PHYSICS_HH
 #define MIN_RHO 1e-10
+#warning PHYSICS INCLUDED
 // system include
 #include <cmath>
 #include <iomanip>
@@ -51,14 +52,17 @@ class PhasefieldPhysics
     delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
     delta_inv_(1./delta_)
   {
-	}
+    std::cout<<"-------------------------------------constructor Physics\n";
+	  std::cout<<thermoDynamics_.delta();
+  }
  
   inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
-  
+ 
+  template< class JacobianRangeImp >
   inline void totalEnergy( const RangeType& cons, 
-                           const GradientRangeType& grad,
-                          double& res ) const;
-
+                           const JacobianRangeImp& grad,
+                          double& res ) const; 
+  
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
 																	double& reaction ) const;

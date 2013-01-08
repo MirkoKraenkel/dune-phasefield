@@ -18,6 +18,7 @@
 // local includes
 #include <dune/fem/fluxes/eulerfluxes.hh>
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
+
 #if NONCON
 #include <dune/fem/operator/discretemodelcommon.hh>
 #else
@@ -77,13 +78,7 @@ struct ProblemGenerator
 
   static inline std::string diffusionFluxName()
   {
-#ifdef EULER
-    return "";
-#elif (defined PRIMALDG)
-    return Dune::Parameter::getValue< std::string >("dgdiffusionflux.method");
-#else
     return "LDG";
-#endif
   }
 
   static inline Dune::GridPtr<GridType>               
@@ -95,6 +90,7 @@ struct ProblemGenerator
 
   static ProblemType* problem()
   {
+    std::cout<<"problemcreator new ProblemType()\n";
     return new ProblemType ();
   }
 

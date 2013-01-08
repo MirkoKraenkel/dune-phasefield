@@ -53,7 +53,9 @@ class PhaseProblem : public EvolutionProblemInterface<
      thermodyn_()
      {
       thermodyn_.init();
+      std::cout<<"PG Phase Model\n";
      }
+
 
 
   // initialize A and B 
@@ -68,6 +70,7 @@ class PhaseProblem : public EvolutionProblemInterface<
   // this is the initial data
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
+    thermodyn_.delta();
     evaluate( 0., arg, res );
   }
 
@@ -88,7 +91,7 @@ class PhaseProblem : public EvolutionProblemInterface<
   {}
 
 
-  const ThermodynamicsType& thermodynamics() const { return thermodyn_;}
+  const ThermodynamicsType& thermodynamics() const {std::cout<<"Get Thermo from Problem\n";return thermodyn_;}
   void printmyInfo( std::string filename ) const {}
   inline double endtime() const { return endTime_; }
   inline std::string myName() const { return myName_; }
@@ -133,7 +136,7 @@ template <class GridType>
 inline void PhaseProblem<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-    
+#if 1    
   double factor1,factor2,shift;
   factor2=c2_;
   factor2-=c1_;
@@ -157,8 +160,11 @@ inline void PhaseProblem<GridType>
       res[2]*=res[0];
     
     }
-
-
+#else
+    res[0]=5.5;
+    res[1]=0.;
+    res[2]=1.;
+#endif
 }
 
 

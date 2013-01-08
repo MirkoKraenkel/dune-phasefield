@@ -83,6 +83,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     : phasefieldPhysics_( thermo  )
   {
     
+    std::cout<<" creating Model\n"; 
   }
 
   inline bool hasStiffSource() const { return true; }
@@ -324,11 +325,20 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   inline void totalEnergy( const DomainType& xgl,
 		                  	   const RangeType& cons, 
 			                     const GradientRangeType& grad,
-			                     double& res ) const
+			                     FieldVector<double,1>& energy ) const
   {
-    phasefieldPhysics_.totalEnergy(cons, grad,res );
+    Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( grad);
+    totalEnergy(cons, jac,energy );
+  }
+  template<class JacobianRangeImp>
+  inline void totalEnergy( const RangeType& cons, 
+			                     const JacobianRangeImp& grad,
+			                     FieldVector<double,1>& energy ) const
+  {
+    phasefieldPhysics_.totalEnergy(cons, grad,energy[0] );
   }
 
+ 
   inline double visc() const 
   {
     std::cout<<"REVISE ME\n!"; 

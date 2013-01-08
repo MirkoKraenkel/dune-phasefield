@@ -20,7 +20,7 @@ template< class ConsDiscreteFunctionType,class GradientFunctionType, class Model
 void energyconverter( const ConsDiscreteFunctionType& consDF, 
                       const GradientFunctionType& gradDF,
           	          const ModelType& model,
-                      EnergyFunctionType& energy) 
+                      EnergyFunctionType& energyDF) 
 {
   typedef typename ConsDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
     ConsDiscreteFunctionSpaceType;
@@ -40,8 +40,7 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
   typedef typename EnergyFunctionSpaceType::RangeType EnergyRangeType;
   
   const ConsDiscreteFunctionSpaceType& space =  consDF.space();
-  std::cout<<"THE ENERGTY!\n";
-  energy.clear();
+  energyDF.clear();
   
   typedef typename ConsDiscreteFunctionType::LocalFunctionType ConsLocalFuncType;
   typedef typename GradientFunctionType::LocalFunctionType GradLocalFuncType;
@@ -49,8 +48,7 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
   
   ConsRangeType cons(0.0); 
   GradRangeType grad(0.0);
-  EnergyRangeType prim(0.0);
-  double res=0.;
+  EnergyRangeType energy(0.0);
   Iterator it    = space.begin();
   Iterator endit = space.end();
   // if empty grid, do nothing 
@@ -67,26 +65,22 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
   
     ConsLocalFuncType consLF = consDF.localFunction( entity );
     GradLocalFuncType  gradLF = gradDF.localFunction(entity);
-  //   EnergyPrimLocalFuncType primLF = primDF.localFunction( entity );
+    EnergyLocalFuncType energyLF = energyDF.localFunction( entity );
 
     const int quadNop = quad.nop();
     for(int qP = 0; qP < quadNop; ++qP) 
     {
       const DomainType& xgl = geo.global( quad.point(qP) );
-      double val=0.;
       // evaluate conservative variables
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
       
-  //     model.conservativeToPrimitive( xgl, cons, prim );
-      model.totalEnergy(xgl, cons, grad, val);
-      val*=  quad.weight(qP)*volume;
-     
-      res+=val;
+      model.totalEnergy(xgl, cons, grad, energy);
+      energy*= quad.weight(qP)*volume;
+      energyLF.axpy(quad[qP],energy);  
     }
   
 }
-      std::cout<<"energy"<<res<<std::endl;
     
 }
 

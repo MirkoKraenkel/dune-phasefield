@@ -17,7 +17,8 @@ class Thermodynamics
 public:
   Thermodynamics()
   {
-	}
+ 
+  }
 
   inline void init();
 
@@ -51,7 +52,9 @@ public:
   {
     return static_cast<Impl>(*this);
   }
-	
+	protected:
+
+
  
   
 };

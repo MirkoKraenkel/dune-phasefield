@@ -37,6 +37,7 @@
 #include <dune/phasefield/util/energyconverter.hh>
 #endif
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
+
 #include <dune/fem/adaptation/estimator1.hh>
 #include <dune/phasefield/util/cons2prim.hh>
 /////////////////////////////////////////////////////////////////////////////
@@ -84,7 +85,7 @@ public:
 	typedef typename Traits::ScalarDiscreteSpaceType ScalarDiscreteSpaceType;
 	//discrete functions
 	typedef typename Traits::DiscreteFunctionType DiscreteFunctionType;
-	typedef typename Traits::DiscreteSigmaType DiscreteSigmaType;
+  typedef typename Traits::DiscreteSigmaType DiscreteSigmaType;
 	typedef typename Traits::DiscreteThetaType DiscreteThetaType;
 	typedef typename Traits::DiscreteScalarType DiscreteScalarType;
 	//additional types
@@ -103,8 +104,8 @@ public:
 	// type of IOTuple 
 	typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType* > IOTupleType; 
 	// type of data writer 
-	typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
-	
+  typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
+
 	// type of time provider organizing time for time loops 
 	typedef Dune::Fem::GridTimeProvider< GridType >                 TimeProviderType;
 	
@@ -130,9 +131,9 @@ private:
 	double                  fixedTimeStep_;        
 	double                  fixedTimeStepEocLoopFactor_;       
 	DiscreteFunctionType    solution_;
-	DiscreteSigmaType*       sigma_;
+	DiscreteSigmaType*      sigma_;
 	DiscreteThetaType*      theta_;
-	DiscreteScalarType*      energy_;
+	DiscreteScalarType*     energy_;
 	DiscreteFunctionType*   additionalVariables_;
 	const InitialDataType*  problem_;
   ModelType*              model_;
@@ -160,8 +161,8 @@ public:
 		grid_(grid)	,
 		gridPart_( grid_ ),
 		space_( gridPart_ ),
-		sigmaSpace_( Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new SigmaDiscreteSpaceType(gridPart_ ) : 0 ),
 		thetaSpace_( Fem::Parameter :: getValue< bool >("phasefield.theta", false)  ? new ThetaDiscreteSpaceType(gridPart_ ) : 0 ),
+    sigmaSpace_( Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new SigmaDiscreteSpaceType(gridPart_ ) : 0 ),
 		energySpace_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new ScalarDiscreteSpaceType(gridPart_ ) : 0 ),
  		eocLoopData_( 0 ),
  		eocDataTup_(),
@@ -284,10 +285,10 @@ public:
     overallTimer_.reset(); 
 		assert(odeSolver_);
     odeSolver_->solve( U, odeSolverMonitor_ );
-		newton_iterations     = odeSolverMonitor_.newtonIterations_;
-    ils_iterations        = odeSolverMonitor_.linearSolverIterations_;
-    max_newton_iterations = odeSolverMonitor_.maxNewtonIterations_ ;
-    max_ils_iterations    = odeSolverMonitor_.maxLinearSolverIterations_;
+//		newton_iterations     = odeSolverMonitor_.newtonIterations_;
+//    ils_iterations        = odeSolverMonitor_.linearSolverIterations_;
+//    max_newton_iterations = odeSolverMonitor_.maxNewtonIterations_ ;
+//    max_ils_iterations    = odeSolverMonitor_.maxLinearSolverIterations_;
 
 	}
 #endif
@@ -327,8 +328,12 @@ public:
 						// calculate additional variables from the current num. solution
 					  setupAdditionalVariables( solution(), model(), *addVariables );
 					}
-
-				//	energyconverter(solution(),sigma(),model(),energy());
+  
+        DiscreteSigmaType*   gradient=sigma(); 
+        DiscreteScalarType*  totalenergy =energy();
+    	  
+        if(gradient && totalenergy)   
+				  energyconverter(solution(),*gradient,model(),*totalenergy);
 			}
 
 		// write the data 
@@ -355,10 +360,10 @@ public:
 			}
 
 		double maxTimeStep =Dune::Fem::Parameter::getValue("femhowto.maxTimeStep", std::numeric_limits<double>::max());
-		const double startTime = Dune::Fem::Parameter::getValue<double>("femhowto.startTime", 0.0);
-		const double endTime   = Dune::Fem::Parameter::getValue<double>("femhowto.endTime");	
-		const int maximalTimeSteps =
-			Dune::Fem::Parameter::getValue("femhowto.maximaltimesteps", std::numeric_limits<int>::max());
+		const double startTime = Dune::Fem::Parameter::getValue<double>("phasefield.startTime", 0.0);
+		const double endTime   = Dune::Fem::Parameter::getValue<double>("phasefield.endTime");	
+//		const int maximalTimeSteps =
+//			Dune::Fem::Parameter::getValue("femhowto.maximaltimesteps", std::numeric_limits<int>::max());
 
 		TimeProviderType tp(startTime, grid_ ); 
 
@@ -375,7 +380,7 @@ public:
 		//restoreFromCheckPoint( tp );
 		
 		// tuple with additionalVariables 
-		IOTupleType dataTuple( &U,   this->additionalVariables() );
+		IOTupleType dataTuple( &U,   this->additionalVariables(),this->energy() );
 		
 		// type of the data writer
 		DataWriterType eocDataOutput( grid_, dataTuple, tp, EocDataOutputParameters( loop_ , dataPrefix() ) );
@@ -423,8 +428,8 @@ public:
 				const double tnow  = tp.time();
 				const double ldt   = tp.deltaT();
 				
-				int newton_iterations;
-				int ils_iterations;
+//				int newton_iterations;
+//				int ils_iterations;
 				counter  = tp.timeStep();
 					
 				Dune::FemTimer::start(timeStepTimer_);
@@ -540,7 +545,7 @@ public:
 	virtual void finalize( const int eocloop ) 
 	{
 		DiscreteFunctionType& U = solution(); 
-		DiscreteThetaType* theta1 = theta(); 
+//		DiscreteThetaType* theta1 = theta(); 
 			
   
 		DiscreteFunctionType* addVars = additionalVariables();

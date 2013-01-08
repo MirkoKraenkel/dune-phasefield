@@ -11,10 +11,10 @@ BASEDIR=../../../dune/fem/main
 
 SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 
-#GRIDTYPE = ALUGRID_CONFORM
+#GRIDTYPE = ONEDGRID
 GRIDTYPE=SPGRID
-#GRIDTYPE = YASPGRID
-GRIDDIM = 1 
+#GRIDTYPE = ALBERTAGRID
+GRIDDIM = 2 
 POLORDER=2 
 
 PROBLEM = 1 # check ./problemtype.hh

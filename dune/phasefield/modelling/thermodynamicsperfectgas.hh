@@ -1,4 +1,3 @@
-
 #ifndef THERMODYNAMICSPERFECTGAS_HH
 #define THERMODYNAMICSPERFECTGAS_HH
 
@@ -18,26 +17,26 @@ using namespace Dune;
 #include "thermodynamicsinterface.hh"
 
 class PGThermodynamics:
-	public Thermodynamics<PGThermodynamics>
+public Thermodynamics<PGThermodynamics>
 {
 	typedef Thermodynamics<PGThermodynamics> BaseType;
 
 public:
   PGThermodynamics():
-    BaseType(),
-    delta_ (Fem::Parameter::getValue< double >( "phasefield.delta" )),
-    epsilon_ (Fem::Parameter::getValue< double >( "epsilon",1. )),
-    b_(Fem::Parameter::getValue<double>("pressure")),
-    gamma_(Fem::Parameter::getValue<double>("gamma"))
+    BaseType()
   {
-    delta_inv_     = 1. / delta_;
-	}
+  }
 
-  inline void init() const {std::cout<<"init me!\n";abort();}
+  inline void init() const 
+  {
+    delta_=0.1;
+    delta_inv_=10.;
+    epsilon_=1.;
+  }
   
   inline double helmholtz(double& rho,double& phi) const
   {
-		double s=delta_inv_;
+		double s=1;
 	  double t1;
 		double t11;
 		double t12;
@@ -70,7 +69,7 @@ public:
 
 	inline double reactionSource(double& rho,double& phi) const
 	{ 
-		double s=delta_inv_;
+		double s=delta_;
 		double t1;
 		double t13;
 		double t14;
@@ -102,7 +101,7 @@ public:
 
 	inline double chemicalPotential(double& rho,double& phi) const
 	{
-    double s=delta_inv_;
+    double s=1;
 		double t1;
 		double t10;
 		double t11;
@@ -130,7 +129,7 @@ public:
 
 	inline double  pressure( double& rho, double& phi) const
 	{
-		double s=delta_inv_;
+		double s=1.;
 		double t1;
 		double t11;
 		double t12;
@@ -139,6 +138,9 @@ public:
 		double t17;
 		double t18;
 		double t19;
+ 
+
+
 		double t20;
 		double t25;
 		double t3;
@@ -175,17 +177,14 @@ public:
 public:
 
 	inline double delta()const {return delta_;}
-	inline double delta_inv()const {return delta_inv_;}
-	inline double mu1() const{return epsilon_;}
+	inline double delta_inv()const {return 0;}
+	inline double mu1() const{return 0.;}
 	inline double mu2()const {return epsilon_;}
+
 private:
-	double c1_; // Parameter for rho minima of double well
-	double c2_;
-	const double delta_; double epsilon_;
- 
-	const double b_;
-	const double gamma_;
-	double delta_inv_;
+  mutable double  delta_;
+  mutable double  delta_inv_;
+  mutable   double epsilon_;
 
 };
 

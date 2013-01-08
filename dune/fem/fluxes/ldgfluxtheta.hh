@@ -406,7 +406,7 @@ namespace Dune {
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
       const DomainType normal = intersection.integrationOuterNormal(x);
 
-      const EntityType& inside  = discreteModel.inside();
+//      const EntityType& inside  = discreteModel.inside();
 
       /****************************/
       /* Diffusion (Pass 2)       */

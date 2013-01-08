@@ -105,8 +105,8 @@ public:
     // reset compute time counter 
     resetComputeTime();
 
-    double maxAdvStep  = 0;
-    double maxDiffStep = 0;
+//    double maxAdvStep  = 0;
+//    double maxDiffStep = 0;
 
    
     {

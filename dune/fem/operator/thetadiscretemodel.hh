@@ -18,11 +18,10 @@
 #include "projectiondiscretemodelcommon.hh"
 #include <dune/fem/fluxes/ldgfluxwellbalanced.hh>
 namespace Dune {
-  //////////////////////////////////////////////////////
-  //
-  // DiscreteModel for calculation the chemical potential and Allen-Cahn Resisduum
-  // res[0]=\mu(\rho,\phi), res[1]=f_\phi-\nabla\
-  //////////////////////////////////////////////////////
+  /*
+   *  DiscreteModel for calculation the chemical potential and Allen-Cahn Resisduum
+   *  res[0]=\mu(\rho,\phi), res[1]=f_\phi-\nabla\
+   */
 
 	    
   template< class Model,int polOrd, int passUId, int passGradId> class ThetaModel;
@@ -126,7 +125,7 @@ namespace Dune {
 			
 			s = 0;
 		
-			double dtEst = std::numeric_limits< double > :: max();
+//			double dtEst = std::numeric_limits< double > :: max();
 			
 			const double dtStiff = model_.thetaSource( en, time, x, u[uVar], u[sigmaVar], s );
 			

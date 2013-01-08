@@ -72,15 +72,14 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
     for(int qP = 0; qP < quadNop; ++qP) 
     {
       const DomainType& xgl = geo.global( quad.point(qP) );
-      double val=0.;
       // evaluate conservative variables and gradients
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
 			
 			model.totalEnergy(xgl, cons, grad, energy);
-      energy*=  quad.weight(qP);
+      energy*=  quad.weight(qP)*volume;
 			energyLF.axpy(quad[qP],energy);
-			    }
+    }
   
 }
 	

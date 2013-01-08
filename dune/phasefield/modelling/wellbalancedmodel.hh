@@ -149,7 +149,6 @@ namespace Dune {
 															 , const RangeType& u
 															 , ThetaRangeType& s ) const 
 		{
-			const DomainType& xgl = en.geometry().global(x);
 			double mu,reaction;
  
 		  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
@@ -251,12 +250,12 @@ namespace Dune {
 		}
 
 
-		void diffusion( const EntityType& en,
-										const double time,
-										const DomainType& x,
-										const RangeType& u,
-										const GradientRangeType& v,
-										JacobianRangeType& diff ) const
+     inline void diffusion( const EntityType& en,
+						  	      			const double time,
+							  		      	const DomainType& x,
+									        	const RangeType& u,
+								        		const GradientRangeType& v,
+										        JacobianRangeType& diff ) const
 		{
 			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
 			diffusion( en, time, x, u, jac,diff );
@@ -271,7 +270,7 @@ namespace Dune {
   
 
 		template <class JacobianRangeImp>
-		void diffusion( const EntityType& en,
+    inline void diffusion( const EntityType& en,
 										const double time,
 										const DomainType& x,
 										const RangeType& u,
@@ -283,7 +282,7 @@ namespace Dune {
 	
 
 		
-		void allenCahnDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
+  	inline void allenCahnDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
 		{
 			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
 			allenCahnDiffusion(u,jac,dv);
@@ -291,7 +290,7 @@ namespace Dune {
 
     
     template <class JacobianRangeImp>
-		void allenCahnDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
+	  inline	void allenCahnDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
 			phasefieldPhysics_.allenCahn(u,du,dv);
 		}
@@ -315,13 +314,22 @@ namespace Dune {
 			phasefieldPhysics_.conservativeToPrimitive( cons, prim );
 		}
 		
-	
-		inline void totalEnergy( const DomainType& xgl,
+		
+    inline void totalEnergy( const DomainType& xgl,
 														 const RangeType& cons, 
 														 const GradientRangeType& grad,
 														 FieldVector<double,1>& energy ) const
 		{
-		  phasefieldPhysics_.totalEnergy(cons,grad,energy );
+			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( grad);
+		  totalEnergy(cons,jac,energy );
+		}
+
+	  template <class JacobianRangeImp>
+		inline void totalEnergy( const RangeType& cons, 
+														 const JacobianRangeImp& grad,
+														 FieldVector<double,1>& energy ) const
+		{
+		  phasefieldPhysics_.totalEnergy(cons,grad,energy[0] );
 		}
 
 

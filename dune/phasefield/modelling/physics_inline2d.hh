@@ -31,7 +31,7 @@ class PhasefieldPhysics<2,Thermodynamics>
    typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
 
   protected:
-    const ThermodynamicsType& thermoDynamics_;
+    const ThermodynamicsType thermoDynamics_;
   public:
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
     thermoDynamics_(thermodyn),
@@ -41,10 +41,11 @@ class PhasefieldPhysics<2,Thermodynamics>
 	}
  
   inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
-  
+ 
+  template<class JacobianRangeImp>
   inline void totalEnergy( const RangeType& cons, 
-                           const GradientRangeType& grad,
-                          double& res ) const;
+                           const JacobianRangeImp& grad,
+                           double& res ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -131,9 +132,10 @@ protected:
   }
 
   template< class Thermodynamics > 
+  template< class JacobianRangeImp>
   inline void PhasefieldPhysics< 2, Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
-                  const GradientRangeType& grad , 
+                  const JacobianRangeImp& grad , 
                   double& res ) const
   {
     assert( cons[0] > 0. );
@@ -265,8 +267,9 @@ protected:
 			f[1]=dtheta[0]*u[0]+du[2]*theta[1];
 			f[2]=0;
 	    f[3]=theta[1];
+    return 1.;
   }
-
+  
   template<class Thermodynamics>
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 2, Thermodynamics >
