@@ -392,12 +392,11 @@ GRAPE_CPPFLAGS =
 GRAPE_LDFLAGS = 
 GRAPE_LIBS = 
 GREP = /bin/grep
+#GRIDTYPE=SPGRID
 #GRIDTYPE = ALBERTAGRID
-GRIDDIM = 2 
+GRIDDIM = 1 
 GRIDDIM_CPPFLAGS = -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE)
-
-#GRIDTYPE = ONEDGRID
-GRIDTYPE = SPGRID
+GRIDTYPE = ONEDGRID
 INKSCAPE = inkscape
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
@@ -557,7 +556,7 @@ phase_model_spec.hh problemtype.hh
 LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUNEMPILIBS) 
 BASEDIR = ../../../dune/fem/main
 SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
-POLORDER = 2 
+POLORDER = 0 
 PROBLEM = 1 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 phasefield_SOURCES = $(SOURCES) 

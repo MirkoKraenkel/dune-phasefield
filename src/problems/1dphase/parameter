@@ -4,8 +4,9 @@
 
 fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-4 #save data every time interval 
-fem.io.savecount: 1 # save every i-th step
+fem.io.savestep: 1e-6 #save data every time interval 
+fem.io.savecount: 0 # save every i-th step
+phasefield.eocOutputPath: ./data
 
 # GRID SOLUTION
 #--------------
@@ -24,7 +25,7 @@ paramfile: ../parameter/paramBase
 # PROBLEM SETUP
 #--------------
 
-phasefield.endTime: 0.2
+phasefield.endTime: 0.1
 phasefield.diffusionTimeStep: 1
 phasefield.epsilon: 0.05
 phasefield.energy: true
@@ -32,8 +33,8 @@ phasefield.additionalvariables: true
 
 phasefield.delta: 0.1
 mu: 0.0001
-#c2: 0.5518191617
-#c1: 0.3678794412
+phasefield.rho1: 0.5518191617
+phasefield.rho2: 0.3678794412
 phasefield.penalty: 1
 c1:1
 c2:2

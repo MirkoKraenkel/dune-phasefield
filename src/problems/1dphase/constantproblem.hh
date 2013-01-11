@@ -136,30 +136,12 @@ template <class GridType>
 inline void PhaseProblem<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-  double factor1,factor2,shift;
-  //tanh should interpolate between two density values.
-  shift=rho1_-rho2_
-  shift*=0.5;
- 
-    { 
-      double x=arg[0];
-      factor1=smear_;
-      
-      double r=sqrt(x*x);
-      
-      res[0]=shift*(tanh((r-0.5)/factor1)+1);
-      res[0]+=rho1_;  
-   
-      //zero velocity
-      for(int i=1;i<=dimension;i++0)
-      res[i]=0;
-  
-      // res[2]=0.5;
-      factor1=smear_;
-      res[2]=phiscale_*0.5*tanh((r-0.5)/factor1)+0.5;
-      res[2]*=res[0];
+    res[0]=rho1_;
+    for(int i=1;i<=dimension;i++)
+      res[i]=0.;
     
-    }
+    res[2]=1.;
+
 }
 
 
