@@ -146,9 +146,9 @@ public:
 	WBFlux( const Model& mod )
     : model_(mod),
       visc_(model_.visc()),
-			alpha1_(1.)
+			alpha1_(0.)
   {
-    std::cout<<"Specify alpha correctly!\n";
+    std::cout<<"Specify alpha="<<alpha1_<<" correctly!\n";
 //    abort();
   }
 
@@ -182,10 +182,7 @@ public:
     
     RangeType visc;
 		ThetaRangeType newvisc;
-		newvisc=thetaLeft;
-		newvisc-=thetaRight;
-		newvisc*=alpha1_;
-		FluxRangeType anaflux;
+   	FluxRangeType anaflux;
    
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
@@ -226,8 +223,10 @@ public:
 			{
 				gLeft[i] -= visc[i];
 			}
-
-		gLeft[0]-=newvisc[1];
+  	newvisc=thetaLeft;
+		newvisc-=thetaRight;
+		newvisc*=alpha1_;
+		gLeft[0]=newvisc[1];
 		gLeft *= 0.5*len; 
 		gRight = gLeft;
 

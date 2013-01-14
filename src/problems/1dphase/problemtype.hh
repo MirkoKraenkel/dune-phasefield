@@ -13,9 +13,18 @@
 ///////////////////////////////////////
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
+#if PROBLEM==1
+# include "constantproblem.hh"
+typedef ConstantProblem< GridSelector:: GridType>  PhaseProblemType;
+#elif PROBLEM==2
 #include "perfectgas_problem.hh"
-
 typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
+#else
+   #error "No valid problem number specified"
+#endif
+
+
+
 
 #define PROBLEM_HAS_SOLUTION
 

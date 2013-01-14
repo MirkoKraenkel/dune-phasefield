@@ -20,7 +20,7 @@
 namespace Dune {
 
 template <class GridType>
-class PhaseProblem : public EvolutionProblemInterface<
+class ConstantProblem : public EvolutionProblemInterface<
                     Dune::Fem::FunctionSpace< double, double, GridType::dimension, GridType::dimension + 2 >,
                     true >
                   
@@ -40,8 +40,8 @@ class PhaseProblem : public EvolutionProblemInterface<
 
   typedef PGThermodynamics  ThermodynamicsType;
 
-  PhaseProblem() : 
-		 myName_( "Problem1" ),
+  ConstantProblem() : 
+		 myName_( "Constant Problem" ),
 		 endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime" )), 
 		 mu_( Fem::Parameter :: getValue< double >( "mu" )),
 		 delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
@@ -53,7 +53,6 @@ class PhaseProblem : public EvolutionProblemInterface<
      thermodyn_()
      {
       thermodyn_.init();
-      std::cout<<"PG Phase Model\n";
      }
 
 
@@ -91,7 +90,7 @@ class PhaseProblem : public EvolutionProblemInterface<
   {}
 
 
-  const ThermodynamicsType& thermodynamics() const {std::cout<<"Get Thermo from Problem\n";return thermodyn_;}
+  const ThermodynamicsType& thermodynamics() const {return thermodyn_;}
   void printmyInfo( std::string filename ) const {}
   inline double endtime() const { return endTime_; }
   inline std::string myName() const { return myName_; }
@@ -118,7 +117,7 @@ protected:
 
 
 template <class GridType>
-inline double PhaseProblem<GridType>
+inline double ConstantProblem<GridType>
 :: init(const bool returnA ) const 
 {
 
@@ -128,12 +127,12 @@ inline double PhaseProblem<GridType>
 
 
 template <class GridType>
-inline void PhaseProblem<GridType>
+inline void ConstantProblem<GridType>
 :: printInitInfo() const
 {}
 
 template <class GridType>
-inline void PhaseProblem<GridType>
+inline void ConstantProblem<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
     res[0]=rho1_;
@@ -150,7 +149,7 @@ inline void PhaseProblem<GridType>
 
 
 template <class GridType>
-inline std::string PhaseProblem<GridType>
+inline std::string ConstantProblem<GridType>
 :: description() const
 {
   std::ostringstream stream;

@@ -46,8 +46,7 @@ Dune::GridPtr< HGridType > initialize( const std::string& problemDescription )
   gridptr->loadBalance();
 
   // output of error and eoc information
-  std::string eocOutPath = Dune::Fem::Parameter::getValue<std::string>("femhowto.eocOutputPath",  /*@\label{fv:param1}@*/
-                                                            std::string("./"));
+  std::string eocOutPath = Dune::Fem::Parameter::getValue<std::string>("fem.prefix", std::string("."));
 
   Dune::Fem::FemEoc::initialize(eocOutPath, "eoc", problemDescription); /*@\label{fv:femeocInit}@*/
 

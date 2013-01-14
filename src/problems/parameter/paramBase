@@ -22,12 +22,12 @@ fem.verboserank: 0
 
 fem.io.outputformat: gnuplot # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-cell
 fem.io.subsamplinglevel: 1
-em.io.grapedisplay: 0 
+fem.io.grapedisplay: 0 
 
 # add time stamp to eoc file name
 # to avoid overwriting the eoc files
 fem.io.eocFileTimeStamp: 1
-femhowto.eocOutputPath: ./data
+#@femhowto.eocOutputPath: ./data
 
 
 # GRID SOLUTION 

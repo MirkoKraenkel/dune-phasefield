@@ -103,4 +103,4 @@ struct ProblemGenerator
 #endif
 
 
-#endif // FEMHOWTO_NSEQ_RPOBLEMCREATOR_HH
+#endif // PHASE_PROBLEMCREATOR_HH
