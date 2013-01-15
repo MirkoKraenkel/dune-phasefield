@@ -2,7 +2,7 @@
 #define ALGORITHM_TRAITS_HH
 
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
-#include <dune/fem/space/dgspace/localrestrictprolong.hh>
+#include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
 #include <dune/fem/solver/odesolver.hh>
 #if WELLBALANCED
 #include <dune/fem/operator/wellbalancedoperator.hh>
