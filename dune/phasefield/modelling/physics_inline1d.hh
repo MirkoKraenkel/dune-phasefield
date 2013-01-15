@@ -266,9 +266,10 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double rho_inv = 1. / rho;
  
     const double muLoc = mu1 ();
-
+ std::cout<<"diffusioncoefficient="<<muLoc<<"\n"; 
+ abort();
     const double v   =  u[1]*rho_inv;
-   double phi =  u[2]*rho_inv;
+    double phi =  u[2]*rho_inv;
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhou    = du[1][0]; //d(rho*v)/dx
     const double dxrhophi  = du[2][0]; //d(rho*phi)/dx

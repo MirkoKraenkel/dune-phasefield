@@ -44,7 +44,10 @@ class PhasefieldPhysics<1,Thermodynamics>
     delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
     delta_inv_(1./delta_)
   {
-	}
+   std::cout<<"PHYSICS";
+   std::cout<<"================"<<thermoDynamics_.delta()<<"==========\n";
+ 
+  }
  
   inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
  
@@ -249,7 +252,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   {
     assert( u[0] > 1e-10 );
 		const double muLoc = mu1();
-  	const double dxv   = du[1][0]; //dv/dx
+  	std::cout<<"diffusion_coefficient="<<muLoc<<"\n";
+    abort();
+    const double dxv   = du[1][0]; //dv/dx
 
 
 

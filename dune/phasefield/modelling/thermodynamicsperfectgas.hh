@@ -25,13 +25,15 @@ public:
   PGThermodynamics():
     BaseType()
   {
+    init();
   }
 
   inline void init() const 
   {
-    delta_=0.1;
-    delta_inv_=10.;
-    epsilon_=1.;
+    delta_=Dune::Fem::Parameter::getValue<double>("phasefield.delta");
+    delta_inv_=1./delta_;
+    epsilon_=Dune::Fem::Parameter::getValue<double>("phasefield.delta");
+    std::cout<<"init epsilon="<<epsilon_<<"\n"; 
   }
   
   inline double helmholtz(double& rho,double& phi) const
@@ -177,14 +179,14 @@ public:
 public:
 
 	inline double delta()const {return delta_;}
-	inline double delta_inv()const {return 0;}
-	inline double mu1() const{return 0.;}
-	inline double mu2()const {return epsilon_;}
+	inline double delta_inv()const {return delta_inv_;}
+	inline double mu1() const{ std::cout<<"call mu1 "<<epsilon_<<"\n"; return epsilon_;}
+	inline double mu2()const { std::cout<<"call mu2 "<<epsilon_<<"\n"; return epsilon_;}
 
 private:
   mutable double  delta_;
   mutable double  delta_inv_;
-  mutable   double epsilon_;
+  mutable  double epsilon_;
 
 };
 

@@ -82,7 +82,6 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   PhaseModel( const ThermodynamicsType& thermo ) 
     : phasefieldPhysics_( thermo  )
   {
-    
     std::cout<<" creating Model\n"; 
   }
 

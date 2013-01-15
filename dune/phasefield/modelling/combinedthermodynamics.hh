@@ -21,17 +21,23 @@ public:
     phase1_(phase1),
     phase2_(phase2)
     {
-    delta_=1.;
+     delta_=1.;
 	   deltainv_=1.;
      deltainv_/=delta_;
-     std::cout<<"1/delta="<<deltainv_<<"\n";
     }
 
   inline void init() const
   {
+  
     delta_=(Fem::Parameter::getValue<double>( "phasefield.delta" ));
-    double delta_inv=1;
+    epsilon_=(Fem::Parameter::getValue<double>( "phasefield.epsilon",0.));
+    deltainv_=1;
     deltainv_/=delta_; 
+    std::cout<<"1/delta="<<deltainv_<<"\n";
+    std::cout<<"epsilon="<<epsilon_<<"\n";
+   
+
+       
   }
   //free EnergyPart without gradients used for monitoring the free energy
   inline double helmholtz(double rho,double phi) const
@@ -86,15 +92,22 @@ public:
     return(2.0*phi-6.0*t2+4.0*t2*phi);
   }
  
+  inline double delta()const
+  {
+    return delta_;
+  }
 
+  inline double mu1() const
+  {
+    std::cout<<"combinedtherm mu1="<<epsilon_<<"\n";
+    return epsilon_;
+  }
 
-
-
-
+private:
   mutable double delta_;  
   mutable double deltainv_;
   mutable double rate_;
-
+  mutable double epsilon_;
   Phase1Type phase1_;
   Phase2Type phase2_;
 
