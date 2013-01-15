@@ -35,7 +35,7 @@ namespace Dune {
 						int polOrd, bool advection = true , bool diffusion = true >
   class  DGAdvectionDiffusionOperator : 
     public Fem::SpaceOperatorInterface 
-    < typename PassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
+    < typename MyPassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
     // Id's for the three Passes (including StartPass)
     enum PassIdType { u, gradPass, acPass,navstkPass };    
@@ -46,7 +46,7 @@ namespace Dune {
     
     typedef NumFlux NumFluxType;
 
-    typedef PassTraits< Model, Model::Traits::dimRange, polOrd >     PassTraitsType ;
+    typedef MyPassTraits< Model, Model::Traits::dimRange, polOrd >     PassTraitsType ;
     
     typedef typename PassTraitsType::ScalarDiscreteFunctionSpaceType ScalarDiscreteFunctionSpaceType;
     

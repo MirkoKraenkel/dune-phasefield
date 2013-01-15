@@ -35,7 +35,7 @@ namespace Dune {
 		enum { dimRange = 2 };
 		enum { dimDomain = ModelTraits::dimDomain };
 
-		typedef PassTraits< Model, dimRange, polOrd >                    Traits;
+		typedef MyPassTraits< Model, dimRange, polOrd >                    Traits;
 		//2 dimensional Space
 		typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
 		

@@ -31,7 +31,7 @@ namespace Dune {
   //----------
 
   template <class Model,int dimRange,int polOrd>
-  class PassTraits
+  class MyPassTraits
   {
   public:
     typedef typename Model :: Traits                                 ModelTraits;
@@ -82,7 +82,7 @@ struct AdvectionProjTraits
   enum { dimRange = ModelTraits::dimRange };
   enum { dimDomain = ModelTraits::dimDomain };
 
-  typedef PassTraits< Model, dimRange, polOrd >                    Traits;
+  typedef MyPassTraits< Model, dimRange, polOrd >                    Traits;
   typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
 
   typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
@@ -451,7 +451,7 @@ struct AdvectionTraits
   enum { dimRange = ModelTraits::dimRange };
   enum { dimDomain = ModelTraits::dimDomain };
 
-  typedef PassTraits< Model, dimRange, polOrd >                    Traits;
+  typedef MyPassTraits< Model, dimRange, polOrd >                    Traits;
   typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
 
   typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
