@@ -275,7 +275,7 @@ CPPFLAGS =
 CXX = g++ -std=c++0x
 CXXCPP = g++ -E -std=c++0x
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -O3 -Wall -DNDEBUG -funroll-loops -finline-functions
+CXXFLAGS = -O3 -Wall -DNDEBUG -funroll-loops -finline-functions --param max-inline-insns-single=4000 --param large-function-growth=4500 --param inline-unit-growth=4000 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -557,7 +557,7 @@ LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUN
 BASEDIR = ../../../dune/fem/main
 SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 POLORDER = 0 
-PROBLEM = 1 # check ./problemtype.hh
+PROBLEM = 3 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 phasefield_SOURCES = $(SOURCES) 
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO

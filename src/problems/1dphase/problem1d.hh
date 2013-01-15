@@ -59,6 +59,7 @@ class PhaseProblem : public EvolutionProblemInterface<
      thermodyn_(vapdyn_,liqdyn_)
      {
       thermodyn_.init();
+      std::cout<<"combinedProblem constructor\n";
      }
 
 

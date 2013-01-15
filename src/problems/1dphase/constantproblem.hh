@@ -11,7 +11,6 @@
 // local includes
 // #include "idealthermodynamics2interpol.hh"
 #include <dune/phasefield/modelling/thermodynamicsperfectgas.hh>
-
 #include <dune/fem/probleminterfaces.hh>
 
 
@@ -39,7 +38,7 @@ class ConstantProblem : public EvolutionProblemInterface<
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
   typedef PGThermodynamics  ThermodynamicsType;
-
+  
   ConstantProblem() : 
 		 myName_( "Constant Problem" ),
 		 endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime" )), 
@@ -53,6 +52,7 @@ class ConstantProblem : public EvolutionProblemInterface<
      thermodyn_()
      {
       thermodyn_.init();
+      std::cout<<"constprob constructor\n";
      }
 
 

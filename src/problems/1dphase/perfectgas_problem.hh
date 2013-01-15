@@ -138,7 +138,7 @@ inline void PhaseProblem<GridType>
 {
   double factor1,factor2,shift;
   //tanh should interpolate between two density values.
-  shift=rho1_-rho2_
+  shift=rho1_-rho2_;
   shift*=0.5;
  
     { 
@@ -151,7 +151,7 @@ inline void PhaseProblem<GridType>
       res[0]+=rho1_;  
    
       //zero velocity
-      for(int i=1;i<=dimension;i++0)
+      for(int i=1;i<=dimension;i++)
       res[i]=0;
   
       // res[2]=0.5;
