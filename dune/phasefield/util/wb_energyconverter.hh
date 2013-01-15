@@ -28,10 +28,11 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
   typedef typename EnergyFunctionType::Traits::DiscreteFunctionSpaceType 
     EnergyFunctionSpaceType;
   typedef typename ConsDiscreteFunctionSpaceType::Traits::GridPartType GridPartType;
-  typedef typename ConsDiscreteFunctionSpaceType::Traits::GridType GridType;
+  typedef typename GridPartType::GridType GridType;
   typedef typename GridType :: template Codim<0> :: Entity   Entity;
   typedef typename GridType :: template Codim<0> :: Geometry Geometry;
-  typedef typename ConsDiscreteFunctionSpaceType::Traits::IteratorType Iterator;
+  typedef typename GridPartType::template Codim<0>::IteratorType Iterator;
+  
   typedef typename ConsDiscreteFunctionSpaceType::DomainType DomainType;
   typedef typename ConsDiscreteFunctionSpaceType::RangeType ConsRangeType;
   typedef typename GradDiscreteFunctionSpaceType::RangeType GradRangeType;
