@@ -17,7 +17,7 @@ using namespace Dune;
 #include "thermodynamicsinterface.hh"
 
 class PGThermodynamics:
-public Thermodynamics<PGThermodynamics>
+	public Thermodynamics<PGThermodynamics>
 {
 	typedef Thermodynamics<PGThermodynamics> BaseType;
 
@@ -38,157 +38,121 @@ public:
   
   inline double helmholtz(double& rho,double& phi) const
   {
-		double s=1;
-	  double t1;
-		double t11;
-		double t12;
-		double t14;
-		double t15;
-		double t17;
-		double t19;
-		double t20;
-		double t3;
-		double t5;
-		{
-			t1 = 0.9834594901*phi;
-			t3 = pow(t1+0.6055746688E-1,2.0);
-			t5 = pow(0.9394425331-t1,2.0);
-			t11 = phi*phi;
-			t12 = t11*t11;
-			t14 = 6.0*t12*phi;
-			t15 = 15.0*t12;
-			t17 = 10.0*t11*phi;
-			t19 = log(rho);
-			t20 = rho*t19;
-			return(s*(t3*t5-0.9834594901E-1*phi+0.9394425331E-1)*rho+(t14-t15+t17)
-						 *(0.15E1*t20+0.6931471806*rho+1.0)+(1.0-t14+t15-t17)*(t20+1.0));
+    double s=delta_inv_; 
+    double t1;
+    double t12;
+    double t13;
+    double t14;
+    double t18;
+    double t2;
+    double t22;
+    double t4;
+    double t7;
+    {
+      t1 = rho*s;
+      t2 = phi*phi;
+      t4 = t2*phi;
+      t7 = t2*t2;
+      t12 = t7*phi;
+      t13 = t12*rho;
+      t14 = log(rho);
+      t18 = t7*rho;
+      t22 = t4*rho;
+    
+      return(t1*t2-2.0*t1*t4+t1*t7-0.1E-1*t1*phi+0.1E-1*t1+3.0*t13*t14+
+0.1615888309E2*t13-0.75E1*t18*t14-0.4039720772E2*t18+5.0*t22*t14+0.2693147181E2
+*t22+rho*t14-1.0*rho+0.5-3.0*t12+0.75E1*t7-5.0*t4);
+	
+ 	}
 
-		}
-
-	}
+  }
 
 	
 
 	inline double reactionSource(double& rho,double& phi) const
 	{ 
-		double s=delta_;
-		double t1;
-		double t13;
-		double t14;
-		double t19;
+		double s=delta_inv_;
+		double t11;
+		double t16;
+		double t17;
+		double t18;
 		double t2;
-		double t20;
-		double t21;
 		double t3;
-		double t4;
-		double t7;
+		double t6;
 		{
-			t1 = 0.9834594901*phi;
-			t2 = t1+0.6055746688E-1;
-			t3 = 0.9394425331-t1;
-			t4 = t3*t3;
-			t7 = t2*t2;
-			t13 = phi*phi;
-			t14 = t13*t13;
-			t19 = 30.0*t14-60.0*t13*phi+30.0*t13;
-			t20 = log(rho);
-			t21 = rho*t20;
-			return(s*(0.196691898E1*t2*t4-0.196691898E1*t7*t3-0.9834594901E-1)*rho+t19*
-						 (0.15E1*t21+0.6931471806*rho+1.0)-t19*(t21+1.0));
+			t2 = 1.0-phi;
+			t3 = t2*t2;
+			t6 = phi*phi;
+			t11 = t6*t6;
+			t16 = 30.0*t11-60.0*t6*phi+30.0*t6;
+			t17 = log(rho);
+			t18 = rho*t17;
+			return(rho*s*(2.0*phi*t3-2.0*t6*t2-0.1E-1)+t16*(0.15E1*t18+0.1693147181E1*
+																											rho)-t16*(1.0*t18-rho+0.5));
 		}
-	
+
 	}
   
 
 
 	inline double chemicalPotential(double& rho,double& phi) const
 	{
-    double s=1;
+	  double s=delta_inv_;
 		double t1;
 		double t10;
 		double t11;
 		double t13;
-		double t14;
-		double t16;
-		double t18;
+		double t15;
 		double t3;
-		double t5;
+		double t8;
 		{
-			t1 = 0.9834594901*phi;
-			t3 = pow(t1+0.6055746688E-1,2.0);
-			t5 = pow(0.9394425331-t1,2.0);
-			t10 = phi*phi;
-			t11 = t10*t10;
-			t13 = 6.0*t11*phi;
-			t14 = 15.0*t11;
-			t16 = 10.0*t10*phi;
-			t18 = log(rho);
-			return(s*(t3*t5-0.9834594901E-1*phi+0.9394425331E-1)+(t13-t14+t16)
-						 *(0.15E1*t18+0.2193147181E1)+(1.0-t13+t14-t16)*(t18+1.0));
-		}
-	
-	}
+			t1 = phi*phi;
+			t3 = pow(1.0-phi,2.0);
+			t8 = t1*t1;
+			t10 = 6.0*t8*phi;
+			t11 = 15.0*t8;
+			t13 = 10.0*t1*phi;
+			t15 = log(rho);
+			return(s*(t1*t3-0.1E-1*phi+0.1E-1)+(t10-t11+t13)*(0.15E1*t15+0.3193147181E1
+																												)+1.0*(1.0-t10+t11-t13)*t15);
 
+		}
+	}
 	inline double  pressure( double& rho, double& phi) const
 	{
-		double s=1.;
 		double t1;
-		double t11;
-		double t12;
-		double t14;
-		double t15;
-		double t17;
-		double t18;
-		double t19;
- 
-
-
-		double t20;
-		double t25;
+		double t2;
 		double t3;
-		double t5;
-		double t9;
+		double t8;
 		{
-			t1 = 0.9834594901*phi;
-			t3 = pow(t1+0.6055746688E-1,2.0);
-			t5 = pow(0.9394425331-t1,2.0);
-			t9 = s*(t3*t5-0.9834594901E-1*phi+0.9394425331E-1);
-			t11 = phi*phi;
-			t12 = t11*t11;
-			t14 = 6.0*t12*phi;
-			t15 = 15.0*t12;
-			t17 = 10.0*t11*phi;
-			t18 = t14-t15+t17;
-			t19 = log(rho);
-			t20 = rho*t19;
-			t25 = 1.0-t14+t15-t17;
-			return(-t9*rho-t18*(0.15E1*t20+0.6931471806*rho+1.0)-t25*(t20+1.0)
-						 -rho*(t9+t18*(0.15E1*t19+0.2193147181E1)+t25*(t19+1.0)));
+			t1 = phi*phi;
+			t2 = t1*t1;
+			t3 = t2*phi;
+			t8 = t1*phi;
+			return(3.0*t3*rho-0.75E1*t2*rho+5.0*t8*rho-0.5+rho+3.0*t3-0.75E1*t2+5.0*t8);
+			
 		}
-	
-  
 	}
-
- inline double a(double rho,double phi) const
-  {
-    return 1.5; 
-  }
+	inline double a(double rho,double phi) const
+	{
+    return 1.5;	
+	}
   
  
 
-public:
+  public:
 
-	inline double delta()const {return delta_;}
-	inline double delta_inv()const {return delta_inv_;}
-	inline double mu1() const{ std::cout<<"call mu1 "<<epsilon_<<"\n"; return epsilon_;}
-	inline double mu2()const { std::cout<<"call mu2 "<<epsilon_<<"\n"; return epsilon_;}
+  	inline double delta()const {return delta_;}
+		inline double delta_inv()const {return delta_inv_;}
+    inline double mu1() const{ return epsilon_;}
+		inline double mu2()const {  return epsilon_;}
 
-private:
-  mutable double  delta_;
-  mutable double  delta_inv_;
-  mutable  double epsilon_;
+	private:
+		mutable double  delta_;
+    mutable double  delta_inv_;
+		mutable  double epsilon_;
 
-};
+		};
 
 
 

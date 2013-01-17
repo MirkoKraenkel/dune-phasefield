@@ -266,8 +266,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double rho_inv = 1. / rho;
  
     const double muLoc = mu1 ();
- std::cout<<"diffusioncoefficient="<<muLoc<<"\n"; 
- abort();
     const double v   =  u[1]*rho_inv;
     double phi =  u[2]*rho_inv;
     const double dxrho     = du[0][0]; //drho/dx
@@ -302,6 +300,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   assert(u[0] > MIN_RHO);
   double u_normal=u[1]*n[0]/u[0];
   double c=thermoDynamics_.a(u[0],u[3]);   
+//  std::cout<<"Max_speed="<<std::abs(u_normal)+sqrt(c)<<"\n";
   return std::abs(u_normal)+sqrt(c);
  
  } 

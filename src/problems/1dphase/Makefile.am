@@ -17,7 +17,7 @@ GRIDTYPE = ONEDGRID
 GRIDDIM = 1 
 POLORDER= 0 
 
-PROBLEM = 3 # check ./problemtype.hh
+PROBLEM = 1 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
 # INFO SPACE OPERATOR:

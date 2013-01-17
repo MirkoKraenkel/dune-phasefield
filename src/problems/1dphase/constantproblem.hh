@@ -139,7 +139,7 @@ inline void ConstantProblem<GridType>
     for(int i=1;i<=dimension;i++)
       res[i]=0.;
     
-    res[2]=1.;
+    res[2]=0.001;
 
 }
 

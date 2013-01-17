@@ -20,6 +20,9 @@ typedef ConstantProblem< GridSelector:: GridType>  PhaseProblemType;
 #include "perfectgas_problem.hh"
 typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
 #elif PROBLEM==3
+#include "constantproblem2.hh"
+typedef PhaseProblem< GridSelector:: GridType> PhaseProblemType;
+#elif PROBLEM==4
 #include "problem1d.hh"
 typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
 #else

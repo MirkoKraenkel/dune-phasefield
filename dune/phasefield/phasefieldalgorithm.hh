@@ -29,7 +29,11 @@
 #include <dune/fem-dg/misc/runfile.hh>
 #include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
+#if 0
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
+#else
+#include <dune/fem/space/dgspace/localrestrictprolong.hh>
+#endif
 #include <dune/fem/solver/odesolver.hh>
 #if WELLBALANCED
 #include <dune/phasefield/util/wb_energyconverter.hh>

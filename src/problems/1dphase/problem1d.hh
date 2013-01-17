@@ -173,8 +173,8 @@ inline void PhaseProblem<GridType>
 {
     
   double factor1,factor2,shift;
-  factor2=c2_;
-  factor2-=c1_;
+  factor2=c1_;
+  factor2-=c2_;
   shift=factor2;
   shift*=0.5;
  
@@ -184,8 +184,8 @@ inline void PhaseProblem<GridType>
       
       double r=sqrt(x*x);
       
-      res[0]=shift*(tanh((r-0.5)/factor1)+1);
-      res[0]+=c1_;  
+//      res[0]=shift*(tanh((r-0.5)/factor1)+1);
+      res[0]=5;  
      
       res[1]=0;
   

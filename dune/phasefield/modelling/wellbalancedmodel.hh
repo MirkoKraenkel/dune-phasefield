@@ -100,9 +100,11 @@ namespace Dune {
 
 	public:
 		PhaseModel( const ThermodynamicsType& thermo ): 
-			 phasefieldPhysics_( thermo )
+//			thermo_(thermo) 
+      phasefieldPhysics_( thermo )
 		{
-		}
+		  std::cout<<"constructor wellbalancedmodel\n";
+    }
 
 		inline bool hasStiffSource() const { return true; }
 		inline bool hasNonStiffSource() const { return false; }
@@ -335,7 +337,8 @@ namespace Dune {
 
 		
 	protected:
-		const PhysicsType& phasefieldPhysics_;
+		//const ThermoynamicsType thermo_;
+    const PhysicsType phasefieldPhysics_;
 };
 
 

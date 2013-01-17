@@ -82,7 +82,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   PhaseModel( const ThermodynamicsType& thermo ) 
     : phasefieldPhysics_( thermo  )
   {
-    std::cout<<" creating Model\n"; 
+    std::cout<<"constructor standarmodel\n"; 
   }
 
   inline bool hasStiffSource() const { return true; }
@@ -346,7 +346,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   
  
  protected:
-  const PhysicsType& phasefieldPhysics_;
+  const PhysicsType phasefieldPhysics_;
 };
 
 

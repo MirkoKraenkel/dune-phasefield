@@ -226,14 +226,16 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 									const ThetaRangeType& thetaR,
 									RangeType& ret) const
 	{
-		ret[1]=0.5*(uL[0]+uR[0])*(thetaL[0]-thetaR[0]);
- 	}
+	  ret[0]=0;
+    ret[1]=0.5*(uL[0]+uR[0])*(thetaL[0]-thetaR[0]);
+ 	  ret[2]=0;
+  }
 	
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
 	::stiffSource(const RangeType& u,
 								const GradientRangeType& du,
-								const ThetaRangeType& theta,
+							const ThetaRangeType& theta,
 								const ThetaJacobianRangeType& dtheta,
 								RangeType& f) const
 	{
@@ -252,16 +254,11 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   {
     assert( u[0] > 1e-10 );
 		const double muLoc = mu1();
-  	std::cout<<"diffusion_coefficient="<<muLoc<<"\n";
-    abort();
     const double dxv   = du[1][0]; //dv/dx
-
-
-
 		diff[0][0]=0.;
-		diff[2][0]=0.;
 		diff[1][0]=muLoc*dxv;
-   
+  	diff[2][0]=0.;
+ 
   }
   template<class Thermodynamics>
   template< class JacobianRangeImp >
@@ -271,7 +268,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                ThetaJacobianRangeType& diff ) const
   {
    assert( u[0] > 1e-10 );
-	 
+	
 	 diff[0][0]=0.;
 	 diff[1][0]=delta_*du[2][0];
 

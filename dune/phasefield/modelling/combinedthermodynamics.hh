@@ -33,8 +33,10 @@ public:
     epsilon_=(Fem::Parameter::getValue<double>( "phasefield.epsilon",0.));
     deltainv_=1;
     deltainv_/=delta_; 
+    rate_=(Fem::Parameter::getValue<double>( "phasefield.reactionrate",0.));
     std::cout<<"1/delta="<<deltainv_<<"\n";
     std::cout<<"epsilon="<<epsilon_<<"\n";
+    std::cout<<"rate_"<<rate_<<"\n";
    
 
        
@@ -47,6 +49,7 @@ public:
   //derivative of f wrt \rho 
   inline double chemicalPotential(double rho,double phi) const
   {
+
     return deltainv_*W(phi)+nu(phi)*phase1_.chemicalPotential(rho,phi)+nu(1-phi)*phase2_.chemicalPotential(rho,phi);
   }
 
@@ -55,13 +58,16 @@ public:
 	 // derivative of f wrt to \phi
   inline double reactionSource(double rho,double phi) const
   { 
+    std::cout<<"Reaction="<<rate_<<"\n";
     return rate_*rho*Wprime(phi)+nuprime(phi)*phase1_.helmholtz(rho,phi)-nuprime(1-rho)*phase2_.helmholtz(rho,phi);
   }
   // thermodynamic pressure -f+\rho*f|_\rho 
   inline double  pressure( double rho, double phi) const
   {
-    return nu(phi)*phase1_.pressure(rho,phi)+nu(1-phi)*phase2_.pressure(rho,phi);
-  }
+    double ret;
+   ret= nu(phi)*phase1_.pressure(rho,phi)+nu(1-phi)*phase2_.pressure(rho,phi);
+    std::cout<<"pressure"<<ret<<" rho "<<rho<<" phi "<<phi<<"\n";
+    return ret; }
 
   inline double a(double rho, double phi) const
   {  
@@ -123,10 +129,11 @@ class LiquidDynamics
   inline double helmholtz(double rho,double phi) const
   { 
     double t2;
-    t2 = log(rho);
-    return(-0.4*rho+0.14E1*rho*t2+0.3571428572);
+   t2 = log(rho);
+       return(1.0-0.4*rho+0.14E1*rho*t2);
+
   }
- //derivative of f wrt \rho 
+  //derivative of f wrt \rho 
   inline double chemicalPotential(double rho,double phi) const
   {
     double t1;
@@ -142,10 +149,8 @@ class LiquidDynamics
   // thermodynamic pressure -f+\rho*f|_\rho 
   inline double  pressure( double rho, double phi) const
   {
-    double t2;
-    t2 = log(rho);
-    return(0.4*rho-0.14E1*rho*t2-0.3571428572);
-  }
+  return(-1.0+0.14E1*rho);
+    }
   //dp/drho
   inline double a(double rho,double phi) const
   {
@@ -181,9 +186,8 @@ public:
   // thermodynamic pressure -f+\rho*f|_\rho 
   inline double  pressure( double rho, double phi) const
   {
-    double t1;
-    t1 = log(rho);
-    return(-0.16E1*rho*t1-0.15E1+0.15E1*rho);
+  return(-2.0+0.16E1*rho);
+
   }
  //dp/drho
   inline double a( double rho, double phi) const

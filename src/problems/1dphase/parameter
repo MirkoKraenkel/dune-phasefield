@@ -27,12 +27,13 @@ paramfile: ../parameter/paramBase
 
 phasefield.endTime: 0.1
 phasefield.diffusionTimeStep: 1
-phasefield.epsilon: 0.05
+phasefield.epsilon: 1.05
 phasefield.energy: true
 phasefield.additionalvariables: true  
+phasefield.reactionrate: 0.2
 
-phasefield.delta: 0.0001
-mu: 0.0001
+phasefield.delta: 0.1
+mu: 0.1
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
 phasefield.penalty: 1
