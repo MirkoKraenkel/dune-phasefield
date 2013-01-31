@@ -14,8 +14,8 @@
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
 #if PROBLEM==1
-# include "constantproblem.hh"
-typedef ConstantProblem< GridSelector:: GridType>  PhaseProblemType;
+# include "tanhproblem.hh"
+typedef TanhProblem< GridSelector:: GridType>  PhaseProblemType;
 #elif PROBLEM==2
 #include "perfectgas_problem.hh"
 typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;

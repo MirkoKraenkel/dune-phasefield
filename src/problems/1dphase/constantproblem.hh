@@ -135,11 +135,13 @@ template <class GridType>
 inline void ConstantProblem<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-    res[0]=rho1_;
+    double x=arg[0];
+    res[0]=rho2_;
+    res[0]-=0.2*sin(M_PI*x);
     for(int i=1;i<=dimension;i++)
-      res[i]=0.;
+      res[i]=0.01*res[0];
     
-    res[2]=0.001;
+    res[2]=0.95*res[0];
 
 }
 
