@@ -118,31 +118,29 @@ namespace Dune {
 
 			// determine side 
 			//      const bool useInterior = determineDirection( normal );
-			const bool useInterior = determineDirection(false,0.,0.,intersection );
-	
-			GradientJacobianType diffmatrix; 
-			if( useInterior ) 
-				{
-					model_.jacobian(inside,         /* inside entity */
-													time,           /* for time dependent diffusion */
-													faceQuadInner.point( quadPoint ),      /* inside point on intersection */
-													uLeft,          /* { u_(x^-) } */
-													diffmatrix      /* return diffusion tensor */
-													);
-				}     
-			else 
-				{
-					model_.jacobian(outside,       /* outside entity */
-													time,          /* for time dependent diffusion */
-													faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
-													uRight,        /* { u_(x^+) } */
-													diffmatrix     /* return diffusion tensor */
-													);
-				}
+		//	const bool useInterior = determineDirection(false,0.,0.,intersection );
+    gLeft=0.;	
+		GradientJacobianType diffmatrix; 
+		model_.jacobian(inside,         /* inside entity */
+										time,           /* for time dependent diffusion */
+										faceQuadInner.point( quadPoint ),      /* inside point on intersection */
+										uLeft,          /* { u_(x^-) } */
+										diffmatrix      /* return diffusion tensor */
+										);
+		diffmatrix.mv(normal, gLeft);
+				
+          
+     model_.jacobian(outside,       /* outside entity */
+										 time,          /* for time dependent diffusion */
+										 faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
+										 uRight,        /* { u_(x^+) } */
+										 diffmatrix     /* return diffusion tensor */
+										);
+				diffmatrix.mv(normal, gLeft);
+
+      gLeft*=0.5;
 
 			// mutliply with normal 
-			diffmatrix.mv(normal, gLeft);
-
 			// copy flux 
 			gRight = gLeft;
 
@@ -346,30 +344,28 @@ namespace Dune {
 			/**********************************
 			 * Diffusion sigma Flux (Pass 2)  *
 			 **********************************/
-      JacobianRangeType diffmatrix;
+      JacobianRangeType diffmatrix(0.);
 			
       // determine side (needs to be opposite of above)
-      const bool useExterior = ! determineDirection(false,0.,0.,intersection );
+    //  const bool useExterior = ! determineDirection(false,0.,0.,intersection );
 
-      if( useExterior ) 
-				{
 					model_.diffusion( inside, time, 
 														faceQuadInner.point( quadPoint ),
 														uLeft, sigmaLeft, diffmatrix);
-	
+  	      diffmatrix.mv(normal, gLeft);
+ 
 
-				}
-      else 
-				{
+				
 					model_.diffusion( outside, time, 
 														faceQuadOuter.point( quadPoint ),
-														uRight, sigmaRight, diffmatrix);
-				}
-
+														uRight, sigmaRight, diffmatrixR);
+			
+         diffMatrix.mv(normal,gLeft);
+        gleft*=0.5; 
       
 
       // apply normal 
-      diffmatrix.mv(normal, gLeft);
+   
  
       //////////////////////////////////////////////////////////
       //

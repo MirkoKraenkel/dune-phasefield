@@ -21,7 +21,7 @@ fem.parallel.runfile: 1
 fem.verboserank: 0 
 
 fem.io.outputformat: gnuplot # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-cell
-fem.io.subsamplinglevel: 1
+fem.io.subsamplinglevel: 3 
 fem.io.grapedisplay: 0 
 
 # add time stamp to eoc file name
@@ -73,4 +73,6 @@ fem.adaptation.adaptcount: 0 # after this many time step, 0 disables adaptation
 
 # DOMAIN CONFIGURATION
 #---------------------
-femhowto.startLevel: 1 
+femhowto.startLevel: 5
+
+phasefield.endTime: 1e-7

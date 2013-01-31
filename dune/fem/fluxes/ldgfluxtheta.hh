@@ -123,31 +123,30 @@ namespace Dune {
 	
       GradientJacobianType diffmatrix; 
 
-      if( useInterior ) 
-				{
-					model_.jacobian(inside,         /* inside entity */
+			model_.jacobian(inside,         /* inside entity */
 													time,           /* for time dependent diffusion */
 													faceQuadInner.point( quadPoint ),      /* inside point on intersection */
 													uLeft,          /* { u_(x^-) } */
 													diffmatrix      /* return diffusion tensor */
                           );
-				}
-      else 
-				{
-					model_.jacobian(outside,       /* outside entity */
-													time,          /* for time dependent diffusion */
-													faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
-													uRight,        /* { u_(x^+) } */
-													diffmatrix     /* return diffusion tensor */
-													);
-				}
-
       // mutliply with normal 
       diffmatrix.mv(normal, gLeft);
 
+      model_.jacobian(outside,       /* outside entity */
+											time,          /* for time dependent diffusion */
+											faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
+											uRight,        /* { u_(x^+) } */
+											diffmatrix     /* return diffusion tensor */
+											);
+
+      // mutliply with normal 
+       diffmatrix.umv(normal, gLeft);
+
+      gLeft*=0.5;
+      
       // copy flux 
       gRight = gLeft;
-
+     
       gDiffLeft = 0;
       gDiffRight = 0;
 
@@ -191,6 +190,8 @@ namespace Dune {
 
       // apply normal 
       diffmatrix.mv(normal, gLeft); 
+ 
+   // gLeft*=0.5; 
 
       // gDiffLeft is not needed for dual formalation (LDG)
       gDiffLeft = 0;
@@ -285,27 +286,27 @@ namespace Dune {
 
       // determine side (needs to be opposite of above)
       const bool useExterior = ! determineDirection(false,0.,0.,intersection );
-
-      if( useExterior ) 
-				{
-					model_.diffusion( inside, time, 
-														faceQuadInner.point( quadPoint ),
-														uLeft, sigmaLeft, diffmatrix);
+				
+  		model_.diffusion( inside, time, 
+												faceQuadInner.point( quadPoint ),
+												uLeft, sigmaLeft, diffmatrix);
 	
+       // apply normal 
+      diffmatrix.mv(normal, gLeft);
+      
+			
+ 
 
-				}
-      else 
-				{
-					model_.diffusion( outside, time, 
-														faceQuadOuter.point( quadPoint ),
-														uRight, sigmaRight, diffmatrix);
-				}
+			model_.diffusion( outside, time, 
+		  									faceQuadOuter.point( quadPoint ),
+	  										uRight, sigmaRight, diffmatrix);
 
+     // apply normal 
+      diffmatrix.mv(normal, gLeft);
+    gLeft*=0.5;  
       
 
-      // apply normal 
-      diffmatrix.mv(normal, gLeft);
-      tension.mv(normal,gLeft);
+     tension.mv(normal,gLeft);
 
       //////////////////////////////////////////////////////////
       //

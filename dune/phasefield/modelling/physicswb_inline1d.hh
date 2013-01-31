@@ -44,8 +44,6 @@ class PhasefieldPhysics<1,Thermodynamics>
     delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
     delta_inv_(1./delta_)
   {
-   std::cout<<"PHYSICS";
-   std::cout<<"================"<<thermoDynamics_.delta()<<"==========\n";
  
   }
  
@@ -120,11 +118,12 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     rho_inv=1./rho;
   	phi=cons[phaseId];
     //velocity 
-    prim[0] = cons[1]/rho;
+    prim[0] = cons[1]*rho_inv;
     //pressure  
   	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
     //phasefield
-    prim[phaseId]   = phi;
+    prim[phaseId] = phi;
+    prim[phaseId]*=rho_inv;
   
   }
 
@@ -153,7 +152,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
 
 	  res = freeEnergy + surfaceEnergy + kineticEnergy;
-
   }
 
   template< class Thermodynamics >

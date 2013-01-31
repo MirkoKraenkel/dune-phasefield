@@ -42,6 +42,7 @@
 #endif
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
 
+
 #include <dune/fem/adaptation/estimator1.hh>
 #include <dune/phasefield/util/cons2prim.hh>
 /////////////////////////////////////////////////////////////////////////////
@@ -106,8 +107,10 @@ public:
 	typedef Dune::Fem::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
 
 	// type of IOTuple 
+//	typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType* > IOTupleType; 
 	typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType* > IOTupleType; 
-	// type of data writer 
+	
+  // type of data writer 
   typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
 
 	// type of time provider organizing time for time loops 
@@ -175,7 +178,7 @@ public:
  		fixedTimeStep_( Dune::Fem::Parameter::getValue<double>("fixedTimeStep",0) ),
  		fixedTimeStepEocLoopFactor_( Dune::Fem::Parameter::getValue<double>("fixedTimeStepEocLoopFactor",1.) ), // algorithmbase
 		solution_( "solution", space() ),
-		sigma_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : 0),
+		sigma_(Fem::Parameter :: getValue< bool >("phasefield.sigma", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : 0),
 		theta_(Fem::Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : 0 ),
 		energy_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
 		additionalVariables_( Fem::Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
@@ -288,21 +291,22 @@ public:
 		// reset overall timer
     overallTimer_.reset(); 
 		assert(odeSolver_);
+
     odeSolver_->solve( U, odeSolverMonitor_ );
-//		newton_iterations     = odeSolverMonitor_.newtonIterations_;
-//    ils_iterations        = odeSolverMonitor_.linearSolverIterations_;
-//    max_newton_iterations = odeSolverMonitor_.maxNewtonIterations_ ;
-//    max_ils_iterations    = odeSolverMonitor_.maxLinearSolverIterations_;
+		newton_iterations     = odeSolverMonitor_.newtonIterations_;
+    ils_iterations        = odeSolverMonitor_.linearSolverIterations_;
+    max_newton_iterations = odeSolverMonitor_.maxNewtonIterations_ ;
+    max_ils_iterations    = odeSolverMonitor_.maxLinearSolverIterations_;
 
 	}
 #endif
-	void step(TimeProviderType& tp)
+	void step(TimeProviderType& p)
 	{
 		DiscreteFunctionType& U = solution();
 		// reset overall timer
     overallTimer_.reset(); 
 		assert(odeSolver_);
-    odeSolver_->solve( U, odeSolverMonitor_ );
+   odeSolver_->solve( U, odeSolverMonitor_ );
 	}
 
 	//! estimate and mark solution 
@@ -332,8 +336,15 @@ public:
 						// calculate additional variables from the current num. solution
 					  setupAdditionalVariables( solution(), model(), *addVariables );
 					}
-  
-        DiscreteSigmaType*   gradient=sigma(); 
+
+        DiscreteSigmaType* gradient=sigma();
+       
+        if(gradient)
+        {  
+          gradient->clear();
+          dgOperator_.gradient(solution(),*gradient);
+
+        }
         DiscreteScalarType*  totalenergy =energy();
     	  
         if(gradient && totalenergy)   
@@ -384,6 +395,8 @@ public:
 		//restoreFromCheckPoint( tp );
 		
 		// tuple with additionalVariables 
+//			IOTupleType dataTuple( &U, this->sigma() );
+//	IOTupleType dataTuple( &U,   this->additionalVariables(),this->sigma() );
 		IOTupleType dataTuple( &U,   this->additionalVariables(),this->energy() );
 		
 		// type of the data writer
@@ -553,11 +566,12 @@ public:
 			
   
 		DiscreteFunctionType* addVars = additionalVariables();
-
+    DiscreteSigmaType* sig= sigma();
 		if( eocLoopData_ == 0 ) 
 			{
-				eocDataTup_ = IOTupleType( &U,addVars ); 
-				eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
+			eocDataTup_ = IOTupleType( &U,addVars ); 
+//				eocDataTup_ = IOTupleType( &U,sig ); 
+        eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
 			}
 
 		if( addVars ) 

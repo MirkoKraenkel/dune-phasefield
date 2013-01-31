@@ -1,9 +1,9 @@
 DGF
 
 INTERVAL
--2 -2             % lower left corner
-2 2             % upper right corner
-10 10              % number of cells in each direction
+-1 -1             % lower left corner
+1 1             % upper right corner
+1 10              % number of cells in each direction
 #
 
 PERIODICFACETRANSFORMATION

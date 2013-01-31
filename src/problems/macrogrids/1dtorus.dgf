@@ -16,7 +16,7 @@ DEFAULT 1
 #
 
 GRIDPARAMETER
-NAME 2d-cube
+NAME 1d-cube
 OVERLAP 1
 #
 

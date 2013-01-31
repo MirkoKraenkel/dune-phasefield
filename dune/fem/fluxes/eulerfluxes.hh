@@ -146,7 +146,7 @@ public:
 	WBFlux( const Model& mod )
     : model_(mod),
       visc_(model_.visc()),
-			alpha1_(0.)
+			alpha1_(model_.visc())
   {
     std::cout<<"Specify alpha="<<alpha1_<<" correctly!\n";
 //    abort();

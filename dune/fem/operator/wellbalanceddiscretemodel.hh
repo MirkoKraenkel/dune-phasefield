@@ -177,7 +177,8 @@ namespace Dune {
                          JacobianRangeType& gDiffLeft,
                          JacobianRangeType& gDiffRight ) const
     {
-      return gradientFlux_.gradientNumericalFlux( it, inside(), outside(), time,
+    
+    return gradientFlux_.gradientNumericalFlux( it, inside(), outside(), time,
 																									faceQuadInner, faceQuadOuter, quadPoint,
 																									uLeft[ uVar ], uRight[ uVar ], 
 																									gLeft, gRight, gDiffLeft, gDiffRight);
@@ -247,7 +248,7 @@ namespace Dune {
 
 	// AdvectionDiffusionLDGModel
 	//---------------------------
-
+  // for the 3rd Pass
 	template< class Model, 
 						class NumFlux, 
 						int polOrd, int passUId,int passProjId,int passGradId,
@@ -420,7 +421,10 @@ namespace Dune {
 												 JacobianRangeType& gDiffRight )
 		{
 			// advection
-								
+		   const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+      const DomainType normal = it.integrationOuterNormal( x );
+
+						
 			const double wave = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter,
 																										 quadPoint, uLeft, uRight, jacLeft, jacRight, 
 																										 gLeft, gRight, gDiffLeft, gDiffRight );
@@ -442,10 +446,19 @@ namespace Dune {
 					gRight += dRight;
 				}
 
-			RangeType nonCons;
-			
-			model_.nonConProduct(uLeft[ uVar ], uRight[ uVar ], uLeft[ thetaVar ], uRight[ thetaVar ],nonCons); 
-	
+			RangeType nonCons(0.);
+ 
+      RangeType average(0.);
+      average[1]=uLeft[uVar][0]+uRight[uVar][0];
+      average*=0.5;
+     nonCons[1]=uLeft[thetaVar][1]-uRight[thetaVar][0];
+     nonCons+=average;
+     nonCons*=normal[0];
+
+//     model_.nonConProduct(uLeft[ uVar ], uRight[ uVar ], uLeft[ thetaVar ], uRight[ thetaVar ],nonCons); 
+        
+
+
 			gLeft+=nonCons;
 			gRight-=nonCons;
 			
@@ -545,7 +558,6 @@ namespace Dune {
 					model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
 					// ldg case 
 					f += diffmatrix;
-					f += tensionmatrix;
 				}
  
 		}

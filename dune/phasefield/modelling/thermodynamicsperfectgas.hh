@@ -38,33 +38,14 @@ public:
   
   inline double helmholtz(double& rho,double& phi) const
   {
-    double s=delta_inv_; 
-    double t1;
-    double t12;
-    double t13;
-    double t14;
-    double t18;
-    double t2;
-    double t22;
-    double t4;
-    double t7;
-    {
-      t1 = rho*s;
-      t2 = phi*phi;
-      t4 = t2*phi;
-      t7 = t2*t2;
-      t12 = t7*phi;
-      t13 = t12*rho;
-      t14 = log(rho);
-      t18 = t7*rho;
-      t22 = t4*rho;
-    
-      return(t1*t2-2.0*t1*t4+t1*t7-0.1E-1*t1*phi+0.1E-1*t1+3.0*t13*t14+
-0.1615888309E2*t13-0.75E1*t18*t14-0.4039720772E2*t18+5.0*t22*t14+0.2693147181E2
-*t22+rho*t14-1.0*rho+0.5-3.0*t12+0.75E1*t7-5.0*t4);
-	
- 	}
+   return
 
+     2.0/delta_*phi*phi*pow(1.0-phi,2.0)+(6.0*phi*phi*phi*phi*phi-15.0*phi
+*phi*phi*phi+10.0*phi*phi*phi)*(-0.4*rho+0.14E1*rho*log(rho)+1.0)+(1.0-6.0*phi*
+phi*phi*phi*phi+15.0*phi*phi*phi*phi-10.0*phi*phi*phi)*(0.16E1*rho*log(rho)+
+0.15E1-0.15E1*rho);
+
+ 
   }
 
 	

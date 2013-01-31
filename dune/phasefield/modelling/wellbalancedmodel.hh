@@ -130,7 +130,11 @@ namespace Dune {
 															 const ThetaJacobianRangeType& dtheta,
 															 RangeType & s) const
 		{	
-			return 1;
+		  s[0]=0.;
+      //theta[0]=mu,du[2]=sigma_phi=grad phi,theta[1]=allencahn
+      s[1]=-theta[0]+du[2]*theta[2];
+      s[2]=-theta[2];
+      return 1;
  		}
 
 

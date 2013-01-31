@@ -45,6 +45,7 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
   typedef typename GradientFunctionType::LocalFunctionType GradLocalFuncType;
   typedef typename EnergyFunctionType::LocalFunctionType EnergyLocalFuncType;
 
+
   ConsRangeType cons(0.0); 
   GradRangeType grad(0.0);
   EnergyRangeType energy(0.0);
@@ -76,7 +77,7 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
       // evaluate conservative variables and gradients
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
-			
+	
 			model.totalEnergy(xgl, cons, grad, energy);
       energy*=  quad.weight(qP)*volume;
 			energyLF.axpy(quad[qP],energy);
@@ -86,5 +87,6 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
 	
     
 }
+
 
 #endif

@@ -119,7 +119,7 @@ class PhasefieldPhysics
 }
 
 #if WELLBALANCED
-#include "physicswb_inline1d.hh"
+#include "physicswb2_inline1d.hh"
 #include "physicswb_inline2d.hh"
 #else
 #include "physics_inline1d.hh"

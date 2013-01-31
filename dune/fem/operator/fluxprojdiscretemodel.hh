@@ -38,7 +38,7 @@ namespace Dune {
     enum { dimRange  = ModelTraits::dimGradRange };
     enum { dimDomain = ModelTraits::dimDomain };
 
-    typedef MyPassTraits< Model, dimRange, polOrd >                    Traits;
+    typedef MyPassTraits< Model, dimRange, polOrd >                   Traits;
     typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
 
     typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
@@ -203,23 +203,25 @@ namespace Dune {
 
       typedef typename ArgumentTuple::template Get<passUId>::Type UType;
       UType uRight;
-   
-       if( model_.hasBoundaryValue(it,time,x) )
+    
+       if( false /*model_.hasBoundaryValue(it,time,x)*/ )
        {
-	
-         model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
+        model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
        }
        else 
-      	{
-	      uRight = uLeft[ uVar ];
-	      } 
-      
-      return gradientFlux_.gradientBoundaryFlux(it, inside(),
+       {
+        uRight = uLeft[ uVar ];
+  	   } 
+
+ double tmp= gradientFlux_.gradientBoundaryFlux(it, inside(),
 						time, faceQuadInner, quadPoint,
 						uLeft[ uVar ],
 						uRight, 
 						gLeft,
 						gDiffLeft );
+    
+
+    return tmp;
     }
 
     template <class ArgumentTuple, class JacobianTuple>    

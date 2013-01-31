@@ -44,8 +44,6 @@ class PhasefieldPhysics<1,Thermodynamics>
     delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
     delta_inv_(1./delta_)
   {
-   std::cout<<"PHYSICS";
-   std::cout<<"================"<<thermoDynamics_.delta()<<"==========\n";
   }
  
   inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
@@ -124,6 +122,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   	rho=cons[0];
     rho_inv=1./rho;
   	phi=cons[phaseId];
+    phi*=rho_inv;
     //velocity 
     prim[0] = cons[1]/rho;
     //pressure  
@@ -148,17 +147,23 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     
     double kineticEnergy,surfaceEnergy;
     kineticEnergy=cons[1]*cons[1];
-    surfaceEnergy=grad[phaseId][0]*grad[phaseId][0];
+    //recontsruction of gradphi
+    double gradphi=grad[2][0];
+  
+    gradphi-=phi*grad[0][0];
+
+
+    gradphi*=rho_inv;
+    surfaceEnergy=gradphi*gradphi;
     
   
     kineticEnergy*=0.5*rho_inv;
-    surfaceEnergy*=delta_*0.5*rho_inv;
-
+    surfaceEnergy*=delta_*0.5;
+//    surfaceEnergy=gradphi;
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
-
-	  res = freeEnergy + surfaceEnergy + kineticEnergy;
-
+    
+	  res = surfaceEnergy;
   }
 
   template< class Thermodynamics >
@@ -249,7 +254,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								RangeType& f) const
 	{
 			f[0]=0;
-			f[1]=dtheta[0]*u[0]+du[2]*theta[1];
+			f[1]=0;
 			f[2]=theta[1];
 	  return 1.;
   }

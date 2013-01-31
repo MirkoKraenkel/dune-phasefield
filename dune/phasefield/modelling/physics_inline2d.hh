@@ -181,8 +181,6 @@ protected:
                          double& p,
 												 double& reaction ) const
 	{
-    std::cout<<"Don't call this with WB\n";
-    abort();
     assert( cons[0] > 1e-20 );
 	  
 		double rho=cons[0];
@@ -193,7 +191,7 @@ protected:
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
 		reaction*=-1.;
 			
-		assert( p > 1e-20 );
+//		assert( p > 1e-20 );
 	}
 
 
@@ -227,7 +225,23 @@ protected:
     const double vx = u[1]*rho_inv;
 		const double vy = u[2]*rho_inv;
     const double phi=u[phaseId]*rho_inv;
- 
+
+
+
+
+
+
+
+
+   a[0][0] = u[0];       a[0][1] = 0.;
+   a[1][0] = 0.;         a[1][1] = u[0];
+   a[2][0] = u[1];       a[2][1] = 0.;
+   a[3][0] = 0.;         a[3][1] = u[1];
+   a[4][0] = u[2];       a[4][1] = 0.;
+   a[5][0] = 0.;         a[5][1] = u[2];
+   a[6][0] = u[3];       a[6][1] = 0.;
+   a[7][0] = 0.;         a[7][1] = u[3];
+#if 0
     a[0][0] = u[0];
     a[1][1] = u[0];
     a[2][0] = vx;
@@ -236,6 +250,7 @@ protected:
     a[3][0] = vy;
     a[4][0] = phi;
     a[4][0] = phi;
+#endif
   }
 
 	template< class Thermodynamics >
@@ -369,7 +384,7 @@ protected:
  inline double PhasefieldPhysics< 2, Thermodynamics >
  ::maxSpeed( const DomainType& n, const RangeType& u) const
  {
-   abort();
+//   abort();
   return 0.;
  } 
 

@@ -121,7 +121,8 @@ namespace Dune {
     }
 
     void operator()( const DestinationType& arg, DestinationType& dest ) const {
-	    pass3_( arg, dest );
+	    
+      pass3_( arg, dest );
     }
     
     void theta( const DestinationType& arg, Destination2Type& dest ) const {
@@ -129,6 +130,7 @@ namespace Dune {
     }
     void gradient( const DestinationType& arg, Destination1Type& dest ) const {
       pass1_(arg,dest);
+        
     }
     
      void energy(const DestinationType &u,const Destination1Type& du,  ScalarDFType& en)const

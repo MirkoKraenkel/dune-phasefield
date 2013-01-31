@@ -302,6 +302,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                    , const RangeType& uLeft
 		   , RangeType& gLeft ) const  
   {
+abort();
     gLeft = 0.;
     return 0.;
   }
@@ -387,17 +388,15 @@ inline void PhaseModel< GridPartType, ProblemImp >
                   , const RangeType& uLeft
                   , RangeType& uRight ) const 
 {
-  
+   
   DomainType xgl = it.geometry().global( x );
-  // uRight[0]=uLeft[0];     
+    
   
   for(int i=0;i<dimDomain+1;i++)
-    uRight[i]=0.;      
+    uRight[i]=0.;     
       
   uRight[0]=uLeft[0];
-  uRight[dimDomain+1]=uLeft[dimDomain+1];
-  // uRight[dimDomain+1]=uLeft[dimDomain+1];     
- 
+  uRight[dimDomain+1]= uLeft[dimDomain+1];
 }
 
 } // end namespace Dune
