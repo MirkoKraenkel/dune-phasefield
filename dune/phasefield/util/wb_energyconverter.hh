@@ -77,9 +77,9 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
       // evaluate conservative variables and gradients
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
-	
+
 			model.totalEnergy(xgl, cons, grad, energy);
-      energy*=  quad.weight(qP)*volume;
+      energy*=  quad.weight(qP);
 			energyLF.axpy(quad[qP],energy);
     }
   

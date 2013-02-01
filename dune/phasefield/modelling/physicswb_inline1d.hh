@@ -145,13 +145,13 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     surfaceEnergy=grad[phaseId][0]*grad[phaseId][0];
     
   
-    kineticEnergy*=0.5*rho_inv;
-    surfaceEnergy*=delta_*0.5*rho_inv;
+//    kineticEnergy*=0.5*rho_inv;
+//    surfaceEnergy*=delta_*0.5*rho_inv;
 
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
 
-	  res = freeEnergy + surfaceEnergy + kineticEnergy;
+	  res = surfaceEnergy; 
   }
 
   template< class Thermodynamics >

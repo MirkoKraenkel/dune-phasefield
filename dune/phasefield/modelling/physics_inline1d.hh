@@ -149,13 +149,10 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     kineticEnergy=cons[1]*cons[1];
     //recontsruction of gradphi
     double gradphi=grad[2][0];
-  
     gradphi-=phi*grad[0][0];
-
-
     gradphi*=rho_inv;
+   
     surfaceEnergy=gradphi*gradphi;
-    
   
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta_*0.5;
@@ -163,7 +160,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
     
-	  res = surfaceEnergy;
+	  res = surfaceEnergy+freeEnergy+kineticEnergy;
   }
 
   template< class Thermodynamics >

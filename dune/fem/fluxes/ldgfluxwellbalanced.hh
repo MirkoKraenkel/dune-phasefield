@@ -130,13 +130,14 @@ namespace Dune {
 		diffmatrix.mv(normal, gLeft);
 				
           
-     model_.jacobian(outside,       /* outside entity */
+    model_.jacobian(outside,       /* outside entity */
 										 time,          /* for time dependent diffusion */
 										 faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
 										 uRight,        /* { u_(x^+) } */
 										 diffmatrix     /* return diffusion tensor */
 										);
-				diffmatrix.mv(normal, gLeft);
+    //We want to add it for mean value
+		diffmatrix.umv(normal, gLeft);
 
       gLeft*=0.5;
 
@@ -358,10 +359,10 @@ namespace Dune {
 				
 					model_.diffusion( outside, time, 
 														faceQuadOuter.point( quadPoint ),
-														uRight, sigmaRight, diffmatrixR);
+														uRight, sigmaRight, diffmatrix);
 			
-         diffMatrix.mv(normal,gLeft);
-        gleft*=0.5; 
+         diffmatrix.umv(normal,gLeft);
+        gLeft*=0.5; 
       
 
       // apply normal 

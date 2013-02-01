@@ -73,5 +73,5 @@ femhowto.maxTimeStep: 0.5
 # Output
 #------------
 phasefield.additionalvariables: false 
-phasefield.energy: false
-phasefield.sigma: true
+phasefield.energy: true
+phasefield.sigma: true 

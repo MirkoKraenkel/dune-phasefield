@@ -169,7 +169,7 @@ public:
 		gridPart_( grid_ ),
 		space_( gridPart_ ),
 		thetaSpace_( Fem::Parameter :: getValue< bool >("phasefield.theta", false)  ? new ThetaDiscreteSpaceType(gridPart_ ) : 0 ),
-    sigmaSpace_( Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new SigmaDiscreteSpaceType(gridPart_ ) : 0 ),
+    sigmaSpace_( Fem::Parameter :: getValue< bool >("phasefield.sigma", false) ? new SigmaDiscreteSpaceType(gridPart_ ) : 0 ),
 		energySpace_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new ScalarDiscreteSpaceType(gridPart_ ) : 0 ),
  		eocLoopData_( 0 ),
  		eocDataTup_(),

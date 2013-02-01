@@ -142,6 +142,7 @@ namespace Dune {
     }
     void gradient( const DestinationType& arg, Destination1Type& dest ) const {
       pass1_(arg,dest);
+      std::cout<<"CALL Gradient\n";
     }
     
      void energy(const DestinationType &u,const Destination1Type& du,  ScalarDFType& en)const
