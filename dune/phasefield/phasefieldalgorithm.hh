@@ -137,7 +137,8 @@ private:
 	// use fixed time step if fixedTimeStep>0
 	double                  fixedTimeStep_;        
 	double                  fixedTimeStepEocLoopFactor_;       
-	DiscreteFunctionType    solution_;
+  std::string             energyFilename_;
+  DiscreteFunctionType    solution_;
 	DiscreteSigmaType*      sigma_;
 	DiscreteThetaType*      theta_;
 	DiscreteScalarType*     energy_;
@@ -161,7 +162,7 @@ private:
 #if PF_USE_ADAPTATION
   DGIndicatorType         dgIndicator_;
 #endif
-  double tolerance_;
+//  double tolerance_;
 public:
 	//Constructor
 	PhasefieldAlgorithm(GridType& grid):
@@ -177,7 +178,8 @@ public:
  		loop_( 0 ),
  		fixedTimeStep_( Dune::Fem::Parameter::getValue<double>("fixedTimeStep",0) ),
  		fixedTimeStepEocLoopFactor_( Dune::Fem::Parameter::getValue<double>("fixedTimeStepEocLoopFactor",1.) ), // algorithmbase
-		solution_( "solution", space() ),
+	  energyFilename_(Dune::Fem::Parameter::getValue< std::string >("phasefield.energyfile","./energy.gnu")),
+    solution_( "solution", space() ),
 		sigma_(Fem::Parameter :: getValue< bool >("phasefield.sigma", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : 0),
 		theta_(Fem::Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : 0 ),
 		energy_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
@@ -189,7 +191,7 @@ public:
     adaptationHandler_( 0 ),
     runfile_( grid.comm(), true ),
     overallTimer_(),
-    eocId_( Fem::FemEoc::addEntry(std::string("$L^2$-error")) ),
+    eocId_( Fem::FemEoc::addEntry(std::string("TotalEnergy")) ),
     odeSolver_( 0 ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
@@ -306,7 +308,7 @@ public:
 		// reset overall timer
     overallTimer_.reset(); 
 		assert(odeSolver_);
-   odeSolver_->solve( U, odeSolverMonitor_ );
+    odeSolver_->solve( U, odeSolverMonitor_ );
 	}
 
 	//! estimate and mark solution 
@@ -320,9 +322,11 @@ public:
 
   }
 	//! write data, if pointer to additionalVariables is true, they are calculated first 
-	void writeData( DataWriterType& eocDataOutput,
+	template<class Stream>
+  void writeData( DataWriterType& eocDataOutput,
 									TimeProviderType& tp,
-									const bool reallyWrite )
+									Stream& str,
+                  const bool reallyWrite )
 	{
 
 
@@ -348,8 +352,12 @@ public:
         DiscreteScalarType*  totalenergy =energy();
     	  
         if(gradient && totalenergy)   
-				  energyconverter(solution(),*gradient,model(),*totalenergy);
-			}
+        {  
+          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy);
+          str<<tp.time()<<"\t"<<energyIntegral<<"\n";
+        }
+      
+      }
 
 		// write the data 
 		eocDataOutput.write( tp );
@@ -398,7 +406,11 @@ public:
 //			IOTupleType dataTuple( &U, this->sigma() );
 //	IOTupleType dataTuple( &U,   this->additionalVariables(),this->sigma() );
 		IOTupleType dataTuple( &U,   this->additionalVariables(),this->energy() );
-		
+    std::ofstream energyfile;
+   // std::string filename="./energy.gnu";
+    energyfile.open(energyFilename_.c_str());
+
+	
 		// type of the data writer
 		DataWriterType eocDataOutput( grid_, dataTuple, tp, EocDataOutputParameters( loop_ , dataPrefix() ) );
 		
@@ -431,13 +443,10 @@ public:
 					++startCount;
 				}
 		
-		
 
-		writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
+		writeData( eocDataOutput, tp,std::cout, eocDataOutput.willWrite( tp ) );
 		
-
-
-		
+ 		
 		for( ; tp.time() < endTime; )   
 			{ 
 				tp.provideTimeStepEstimate(maxTimeStep);                                         
@@ -455,7 +464,7 @@ public:
 					estimateMarkAdapt( adaptManager );
 		
 				//this is where the magic happens
-				step( tp);
+				step( tp );
 				
 				// Check that no NAN have been generated
 				if (! U.dofsValid()) 
@@ -474,7 +483,7 @@ public:
 					}
 
 
-				writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
+				writeData( eocDataOutput, tp,energyfile, eocDataOutput.willWrite( tp ) );
 				writeCheckPoint( tp, adaptManager );
 							 
 				// next time step is prescribed by fixedTimeStep
@@ -487,9 +496,9 @@ public:
 			}
 		/*end of timeloop*/
 		// write last time step  
-		writeData( eocDataOutput, tp, true );
+		writeData( eocDataOutput, tp,energyfile, true );
 
-
+    energyfile.close();
 	
 	
 		// 		writeData( eocDataOutput, tp, true );

@@ -82,7 +82,6 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   PhaseModel( const ThermodynamicsType& thermo ) 
     : phasefieldPhysics_( thermo  )
   {
-    std::cout<<"constructor standarmodel\n"; 
   }
 
   inline bool hasStiffSource() const { return true; }
@@ -108,11 +107,12 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   {
    
 		double reaction,pressure;
-		phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
+    //reaction=-dF/dphi
+    phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
 	  s[0]=0.;
 		s[1]=0.;
 		s[2]=reaction;
-		return 1;
+    return 0.09;
   }
 
 
@@ -165,7 +165,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     double T;
     pressAndTemp( u, p, T );
     // get mu 
-    const double mu = 1;
+    const double mu = phasefieldPhysics_.mu1();
 
     // ksi = 0.25 
     
@@ -218,6 +218,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                                        const JacobianRangeImp& jacLeft,
                                        RangeType& gLeft ) const  
   {
+    abort();
     return 1.;
   }
 
@@ -247,7 +248,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                   const DomainType& x,
                   const RangeType& u,
                   const GradientRangeType& v,
-		  JacobianRangeType& diff ) const
+		              JacobianRangeType& diff ) const
   {
     Dune::Fem:: FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
     diffusion( en, time, x, u, jac,diff );
@@ -260,10 +261,33 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                   const DomainType& x,
                   const RangeType& u,
 	            	  const JacobianRangeImp& jac,
-		               JacobianRangeType& diff ) const
+		              JacobianRangeType& diff ) const
   { 
     phasefieldPhysics_.diffusion( u, jac, diff );
   }
+   void boundarydiffusion( const EntityType& en,
+                  const double time,
+                  const DomainType& x,
+                  const RangeType& u,
+                  const GradientRangeType& v,
+		              JacobianRangeType& diff ) const
+  {
+    Dune::Fem:: FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
+    boundarydiffusion( en, time, x, u, jac,diff );
+  }
+
+
+  template <class JacobianRangeImp>
+  void boundarydiffusion( const EntityType& en,
+                  const double time,
+                  const DomainType& x,
+                  const RangeType& u,
+	            	  const JacobianRangeImp& jac,
+		              JacobianRangeType& diff ) const
+  { 
+    phasefieldPhysics_.boundarydiffusion( u, jac, diff );
+  }
+  
   
   void tension( const EntityType& en,
 	              const double time,
@@ -302,7 +326,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                    , const RangeType& uLeft
 		   , RangeType& gLeft ) const  
   {
-abort();
+   abort();
     gLeft = 0.;
     return 0.;
   }
@@ -362,7 +386,7 @@ inline double PhaseModel< GridPartType, ProblemImp >
                  , const GradientRangeType& duLeft
                  , RangeType& gLeft ) const  
 {
-  abort();
+abort();
   DomainType xgl=it.intersectionGlobal().global(x);
   const typename Traits :: DomainType normal = it.integrationOuterNormal(x); 
   double p;

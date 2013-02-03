@@ -93,10 +93,19 @@ class PhasefieldPhysics
 	inline void diffusion( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 JacobianRangeType& f ) const;
+  template< class JacobianRangeImp >
+	inline void boundarydiffusion( const RangeType& u,
+												 const JacobianRangeImp& du,
+												 JacobianRangeType& f ) const;
   
   //f|phi-div(f|nabla phi)
   template< class JacobianRangeImp >
 	inline void allenCahn( const RangeType& u,
+												 const JacobianRangeImp& du,
+												 ThetaJacobianRangeType& f ) const;
+   //f|phi-div(f|nabla phi)
+  template< class JacobianRangeImp >
+	inline void boundaryallenCahn( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
  

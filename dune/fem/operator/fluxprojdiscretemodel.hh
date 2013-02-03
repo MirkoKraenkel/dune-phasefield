@@ -543,7 +543,7 @@ namespace Dune {
       if (model_.hasNonStiffSource())
       {
 
-	RangeType sNonStiff(0);
+	      RangeType sNonStiff(0);
         const double dtNon = 
           model_.nonStiffSource( en, time, x, u[uVar], u[sigmaVar], sNonStiff );
 
@@ -681,15 +681,16 @@ namespace Dune {
         gLeft += dLeft;
       }
       else if ( diffusion )
-      {
+      {  abort();
         RangeType diffBndFlux;
         model_.diffusionBoundaryFlux( it, time, faceQuadInner.localPoint(quadPoint),
                                       uLeft[uVar], jacLeft[uVar], diffBndFlux );
         gLeft += diffBndFlux;
       }
       else
+      {abort();
         gDiffLeft = 0;
-
+      }
       maxAdvTimeStep_  = std::max( wave, maxAdvTimeStep_ );
       maxDiffTimeStep_ = std::max( diffTimeStep, maxDiffTimeStep_ );
 

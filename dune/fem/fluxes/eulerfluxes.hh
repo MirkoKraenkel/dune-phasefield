@@ -73,10 +73,7 @@ public:
     FluxRangeType anaflux;
    
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
-                      uLeft, anaflux );
-    
-
-    
+                     uLeft, anaflux );
     // set gLeft 
     anaflux.mv( normal, gLeft );
 
@@ -187,7 +184,6 @@ public:
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
     
-
     
     // set gLeft 
     anaflux.mv( normal, gLeft );
@@ -196,8 +192,9 @@ public:
     //if ( intersection.neighbor() )
     model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
 											uRight, anaflux );
-   
-    anaflux.umv( normal, gLeft );
+   //add F(uleft) 
+ //   if ( intersection.neighbor() )
+     anaflux.umv( normal, gLeft );
 
     double maxspeedl, maxspeedr, maxspeed;
     double viscparal, viscparar, viscpara;
@@ -212,24 +209,38 @@ public:
 
     maxspeed = (maxspeedl > maxspeedr) ? maxspeedl : maxspeedr;
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
-  
-
-		
+#if 1 
     viscpara*=visc_;
     visc = uRight;
     visc -= uLeft;
     visc *= viscpara;
+    gLeft -= visc;
+    gLeft *= 0.5*len;
+    gRight = gLeft;
+#else
+
+    viscpara*=visc_;
+    visc = uRight;
+    
+    if(intersection.neighbor())
+      visc -= uLeft;
+
+    visc *= viscpara;
+  
     for(int i=1; i<dimDomain+1;i++)
 			{
 				gLeft[i] -= visc[i];
 			}
-  	newvisc=thetaLeft;
-		newvisc-=thetaRight;
-		newvisc*=alpha1_;
-		gLeft[0]=newvisc[1];
+  if( intersection.neighbor() )
+  {   
+      newvisc=thetaLeft;
+		  newvisc-=thetaRight;
+		  newvisc*=alpha1_;
+      gLeft[0]-=newvisc[0];
+  }	
 		gLeft *= 0.5*len; 
 		gRight = gLeft;
-
+#endif
 
     return maxspeed * len;
   }

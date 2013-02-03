@@ -177,8 +177,8 @@ namespace Dune {
                          JacobianRangeType& gDiffLeft,
                          JacobianRangeType& gDiffRight ) const
     {
-    
-    return gradientFlux_.gradientNumericalFlux( it, inside(), outside(), time,
+      
+       return gradientFlux_.gradientNumericalFlux(it, inside(), outside(), time,
 																									faceQuadInner, faceQuadOuter, quadPoint,
 																									uLeft[ uVar ], uRight[ uVar ], 
 																									gLeft, gRight, gDiffLeft, gDiffRight);
@@ -203,8 +203,8 @@ namespace Dune {
       typedef typename ArgumentTuple::template Get<passUId>::Type UType;
       UType uRight;
    
-			if( model_.hasBoundaryValue(it,time,x) )
-				{
+			if( false /*model_.hasBoundaryValue(it,time,x)*/ )
+			{
 	
 					model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
 				}
@@ -451,11 +451,10 @@ namespace Dune {
       RangeType average(0.);
       average[1]=uLeft[uVar][0]+uRight[uVar][0];
       average*=0.5;
-     nonCons[1]=uLeft[thetaVar][1]-uRight[thetaVar][0];
-     nonCons+=average;
-     nonCons*=normal[0];
+      nonCons[1]=uLeft[thetaVar][0]-uRight[thetaVar][0];
+      nonCons+=average;
+      nonCons*=normal[0];
 
-//     model_.nonConProduct(uLeft[ uVar ], uRight[ uVar ], uLeft[ thetaVar ], uRight[ thetaVar ],nonCons); 
         
 
 
@@ -487,7 +486,6 @@ namespace Dune {
 												JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
 		{
 
-#if 0
 			// advection
 
 			const double wave = BaseType :: 
@@ -510,7 +508,6 @@ namespace Dune {
 																								time, faceQuadInner, quadPoint,
 																								uLeft[ uVar ], uBnd_, // is set during call of  BaseType::boundaryFlux
 																								uLeft[ sigmaVar ], 
-																								uLeft[ thetaVar ],
 																								dLeft,
 																								gDiffLeft);
 					gLeft += dLeft;
@@ -529,8 +526,7 @@ namespace Dune {
 			maxDiffTimeStep_ = std::max( diffTimeStep, maxDiffTimeStep_ );
 
 			return std::max( wave, diffTimeStep );
-#endif
-			return 0;
+
 		}
 		/*@LST0S@*/
 		/**
@@ -554,7 +550,6 @@ namespace Dune {
 			if( diffusion ) 
 				{
 					JacobianRangeType diffmatrix;
-					JacobianRangeType tensionmatrix;
 					model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
 					// ldg case 
 					f += diffmatrix;

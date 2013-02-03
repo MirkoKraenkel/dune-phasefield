@@ -307,7 +307,7 @@ public:
 #if WELLBALANCED
 					double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
 																							time, faceQuadInner, faceQuadOuter, quadPoint, 
-																							uLeft[ uVar ], uRight[ uVar ],uLeft[thetaVar],uRight[thetaVar],gLeft, gRight);
+																						uLeft[ uVar ], uRight[ uVar ],uLeft[thetaVar],uRight[thetaVar],gLeft, gRight);
 #else
 				double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
 																						time, faceQuadInner, faceQuadOuter, quadPoint, 
@@ -351,24 +351,30 @@ public:
  
     SigmaType sigmaRight(0.); 
     if (advection)
-      {
-        if( hasBndValue )
-	  {
-	    RangeType gRight;
-	    return numflux_.numericalFlux(it, this->inside(), this->inside(),
+    {
+      if( hasBndValue )
+	    {
+	     RangeType gRight;
+#if WELLBALANCED
+	  		return numflux_.numericalFlux(it, this->inside(), this->inside(),
+																				time, faceQuadInner, faceQuadInner, quadPoint, 
+																				uLeft[ uVar ], uBnd_,uLeft[thetaVar],uLeft[thetaVar],gLeft, gRight);
+#else
+         return numflux_.numericalFlux(it, this->inside(), this->inside(),
 					  time, faceQuadInner, faceQuadInner, quadPoint, 
-					  uLeft[ uVar ], uBnd_, gLeft, gRight);
-	  }
+           uLeft[ uVar ], uBnd_, gLeft, gRight);
+#endif
+      }
         else 
-	  {
-	    return model_.boundaryFlux( it, time, x, uLeft[uVar], gLeft );
-	  }
-      }
+	    {
+	      return model_.boundaryFlux( it, time, x, uLeft[uVar], gLeft );
+	    }
+    }
     else
-      {
-        gLeft = 0.;
-        return 0.;
-      }
+    {
+         gLeft = 0.;
+          return 0.;
+    } 
     return 0.;
   }
   /*@LST0S@*/
@@ -386,12 +392,12 @@ public:
       
     if( advection ) 
       {
-	model_.advection(en, time, x, u[ uVar ], f);
+	      model_.advection(en, time, x, u[ uVar ], f);
       }
     else 
       {
-	abort();
-	f = 0;
+      	abort();
+	      f = 0;
       }
   }
 
@@ -408,7 +414,7 @@ protected:
     const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
     const bool hasBndValue = model_.hasBoundaryValue(it, time, x);
     if( hasBndValue ) 
-      {
+      { 
         model_.boundaryValue(it, time, x, uLeft[ uVar ], uBnd_ );
       }
     else 
@@ -674,7 +680,7 @@ public:
     if( advection ) 
       {
 	// std::cout<<"discretemodelcommon advection\n";
-	double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
+    	double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
                                             time, faceQuadInner, faceQuadOuter, quadPoint, 
  					    uLeft[ uVar ], uRight[ uVar ], uLeft[sigmaVar],uRight[sigmaVar],gLeft, gRight);
 
@@ -774,7 +780,7 @@ protected:
     const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
     const bool hasBndValue = model_.hasBoundaryValue(it, time, x);
     if( hasBndValue ) 
-      {
+      { abort();
         model_.boundaryValue(it, time, x, uLeft[ uVar ], uBnd_ );
       }
     else 

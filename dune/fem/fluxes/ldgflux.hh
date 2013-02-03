@@ -275,21 +275,15 @@ namespace Dune {
       // determine side (needs to be opposite of above)
       const bool useExterior = ! determineDirection(false,0.,0.,intersection );
 
-			if( useExterior ) 
-				{
-					model_.diffusion( inside, time, 
+				model_.diffusion( inside, time, 
 														faceQuadInner.point( quadPoint ),
-														uLeft, sigmaLeft, diffmatrix);
+														uLeft, sigmaLeft, diffmatrixLeft);
 	
 
 			
-				}
-			else 
-				{
-					model_.diffusion( outside, time, 
+				model_.diffusion( outside, time, 
 														faceQuadOuter.point( quadPoint ),
-														uRight, sigmaRight, diffmatrix);
-				}
+														uRight, sigmaRight, diffmatrixRigh);
 	
 			// 	diffmatrix=diffmatrixLeft;
 			// 	diffmatrix+=diffmatrixRight;

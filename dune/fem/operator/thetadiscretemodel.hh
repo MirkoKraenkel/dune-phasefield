@@ -124,10 +124,8 @@ namespace Dune {
 		{ 
 			
 			s = 0;
-		
-//			double dtEst = std::numeric_limits< double > :: max();
-			
-			const double dtStiff = model_.thetaSource( en, time, x, u[uVar], u[sigmaVar], s );
+		//s[0]=dF/drho  s[1]=-dF/dphi
+      const double dtStiff = model_.thetaSource( en, time, x, u[uVar], u[sigmaVar], s );
 			
 			return dtStiff;
 		} 
@@ -160,7 +158,27 @@ namespace Dune {
 												RangeType& gLeft,
 												JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
 		{
-			return 0;
+			const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+			const DomainType normal = it.integrationOuterNormal(x);
+			
+			JacobianRangeType diffmatL(0.),diffmatR(0.);
+ 	
+		 	model_.boundaryallenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+			
+			diffmatL.mv(normal, gLeft);
+			gDiffLeft = 0;
+			
+
+			// add penalty term ( enVolume() is available since we derive from
+			//    DiscreteModelDefaultWithInsideOutside)
+			const double factor = acpenalty_  ;
+			
+			
+
+
+			double diffTimeStep(0.);
+			return diffTimeStep;
+	
 		}
 
 		template <class ArgumentTuple, class JacobianTuple>    /*@LST1S@*/
@@ -202,7 +220,7 @@ namespace Dune {
  			model_.allenCahnDiffusion(uRight[uVar],uLeft[sigmaVar], diffmatR);
 			
 			diffmatL.mv(normal, gLeft);
-			diffmatR.mv(normal, gLeft);
+			diffmatR.umv(normal, gLeft);
 			gLeft*=0.5;
 			gRight=gLeft;
 			gDiffLeft = 0;
@@ -234,7 +252,7 @@ namespace Dune {
                          JacobianRangeType& f ) const
     {
 			JacobianRangeType diffmatrix;
-			
+		
 			model_.allenCahndiffusion(u[sigmaVar], diffmatrix);
 			
 			f = diffmatrix;

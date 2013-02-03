@@ -191,7 +191,6 @@ namespace Dune {
       // apply normal 
       diffmatrix.mv(normal, gLeft); 
  
-   // gLeft*=0.5; 
 
       // gDiffLeft is not needed for dual formalation (LDG)
       gDiffLeft = 0;
@@ -277,15 +276,11 @@ namespace Dune {
       JacobianRangeType diffmatrix;
       JacobianRangeType tension;
       tension=thetaLeft;
-
-
       tension+=thetaRight;
       
       tension*=-0.5;
        
 
-      // determine side (needs to be opposite of above)
-      const bool useExterior = ! determineDirection(false,0.,0.,intersection );
 				
   		model_.diffusion( inside, time, 
 												faceQuadInner.point( quadPoint ),
@@ -294,19 +289,17 @@ namespace Dune {
        // apply normal 
       diffmatrix.mv(normal, gLeft);
       
-			
- 
 
 			model_.diffusion( outside, time, 
 		  									faceQuadOuter.point( quadPoint ),
 	  										uRight, sigmaRight, diffmatrix);
 
      // apply normal 
-      diffmatrix.mv(normal, gLeft);
-    gLeft*=0.5;  
+      diffmatrix.umv(normal, gLeft);
+      gLeft*=0.5;  
       
 
-     tension.mv(normal,gLeft);
+     tension.umv(normal,gLeft);
 
       //////////////////////////////////////////////////////////
       //
@@ -406,18 +399,25 @@ namespace Dune {
       // get local point 
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
       const DomainType normal = intersection.integrationOuterNormal(x);
-
-//      const EntityType& inside  = discreteModel.inside();
+      const EntityType& inside  = discreteModel.inside();
+   
 
       /****************************/
       /* Diffusion (Pass 2)       */
       /****************************/
+
       JacobianRangeType diffmatrix;
+      JacobianRangeType tension;
+      tension=0;
+      //sigma+
+      model_.boundarydiffusion(inside,time,faceQuadInner.point(quadPoint),
+                       uLeft,sigmaLeft,diffmatrix);
      
-
-      diffmatrix.mv(normal, gLeft);
       
+      diffmatrix.mv(normal, gLeft);
+      tension.umv(normal,gLeft);
 
+      
       //////////////////////////////////////////////////////////
       //
       //  --Time step calculation 
@@ -425,9 +425,8 @@ namespace Dune {
       //////////////////////////////////////////////////////////
       const double faceVolumeEstimate = normal.two_norm2();
 
-      const double diffTimeStep =
-        model_.diffusionTimeStep( intersection,
-																	discreteModel.enVolume(),
+      const double diffTimeStep =model_.diffusionTimeStep( intersection,
+																 	discreteModel.enVolume(),
 																	faceVolumeEstimate,
 																	time, x, uLeft );
 

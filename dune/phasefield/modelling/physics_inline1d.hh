@@ -88,6 +88,15 @@ class PhasefieldPhysics<1,Thermodynamics>
 	inline void allenCahn( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
+	 template< class JacobianRangeImp >
+	inline void boundarydiffusion( const RangeType& u,
+												 const JacobianRangeImp& du,
+												 JacobianRangeType& f ) const;
+  
+  template< class JacobianRangeImp >
+	inline void baoundaryallenCahn( const RangeType& u,
+												 const JacobianRangeImp& du,
+												 ThetaJacobianRangeType& f ) const;
 	
   template< class JacobianRangeImp >
   inline void tension( const RangeType& u,
@@ -186,7 +195,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                          double& p,
 												 double& reaction ) const
 	{
-		assert( cons[0] > 1e-20 );
+
+    assert( cons[0] > 1e-20 );
 	  
 		double rho=cons[0];
 		double phi=cons[phaseId];
@@ -194,8 +204,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		
 		p=thermoDynamics_.pressure(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-		reaction*=-1.;
-			
+		reaction*=-1.;	
 		assert( p > 1e-20 );
 	}
 
@@ -250,10 +259,11 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								const ThetaJacobianRangeType& dtheta,
 								RangeType& f) const
 	{
-			f[0]=0;
-			f[1]=0;
-			f[2]=theta[1];
-	  return 1.;
+
+    f[0]=0;
+		f[1]=0;
+		f[2]=theta[1];
+	  return delta_;
   }
 
   template< class Thermodynamics >
@@ -276,12 +286,40 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     thermoDynamics_.pressure( rho,phi);
   
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
-    const double rhodxphi = (dxrhophi - phi*dxrho);
-    double delta_inv=1./delta_;
+    double dxphi = (dxrhophi - phi*dxrho);
+    dxphi/=rho;    
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
-    diff[2][0]=rhodxphi*delta_inv;
+    diff[2][0]=dxphi*delta_;
+    
+  }
+   template< class Thermodynamics >
+  template< class JacobianRangeImp >
+  inline void PhasefieldPhysics< 1 ,Thermodynamics >
+  ::boundarydiffusion( const RangeType& u,
+               const JacobianRangeImp& du,
+               JacobianRangeType& diff) const
+  {
+    assert( u[0] > 1e-10 );
+    double rho=u[0];
+    double rho_inv = 1. / rho;
+ 
+    const double muLoc = mu1 ();
+    const double v   =  u[1]*rho_inv;
+    double phi =  u[2]*rho_inv;
+    const double dxrho     = du[0][0]; //drho/dx
+    const double dxrhou    = du[1][0]; //d(rho*v)/dx
+    const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
+    thermoDynamics_.pressure( rho,phi);
+  
+    const double dxv   = rho_inv*(dxrhou - v*dxrho);
+    double dxphi = (dxrhophi - phi*dxrho);
+    dxphi/=rho;    
+
+    diff[0][0]=0.;
+    diff[1][0]=muLoc*dxv;
+    diff[2][0]=0;
     
   }
   
@@ -302,7 +340,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   assert(u[0] > MIN_RHO);
   double u_normal=u[1]*n[0]/u[0];
   double c=thermoDynamics_.a(u[0],u[3]);   
-//  std::cout<<"Max_speed="<<std::abs(u_normal)+sqrt(c)<<"\n";
+
   return std::abs(u_normal)+sqrt(c);
  
  } 
@@ -325,9 +363,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
            
- //   const double rhodxphi = (dxrhophi - phi*dxrho);
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
-    double tension =delta_*(dxphi*dxphi*rho_inv-0.5*dxphi*dxphi*rho_inv);
+    double tension =delta_*(0.5*dxphi*dxphi);
                   
     diff[0]=0.;
     diff[1]=tension;

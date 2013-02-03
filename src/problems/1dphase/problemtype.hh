@@ -25,6 +25,9 @@ typedef PhaseProblem< GridSelector:: GridType> PhaseProblemType;
 #elif PROBLEM==4
 #include "problem1d.hh"
 typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
+#elif PROBLEM==5
+#include "tanhproblem2.hh"
+typedef TanhProblem< GridSelector:: GridType>  PhaseProblemType;
 #else
 #error "No valid problem number specified"
 #endif

@@ -130,11 +130,10 @@ namespace Dune {
 															 const ThetaJacobianRangeType& dtheta,
 															 RangeType & s) const
 		{	
-		  s[0]=0.;
-      //theta[0]=mu,du[2]=sigma_phi=grad phi,theta[1]=allencahn
-      s[1]=-theta[0]+du[2]*theta[2];
-      s[2]=-theta[2];
-      return 1;
+
+      
+     return phasefieldPhysics_.stiffSource(u, du,theta,dtheta,s);
+
  		}
 
 
@@ -158,10 +157,10 @@ namespace Dune {
 			double mu,reaction;
  
 		  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
-
+      //stheta[0]=dF/drho stheta[1]=-dF/dphi
       s[0]=mu;
 			s[1]=reaction;
-			return 1.;
+			return phasefieldPhysics_.delta();
 		}
 
     
@@ -182,7 +181,10 @@ namespace Dune {
 																		 const FaceDomainType& x,
 																		 const RangeType& u ) const
 		{
-      return 0.;
+      const double mu = phasefieldPhysics_.mu1();
+   
+      return mu * circumEstimate * 1 / (0.25 * u[0] * enVolume);
+
   	}
 
 
@@ -285,12 +287,38 @@ namespace Dune {
 		{
 			phasefieldPhysics_.diffusion( u, jac, diff );
 		}
+	  inline void boundarydiffusion( const EntityType& en,
+						  	      			const double time,
+							  		      	const DomainType& x,
+									        	const RangeType& u,
+								        		const GradientRangeType& v,
+										        JacobianRangeType& diff ) const
+		{
+			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
+			boundarydiffusion( en, time, x, u, jac,diff );
+		}
+
+
+
+		template <class JacobianRangeImp>
+    inline void boundarydiffusion( const EntityType& en,
+										const double time,
+										const DomainType& x,
+										const RangeType& u,
+										const JacobianRangeImp& jac,
+										JacobianRangeType& diff ) const
+		{
+			phasefieldPhysics_.boundarydiffusion( u, jac, diff );
+		}
 	
+
+
 
 		
   	inline void allenCahnDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
 		{
-			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
+
+      Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
 			allenCahnDiffusion(u,jac,dv);
 		}	
 
@@ -300,6 +328,22 @@ namespace Dune {
 		{
 			phasefieldPhysics_.allenCahn(u,du,dv);
 		}
+
+
+
+  	inline void boundaryallenCahnDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
+		{
+			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
+			boundaryallenCahnDiffusion(u,jac,dv);
+		}	
+
+    
+    template <class JacobianRangeImp>
+	  inline	void boundaryallenCahnDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
+		{
+			phasefieldPhysics_.boundaryallenCahn(u,du,dv);
+		}
+
 
 
 		inline double boundaryFlux( const IntersectionType& it
@@ -388,7 +432,7 @@ namespace Dune {
 		// uRight[0]=uLeft[0];     
   
 		//v=0 
-		for(int i=0;i<dimDomain+1;i++)
+		for(int i=1;i<dimDomain+1;i++)
 			uRight[i]=0.;      
 		
 		//Neumann Boundary for \phi and \rho

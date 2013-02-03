@@ -139,7 +139,7 @@ namespace Dune {
     //We want to add it for mean value
 		diffmatrix.umv(normal, gLeft);
 
-      gLeft*=0.5;
+     gLeft*=0.5;
 
 			// mutliply with normal 
 			// copy flux 
@@ -195,7 +195,7 @@ namespace Dune {
       // time step is set in 2nd pass 
       return 0.0;
     }
-#if 0
+#if 0 
     template<class DiscreteModelImp,
 						 class AcRangeImp,
 						 class AcJacobianRangeImp,
@@ -435,15 +435,15 @@ namespace Dune {
 															 const RangeType& uLeft,
 															 const RangeType& uRight,
 															 const GradientRangeType& sigmaLeft,
-															 const GradientRangeType& thetaLeft,
 															 RangeType& gLeft,
 															 JacobianRangeType& gDiffLeft) const   /*@LST0E@*/
     {
 			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jacLeft( sigmaLeft );
-			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> tensLeft(thetaLeft );
       return boundaryFlux( intersection, discreteModel, time,
                            faceQuadInner, quadPoint, uLeft, uRight,
-                           jacLeft, tensLeft,gLeft, gDiffLeft );
+                           jacLeft, 
+                           //<F2>tensLeft,
+                           gLeft, gDiffLeft );
     }
 
     /**
@@ -459,14 +459,13 @@ namespace Dune {
                         const RangeType& uLeft,
                         const RangeType& uRight,
                         const JacobianRangeTypeImp& sigmaLeft,
-											  const JacobianRangeTypeImp& thetaLeft,
+											  //const JacobianRangeTypeImp& thetaLeft,
 												RangeType& gLeft,
                         JacobianRangeType& gDiffLeft) const   /*@LST0E@*/
     {
       // get local point 
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
       const DomainType normal = intersection.integrationOuterNormal(x);
-
       const EntityType& inside  = discreteModel.inside();
 
       /****************************/
@@ -474,7 +473,10 @@ namespace Dune {
       /****************************/
       JacobianRangeType diffmatrix;
      
-
+      //sigma+
+      model_.boundarydiffusion(inside,time,faceQuadInner.point(quadPoint),
+                       uLeft,sigmaLeft,diffmatrix);
+   
       diffmatrix.mv(normal, gLeft);
       
 

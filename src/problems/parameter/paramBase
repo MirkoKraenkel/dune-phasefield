@@ -73,6 +73,6 @@ fem.adaptation.adaptcount: 0 # after this many time step, 0 disables adaptation
 
 # DOMAIN CONFIGURATION
 #---------------------
-femhowto.startLevel:3 
+femhowto.startLevel:2 
 
-phasefield.endTime: 1e-7
+phasefield.endTime: 10 

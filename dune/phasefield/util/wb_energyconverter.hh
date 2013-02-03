@@ -15,7 +15,7 @@
  *  \param[out] primDF The discrete function of primitive variables
  */
 template< class ConsDiscreteFunctionType,class GradientFunctionType, class ModelType, class EnergyFunctionType >
-void energyconverter( const ConsDiscreteFunctionType& consDF, 
+double energyconverter( const ConsDiscreteFunctionType& consDF, 
                       const GradientFunctionType& gradDF,
           	          const ModelType& model,
                       EnergyFunctionType& energyDF) 
@@ -49,12 +49,13 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
   ConsRangeType cons(0.0); 
   GradRangeType grad(0.0);
   EnergyRangeType energy(0.0);
- 
+  double integral=0.;
+  
   Iterator it    = space.begin();
   Iterator endit = space.end();
  
 	// if empty grid, do nothing 
-  if( it == endit ) return ;
+  if( it == endit ) return -42. ;
   
   for( ; it != endit ; ++it) 
   {
@@ -81,10 +82,11 @@ void energyconverter( const ConsDiscreteFunctionType& consDF,
 			model.totalEnergy(xgl, cons, grad, energy);
       energy*=  quad.weight(qP);
 			energyLF.axpy(quad[qP],energy);
+      integral+=energy*volume;
     }
   
-}
-	
+  }
+	return integral;
     
 }
 

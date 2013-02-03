@@ -2,12 +2,12 @@
 #------------
 
 
-fem.prefix: ./data_reconstructedgrad # specify directory for data output (is created if not exists)
+fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-6 #save data every time interval 
+fem.io.savestep: 1e-1 #save data every time interval 
 fem.io.savecount: 0 # save every i-th ste
 phasefield.eocOutputPath: ./data
-
+phasefield.energyfile: ./energy.gnu
 # GRID SOLUTION
 #--------------
 
@@ -32,7 +32,7 @@ phasefield.additionalvariables: true
 phasefield.reactionrate: 0.2
 
 phasefield.delta: 0.09
-mu: 0.0
+mu: 0.01
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
 phasefield.penalty: 1
