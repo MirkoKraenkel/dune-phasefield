@@ -382,6 +382,11 @@ namespace Dune {
 		  phasefieldPhysics_.totalEnergy(cons,grad,energy[0] );
 		}
 
+ inline double delta()const
+  {
+    return phasefieldPhysics_.delta();
+  }
+
 
 		
 	protected:

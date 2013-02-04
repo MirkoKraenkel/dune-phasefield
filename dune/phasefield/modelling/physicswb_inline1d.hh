@@ -117,13 +117,13 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   	rho=cons[0];
     rho_inv=1./rho;
   	phi=cons[phaseId];
+  phi*=rho_inv;
     //velocity 
     prim[0] = cons[1]*rho_inv;
     //pressure  
   	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
     //phasefield
     prim[phaseId] = phi;
-    prim[phaseId]*=rho_inv;
   
   }
 

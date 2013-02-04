@@ -278,7 +278,7 @@ namespace Dune {
       tension=thetaLeft;
       tension+=thetaRight;
       
-      tension*=-0.5;
+      tension*=0.5;
        
 
 				

@@ -718,9 +718,9 @@ namespace Dune {
       if( diffusion ) 
       {
         JacobianRangeType diffmatrix;
-	JacobianRangeType tensionmatrix;
-	model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
- 	model_.tension(en,time,x,u[uVar],u[thetaVar],tensionmatrix);
+      	JacobianRangeType tensionmatrix;
+      	model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
+ 	      model_.tension(en,time,x,u[uVar],u[thetaVar],tensionmatrix);
 
         // ldg case 
         f += diffmatrix;

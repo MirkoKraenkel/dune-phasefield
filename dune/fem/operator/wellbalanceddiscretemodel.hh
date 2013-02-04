@@ -203,9 +203,8 @@ namespace Dune {
       typedef typename ArgumentTuple::template Get<passUId>::Type UType;
       UType uRight;
    
-			if( false /*model_.hasBoundaryValue(it,time,x)*/ )
+			if( model_.hasBoundaryValue(it,time,x) )
 			{
-	
 					model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
 				}
 			else 
@@ -452,14 +451,14 @@ namespace Dune {
       average[1]=uLeft[uVar][0]+uRight[uVar][0];
       average*=0.5;
       nonCons[1]=uLeft[thetaVar][0]-uRight[thetaVar][0];
-      nonCons+=average;
+      nonCons[1]*=average[1];
       nonCons*=normal[0];
-
+      nonCons*=0.5;
         
 
 
-			gLeft+=nonCons;
-			gRight-=nonCons;
+			gLeft-=nonCons;
+			gRight+=nonCons;
 			
 			gDiffLeft  = 0;
 			gDiffRight = 0;

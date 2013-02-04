@@ -111,7 +111,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
 	  s[0]=0.;
 		s[1]=0.;
-		s[2]=reaction;
+		s[2]=-reaction;
     return 0.09;
   }
 
@@ -362,7 +362,11 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     phasefieldPhysics_.totalEnergy(cons, grad,energy[0] );
   }
 
- 
+  inline double delta()const
+  {
+    return phasefieldPhysics_.delta();
+  }
+
   inline double visc() const 
   {
     std::cout<<"REVISE ME\n!"; 

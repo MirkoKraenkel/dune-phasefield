@@ -17,7 +17,7 @@ GRIDTYPE=SPGRID
 GRIDDIM = 1 
 POLORDER= 0  
 
-PROBLEM = 1# check ./problemtype.hh
+PROBLEM = 5# check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
 # INFO SPACE OPERATOR:

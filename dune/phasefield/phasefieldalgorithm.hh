@@ -334,21 +334,20 @@ public:
 			{
 				 
 				DiscreteFunctionType* addVariables = additionalVariables();
-				// calculate DG-projection of additional variables
-				if ( addVariables )
+		   DiscreteSigmaType* gradient=sigma();
+
+        // calculate DG-projection of additional variables
+				if ( addVariables && gradient)
 					{
-						// calculate additional variables from the current num. solution
-					  setupAdditionalVariables( solution(), model(), *addVariables );
+					  gradient->clear();
+            dgOperator_.gradient(solution(),*gradient);
+
+
+            // calculate additional variables from the current num. solution
+					  setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
 					}
 
-        DiscreteSigmaType* gradient=sigma();
-       
-        if(gradient)
-        {  
-          gradient->clear();
-          dgOperator_.gradient(solution(),*gradient);
-
-        }
+            
         DiscreteScalarType*  totalenergy =energy();
     	  
         if(gradient && totalenergy)   

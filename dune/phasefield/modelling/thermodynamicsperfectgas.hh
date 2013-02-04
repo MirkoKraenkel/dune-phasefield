@@ -129,8 +129,8 @@ public:
   	inline double delta()const {return delta_;}
 		inline double delta_inv()const {return delta_inv_;}
     inline double mu1() const{ return epsilon_;}
-		inline double mu2()const {  return epsilon_;}
-
+	 	inline double mu2()const {  return epsilon_;}
+   
 	private:
 		mutable double  delta_;
     mutable double  delta_inv_;

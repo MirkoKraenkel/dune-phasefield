@@ -558,7 +558,7 @@ LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUN
 BASEDIR = ../../../dune/fem/main
 SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 POLORDER = 0  
-PROBLEM = 1# check ./problemtype.hh
+PROBLEM = 5# check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 phasefield_SOURCES = $(SOURCES) 
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO

@@ -106,18 +106,23 @@ public:
 	
 	inline double  pressure( double& rho, double& phi) const
 	{
-		
-    double t1;
-    double t2;
-    double t3;
-    double t8;
-    
+		double delta=delta_;
+double t1;
+  double t10;
+  double t2;
+  double t26;
+  double t3;
+  {
     t1 = phi*phi;
-		t2 = t1*t1;
-		t3 = t2*phi;
-		t8 = t1*phi;
-		return(-0.6*rho*t3+0.15E1*rho*t2-1.0*rho*t8-0.5+0.16E1*rho+3.0*t3-0.75E1*t2
-					 +5.0*t8);
+    t2 = t1*t1;
+    t3 = t2*phi;
+    t10 = t1*phi;
+    t26 = 6.0*t3*rho*delta-15.0*t2*rho*delta+10.0*t10*rho*delta+5.0*delta-16.0*
+delta*rho-30.0*delta*t3+75.0*delta*t2-50.0*delta*t10+20.0*t1-40.0*t10+20.0*t2;
+    return(-0.1*t26/delta);
+  }
+
+   
 
 	}
 		

@@ -4,7 +4,7 @@
 
 fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-1 #save data every time interval 
+fem.io.savestep: 5e-2 #save data every time interval 
 fem.io.savecount: 0 # save every i-th ste
 phasefield.eocOutputPath: ./data
 phasefield.energyfile: ./energy.gnu
@@ -32,7 +32,7 @@ phasefield.additionalvariables: true
 phasefield.reactionrate: 0.2
 
 phasefield.delta: 0.09
-mu: 0.01
+mu: 0.1
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
 phasefield.penalty: 1
@@ -72,6 +72,6 @@ femhowto.maxTimeStep: 0.5
 
 # Output
 #------------
-phasefield.additionalvariables: false 
+phasefield.additionalvariables: true 
 phasefield.energy: true
 phasefield.sigma: true 

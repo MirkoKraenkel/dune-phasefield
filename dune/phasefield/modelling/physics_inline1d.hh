@@ -133,7 +133,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   	phi=cons[phaseId];
     phi*=rho_inv;
     //velocity 
-    prim[0] = cons[1]/rho;
+    prim[0] = cons[1]*rho_inv;
     //pressure  
   	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
     //phasefield
@@ -186,7 +186,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		
 		mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-		reaction*=-1.;
 	}
 
   template< class Thermodynamics >
@@ -204,7 +203,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		
 		p=thermoDynamics_.pressure(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-		reaction*=-1.;	
 		assert( p > 1e-20 );
 	}
 
@@ -262,7 +260,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
     f[0]=0;
 		f[1]=0;
-		f[2]=theta[1];
+		f[2]=-theta[1];
 	  return delta_;
   }
 
@@ -346,7 +344,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  } 
 
 
-#if 1 
 // template< class Thermodynamics >
 // template< class JacobianRangeImp>
  template< class Thermodynamics>
@@ -371,8 +368,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     diff[2]=0;
                           
   }
-#endif
-
 }//end namespace Dune
 #endif// PHYSICS_INLINE_HH
 

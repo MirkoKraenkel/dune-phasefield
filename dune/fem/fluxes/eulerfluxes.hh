@@ -102,7 +102,7 @@ public:
     visc = uRight;
     visc -= uLeft;
     visc *= viscpara;
-    gLeft -= visc;
+  //  gLeft -= visc;
     gLeft *= 0.5*len;
     gRight = gLeft;
 
@@ -209,7 +209,7 @@ public:
 
     maxspeed = (maxspeedl > maxspeedr) ? maxspeedl : maxspeedr;
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
-#if 1 
+#if 0 
     viscpara*=visc_;
     visc = uRight;
     visc -= uLeft;
@@ -222,22 +222,22 @@ public:
     viscpara*=visc_;
     visc = uRight;
     
-    if(intersection.neighbor())
-      visc -= uLeft;
+    visc -= uLeft;
 
     visc *= viscpara;
   
     for(int i=1; i<dimDomain+1;i++)
 			{
-				gLeft[i] -= visc[i];
+//				gLeft[i] -= visc[i];
 			}
-  if( intersection.neighbor() )
-  {   
+
+   if( intersection.neighbor() )
+   {   
       newvisc=thetaLeft;
 		  newvisc-=thetaRight;
-		  newvisc*=alpha1_;
-      gLeft[0]-=newvisc[0];
-  }	
+		  newvisc*=viscpara;
+//      gLeft[0]-=newvisc[0];
+   }	
 		gLeft *= 0.5*len; 
 		gRight = gLeft;
 #endif
