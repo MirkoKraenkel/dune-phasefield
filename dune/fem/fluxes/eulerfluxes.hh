@@ -97,12 +97,13 @@ public:
 
     maxspeed = (maxspeedl > maxspeedr) ? maxspeedl : maxspeedr;
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
-  
+ 
+
     viscpara*=visc_;
     visc = uRight;
     visc -= uLeft;
     visc *= viscpara;
-  //  gLeft -= visc;
+    gLeft -= visc;
     gLeft *= 0.5*len;
     gRight = gLeft;
 
@@ -233,10 +234,10 @@ public:
 
    if( intersection.neighbor() )
    {   
-      newvisc=thetaLeft;
-		  newvisc-=thetaRight;
-		  newvisc*=viscpara;
-//      gLeft[0]-=newvisc[0];
+     newvisc=thetaLeft;
+	  newvisc-=thetaRight;
+	  newvisc*=viscpara;
+//     gLeft[0]-=newvisc[0];
    }	
 		gLeft *= 0.5*len; 
 		gRight = gLeft;

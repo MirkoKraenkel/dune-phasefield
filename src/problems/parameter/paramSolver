@@ -1,18 +1,18 @@
 # SOLVER CONFIGURATION
 #---------------------
 
-fem.ode.odesolver : EX  # ode solvers: EX, IM, IMEX
-#fem.ode.order:  
+fem.ode.odesolver: EX # ode solvers: EX, IM, IMEX
+fem.ode.order: 1 
 fem.ode.verbose: full # ode output: none, cfl, full
 fem.ode.cflincrease: 1.25
 fem.ode.miniterations: 95
 fem.ode.maxiterations: 1000
-fem.ode.solver.tolerance: 1e-7
+fem.ode.solver.tolerance: 1e-8
 fem.ode.cflStart: 1e-5
 fem.ode.cflMax: 10
 fem.timeprovider.factor: 0.9
 fem.timeprovider.updatestep: 1
-fixedTimeStep: 1e-5 #when 0 then use dynamic time step
+fixedTimeStep: 1e-8 #when 0 then use dynamic time step
 fixedTimeStepEocLoopFactor: 1. # fixed time step is scaled with the inverse of this in each eoc loop
 
 dgdiffusionflux.method: CDG2 # diffusion flux: CDG2, CDG, BR2, IP, NIPG, BO

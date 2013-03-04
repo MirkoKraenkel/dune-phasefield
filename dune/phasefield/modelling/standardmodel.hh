@@ -105,12 +105,25 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                       , const RangeType& u
                       , RangeType& s ) const 
   {
-   
-		double reaction,pressure;
+
+    DomainType xgl = en.geometry().global( x );
+ 
+    double deltainv=phasefieldPhysics_.delta_inv();
+		double delta=phasefieldPhysics_.delta();
+    double reaction,pressure;
     //reaction=-dF/dphi
     phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
-	  s[0]=0.;
-		s[1]=0.;
+	  double tan=tanh(xgl[0]*deltainv);
+        
+    double a=1-tan*tan;
+    
+    s[1]=a*a*tan;
+    s[1]*=deltainv*deltainv*deltainv;  
+    s[1]*=0.5;
+    //s[1]-=grdtan;
+    s[1]*=-delta;
+    s[1]=0;
+    s[0]=0.;
 		s[2]=-reaction;
     return 0.09;
   }

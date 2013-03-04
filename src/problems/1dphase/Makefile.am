@@ -15,9 +15,9 @@ SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 GRIDTYPE=SPGRID
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM = 1 
-POLORDER= 0  
+POLORDER= 4  
 
-PROBLEM = 5# check ./problemtype.hh
+PROBLEM = 1# check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
 # INFO SPACE OPERATOR:

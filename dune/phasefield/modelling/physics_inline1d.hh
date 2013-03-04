@@ -257,10 +257,10 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								const ThetaJacobianRangeType& dtheta,
 								RangeType& f) const
 	{
-
+ abort();
     f[0]=0;
 		f[1]=0;
-		f[2]=-theta[1];
+		f[2]=theta[1];
 	  return delta_;
   }
 

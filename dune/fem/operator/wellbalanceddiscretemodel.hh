@@ -457,8 +457,8 @@ namespace Dune {
         
 
 
-			gLeft-=nonCons;
-			gRight+=nonCons;
+			gLeft+=nonCons;
+			gRight-=nonCons;
 			
 			gDiffLeft  = 0;
 			gDiffRight = 0;

@@ -2,12 +2,12 @@
 #------------
 
 
-fem.prefix: ./data # specify directory for data output (is created if not exists)
+fem.prefix: ./dataTestSTD3 # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 5e-2 #save data every time interval 
+fem.io.savestep: 1e-3 #save data every time interval 
 fem.io.savecount: 0 # save every i-th ste
-phasefield.eocOutputPath: ./data
-phasefield.energyfile: ./energy.gnu
+phasefield.eocOutputPath: ./dataTestSTD3
+phasefield.energyfile: ./energyTestSTD3
 # GRID SOLUTION
 #--------------
 
@@ -29,13 +29,13 @@ phasefield.diffusionTimeStep: 1
 phasefield.epsilon: 0.05
 phasefield.energy: true
 phasefield.additionalvariables: true  
-phasefield.reactionrate: 0.2
+phasefield.reactionrate: 1. 
 
-phasefield.delta: 0.09
+phasefield.delta: 0.2
 mu: 0.1
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
-phasefield.penalty: 1
+phasefield.penalty: 10 
 c1:1
 c2:2
 smear: 0.25
@@ -69,7 +69,7 @@ dgiffusionflux.upwind: -1 -3.141
 #dgdiffusionflux.upwind: -1 
 paramfile: ../parameter/paramSolver
 femhowto.maxTimeStep: 0.5
-
+fem.ode.tolerance: 1e-8
 # Output
 #------------
 phasefield.additionalvariables: true 

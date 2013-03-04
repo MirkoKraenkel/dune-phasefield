@@ -113,7 +113,7 @@ public:
   // type of data writer 
   typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
 
-	// type of time provider organizing time for time loops 
+	// type of ime provider organizing time for time loops 
 	typedef Dune::Fem::GridTimeProvider< GridType >                 TimeProviderType;
 	
 
@@ -470,7 +470,9 @@ public:
 					{
 						std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
 						eocDataOutput.write(tp);
-						abort();
+					 energyfile.close();
+
+            abort();
 					}
 					
 				if( (printCount > 0) && (counter % printCount == 0))
