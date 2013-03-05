@@ -3,7 +3,7 @@
 
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
-#if 0
+#ifdef MASTER 
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
 #else
 #include <dune/fem/space/dgspace/localrestrictprolong.hh>
