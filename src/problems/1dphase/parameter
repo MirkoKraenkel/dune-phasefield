@@ -2,12 +2,12 @@
 #------------
 
 
-fem.prefix: ./dataSTD # specify directory for data output (is created if not exists)
+fem.prefix: ./dataSTD_15 # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-2 #save data every time interval 
+fem.io.savestep: 1e-1 #save data every time interval 
 fem.io.savecount: 0 # save every i-th ste
-phasefield.eocOutputPath: ./dataSTD
-phasefield.energyfile: ./energySTD.gnu
+phasefield.eocOutputPath: ./dataSTD_15
+phasefield.energyfile: ./energySTD_15.gnu
 # GRID SOLUTION
 #--------------
 
@@ -31,7 +31,7 @@ phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.reactionrate: 1. 
 
-phasefield.delta: 0.2
+phasefield.delta: 0.1
 mu: 2  
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
