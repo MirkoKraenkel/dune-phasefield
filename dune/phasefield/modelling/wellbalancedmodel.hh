@@ -128,11 +128,12 @@ namespace Dune {
 															 const GradientRangeType& du,
 															 const ThetaRangeType& theta,
 															 const ThetaJacobianRangeType& dtheta,
-															 RangeType & s) const
+															 const JacobianRangeType& jacU,
+                               RangeType & s) const
 		{	
 
       
-     return phasefieldPhysics_.stiffSource(u, du,theta,dtheta,s);
+     return phasefieldPhysics_.stiffSource(u, du,theta,dtheta,jacU,s);
 
  		}
 

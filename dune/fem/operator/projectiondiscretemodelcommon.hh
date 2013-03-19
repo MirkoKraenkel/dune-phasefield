@@ -47,8 +47,10 @@ namespace Dune {
     typedef Fem::FunctionSpace< ctype, double, dimDomain, dimRange >      FunctionSpaceType;
     typedef Fem::FunctionSpace< ctype, double, dimDomain, 1 >             ScalarFunctionSpaceType;
     
-    typedef Fem::DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >         DiscreteFunctionSpaceType;
-		typedef Fem::DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >   ScalarDiscreteSpaceType;
+    typedef Fem::DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >       DiscreteFunctionSpaceType;
+    typedef Fem::DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >       ProjectionDiscreteFunctionSpaceType;
+		
+    typedef Fem::DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >   ScalarDiscreteSpaceType;
 		typedef ScalarDiscreteSpaceType ScalarDiscreteFunctionSpaceType;
 		typedef Fem::AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >         DestinationType;
 		typedef Fem::AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >   DiscreteScalarType;

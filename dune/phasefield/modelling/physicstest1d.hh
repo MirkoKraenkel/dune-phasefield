@@ -77,7 +77,8 @@ class PhasefieldPhysics<1,Thermodynamics>
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
-								            RangeType& f) const;
+								            const JacobianRangeType&  uJac,
+                            RangeType& f) const;
  
   template< class JacobianRangeImp >
 	inline void diffusion( const RangeType& u,
@@ -168,8 +169,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 //    surfaceEnergy=gradphi;
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
-    
-	  res = surfaceEnergy+freeEnergy+kineticEnergy;
+    res= kineticEnergy; 
+	//  res = surfaceEnergy+freeEnergy+kineticEnergy;
   }
 
   template< class Thermodynamics >
@@ -254,7 +255,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 							  const GradientRangeType& du,
 							  const ThetaRangeType& theta,
 							  const ThetaJacobianRangeType& dtheta,
-							  RangeType& f) const
+							  const JacobianRangeType& uJac,
+                RangeType& f) const
 	{
     double rho=u[0];
     double phi=u[2];

@@ -15,7 +15,8 @@ SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 GRIDTYPE=SPGRID
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM = 1 
-POLORDER= 4  
+POLORDER= 2  
+
 
 PROBLEM = 1# check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
@@ -33,12 +34,15 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefield_wb 
+check_PROGRAMS = phasefield phasefield_wb phasefield_wb0
 phasefield_SOURCES = $(SOURCES) 
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO
 
 phasefield_wb_SOURCES = $(SOURCES) 
 phasefield_wb_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DWELLBALANCED -DMYALGO
+
+phasefield_wb0_SOURCES = $(SOURCES) 
+phasefield_wb0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DWELLBALANCED -DMYALGO
 
 
 

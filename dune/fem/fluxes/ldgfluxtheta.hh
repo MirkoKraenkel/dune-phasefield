@@ -336,7 +336,10 @@ namespace Dune {
 				{
 					// add penalty term ( enVolume() is available since we derive from
 					//    DiscreteModelDefaultWithInsideOutside)
-					const double factor = penalty_ * diffTimeStep ;
+//					const double factor = penalty_ * diffTimeStep ;
+          const double h=0.5*(discreteModel.enVolume()+discreteModel.nbVolume());
+          const double factor = penalty_/h   ;
+
 
 					RangeType jump( uLeft );
 					jump -= uRight;

@@ -136,12 +136,12 @@ namespace Dune {
 										 uRight,        /* { u_(x^+) } */
 										 diffmatrix     /* return diffusion tensor */
 										);
-    //We want to add it for mean value
-		diffmatrix.umv(normal, gLeft);
+      //We want to add it for mean value
+  		diffmatrix.umv(normal, gLeft);
 
-     gLeft*=0.5;
+       gLeft*=0.5;
 
-			// mutliply with normal 
+			 // mutliply with normal 
 			// copy flux 
 			gRight = gLeft;
 
@@ -362,7 +362,7 @@ namespace Dune {
 														uRight, sigmaRight, diffmatrix);
 			
          diffmatrix.umv(normal,gLeft);
-        gLeft*=0.5; 
+         gLeft*=0.5; 
       
 
       // apply normal 
@@ -403,7 +403,8 @@ namespace Dune {
 				{
 					// add penalty term ( enVolume() is available since we derive from
 					//    DiscreteModelDefaultWithInsideOutside)
-					const double factor = penalty_ * diffTimeStep ;
+          const double h=0.5*(discreteModel.enVolume()+discreteModel.nbVolume());
+          const double factor = penalty_/h   ;
 
 					RangeType jump( uLeft );
 					jump -= uRight;

@@ -177,15 +177,41 @@ public:
     DomainType normal = intersection.integrationOuterNormal(x);  
     const double len = normal.two_norm();
     normal *= 1./len;
+    double rhoLeft,rhoRight;  
+    double phiLeft,phiRight;
+    double vLeft[dimDomain],vRight[dimDomain];
+
     
+    rhoLeft  = uLeft[0];
+    rhoRight = uRight[0];
+    phiLeft  = uLeft[dimDomain+1];
+    phiRight = uRight[dimDomain+1];
+    phiLeft/=rhoLeft;
+    phiRight/=rhoRight;
+
+    for(int i=0; i<dimDomain; i++)
+    {
+      vLeft[i]=uLeft[1+i]/rhoLeft;
+      vRight[i]=uRight[1+i]/rhoRight;
+    }
+
+    
+
     RangeType visc;
-		ThetaRangeType newvisc;
+		ThetaRangeType newvisc,thetaFluxLeft,thetaFluxRight;
    	FluxRangeType anaflux;
    
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
     
-    
+    model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
+                      uLeft, thetaFluxLeft );
+
+   model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
+                      uRight,thetaFluxRight );
+
+
+
     // set gLeft 
     anaflux.mv( normal, gLeft );
 
@@ -210,38 +236,38 @@ public:
 
     maxspeed = (maxspeedl > maxspeedr) ? maxspeedl : maxspeedr;
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
-#if 0 
-    viscpara*=visc_;
-    visc = uRight;
-    visc -= uLeft;
-    visc *= viscpara;
-    gLeft -= visc;
-    gLeft *= 0.5*len;
-    gRight = gLeft;
-#else
-
     viscpara*=visc_;
     visc = uRight;
     
     visc -= uLeft;
 
     visc *= viscpara;
-  
-    for(int i=1; i<dimDomain+1;i++)
+#if 1    
+    for(int i=1; i<dimDomain;i++)
 			{
-//				gLeft[i] -= visc[i];
-			}
+				gLeft[i] -= visc[i];
+      }
 
    if( intersection.neighbor() )
-   {   
-     newvisc=thetaLeft;
-	  newvisc-=thetaRight;
-	  newvisc*=viscpara;
-//     gLeft[0]-=newvisc[0];
-   }	
-		gLeft *= 0.5*len; 
-		gRight = gLeft;
-#endif
+   {  
+      newvisc=thetaFluxLeft;
+ 	    newvisc-=thetaFluxRight;
+	    //newvisc*=10;
+      gLeft[0]-=newvisc[0];
+   	
+	    for(int i=1; i<dimDomain;i++)
+	  		{
+			  	gLeft[i] -= (vLeft[i]+vRight[i])*0.5*newvisc[0];
+		  	}
+
+     gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
+    }  
+#endif   
+   
+   
+   
+   gLeft *= 0.5*len; 
+   gRight = gLeft;
 
     return maxspeed * len;
   }

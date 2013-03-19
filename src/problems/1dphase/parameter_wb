@@ -2,12 +2,12 @@
 #------------
 
 
-fem.prefix: ./dataTestWB3_2 # specify directory for data output (is created if not exists)
+fem.prefix: ./dataWB # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-3 #save data every time interval 
+fem.io.savestep: 1e-2 #save data every time interval 
 fem.io.savecount: 0 # save every i-th ste
-phasefield.eocOutputPath: ./dataTestWB3_2
-phasefield.energyfile: ./energyTestWB3_2
+phasefield.eocOutputPath: ./dataWB
+phasefield.energyfile: ./energyWB.gnu
 # GRID SOLUTION
 #--------------
 
@@ -26,19 +26,19 @@ paramfile: ../parameter/paramBase
 #--------------
 
 phasefield.diffusionTimeStep: 1
-phasefield.epsilon: 0.05
+phasefield.epsilon: 0.2 
 phasefield.energy: true
 phasefield.additionalvariables: true  
+phasefield.theta: true
 phasefield.reactionrate: 1. 
 
 phasefield.delta: 0.2
-mu: 0.1
+mu: 2 
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
-phasefield.penalty: 10 
-c1:1
+phasefield.penalty: 0 
 c2:2
-smear: 0.25
+smear:  1
 phiscale: 0.99
 pressure: 1
 gamma: 0.3

@@ -141,9 +141,13 @@ inline void TanhProblem<GridType>
   for(int i=1;i<=dimension;i++)
       res[i]=0;
 
-  double tanx=0.5*tanh(x/delta_)+0.5;
-
-   
+   double tanx;
+  
+  if(t==0.)
+    tanx=0.95*0.5*tanh(x/delta_)+0.5;
+  else
+    tanx=0.5*tanh(x/delta_)+0.5;
+  
    res[0]=1.;
    
    res[dimension+1]=tanx;
@@ -155,7 +159,6 @@ inline double TanhProblem<GridType>
 ::rhoval( const double x ) const 
 {
   return exp((0.9-0.54E1*x*x*x*x*x+0.135E2*x*x*x*x-0.9E1*x*x*x)/(-0.12E1*x*x*x*x*x+0.3E1*x*x*x*x-0.2E1*x*x*x+0.16E1));
-
 
 }
 

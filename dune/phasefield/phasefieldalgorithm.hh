@@ -108,7 +108,7 @@ public:
 
 	// type of IOTuple 
 //	typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType* > IOTupleType; 
-	typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType* > IOTupleType; 
+	typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*,DiscreteThetaType* > IOTupleType; 
 	
   // type of data writer 
   typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
@@ -334,15 +334,18 @@ public:
 			{
 				 
 				DiscreteFunctionType* addVariables = additionalVariables();
-		   DiscreteSigmaType* gradient=sigma();
-
+		    DiscreteSigmaType* gradient=sigma();
+        DiscreteThetaType* theta1=theta();
         // calculate DG-projection of additional variables
 				if ( addVariables && gradient)
 					{
 					  gradient->clear();
             dgOperator_.gradient(solution(),*gradient);
 
-
+            if(theta1)
+              {
+                dgOperator_.theta(solution(),*theta1);
+              }
             // calculate additional variables from the current num. solution
 					  setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
 					}
@@ -404,9 +407,12 @@ public:
 		// tuple with additionalVariables 
 //			IOTupleType dataTuple( &U, this->sigma() );
 //	IOTupleType dataTuple( &U,   this->additionalVariables(),this->sigma() );
-		IOTupleType dataTuple( &U,   this->additionalVariables(),this->energy() );
+		IOTupleType dataTuple( &U,   this->additionalVariables(),this->energy(),this->theta() );
     std::ofstream energyfile;
-   // std::string filename="./energy.gnu";
+    std::ostringstream convert;
+    convert<<loop_;
+    std::string filename=energyFilename_;
+    filename.append(convert.str()); 
     energyfile.open(energyFilename_.c_str());
 
 	
@@ -445,7 +451,7 @@ public:
 
 		writeData( eocDataOutput, tp,std::cout, eocDataOutput.willWrite( tp ) );
 		
- 		
+    std::cout<<"Timemarches\n"; 		
 		for( ; tp.time() < endTime; )   
 			{ 
 				tp.provideTimeStepEstimate(maxTimeStep);                                         
@@ -469,8 +475,8 @@ public:
 				if (! U.dofsValid()) 
 					{
 						std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
-						eocDataOutput.write(tp);
-					 energyfile.close();
+			  		eocDataOutput.write(tp);
+				 	 energyfile.close();
 
             abort();
 					}
@@ -572,15 +578,14 @@ public:
 	virtual void finalize( const int eocloop ) 
 	{
 		DiscreteFunctionType& U = solution(); 
-//		DiscreteThetaType* theta1 = theta(); 
-			
-  
-		DiscreteFunctionType* addVars = additionalVariables();
-    DiscreteSigmaType* sig= sigma();
+  	DiscreteThetaType* theta1 = theta(); 
+	  DiscreteScalarType* totalenergy= energy(); 
+  		DiscreteFunctionType* addVars = additionalVariables();
+   //   DiscreteSigmaType* sig= sigma();
 		if( eocLoopData_ == 0 ) 
 			{
-			eocDataTup_ = IOTupleType( &U,addVars ); 
-//				eocDataTup_ = IOTupleType( &U,sig ); 
+			eocDataTup_ = IOTupleType( &U,addVars,totalenergy,theta1 ); 
+  //				eocDataTup_ = IOTupleType( &U,sig ); 
         eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
 			}
 

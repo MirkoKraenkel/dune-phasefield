@@ -203,11 +203,11 @@ namespace Dune {
       typedef typename ArgumentTuple::template Get<passUId>::Type UType;
       UType uRight;
    
-			if( model_.hasBoundaryValue(it,time,x) )
-			{
-					model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
-				}
-			else 
+//			if( model_.hasBoundaryValue(it,time,x) )
+//			{ 
+//			 		model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
+//				}
+//			else 
 				{
 					uRight = uLeft[ uVar ];
 				}
@@ -383,10 +383,11 @@ namespace Dune {
 			//        \theta_1=u[thetaVar][1]
 			//        \nablan\theta_2 jac[thetatVar]
 			double dtEst = std::numeric_limits< double > :: max();
-
-			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar], s );
-
-
+#if WELLBALANCED
+			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar],jac[uVar], s );
+#else
+		const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar], s );
+#endif
 			dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
 			maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
 	
@@ -448,18 +449,42 @@ namespace Dune {
 			RangeType nonCons(0.);
  
       RangeType average(0.);
+      double phiLeft,phiRight;
+      double rhoLeft,rhoRight;
+      rhoLeft = uLeft[uVar][0];
+      rhoRight= uRight[uVar][0];
+      phiLeft = uLeft[uVar][dimDomain+1];
+      phiRight= uRight[uVar][dimDomain+1];
+      phiLeft/=rhoLeft;
+      phiRight/=phiLeft;
+
+      
+      // {{rho}}
       average[1]=uLeft[uVar][0]+uRight[uVar][0];
       average*=0.5;
-      nonCons[1]=uLeft[thetaVar][0]-uRight[thetaVar][0];
-      nonCons[1]*=average[1];
-      nonCons*=normal[0];
+      //[[\mu]]
+     for(int i=0;i<dimDomain;i++)
+      {  
+        nonCons[i+1]=normal[i];
+        nonCons[i+1]*=uLeft[thetaVar][0]-uRight[thetaVar][0];
+        nonCons[i+1]*=average[1];
+      }   
+#if 0 
+      average[1]=0.5*(uLeft[thetaVar][1]+uRight[thetaVar][1])*(phiLeft-phiRight);
+      nonCons[1]-=average[1];
+#else
+#warning "OLD NONCON VARIANT"
+#endif
+ //     nonCons*=normal[0];
+      //factor comes from the meanvalue of the testfunctions
       nonCons*=0.5;
-        
+      //{{\theta}}[[phi]]
+   
 
-
-			gLeft+=nonCons;
-			gRight-=nonCons;
-			
+		//	gLeft+=nonCons;
+      gLeft+=nonCons;
+		  gRight+=nonCons;
+	
 			gDiffLeft  = 0;
 			gDiffRight = 0;
 

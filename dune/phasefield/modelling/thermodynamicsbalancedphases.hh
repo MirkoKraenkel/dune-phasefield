@@ -19,10 +19,10 @@ using namespace Dune;
 class BalancedThermodynamics:
 	public Thermodynamics<BalancedThermodynamics>
 {
-	typedef Thermodynamics<PG2Thermodynamics> BaseType;
+	typedef Thermodynamics<BalancedThermodynamics> BaseType;
 
 public:
-  PG2Thermodynamics():
+  BalancedThermodynamics():
     BaseType()
   {
     init();
@@ -82,8 +82,7 @@ t11-t13)*(-7.0*rho+3.0*t17+0.945940263E1));
       t16 = 30.0*t11-60.0*t7*phi+30.0*t7;
       t18 = log(rho);
       t19 = rho*t18;
-      return(4.0*t1*phi*t4-4.0*t1*t7*t3+t16*(-0.25E1*rho+0.15E1*t19+1.0)-t16*(
-      -7.0*rho+3.0*t19+0.945940263E1));
+      return(4.0*t1*phi*t4-4.0*t1*t7*t3+t16*(-0.25E1*rho+0.15E1*t19+1.0)-t16*( -7.0*rho+3.0*t19+0.945940263E1));
     } 
 
 	  
@@ -113,22 +112,35 @@ t11-t13)*(-7.0*rho+3.0*t17+0.945940263E1));
 
 	
 	inline double  pressure( double& rho, double& phi) const
-	{ 
+	{
     double delta=delta_;
-		double t1;
-    double t10;
-    double t14;
-    double t2;
-    double t3;
-    {
-      t1 = phi*phi;
-      t2 = t1*t1;
-      t3 = t2*phi;
-      t10 = t1*phi;
-      t14 = p0*delta;
-      return(-(-6.0*t3*p1*delta+15.0*t2*p1*delta-10.0*t10*p1*delta-t14+6.0*t14*t3-15.0*t14*t2+10.0*t14*t10+2.0*t1-4.0*t10+2.0*t2)/delta);
-    } 
 
+     double t1;
+     double t12;
+     double t13;
+     double t2;
+     double t23;
+     double t4;
+     double t8;
+     {
+        t1 = phi*phi;
+        t2 = t1*t1;
+        t4 = t2*phi*delta;
+        t8 = t2*delta;
+        t12 = t1*phi;
+        t13 = t12*delta;
+        t23 = 900000000.0*t4*rho-5075641578.0*t4-2250000000.0*t8*rho+
+              0.1268910394E11*t8+1500000000.0*t13*rho-8459402630.0*t13-300000000.0*delta*rho+
+              945940263.0*delta+200000000.0*t1-400000000.0*t12+200000000.0*t2;
+        return(-0.1E-7*t23/delta);
+      }
+
+  
+  
+  
+  
+  
+  
   }
 
    

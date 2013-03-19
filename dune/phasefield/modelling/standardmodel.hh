@@ -113,19 +113,11 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     double reaction,pressure;
     //reaction=-dF/dphi
     phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
-	  double tan=tanh(xgl[0]*deltainv);
         
-    double a=1-tan*tan;
-    
-    s[1]=a*a*tan;
-    s[1]*=deltainv*deltainv*deltainv;  
-    s[1]*=0.5;
-    //s[1]-=grdtan;
-    s[1]*=-delta;
-    s[1]=0;
     s[0]=0.;
-		s[2]=-reaction;
-    return 0.09;
+    s[1]=0;
+  	s[2]=-reaction*deltainv;
+    return deltainv;
   }
 
 

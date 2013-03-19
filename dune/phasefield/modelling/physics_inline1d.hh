@@ -108,7 +108,7 @@ class PhasefieldPhysics<1,Thermodynamics>
 public:
 
 	inline double delta()const {return delta_;}
-	inline double delta_inv(){return delta_inv_;}
+	inline double delta_inv()const{return delta_inv_;}
 	inline double mu1()const {return thermoDynamics_.mu1();}
 	inline double mu2(){return 1;}
 
@@ -126,7 +126,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 ::conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
  {
   	assert( cons[0] > 0. );
-  
+ 
   	double rho,rho_inv,phi;
   	rho=cons[0];
     rho_inv=1./rho;
@@ -203,7 +203,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		
 		p=thermoDynamics_.pressure(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-		assert( p > 1e-20 );
 	}
 
 
@@ -252,15 +251,18 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
 	::stiffSource(const RangeType& u,
-								const GradientRangeType& du,
-								const ThetaRangeType& theta,
-								const ThetaJacobianRangeType& dtheta,
-								RangeType& f) const
+							  const GradientRangeType& du,
+							  const ThetaRangeType& theta,
+							  const ThetaJacobianRangeType& dtheta,
+							  RangeType& f) const
 	{
- abort();
+    double rho=u[0];
+    double phi=u[2];
+    phi/=rho;
+    double reaction=thermoDynamics_.reaction(rho,phi);
     f[0]=0;
-		f[1]=0;
-		f[2]=theta[1];
+    f[1]=0;
+    f[2]=-delta_inv*reaction;
 	  return delta_;
   }
 
@@ -289,7 +291,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
-    diff[2][0]=dxphi*delta_;
+    diff[2][0]=dxphi*delta_*delta_inv_;
     
   }
    template< class Thermodynamics >

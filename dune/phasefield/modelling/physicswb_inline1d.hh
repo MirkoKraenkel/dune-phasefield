@@ -78,7 +78,8 @@ class PhasefieldPhysics<1,Thermodynamics>
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
-								            RangeType& f) const;
+	 							           const JacobianRangeType& uJac,
+                            RangeType& f) const;
  
   template< class JacobianRangeImp >
 	inline void diffusion( const RangeType& u,
@@ -241,12 +242,18 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								const GradientRangeType& du,
 					  		const ThetaRangeType& theta,
 								const ThetaJacobianRangeType& dtheta,
-								RangeType& f) const
+								const JacobianRangeType& jacU,
+                RangeType& f) const
 	{
+ //   double dphi=jacU[2];
+  
+    double dphi=du[2];
+  
+
   	f[0]=0;
-		f[1]=-dtheta[0]*u[0]-du[2]*theta[1];
-		f[2]=-theta[1];
-	  return delta_; 
+    f[1]=-dtheta[0]*u[0]-dphi*theta[1];
+		f[2]=-theta[1]*delta_inv_;
+	  return 1./delta_; 
   }
   template< class Thermodynamics >
   template< class JacobianRangeImp >

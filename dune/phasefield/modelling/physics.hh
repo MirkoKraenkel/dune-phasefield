@@ -87,7 +87,8 @@ class PhasefieldPhysics
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
-								            RangeType& f) const;
+								         const JacobianRangeType& jacU,
+                            RangeType& f) const;
  
   template< class JacobianRangeImp >
 	inline void diffusion( const RangeType& u,
@@ -128,10 +129,10 @@ class PhasefieldPhysics
 }
 
 #if WELLBALANCED
-#include "physicswbtest1d.hh"
+#include "physicswb_inline1d.hh"
 #include "physicswb_inline2d.hh"
 #else
-#include "physicstest1d.hh"
+#include "physics_inline1d.hh"
 #include "physics_inline2d.hh"
 #endif
 	//end namspace DUNE

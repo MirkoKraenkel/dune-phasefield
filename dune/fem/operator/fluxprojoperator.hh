@@ -18,7 +18,7 @@
 //#include <dune/fem-dg/operator/dg/primaldiscretemodel.hh>
 //#include <dune/fem-dg/operator/dg/fluxdiscretemodel.hh>
 #include "fluxprojdiscretemodel.hh" 
-#include <dune/fem-dg/operator/dg/operatorbase.hh>
+//#include <dune/fem-dg/operator/dg/operatorbase.hh>
 #include <dune/fem-dg/pass/dgpass.hh>
 
 
@@ -133,11 +133,6 @@ namespace Dune {
         
     }
     
-     void energy(const DestinationType &u,const Destination1Type& du,  ScalarDFType& en)const
-     {
-       abort();
-       // du.print(cout); 
-     }
 
 
     inline const SpaceType& space() const {

@@ -41,13 +41,10 @@ namespace Dune {
 		
 		typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
 		typedef typename Traits :: FaceQuadratureType                    FaceQuadratureType;
-		typedef typename Traits :: DiscreteFunctionSpaceType             DiscreteFunctionSpaceType;
+		typedef typename Traits :: ProjectionDiscreteFunctionSpaceType   DiscreteFunctionSpaceType;
 		
 		typedef typename Traits :: GridPartType                          GridPartType;
 		
-// 		typedef typename GridPartType :: IntersectionIteratorType          IntersectionIterator;
-//     typedef typename IntersectionIterator :: Intersection              Intersection;
-//     typedef typename DiscreteFunctionSpaceType :: EntityType           EntityType;
  		typedef typename ModelTraits::FaceDomainType              FaceDomainType;
 
 		typedef typename Traits :: DestinationType                       DestinationType;
@@ -166,7 +163,8 @@ namespace Dune {
 		 	model_.boundaryallenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
 			
 			diffmatL.mv(normal, gLeft);
-			gDiffLeft = 0;
+
+      gDiffLeft = 0;
 			
 
 			// add penalty term ( enVolume() is available since we derive from
