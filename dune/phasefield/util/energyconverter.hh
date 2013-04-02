@@ -9,18 +9,19 @@
 #include <time.h>
 
 
-/** \brief converts a discrete function of conservative variables to
- *    a discrete function of primitive variables
- *  
+/** \brief 
  *  \param[in] consDF The discrete function of conservative variables
+ *  \param[in] gradDF DG-Gradient of variables.
  *  \param[in] model The analytical model
- *  \param[out] primDF The discrete function of primitive variables
- */
+ *  \param[out] energDF discrete total energy
+ *
+ **/
 template< class ConsDiscreteFunctionType,class GradientFunctionType, class ModelType, class EnergyFunctionType >
 double energyconverter( const ConsDiscreteFunctionType& consDF, 
-                      const GradientFunctionType& gradDF,
-          	          const ModelType& model,
-                      EnergyFunctionType& energyDF) 
+                        const GradientFunctionType& gradDF,
+          	            const ModelType& model,
+                        EnergyFunctionType& energyDF,
+                        double& kineticEnergy) 
 {
   typedef typename ConsDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
     ConsDiscreteFunctionSpaceType;
@@ -48,7 +49,9 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
   
   ConsRangeType cons(0.0); 
   GradRangeType grad(0.0);
-  EnergyRangeType energy(0.0);
+  EnergyRangeType kin(0.0);
+  EnergyRangeType total(0.0);
+  kineticEnergy=0.;
   double integral=0.;
   Iterator it    = space.begin();
   Iterator endit = space.end();
@@ -75,11 +78,13 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
        
-      model.totalEnergy(xgl, cons, grad, energy);
+      model.totalEnergy(xgl,cons,grad,kin,total);
       
-      energy*= quad.weight(qP);
-      energyLF.axpy(quad[qP],energy);  
-      integral+=energy*=volume;
+      total*= quad.weight(qP);
+      kin*=quad.weight(qP);
+      energyLF.axpy(quad[qP],total);
+      integral+=total*volume;
+      kineticEnergy+=kin*volume;
     }
   
   }

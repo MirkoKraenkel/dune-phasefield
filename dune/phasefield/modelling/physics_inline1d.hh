@@ -51,7 +51,8 @@ class PhasefieldPhysics<1,Thermodynamics>
   template < class JacobianRangeImp >
   inline void totalEnergy( const RangeType& cons, 
                            const JacobianRangeImp& grad,
-                          double& res ) const;
+                          double& kin,
+                           double& total ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -88,6 +89,7 @@ class PhasefieldPhysics<1,Thermodynamics>
 	inline void allenCahn( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
+  
 	 template< class JacobianRangeImp >
 	inline void boundarydiffusion( const RangeType& u,
 												 const JacobianRangeImp& du,
@@ -146,7 +148,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   inline void PhasefieldPhysics<1,Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const JacobianRangeImp& grad , 
-                  double& res ) const
+                  double& kin,
+                  double& total ) const
   {
     assert( cons[0] > 0. );
 	  double rho = cons[0];
@@ -168,8 +171,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 //    surfaceEnergy=gradphi;
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
-    
-	  res = surfaceEnergy+freeEnergy+kineticEnergy;
+    kin = kineticEnergy;
+	  total = surfaceEnergy+freeEnergy+kineticEnergy;
   }
 
   template< class Thermodynamics >
@@ -186,7 +189,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		
 		mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-	}
+	  reaction*=1.;
+  }
 
   template< class Thermodynamics >
 	inline void PhasefieldPhysics<1,Thermodynamics >
@@ -314,8 +318,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     thermoDynamics_.pressure( rho,phi);
   
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
-    double dxphi = (dxrhophi - phi*dxrho);
-    dxphi/=rho;    
+    double dxphi = rho_inv*(dxrhophi - phi*dxrho);
+    
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
@@ -358,7 +362,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     assert( u[0] > 1e-10 );
     double rho_inv = 1. / u[0];
       
-    const double phi =  u[2]*rho_inv;
+    const double phi =  u[dimDomain+1]*rho_inv;
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
            

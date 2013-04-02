@@ -52,8 +52,6 @@ class PhasefieldPhysics
     delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
     delta_inv_(1./delta_)
   {
-    std::cout<<"-------------------------------------constructor Physics\n";
-	  std::cout<<thermoDynamics_.delta();
   }
  
   inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
@@ -61,7 +59,8 @@ class PhasefieldPhysics
   template< class JacobianRangeImp >
   inline void totalEnergy( const RangeType& cons, 
                            const JacobianRangeImp& grad,
-                          double& res ) const; 
+                           double& kin,
+                           double& total ) const; 
   
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,

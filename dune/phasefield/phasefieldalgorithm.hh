@@ -355,8 +355,10 @@ public:
     	  
         if(gradient && totalenergy)   
         {  
-          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy);
-          str<<tp.time()<<"\t"<<energyIntegral<<"\n";
+          double kineticEnergy;
+          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
+           
+          str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
         }
       
       }

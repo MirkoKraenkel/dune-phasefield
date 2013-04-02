@@ -2,12 +2,12 @@
 #------------
 
 
-fem.prefix: ./dataSTD_15 # specify directory for data output (is created if not exists)
+fem.prefix: ./data_2d2 # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-1 #save data every time interval 
-fem.io.savecount: 0 # save every i-th ste
-phasefield.eocOutputPath: ./dataSTD_15
-phasefield.energyfile: ./energySTD_15.gnu
+fem.io.savestep: 1e-2 #save data every time interval 
+fem.io.savecount: 1 # save every i-th ste
+phasefield.eocOutputPath: ./data_2d2
+phasefield.energyfile: ./energy_2d2
 # GRID SOLUTION
 #--------------
 
@@ -31,11 +31,11 @@ phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.reactionrate: 1. 
 
-phasefield.delta: 0.1
-mu: 2  
+phasefield.delta: 0.2
+mu: 0.5 
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
-phasefield.penalty: 0 
+phasefield.penalty: 1 
 c1:1
 c2:2
 smear: 0.25
@@ -51,9 +51,9 @@ visc: 0.0
 
 fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
 #fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
-#fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
+fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
-fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf

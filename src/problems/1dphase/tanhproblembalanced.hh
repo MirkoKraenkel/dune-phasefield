@@ -136,7 +136,7 @@ template <class GridType>
 inline void TanhProblem<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-    double x=arg[0];
+   double x=arg[0];
  
   for(int i=1;i<=dimension;i++)
       res[i]=0;

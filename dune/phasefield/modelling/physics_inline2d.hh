@@ -1,5 +1,5 @@
-#ifndef PHYSICS_INLINE_HH
-#define PHYSICS_INLINE_HH
+#ifndef PHYSICS_INLINE2D_HH
+#define PHYSICS_INLINE2D_HH
 namespace Dune{
 template<class Thermodynamics>
 class PhasefieldPhysics<2,Thermodynamics>
@@ -45,7 +45,8 @@ class PhasefieldPhysics<2,Thermodynamics>
   template<class JacobianRangeImp>
   inline void totalEnergy( const RangeType& cons, 
                            const JacobianRangeImp& grad,
-                           double& res ) const;
+                           double& kin,
+                           double& total ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -80,6 +81,15 @@ class PhasefieldPhysics<2,Thermodynamics>
   
   template< class JacobianRangeImp >
 	inline void allenCahn( const RangeType& u,
+												 const JacobianRangeImp& du,
+												 ThetaJacobianRangeType& f ) const;
+		 template< class JacobianRangeImp >
+	inline void boundarydiffusion( const RangeType& u,
+												 const JacobianRangeImp& du,
+												 JacobianRangeType& f ) const;
+  
+  template< class JacobianRangeImp >
+	inline void baoundaryallenCahn( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
 	
@@ -136,7 +146,8 @@ protected:
   inline void PhasefieldPhysics< 2, Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const JacobianRangeImp& grad , 
-                  double& res ) const
+                  double& kin,
+                  double& total ) const
   {
     assert( cons[0] > 0. );
 	  double rho = cons[0];
@@ -153,8 +164,8 @@ protected:
 
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
-
-	  res = freeEnergy + surfaceEnergy + kineticEnergy;
+    kin = kineticEnergy;
+	  total = freeEnergy + surfaceEnergy + kineticEnergy;
 
   }
 
@@ -189,7 +200,6 @@ protected:
 		
 		p=thermoDynamics_.pressure(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-		reaction*=-1.;
 			
 //		assert( p > 1e-20 );
 	}
@@ -204,15 +214,21 @@ protected:
 		const double rho_inv = 1. / u[0];
 		const double vx = u[1]*rho_inv;
 		const double vy = u[2]*rho_inv;
-
+		double p;
+  	double rho=u[0];
+    double phi=u[phaseId];
+    phi*=rho_inv;
+    p=thermoDynamics_.pressure(rho,phi);
+ 
    
 		f[0][0] = u[1];
 	  f[0][1] = u[2]; 
-    f[1][0] = vx*u[1];
-	  f[1][1] = vx*u[2];
-    f[2][0] = vy*u[1];
-    f[2][1] = vy*u[2];
-    f[3][0] = u[phaseId];
+    f[1][0] = vx*u[1]+p;
+	  f[1][1] = vx*u[1];
+    f[2][0] = f[1][1];
+    f[2][1] = vy*u[2]+p;
+    f[3][0] = u[phaseId]*vx;
+    f[3][1] = u[phaseId]*vy;
   }
 
   template<class Thermodynamics> 
@@ -241,16 +257,6 @@ protected:
    a[5][0] = 0.;         a[5][1] = u[2];
    a[6][0] = u[3];       a[6][1] = 0.;
    a[7][0] = 0.;         a[7][1] = u[3];
-#if 0
-    a[0][0] = u[0];
-    a[1][1] = u[0];
-    a[2][0] = vx;
-    a[2][1] = vx;
-    a[3][0] = vy;
-    a[3][0] = vy;
-    a[4][0] = phi;
-    a[4][0] = phi;
-#endif
   }
 
 	template< class Thermodynamics >
@@ -261,10 +267,9 @@ protected:
 									const ThetaRangeType& thetaR,
 									RangeType& ret) const
 	{
-    std::cout<<"Checkme physics_inline2d.hh nonConProduct\n";
-	 ret[1]=0.5*(uL[0]+uR[0])*(thetaL[0]-thetaR[0]);
- 	 ret[2]=0.5*(uL[0]+uR[0])*(thetaL[0]-thetaR[0]);
- 
+  
+    abort();
+
 
   }
 	
@@ -276,13 +281,17 @@ protected:
 								const ThetaJacobianRangeType& dtheta,
 								RangeType& f) const
 	{
-		    std::cout<<"Checkme physics_inline2d.hh stiffSourc\n";
-		
-      f[0]=0;
-			f[1]=dtheta[0]*u[0]+du[2]*theta[1];
-			f[2]=0;
-	    f[3]=theta[1];
-    return 1.;
+    std::cout<<"Checkme physics_inline2d.hh stiffSourc\n";
+		double rho=u[0];
+    double phi=u[phaseId];
+    phi/=rho;
+    double reaction=thermoDynamics_.reaction(rho,phi);
+  
+   f[0]=0;
+   f[1]=0;
+	 f[2]=0;
+	 f[3]=-delta_inv*reaction;
+    return delta_;
   }
   
   template<class Thermodynamics>
@@ -297,8 +306,9 @@ protected:
     double rho_inv = 1. / u[0];
     const double v[2] = { u[1]*rho_inv, u[2]*rho_inv };
   
-    const double muLoc = 1.;
-    const double lambdaLoc =1.;
+    const double phi = u[3]*rho_inv;
+    const double muLoc = mu1();
+    const double lambdaLoc = mu2();
   
     // get dx_u, dz_u, dx_w, dz_w, dx_T, dz_T (in 2d case) for du
     const double du00=du[0][0];
@@ -307,12 +317,16 @@ protected:
     const double du11=du[1][1];//dy rho*U_1
     const double du20=du[2][0];//dx rho*U_2
     const double du21=du[2][1];//dy rho*U_2
-  
+    const double du30=du[3][0];//dx rho*phi
+    const double du31=du[3][1];;//dz rho*phi
+ 
     const double dxu = rho_inv*(du10 - v[0]*du00);//=1/rho(dx(rho*v1)-v1*dx(rho))=dx(v1);
     const double dzu = rho_inv*(du11 - v[0]*du01);
     const double dxw = rho_inv*(du20 - v[1]*du00);
     const double dzw = rho_inv*(du21 - v[1]*du01);
-  
+    const double dxphi = rho_inv*( du30 - phi*du00); //dx(rho*phi)-phi*dx(rho)=rho*dx(phi);
+    const double dzphi = rho_inv*( du31 - phi*du01);
+ 
     const double tau00 = (2.*muLoc+lambdaLoc)*dxu + lambdaLoc*dzw;
     const double tau01 = muLoc*(dxw + dzu);
     const double tau10 = tau01;
@@ -321,14 +335,67 @@ protected:
     // 1st row
     diff[0][0] = 0.;                   diff[0][1] = 0.;
     // 2nd row
-    diff[1][0] = tau00;                diff[1][1] = tau01;
-    // 3rd row
-    diff[2][0] = tau10;                diff[2][1] = tau11;
-    // 4th row
-    diff[3][0] =0.;                diff[3][1] = 0.;
+    //diff[1][0] = tau00;                diff[1][1] = tau01;
+       diff[1][0] = muLoc*dxu;                diff[1][1] = 0.; 
+   // 3rd row
+  //  diff[2][0] = tau10;                diff[2][1] = tau11;
+    diff[2][0] = 0.;                diff[2][1] = muLoc*dzw;
+  // 4th row
+    diff[3][0] = dxphi;                diff[3][1] = dzphi;
     
    }
+   template<class Thermodynamics>
+  template< class JacobianRangeImp >
+  inline void PhasefieldPhysics< 2, Thermodynamics >
+  ::boundarydiffusion( const RangeType& u,
+               const JacobianRangeImp& du,
+               JacobianRangeType& diff) const
+  {
+    // du is grad(u) which is 4x2 matrix (for 2d case)
+    assert( u[0] > 1e-10 );
+    double rho_inv = 1. / u[0];
+    const double v[2] = { u[1]*rho_inv, u[2]*rho_inv };
+
+    const double phi=u[3]*rho_inv;
+
+    const double muLoc = mu1();
+    const double lambdaLoc = mu2();
   
+    // get dx_u, dz_u, dx_w, dz_w, dx_T, dz_T (in 2d case) for du
+    const double du00=du[0][0];
+    const double du01=du[0][1];
+    const double du10=du[1][0];//dx rho*U_1
+    const double du11=du[1][1];//dy rho*U_1
+    const double du20=du[2][0];//dx rho*U_2
+    const double du21=du[2][1];//dy rho*U_2
+    const double du30=du[3][0];//dx rho*phi
+    const double du31=du[3][1];;//dz rho*phi
+ 
+    const double dxu = rho_inv*(du10 - v[0]*du00);//=1/rho(dx(rho*v1)-v1*dx(rho))=dx(v1);
+    const double dzu = rho_inv*(du11 - v[0]*du01);
+    const double dxw = rho_inv*(du20 - v[1]*du00);
+    const double dzw = rho_inv*(du21 - v[1]*du01);
+    const double dxphi = rho_inv*( du30 - phi*du00); //dx(rho*phi)-phi*dx(rho)=rho*dx(phi);
+    const double dzphi = rho_inv*( du31 - phi*du01);
+ 
+    const double tau00 = (2.*muLoc+lambdaLoc)*dxu + lambdaLoc*dzw;
+    const double tau01 = muLoc*(dxw + dzu);
+    const double tau10 = tau01;
+    const double tau11 = lambdaLoc*dxu + (2.*muLoc+lambdaLoc)*dzw;
+
+    // 1st row
+    diff[0][0] = 0.;                   diff[0][1] = 0.;
+    // 2nd row
+//v   diff[1][0] = tau00;                diff[1][1] = tau01;
+      diff[1][0] = muLoc*dxu;                diff[1][1] = 0.; 
+      // 3rd row
+  //  diff[2][0] = tau10;                diff[2][1] = tau11;
+      diff[2][0] = 0.;                diff[2][1] = muLoc*dzw;
+  // 4th row
+    diff[3][0] = 0;                diff[3][1] = 0;
+    
+   }
+ 
 
   template< class Thermodynamics >
   template< class JacobianRangeImp >
@@ -354,14 +421,14 @@ protected:
     assert( u[0] > 1e-10 );
     double rho_inv = 1. / u[0];
   
-    const double phi =  u[2]*rho_inv;
+    const double phi =  u[dimDomain+1]*rho_inv;
+ 
     const double dxrho     = du[0][0]; //drho/dx
     const double dyrho     = du[0][1]; //drho/dy
+   
     const double dxrhophi  = du[3][0]; //d(rho*phi)/dx
     const double dyrhophi  = du[3][1]; //d(rho*phi)/dy
   
-    const double rhodxphi = (dxrhophi - phi*dxrho);
-    const double rhodyphi = (dyrhophi - phi*dyrho);
   
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
     const double dyphi = rho_inv*(dyrhophi - phi*dyrho);
@@ -370,13 +437,13 @@ protected:
   
     diff[0]=0; 
     diff[1]=0;
-    diff[2]=rhodxphi*dxphi;
-    diff[3]=rhodyphi*dxphi;
-    diff[4]=rhodyphi*dxphi;
-    diff[5]=rhodyphi*dyphi;
+    diff[2]=dxphi*dxphi;
+    diff[3]=dyphi*dxphi;
+    diff[4]=dyphi*dxphi;
+    diff[5]=dyphi*dyphi;
     diff[6]=0;
     diff[7]=0;
-    diff*=delta_;
+    diff*=0.5*delta_;
 }
 
 
