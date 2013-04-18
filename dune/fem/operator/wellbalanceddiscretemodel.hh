@@ -196,21 +196,16 @@ namespace Dune {
                         const ArgumentTuple& uLeft,
                         const JacobianTuple& jacLeft,
                         RangeType& gLeft,
-                        JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
+                        JacobianRangeType& gDiffLeft ) const   
     {
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 
       typedef typename ArgumentTuple::template Get<passUId>::Type UType;
       UType uRight;
    
-//			if( model_.hasBoundaryValue(it,time,x) )
-//			{ 
-//			 		model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
-//				}
-//			else 
-				{
-					uRight = uLeft[ uVar ];
-				}
+			{
+				uRight = uLeft[ uVar ];
+			}
       
       return gradientFlux_.gradientBoundaryFlux(it, inside(),
 																								time, faceQuadInner, quadPoint,
@@ -223,7 +218,7 @@ namespace Dune {
     /**
      * @brief method required by LocalDGPass
      */
-    template <class ArgumentTuple, class JacobianTuple>    /*@LST1S@*/
+    template <class ArgumentTuple, class JacobianTuple> 
     void analyticalFlux(const EntityType& en,
                         const double time, const DomainType& x,
                         const ArgumentTuple& u, 
@@ -231,7 +226,7 @@ namespace Dune {
                         JacobianRangeType& f)
     {
       model_.jacobian(en, time, x, u[ uVar ], f);
-    }                                /*@LST1E@*/
+    }                              
 
   private:
     const Model& model_;
@@ -340,15 +335,14 @@ namespace Dune {
 		typedef typename Traits :: DomainFieldType                         DomainFieldType;
 		typedef typename Traits :: RangeType                               RangeType;
 		typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
-// 		typedef typename Traits :: RangeType                               RangeType;
-// 		typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
 
 	
 		typedef typename Traits :: DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
 
 		typedef LDGDiffusionFlux< DiscreteFunctionSpaceType, Model> DiffusionFluxType;
 		enum { evaluateJacobian = false };
-	public:
+
+  public:
 		/**
 		 * @brief constructor
 		 */
@@ -383,12 +377,10 @@ namespace Dune {
 			//        \theta_1=u[thetaVar][1]
 			//        \nablan\theta_2 jac[thetatVar]
 			double dtEst = std::numeric_limits< double > :: max();
-#if WELLBALANCED
+
 			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar],jac[uVar], s );
-#else
-		const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar], s );
-#endif
-			dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
+		  
+      dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
 			maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
 	
 			
@@ -421,16 +413,15 @@ namespace Dune {
 												 JacobianRangeType& gDiffRight )
 		{
 			// advection
-		   const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+		  const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+     
       const DomainType normal = it.integrationOuterNormal( x );
-
-						
-			const double wave = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter,
+  
+      double wave = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter,
 																										 quadPoint, uLeft, uRight, jacLeft, jacRight, 
 																										 gLeft, gRight, gDiffLeft, gDiffRight );
       
 			// diffusion
-
 			double diffTimeStep = 0.0;
 			if( diffusion ) 
 				{
@@ -451,10 +442,10 @@ namespace Dune {
       RangeType average(0.);
       double phiLeft,phiRight;
       double rhoLeft,rhoRight;
-      rhoLeft = uLeft[uVar][0];
-      rhoRight= uRight[uVar][0];
-      phiLeft = uLeft[uVar][dimDomain+1];
-      phiRight= uRight[uVar][dimDomain+1];
+      rhoLeft  = uLeft[uVar][0];
+      rhoRight = uRight[uVar][0];
+      phiLeft  = uLeft[uVar][dimDomain+1];
+      phiRight = uRight[uVar][dimDomain+1];
       phiLeft/=rhoLeft;
       phiRight/=phiLeft;
 
@@ -475,15 +466,14 @@ namespace Dune {
 #else
 #warning "OLD NONCON VARIANT"
 #endif
- //     nonCons*=normal[0];
+///     nonCons*=normal[0];
       //factor comes from the meanvalue of the testfunctions
       nonCons*=0.5;
       //{{\theta}}[[phi]]
    
 
-		//	gLeft+=nonCons;
       gLeft+=nonCons;
-		  gRight+=nonCons;
+		  gRight-=nonCons;
 	
 			gDiffLeft  = 0;
 			gDiffRight = 0;

@@ -92,7 +92,7 @@ class PhasefieldPhysics<1,Thermodynamics>
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
 	
-   template< class JacobianRangeImp >
+  template< class JacobianRangeImp >
 	inline void boundarydiffusion( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 JacobianRangeType& f ) const;
@@ -234,7 +234,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 									const ThetaRangeType& thetaL,
 									const ThetaRangeType& thetaR,
 									RangeType& ret) const
-	{  abort();
+	{ abort();
 	  ret[0]=0;
     ret[1]=0.5*(uL[0]+uR[0])*(thetaL[0]-thetaR[0]);
  	  ret[2]=0;
@@ -257,7 +257,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   	f[0]=0;
     f[1]=-dtheta[0]*u[0]-dphi*theta[1];
 		f[2]=-theta[1]*delta_inv_;
-	  return 1./delta_; 
+	  return delta_inv_; 
   }
   template< class Thermodynamics >
   template< class JacobianRangeImp >
@@ -281,7 +281,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
-   assert( u[0] > 1e-10 );
 	
 	 diff[0][0]=0.;
 	 diff[1][0]=-delta_*du[2][0];
@@ -294,13 +293,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
   {
-    assert( u[0] > 1e-10 );
-		const double muLoc = mu1();
-    const double dxv   = du[1][0]; //dv/dx
-		diff[0][0]=0.;
-		diff[1][0]=muLoc*dxv;
-  	diff[2][0]=0.;
- 
+     diffusion(u,du,diff); 
   }
   template<class Thermodynamics>
   template< class JacobianRangeImp >
@@ -309,7 +302,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
-   assert( u[0] > 1e-10 );
 	
 	 diff[0][0]=0.;
 	 diff[1][0]=0.;
