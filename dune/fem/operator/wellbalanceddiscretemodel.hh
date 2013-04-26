@@ -198,7 +198,7 @@ namespace Dune {
                         RangeType& gLeft,
                         JacobianRangeType& gDiffLeft ) const   
     {
-      const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+//      const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 
       typedef typename ArgumentTuple::template Get<passUId>::Type UType;
       UType uRight;
@@ -447,7 +447,7 @@ namespace Dune {
       phiLeft  = uLeft[uVar][dimDomain+1];
       phiRight = uRight[uVar][dimDomain+1];
       phiLeft/=rhoLeft;
-      phiRight/=phiLeft;
+      phiRight/=rhoLeft;
 
       
       // {{rho}}
@@ -460,9 +460,9 @@ namespace Dune {
         nonCons[i+1]*=uLeft[thetaVar][0]-uRight[thetaVar][0];
         nonCons[i+1]*=average[1];
       }   
-#if 0 
+#if 1 
       average[1]=0.5*(uLeft[thetaVar][1]+uRight[thetaVar][1])*(phiLeft-phiRight);
-      nonCons[1]-=average[1];
+      nonCons[1]+=average[1];
 #else
 #warning "OLD NONCON VARIANT"
 #endif
