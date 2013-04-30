@@ -29,7 +29,7 @@
 #include <dune/fem-dg/misc/runfile.hh>
 #include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
-#if 0
+#if MASTER 
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
 #else
 #include <dune/fem/space/dgspace/localrestrictprolong.hh>
@@ -196,22 +196,32 @@ public:
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
 		dgOperator_(grid,convectionFlux_)
-	{}
+	{
+   std::cout<<"algoconstructor checj prob"<<problem().thermodynamics().mu1()<<"\n";
+  }
 
 	//! destructor 
   virtual ~PhasefieldAlgorithm()
   {
 		delete sigma_;
 		sigma_=0;
-		delete theta_;
+		delete sigmaSpace_;
+    sigmaSpace_=0;
+    delete theta_;
 		theta_=0;
+    delete thetaSpace_;
+    thetaSpace_=0;
 		delete energy_;
 		energy_=0;
+    delete energySpace_;
+    energySpace_=0;
 		delete odeSolver_;
 		odeSolver_ = 0;
 		delete problem_ ;
 		problem_ = 0;
-		delete adaptationHandler_ ;
+		delete model_;
+    model_=0;
+    delete adaptationHandler_ ;
 		adaptationHandler_ = 0;
 		delete additionalVariables_; 
 		additionalVariables_ = 0;
@@ -268,8 +278,8 @@ public:
 
   const ModelType& model() const 
   { 
-    assert( model_ ); 
-    return *model_;
+   assert( model_ ); 
+   return *model_;
   }
 
 	virtual void initializeStep(TimeProviderType& tp)
