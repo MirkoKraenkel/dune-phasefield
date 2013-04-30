@@ -127,9 +127,9 @@ private:
 	GridType&               grid_;
 	GridPartType            gridPart_;
 	DiscreteSpaceType       space_;
-	ThetaDiscreteSpaceType*  thetaSpace_;
-	SigmaDiscreteSpaceType*  sigmaSpace_;
-	ScalarDiscreteSpaceType* energySpace_;
+	ThetaDiscreteSpaceType  thetaSpace_;
+	SigmaDiscreteSpaceType  sigmaSpace_;
+	ScalarDiscreteSpaceType energySpace_;
 	Dune::Fem::IOInterface*       eocLoopData_;
 	IOTupleType             eocDataTup_; 
 	unsigned int            timeStepTimer_; 
@@ -169,9 +169,9 @@ public:
 		grid_(grid)	,
 		gridPart_( grid_ ),
 		space_( gridPart_ ),
-		thetaSpace_( Fem::Parameter :: getValue< bool >("phasefield.theta", false)  ? new ThetaDiscreteSpaceType(gridPart_ ) : 0 ),
-    sigmaSpace_( Fem::Parameter :: getValue< bool >("phasefield.sigma", false) ? new SigmaDiscreteSpaceType(gridPart_ ) : 0 ),
-		energySpace_(Fem::Parameter :: getValue< bool >("phasefield.energy", false) ? new ScalarDiscreteSpaceType(gridPart_ ) : 0 ),
+		thetaSpace_( gridPart_ ),
+    sigmaSpace_(gridPart_ ),
+		energySpace_(gridPart_ ),
  		eocLoopData_( 0 ),
  		eocDataTup_(),
  		timeStepTimer_( Dune::FemTimer::addTo("max time/timestep") ),
@@ -205,16 +205,10 @@ public:
   {
 		delete sigma_;
 		sigma_=0;
-		delete sigmaSpace_;
-    sigmaSpace_=0;
     delete theta_;
 		theta_=0;
-    delete thetaSpace_;
-    thetaSpace_=0;
 		delete energy_;
 		energy_=0;
-    delete energySpace_;
-    energySpace_=0;
 		delete odeSolver_;
 		odeSolver_ = 0;
 		delete problem_ ;
@@ -235,21 +229,21 @@ public:
 	}
 	SigmaDiscreteSpaceType& sigmaspace()
 	{
-		assert(sigmaSpace_);
-		return *sigmaSpace_;
+		
+		return sigmaSpace_;
 	}
 
 	
 	ThetaDiscreteSpaceType& thetaspace()
 	{
-		assert(thetaSpace_);
-		return *thetaSpace_;
+
+		return thetaSpace_;
 	}
 
 	ScalarDiscreteSpaceType& energyspace()
 	{
-		assert(energySpace_);
-		return *energySpace_;
+
+		return energySpace_;
 	}
 	size_t gridSize() const
 	{
