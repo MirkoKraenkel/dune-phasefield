@@ -20,7 +20,6 @@ class PhasefieldPhysics<1,Thermodynamics>
     enum { dimThetaRange =  2 };
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
     enum { dimGradRange = dimRange * dimDomain };
-    enum { dimGradient = dimDomain + 1 };
     
     typedef double RangeFieldType;
 
@@ -249,13 +248,15 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								const JacobianRangeType& jacU,
                 RangeType& f) const
 	{
- //   double dphi=jacU[2];
-  
-    double dphi=du[2];
+    double rho_inv=1./u[0];
+    double phi=u[2]*rho_inv;
+    double dphi=jacU[2][0]-phi*jacU[0][0];
+    dphi*=rho_inv;
+   // double dphi=du[2];
   
 
   	f[0]=0;
-    f[1]=-dtheta[0]*u[0]-dphi*theta[1];
+    f[1]=-dtheta[0]*u[0]+dphi*theta[1];
 		f[2]=-theta[1]*delta_inv_;
 	  return delta_inv_; 
   }

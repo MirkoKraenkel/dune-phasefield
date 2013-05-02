@@ -20,7 +20,6 @@ class PhasefieldPhysics<1,Thermodynamics>
     enum { dimThetaRange =  2 };
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
     enum { dimGradRange = dimRange * dimDomain };
-    enum { dimGradient = dimDomain + 1 };
     
     typedef double RangeFieldType;
 
@@ -318,8 +317,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     thermoDynamics_.pressure( rho,phi);
   
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
-    double dxphi = rho_inv*(dxrhophi - phi*dxrho);
-    
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;

@@ -13,7 +13,6 @@ class PhasefieldPhysics<2,Thermodynamics>
     enum { dimThetaRange =  2 };
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
     enum { dimGradRange = dimRange * dimDomain };
-    enum { dimGradient = dimDomain + 1 };
     
     typedef double RangeFieldType;
 

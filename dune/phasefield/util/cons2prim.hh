@@ -92,7 +92,6 @@ typedef typename ModelType::JacobianRangeType JacobianRangeType;
       gradphi-=phi*jac[0][0];
       gradphi*=rho_inv;
 #endif
-     double surface=model.delta()*0.5*gradphi*gradphi;
 
       model.conservativeToPrimitive( xgl, cons, prim );
       prim[dimDomain]+=model.delta()*0.5*gradphi*gradphi; 

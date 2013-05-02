@@ -92,7 +92,6 @@ t11-t13)*(-7.0*rho+3.0*t17+0.945940263E1));
 
 	inline double chemicalPotential(double& rho,double& phi) const
 	{
-    double delta=delta_;
     double t1;
     double t11;
     double t2;
