@@ -21,36 +21,28 @@ USEJACOBIAN=1
 PROBLEM = 1# check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
-# INFO SPACE OPERATOR:
-# 		1. define PRIMALDG for various space operators in primal formulation
-# 	  2. define DUALDG for the LDG space operator in dual formulation
-# INFO TRACK LIFTING:
-# 		1. define LOCALDEBUG to calculate \sum_e\int_Omega(r_e*l_e) and 
-# 			 \sum_e\int_Omega(r_e*l_e). They will be output to std::cout from the Stepper
-# INFO LIMITER
-# 		1. define LIMITER to limit the advection part of the solution (not checked)
 AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
               -DPROBLEM=$(PROBLEM) -D$(GRIDTYPE) $(DUNEMPICPPFLAGS) -DFEMTIMER \
               -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefieldP0  phasefield_wb phasefieldP0_wb phasefield_wb_jac
+check_PROGRAMS = phasefield phasefield_P0 phasefield_nc phasefield_nc_P0 phasefield_nc_jac
 phasefield_SOURCES = $(SOURCES) 
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO 
 
-phasefieldP0_SOURCES = $(SOURCES) 
-phasefieldP0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO 
+phasefield_P0_SOURCES = $(SOURCES) 
+phasefield_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO 
 
 
-phasefield_wb_SOURCES = $(SOURCES) 
-phasefield_wb_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
+phasefield_nc_SOURCES = $(SOURCES) 
+phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
 
-phasefieldP0_wb_SOURCES = $(SOURCES) 
-phasefieldP0_wb_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
+phasefield_nc_P0_SOURCES = $(SOURCES) 
+phasefield_nc_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
 
 
-phasefield_wb_jac_SOURCES = $(SOURCES) 
-phasefield_wb_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=$(USEJACOBIAN) -DWELLBALANCED -DMYALGO
+phasefield_nc_jac_SOURCES = $(SOURCES) 
+phasefield_nc_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=$(USEJACOBIAN) -DWELLBALANCED -DMYALGO
 
 
 
@@ -62,18 +54,5 @@ EXTRA_DIST = paramFiles/param*
 CLEANFILES = manager.*.log 
 
 PROG=phase
-# codegeneration 
-generatecode:
-	$(MAKE) -i clean
-	$(MAKE) CXXFLAGS="-O0 -Wall -DNDEBUG -DBASEFUNCTIONSET_CODEGEN_GENERATE" $(PROG)
-	./$(PROG) paramFiles/paramNSWaves 
-
-compilecode:
-	$(MAKE) clean 
-	$(MAKE) CXXFLAGS="$(CXXFLAGS) -DUSE_BASEFUNCTIONSET_CODEGEN" $(PROG)
-
-codegen:
-	$(MAKE) generatecode
-	$(MAKE) compilecode
 
 include $(top_srcdir)/am/global-rules

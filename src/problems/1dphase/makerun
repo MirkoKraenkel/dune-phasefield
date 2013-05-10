@@ -1,0 +1,4 @@
+run: 
+	$(MAKE) phasefield 
+	./phasefield scheme:con order:0 parameter &>/dev/null
+	gnuplot energy.gp 
