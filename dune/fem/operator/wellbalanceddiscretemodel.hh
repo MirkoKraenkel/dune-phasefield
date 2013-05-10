@@ -23,7 +23,7 @@ namespace Dune {
   // GradientModel
   //--------------
   
-  template <class Model, class NumFlux, int polOrd, int passUId> /*@LST1S@*/
+  template <class Model, class NumFlux, int polOrd, int passUId> 
   class GradientModel;
 
 
@@ -198,7 +198,6 @@ namespace Dune {
                         RangeType& gLeft,
                         JacobianRangeType& gDiffLeft ) const   
     {
-//      const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 
       typedef typename ArgumentTuple::template Get<passUId>::Type UType;
       UType uRight;
@@ -340,7 +339,7 @@ namespace Dune {
 		typedef typename Traits :: DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
 
 		typedef LDGDiffusionFlux< DiscreteFunctionSpaceType, Model> DiffusionFluxType;
-		enum { evaluateJacobian = false };
+		enum { evaluateJacobian = true };
 
   public:
 		/**
@@ -352,6 +351,7 @@ namespace Dune {
 			: BaseType( mod, numf ),
 				diffFlux_( diffflux ),
 				penalty_( 1.0 ),
+        switch_(Fem::Parameter::getValue<double>("phasefield.thetaswitch",1)),
 				cflDiffinv_( 8.0 * ( polOrd + 1) )
 		{}
 
@@ -373,7 +373,8 @@ namespace Dune {
 									 RangeType& s ) const
 		{
 			s = 0;
-			//we need \sigma_phi= u[sigmaVar][dimDomain+1]
+
+      //we need \sigma_phi= u[sigmaVar][dimDomain+1]
 			//        \theta_1=u[thetaVar][1]
 			//        \nablan\theta_2 jac[thetatVar]
 			double dtEst = std::numeric_limits< double > :: max();
@@ -447,31 +448,33 @@ namespace Dune {
       phiLeft  = uLeft[uVar][dimDomain+1];
       phiRight = uRight[uVar][dimDomain+1];
       phiLeft/=rhoLeft;
-      phiRight/=rhoLeft;
+      phiRight/=rhoRight;
 
       
       // {{rho}}
       average[1]=uLeft[uVar][0]+uRight[uVar][0];
       average*=0.5;
+   
       //[[\mu]]
-     for(int i=0;i<dimDomain;i++)
+      for(int i=0;i<dimDomain;i++)
       {  
         nonCons[i+1]=normal[i];
         nonCons[i+1]*=uLeft[thetaVar][0]-uRight[thetaVar][0];
         nonCons[i+1]*=average[1];
       }   
-#if 1 
+#if  1 
       average[1]=0.5*(uLeft[thetaVar][1]+uRight[thetaVar][1])*(phiLeft-phiRight);
-      nonCons[1]+=average[1];
+   
+      //nonCon
+      nonCons[1]+=switch_*average[1];
 #else
 #warning "OLD NONCON VARIANT"
 #endif
-///     nonCons*=normal[0];
+    
       //factor comes from the meanvalue of the testfunctions
       nonCons*=0.5;
+      
       //{{\theta}}[[phi]]
-   
-
       gLeft+=nonCons;
 		  gRight-=nonCons;
 	
@@ -555,12 +558,9 @@ namespace Dune {
 												 JacobianRangeType& f ) const
 		{
 			// advection
-    
 			BaseType :: analyticalFlux( en, time, x, u, jac, f );
 
 			// diffusion
-   
-      
 			if( diffusion ) 
 				{
 					JacobianRangeType diffmatrix;
@@ -573,7 +573,8 @@ namespace Dune {
 	protected:
 		mutable DiffusionFluxType& diffFlux_;
 		const double penalty_;
-		const double cflDiffinv_;
+    const double switch_; 
+    const double cflDiffinv_;
 	};                                              /*@LST0E@*/
 
 }

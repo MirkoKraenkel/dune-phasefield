@@ -141,8 +141,8 @@ inline void TanhProblem<GridType>
   for(int i=1;i<=dimension;i++)
       res[i]=0;
 
-  double tanx=0.5*tanh(x/delta_)+0.5;
-
+  double tanx=0.4*tanh(x/delta_)+0.5;
+  //double tanx=0.9;
    
    res[0]=rhoval(tanx);
   

@@ -99,8 +99,7 @@ namespace Dune {
 		typedef typename Traits :: JacobianFluxRangeType          JacobianFluxRangeType;
 
 	public:
-		PhaseModel( const ThermodynamicsType& thermo ): 
-//			thermo_(thermo) 
+		PhaseModel( const ThermodynamicsType& thermo ):
       phasefieldPhysics_( thermo )
 		{
 		  std::cout<<"constructor wellbalancedmodel\n";
@@ -131,10 +130,7 @@ namespace Dune {
 															 const JacobianRangeType& jacU,
                                RangeType & s) const
 		{	
-
-      
      return phasefieldPhysics_.stiffSource(u, du,theta,dtheta,jacU,s);
-
  		}
 
 
@@ -185,7 +181,6 @@ namespace Dune {
       const double mu = phasefieldPhysics_.mu1();
    
       return mu * circumEstimate * 1 / (0.25 * u[0] * enVolume);
-
   	}
 
 

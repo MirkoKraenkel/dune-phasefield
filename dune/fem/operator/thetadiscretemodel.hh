@@ -167,10 +167,7 @@ namespace Dune {
       gDiffLeft = 0;
 			
 
-			// add penalty term ( enVolume() is available since we derive from
-			//    DiscreteModelDefaultWithInsideOutside)
-			const double factor = acpenalty_  ;
-			
+		
 			
 
 

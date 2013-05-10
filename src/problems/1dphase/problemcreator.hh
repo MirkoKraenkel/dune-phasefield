@@ -90,17 +90,11 @@ struct ProblemGenerator
 
   static ProblemType* problem()
   {
-    std::cout<<"problemcreator new ProblemType()\n";
     return new ProblemType ();
   }
 
 };
-#if MYALGO
 #include<dune/phasefield/phasefieldalgorithm.hh>
-#else
-#include <dune/fem/main/stepper.hh>
-#include <dune/fem/main/steppertraits.hh>
-#endif
 
 
 #endif // PHASE_PROBLEMCREATOR_HH

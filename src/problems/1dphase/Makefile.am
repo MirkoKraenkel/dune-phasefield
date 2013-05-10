@@ -14,9 +14,9 @@ SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 #GRIDTYPE = ONEDGRID
 GRIDTYPE=SPGRID
 #GRIDTYPE = ALBERTAGRID
-GRIDDIM = 2 
-POLORDER= 1  
-
+GRIDDIM = 1 
+POLORDER= 1 
+USEJACOBIAN=1
 
 PROBLEM = 1# check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
@@ -34,15 +34,23 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefield_wb phasefield_wb0
+check_PROGRAMS = phasefield phasefieldP0  phasefield_wb phasefieldP0_wb phasefield_wb_jac
 phasefield_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO 
+
+phasefieldP0_SOURCES = $(SOURCES) 
+phasefieldP0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO 
+
 
 phasefield_wb_SOURCES = $(SOURCES) 
-phasefield_wb_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DWELLBALANCED -DMYALGO
+phasefield_wb_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
 
-phasefield_wb0_SOURCES = $(SOURCES) 
-phasefield_wb0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DWELLBALANCED -DMYALGO
+phasefieldP0_wb_SOURCES = $(SOURCES) 
+phasefieldP0_wb_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
+
+
+phasefield_wb_jac_SOURCES = $(SOURCES) 
+phasefield_wb_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=$(USEJACOBIAN) -DWELLBALANCED -DMYALGO
 
 
 

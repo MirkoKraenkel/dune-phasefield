@@ -40,7 +40,7 @@ public:
 
   LLFFlux( const Model& mod )
     : model_(mod),
-      visc_(model_.visc())
+      visc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",1))
   {}
 
   static std::string name () { return "LLF"; }
@@ -207,7 +207,7 @@ public:
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
-   model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
+   model_.thetaSource( outside, time, faceQuadOuter.point( quadPoint ),
                       uRight,thetaFluxRight );
 
 

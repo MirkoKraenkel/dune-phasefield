@@ -21,6 +21,7 @@
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/util/phasefieldodesolver.hh>
+
 #if WELLBALANCED
 #include <dune/fem/operator/wellbalancedoperator.hh>
 #else
@@ -34,7 +35,6 @@
 #else
 #include <dune/fem/space/dgspace/localrestrictprolong.hh>
 #endif
-#include <dune/fem/solver/odesolver.hh>
 #if WELLBALANCED
 #include <dune/phasefield/util/wb_energyconverter.hh>
 #else
@@ -118,7 +118,7 @@ public:
 	
 
   typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
-
+  typedef   Estimator1<DiscreteFunctionType> EstimatorType;
   typedef Dune::RunFile< GridType >  RunFileType;
 	
 	//MemberVaribles
@@ -162,7 +162,7 @@ private:
 #if PF_USE_ADAPTATION
   DGIndicatorType         dgIndicator_;
 #endif
-//  double tolerance_;
+  double tolerance_;
 public:
 	//Constructor
 	PhasefieldAlgorithm(GridType& grid):
@@ -195,10 +195,10 @@ public:
     odeSolver_( 0 ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
-		dgOperator_(grid,convectionFlux_)
-	{
-   std::cout<<"algoconstructor checj prob"<<problem().thermodynamics().mu1()<<"\n";
-  }
+		dgOperator_(grid,convectionFlux_),
+    tolerance_(Fem::Parameter :: getValue< double >("phasefield", 0.1))
+    {
+    }
 
 	//! destructor 
   virtual ~PhasefieldAlgorithm()
@@ -318,7 +318,7 @@ public:
 	//! estimate and mark solution 
   virtual void estimateMarkAdapt( AdaptationManagerType& am )
   {
-#if 0
+#ifdef MYADAPT
     EstimatorType estimator( solution_,grid_ );
     estimator.estimateAndMark(tolerance_);
     am.adapt();

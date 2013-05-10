@@ -80,7 +80,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 
  public:
   PhaseModel( const ThermodynamicsType& thermo ) 
-    : phasefieldPhysics_( thermo  )
+    : phasefieldPhysics_( thermo )
   {
   }
 
@@ -376,15 +376,11 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     return phasefieldPhysics_.delta();
   }
 
-  inline double visc() const 
-  {
-    std::cout<<"REVISE ME\n!"; 
-    return 1.;
-  }
   
  
  protected:
   const PhysicsType phasefieldPhysics_;
+
 };
 
 

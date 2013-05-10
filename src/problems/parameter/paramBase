@@ -20,7 +20,7 @@ fem.parallel.runfile: 1
 # (-1: off, p: process p is verbose, in general 0 is a good choice)
 fem.verboserank: 0 
 
-fem.io.outputformat: vtk-cell # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-cel
+fem.io.outputformat: gnuplot # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-cel
 fem.io.subsamplinglevel: 3 
 fem.io.grapedisplay: 0 
 
@@ -73,6 +73,6 @@ fem.adaptation.adaptcount: 0 # after this many time step, 0 disables adaptation
 
 # DOMAIN CONFIGURATION
 #---------------------
-femhowto.startLevel: 3 
+femhowto.startLevel: 7 
 
-phasefield.endTime:  1e-5 
+phasefield.endTime:  0.1

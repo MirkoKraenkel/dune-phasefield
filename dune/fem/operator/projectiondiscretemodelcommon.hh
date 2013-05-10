@@ -307,7 +307,7 @@ public:
     if( advection ) 
       {
 #if WELLBALANCED
-					double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
+				double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
 																							time, faceQuadInner, faceQuadOuter, quadPoint, 
 																						uLeft[ uVar ], uRight[ uVar ],uLeft[thetaVar],uRight[thetaVar],gLeft, gRight);
 #else
@@ -681,16 +681,25 @@ public:
 
     if( advection ) 
       {
-	// std::cout<<"discretemodelcommon advection\n";
-    	double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
-                                            time, faceQuadInner, faceQuadOuter, quadPoint, 
- 					    uLeft[ uVar ], uRight[ uVar ], uLeft[sigmaVar],uRight[sigmaVar],gLeft, gRight);
+    	  double ldt = numflux_.numericalFlux(it, 
+                                            this->inside(), 
+                                            this->outside(),
+                                            time, 
+                                            faceQuadInner, 
+                                            faceQuadOuter, 
+                                            quadPoint, 
+                                     				uLeft[ uVar ], 
+                                            uRight[ uVar ], 
+                                            uLeft[sigmaVar],
+                                            uRight[sigmaVar],
+                                            gLeft, 
+                                            gRight);
 
-	return ldt ;
+	      return ldt ;
       }
     else 
       {
-        gLeft = 0;
+        gLeft  = 0;
         gRight = 0;
         return 0.0;
       }
@@ -726,16 +735,26 @@ public:
     if (advection)
       {
         if( hasBndValue )
-	  {
-	    RangeType gRight;
-	    return numflux_.numericalFlux(it, this->inside(), this->inside(),
-					  time, faceQuadInner, faceQuadInner, quadPoint, 
-					  uLeft[ uVar ], uBnd_,uLeft[sigmaVar],sigmaRight, gLeft, gRight);
-	  }
+	       {
+	         RangeType gRight;
+	         return numflux_.numericalFlux(it, 
+                                         this->inside(), 
+                                         this->inside(),
+					                               time, 
+                                         faceQuadInner, 
+                                         faceQuadInner, 
+                                         quadPoint, 
+					                               uLeft[ uVar ], 
+                                         uBnd_,
+                                         uLeft[sigmaVar],
+                                         sigmaRight, 
+                                         gLeft, 
+                                         gRight);
+	        }
         else 
-	  {
-	    return model_.boundaryFlux( it, time, x, uLeft[uVar], gLeft );
-	  }
+	        {
+	          return model_.boundaryFlux( it, time, x, uLeft[uVar], gLeft );
+	        }
       }
     else
       {
@@ -764,7 +783,6 @@ public:
       }
     else 
       {
-				abort();
 				f = 0;
       }
   }
