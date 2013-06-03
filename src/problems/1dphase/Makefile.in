@@ -97,7 +97,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 check_PROGRAMS = phasefield$(EXEEXT) phasefield_P0$(EXEEXT) \
-	phasefield_nc$(EXEEXT) phasefield_nc_P0$(EXEEXT) \
+	phasefield_nc$(EXEEXT) phasefield_nc_P1$(EXEEXT) \
 	phasefield_nc_jac$(EXEEXT)
 DIST_COMMON = $(phase_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/am/checklog \
@@ -140,12 +140,12 @@ phasefield_nc_LDADD = $(LDADD)
 phasefield_nc_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
-am__objects_4 = phasefield_nc_P0-phasefield.$(OBJEXT) \
-	phasefield_nc_P0-phasefield_pol.$(OBJEXT)
-am_phasefield_nc_P0_OBJECTS = $(am__objects_4)
-phasefield_nc_P0_OBJECTS = $(am_phasefield_nc_P0_OBJECTS)
-phasefield_nc_P0_LDADD = $(LDADD)
-phasefield_nc_P0_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+am__objects_4 = phasefield_nc_P1-phasefield.$(OBJEXT) \
+	phasefield_nc_P1-phasefield_pol.$(OBJEXT)
+am_phasefield_nc_P1_OBJECTS = $(am__objects_4)
+phasefield_nc_P1_OBJECTS = $(am_phasefield_nc_P1_OBJECTS)
+phasefield_nc_P1_LDADD = $(LDADD)
+phasefield_nc_P1_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am__objects_5 = phasefield_nc_jac-phasefield.$(OBJEXT) \
@@ -183,7 +183,7 @@ AM_V_GEN = $(am__v_GEN_@AM_V@)
 am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
 am__v_GEN_0 = @echo "  GEN   " $@;
 DIST_SOURCES = $(phasefield_SOURCES) $(phasefield_P0_SOURCES) \
-	$(phasefield_nc_SOURCES) $(phasefield_nc_P0_SOURCES) \
+	$(phasefield_nc_SOURCES) $(phasefield_nc_P1_SOURCES) \
 	$(phasefield_nc_jac_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -586,8 +586,8 @@ phasefield_P0_SOURCES = $(SOURCES)
 phasefield_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO 
 phasefield_nc_SOURCES = $(SOURCES) 
 phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
-phasefield_nc_P0_SOURCES = $(SOURCES) 
-phasefield_nc_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
+phasefield_nc_P1_SOURCES = $(SOURCES) 
+phasefield_nc_P1_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=1 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
 phasefield_nc_jac_SOURCES = $(SOURCES) 
 phasefield_nc_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=$(USEJACOBIAN) -DWELLBALANCED -DMYALGO
 DISTCHECK_CONFIGURE_FLAGS = DOXYGEN="true"
@@ -662,9 +662,9 @@ phasefield_P0$(EXEEXT): $(phasefield_P0_OBJECTS) $(phasefield_P0_DEPENDENCIES) $
 phasefield_nc$(EXEEXT): $(phasefield_nc_OBJECTS) $(phasefield_nc_DEPENDENCIES) $(EXTRA_phasefield_nc_DEPENDENCIES) 
 	@rm -f phasefield_nc$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(phasefield_nc_OBJECTS) $(phasefield_nc_LDADD) $(LIBS)
-phasefield_nc_P0$(EXEEXT): $(phasefield_nc_P0_OBJECTS) $(phasefield_nc_P0_DEPENDENCIES) $(EXTRA_phasefield_nc_P0_DEPENDENCIES) 
-	@rm -f phasefield_nc_P0$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(phasefield_nc_P0_OBJECTS) $(phasefield_nc_P0_LDADD) $(LIBS)
+phasefield_nc_P1$(EXEEXT): $(phasefield_nc_P1_OBJECTS) $(phasefield_nc_P1_DEPENDENCIES) $(EXTRA_phasefield_nc_P1_DEPENDENCIES) 
+	@rm -f phasefield_nc_P1$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(phasefield_nc_P1_OBJECTS) $(phasefield_nc_P1_LDADD) $(LIBS)
 phasefield_nc_jac$(EXEEXT): $(phasefield_nc_jac_OBJECTS) $(phasefield_nc_jac_DEPENDENCIES) $(EXTRA_phasefield_nc_jac_DEPENDENCIES) 
 	@rm -f phasefield_nc_jac$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(phasefield_nc_jac_OBJECTS) $(phasefield_nc_jac_LDADD) $(LIBS)
@@ -681,8 +681,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_P0-phasefield_pol.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc-phasefield.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc-phasefield_pol.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc_P0-phasefield.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc_P0-phasefield_pol.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc_P1-phasefield.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc_P1-phasefield_pol.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc_jac-phasefield.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc_jac-phasefield_pol.Po@am__quote@
 
@@ -791,33 +791,33 @@ phasefield_nc-phasefield_pol.obj: $(BASEDIR)/phasefield_pol.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc-phasefield_pol.obj `if test -f '$(BASEDIR)/phasefield_pol.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield_pol.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield_pol.cc'; fi`
 
-phasefield_nc_P0-phasefield.o: $(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P0_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_P0-phasefield.o -MD -MP -MF $(DEPDIR)/phasefield_nc_P0-phasefield.Tpo -c -o phasefield_nc_P0-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc_P0-phasefield.Tpo $(DEPDIR)/phasefield_nc_P0-phasefield.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield_nc_P0-phasefield.o' libtool=no @AMDEPBACKSLASH@
+phasefield_nc_P1-phasefield.o: $(BASEDIR)/phasefield.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P1_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_P1-phasefield.o -MD -MP -MF $(DEPDIR)/phasefield_nc_P1-phasefield.Tpo -c -o phasefield_nc_P1-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc_P1-phasefield.Tpo $(DEPDIR)/phasefield_nc_P1-phasefield.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield_nc_P1-phasefield.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P0_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc_P0-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P1_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc_P1-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
 
-phasefield_nc_P0-phasefield.obj: $(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P0_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_P0-phasefield.obj -MD -MP -MF $(DEPDIR)/phasefield_nc_P0-phasefield.Tpo -c -o phasefield_nc_P0-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc_P0-phasefield.Tpo $(DEPDIR)/phasefield_nc_P0-phasefield.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield_nc_P0-phasefield.obj' libtool=no @AMDEPBACKSLASH@
+phasefield_nc_P1-phasefield.obj: $(BASEDIR)/phasefield.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P1_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_P1-phasefield.obj -MD -MP -MF $(DEPDIR)/phasefield_nc_P1-phasefield.Tpo -c -o phasefield_nc_P1-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc_P1-phasefield.Tpo $(DEPDIR)/phasefield_nc_P1-phasefield.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield_nc_P1-phasefield.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P0_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc_P0-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P1_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc_P1-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
 
-phasefield_nc_P0-phasefield_pol.o: $(BASEDIR)/phasefield_pol.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P0_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_P0-phasefield_pol.o -MD -MP -MF $(DEPDIR)/phasefield_nc_P0-phasefield_pol.Tpo -c -o phasefield_nc_P0-phasefield_pol.o `test -f '$(BASEDIR)/phasefield_pol.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield_pol.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc_P0-phasefield_pol.Tpo $(DEPDIR)/phasefield_nc_P0-phasefield_pol.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield_pol.cc' object='phasefield_nc_P0-phasefield_pol.o' libtool=no @AMDEPBACKSLASH@
+phasefield_nc_P1-phasefield_pol.o: $(BASEDIR)/phasefield_pol.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P1_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_P1-phasefield_pol.o -MD -MP -MF $(DEPDIR)/phasefield_nc_P1-phasefield_pol.Tpo -c -o phasefield_nc_P1-phasefield_pol.o `test -f '$(BASEDIR)/phasefield_pol.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield_pol.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc_P1-phasefield_pol.Tpo $(DEPDIR)/phasefield_nc_P1-phasefield_pol.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield_pol.cc' object='phasefield_nc_P1-phasefield_pol.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P0_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc_P0-phasefield_pol.o `test -f '$(BASEDIR)/phasefield_pol.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield_pol.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P1_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc_P1-phasefield_pol.o `test -f '$(BASEDIR)/phasefield_pol.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield_pol.cc
 
-phasefield_nc_P0-phasefield_pol.obj: $(BASEDIR)/phasefield_pol.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P0_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_P0-phasefield_pol.obj -MD -MP -MF $(DEPDIR)/phasefield_nc_P0-phasefield_pol.Tpo -c -o phasefield_nc_P0-phasefield_pol.obj `if test -f '$(BASEDIR)/phasefield_pol.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield_pol.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield_pol.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc_P0-phasefield_pol.Tpo $(DEPDIR)/phasefield_nc_P0-phasefield_pol.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield_pol.cc' object='phasefield_nc_P0-phasefield_pol.obj' libtool=no @AMDEPBACKSLASH@
+phasefield_nc_P1-phasefield_pol.obj: $(BASEDIR)/phasefield_pol.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P1_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_P1-phasefield_pol.obj -MD -MP -MF $(DEPDIR)/phasefield_nc_P1-phasefield_pol.Tpo -c -o phasefield_nc_P1-phasefield_pol.obj `if test -f '$(BASEDIR)/phasefield_pol.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield_pol.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield_pol.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc_P1-phasefield_pol.Tpo $(DEPDIR)/phasefield_nc_P1-phasefield_pol.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield_pol.cc' object='phasefield_nc_P1-phasefield_pol.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P0_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc_P0-phasefield_pol.obj `if test -f '$(BASEDIR)/phasefield_pol.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield_pol.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield_pol.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_P1_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc_P1-phasefield_pol.obj `if test -f '$(BASEDIR)/phasefield_pol.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield_pol.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield_pol.cc'; fi`
 
 phasefield_nc_jac-phasefield.o: $(BASEDIR)/phasefield.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_jac_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc_jac-phasefield.o -MD -MP -MF $(DEPDIR)/phasefield_nc_jac-phasefield.Tpo -c -o phasefield_nc_jac-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc

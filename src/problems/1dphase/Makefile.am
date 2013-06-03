@@ -15,7 +15,7 @@ SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 GRIDTYPE=SPGRID
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM = 1 
-POLORDER= 1 
+POLORDER=  1 
 USEJACOBIAN=1
 
 PROBLEM = 1# check ./problemtype.hh
@@ -26,7 +26,7 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefield_P0 phasefield_nc phasefield_nc_P0 phasefield_nc_jac
+check_PROGRAMS = phasefield phasefield_P0 phasefield_nc phasefield_nc_P1 phasefield_nc_jac
 phasefield_SOURCES = $(SOURCES) 
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO 
 
@@ -37,8 +37,8 @@ phasefield_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO
 phasefield_nc_SOURCES = $(SOURCES) 
 phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
 
-phasefield_nc_P0_SOURCES = $(SOURCES) 
-phasefield_nc_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
+phasefield_nc_P1_SOURCES = $(SOURCES) 
+phasefield_nc_P1_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=1 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
 
 
 phasefield_nc_jac_SOURCES = $(SOURCES) 

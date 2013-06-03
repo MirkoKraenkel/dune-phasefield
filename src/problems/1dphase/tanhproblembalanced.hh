@@ -10,7 +10,11 @@
 
 // local includes
 // #include "idealthermodynamics2interpol.hh"
-#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+//#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+
+#include <dune/phasefield/modelling/thermodynamicsexactequi.hh>
+
+
 #include <dune/fem/probleminterfaces.hh>
 
 
@@ -70,8 +74,19 @@ class TanhProblem : public EvolutionProblemInterface<
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
     thermodyn_.delta();
-    evaluate( 0., arg, res );
-  }
+    double x=arg[0];
+ 
+    for(int i=1;i<=dimension;i++)
+      res[i]=0;
+
+    double tanx=0.5*tanh(x/(2*delta_))+0.5;
+  //double tanx=0.9;
+   
+   res[0]=rhoval(tanx);
+  
+   res[dimension+1]=res[0]*tanx;
+
+ }
 
 
   // evaluate function 
@@ -141,7 +156,7 @@ inline void TanhProblem<GridType>
   for(int i=1;i<=dimension;i++)
       res[i]=0;
 
-  double tanx=0.4*tanh(x/delta_)+0.5;
+  double tanx=0.5*tanh(x/(delta_))+0.5;
   //double tanx=0.9;
    
    res[0]=rhoval(tanx);
