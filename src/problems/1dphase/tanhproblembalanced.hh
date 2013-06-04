@@ -46,17 +46,11 @@ class TanhProblem : public EvolutionProblemInterface<
   TanhProblem() : 
 		 myName_( "Constant Problem" ),
 		 endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime" )), 
-		 mu_( Fem::Parameter :: getValue< double >( "mu" )),
+		 mu_( Fem::Parameter :: getValue< double >( "phasefield.mu" )),
 		 delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
-     rho1_(Fem::Parameter :: getValue< double >( "phasefield.rho1")),
-		 rho2_(Fem::Parameter ::getValue< double> ("phasefield.rho2")),
-		 smear_( Fem::Parameter::getValue<double> ("smear")),
-		 phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
-		 gamma_(Fem::Parameter::getValue<double> ("gamma")),
      thermodyn_()
      {
       thermodyn_.init();
-      std::cout<<"constprob constructor delta"<<delta_<<"\n";
      }
 
 
@@ -115,18 +109,11 @@ class TanhProblem : public EvolutionProblemInterface<
  
   inline double mu() const { return mu_; }
   inline double delta() const{return delta_;}
-  inline double rho1() const {return rho1_;}
-  inline double rho2() const {return rho2_;}
-  inline double gamma() const {return gamma_;}
 protected:
   const std::string myName_;
   const double endTime_;
   const double mu_;
   const double delta_;
-  const double rho1_,rho2_;
-  const double smear_;
-  const double phiscale_;
-  const double gamma_;
   const ThermodynamicsType thermodyn_;
   
 };
@@ -156,7 +143,7 @@ inline void TanhProblem<GridType>
   for(int i=1;i<=dimension;i++)
       res[i]=0;
 
-  double tanx=0.5*tanh(x/(delta_))+0.5;
+  double tanx=0.45*tanh(x/delta_)+0.5;
   //double tanx=0.9;
    
    res[0]=rhoval(tanx);
