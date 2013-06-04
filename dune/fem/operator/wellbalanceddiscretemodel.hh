@@ -233,12 +233,6 @@ namespace Dune {
     const double cflDiffinv_;
   };
 
-
-
-
-
-
-
 	// AdvectionDiffusionLDGModel
 	//---------------------------
   // for the 3rd Pass
@@ -462,17 +456,18 @@ namespace Dune {
         nonCons[i+1]*=uLeft[thetaVar][0]-uRight[thetaVar][0];
         nonCons[i+1]*=average[1];
       }   
-#if  1 
+ 
       average[1]=0.5*(uLeft[thetaVar][1]+uRight[thetaVar][1])*(phiLeft-phiRight);
    
       //nonCon
       nonCons[1]+=switch_*average[1];
-#else
-#warning "OLD NONCON VARIANT"
-#endif
+      
+
+
+
     
       //factor comes from the meanvalue of the testfunctions
-      nonCons*=0.5;
+      nonCons*=-0.5;
       
       //{{\theta}}[[phi]]
       gLeft+=nonCons;

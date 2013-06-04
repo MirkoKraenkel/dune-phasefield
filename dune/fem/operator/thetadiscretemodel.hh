@@ -105,7 +105,7 @@ namespace Dune {
 	public:
     
 		ThetaModel(const Model& mod):
-			acpenalty_(Fem::Parameter::getValue<double>("phasefield.penalty")),
+			acpenalty_(Fem::Parameter::getValue<double>("phasefield.acpenalty")),
 			model_(mod){}
       
 		bool hasSource() const { return true; } 
@@ -221,10 +221,11 @@ namespace Dune {
 			gDiffLeft = 0;
       gDiffRight = 0;     
 			
-
-			// add penalty term ( enVolume() is available since we derive from
+      const double faceLengthSqr=normal.two_norm2();
+			const double h=sqrt(faceLengthSqr);
+      // add penalty term ( enVolume() is available since we derive from
 			//    DiscreteModelDefaultWithInsideOutside)
-			const double factor = acpenalty_  ;
+			const double factor = acpenalty_/h  ;
 			
 	 		double jmp( uLeft[uVar][dimDomain+1] );
 			jmp -= uRight[uVar][dimDomain+1];

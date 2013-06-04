@@ -40,7 +40,7 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-femhowto.eocSteps: 1 
+femhowto.eocSteps: 2 
 femhowto.printCount: 0
 femhowto.verbose: 0
 
@@ -71,8 +71,8 @@ fem.adaptation.markingStrategy: grad
 fem.adaptation.adaptcount: 0 # after this many time step, 0 disables adaptation
 
 
-# DOMAIN CONFIGURATION
+ DOMAIN CONFIGURATION
 #---------------------
-femhowto.startLevel: 7 
+femhowto.startLevel: 4 
 
-phasefield.endTime:  0.1
+phasefield.endTime: 1. 

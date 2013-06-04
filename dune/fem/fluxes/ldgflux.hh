@@ -275,7 +275,7 @@ namespace Dune {
       // determine side (needs to be opposite of above)
       const bool useExterior = ! determineDirection(false,0.,0.,intersection );
 
-				model_.diffusion( inside, time, 
+				model_.diffusion( inside, time,
 														faceQuadInner.point( quadPoint ),
 														uLeft, sigmaLeft, diffmatrixLeft);
 	
@@ -313,8 +313,8 @@ namespace Dune {
         model_.diffusionTimeStep( intersection, 
 																	discreteModel.nbVolume(),
 																	faceVolumeEstimate,
-																	time, x, uRight );
-
+                                  time, x, uRight );
+     const double h=sqrt(faceLengthSqr);
       //////////////////////////////////////////////////////////
       //
       //  --Penalty Term
@@ -328,7 +328,7 @@ namespace Dune {
 				{
 					// add penalty term ( enVolume() is available since we derive from
 					//    DiscreteModelDefaultWithInsideOutside)
-					const double factor = penalty_ * diffTimeStep ;
+					const double factor = penalty_ /h ;
 
 					RangeType jump( uLeft );
 					jump -= uRight;

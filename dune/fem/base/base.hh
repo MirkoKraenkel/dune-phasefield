@@ -94,7 +94,7 @@ void compute(Algorithm& algorithm)
     int max_newton_iterations = 0;
     int max_ils_iterations = 0;
 #if MYALGO
-		algorithm();
+		algorithm(eocloop);
 
 #else
     algorithm( avgTimeStep, minTimeStep, maxTimeStep,

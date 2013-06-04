@@ -191,7 +191,7 @@ public:
     adaptationHandler_( 0 ),
     runfile_( grid.comm(), true ),
     overallTimer_(),
-    eocId_( Fem::FemEoc::addEntry(std::string("TotalEnergy")) ),
+    eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
     odeSolver_( 0 ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
@@ -373,7 +373,7 @@ public:
 	
 	
 	
-	virtual void operator()()
+	virtual void operator()(int loopNumber)
 	{	
 
 		int counter;
@@ -411,15 +411,14 @@ public:
 		//restoreFromCheckPoint( tp );
 		
 		// tuple with additionalVariables 
-//			IOTupleType dataTuple( &U, this->sigma() );
-//	IOTupleType dataTuple( &U,   this->additionalVariables(),this->sigma() );
-		IOTupleType dataTuple( &U,   this->additionalVariables(),this->energy(),this->theta() );
+		
+    IOTupleType dataTuple( &U,   this->additionalVariables(),this->energy(),this->theta() );
     std::ofstream energyfile;
     std::ostringstream convert;
-    convert<<loop_;
+    convert<<loopNumber;
     std::string filename=energyFilename_;
     filename.append(convert.str()); 
-    energyfile.open(energyFilename_.c_str());
+    energyfile.open(filename.c_str());
 
 	
 		// type of the data writer
@@ -465,8 +464,6 @@ public:
 				const double tnow  = tp.time();
 				const double ldt   = tp.deltaT();
 				
-//				int newton_iterations;
-//				int ils_iterations;
 				counter  = tp.timeStep();
 					
 				Dune::FemTimer::start(timeStepTimer_);
@@ -481,7 +478,7 @@ public:
 				if (! U.dofsValid()) 
 					{
 						std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
-			  		eocDataOutput.write(tp);
+			   		eocDataOutput.write(tp);
 				 	 energyfile.close();
 
             abort();
