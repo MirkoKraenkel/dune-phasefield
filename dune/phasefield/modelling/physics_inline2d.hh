@@ -241,21 +241,14 @@ protected:
 		const double vy = u[2]*rho_inv;
     const double phi=u[phaseId]*rho_inv;
 
-
-
-
-
-
-
-
-   a[0][0] = u[0];       a[0][1] = 0.;
-   a[1][0] = 0.;         a[1][1] = u[0];
-   a[2][0] = u[1];       a[2][1] = 0.;
-   a[3][0] = 0.;         a[3][1] = u[1];
-   a[4][0] = u[2];       a[4][1] = 0.;
-   a[5][0] = 0.;         a[5][1] = u[2];
-   a[6][0] = u[3];       a[6][1] = 0.;
-   a[7][0] = 0.;         a[7][1] = u[3];
+    a[0][0] = u[0];       a[0][1] = 0.;
+    a[1][0] = 0.;         a[1][1] = u[0];
+    a[2][0] = u[1];       a[2][1] = 0.;
+    a[3][0] = 0.;         a[3][1] = u[1];
+    a[4][0] = u[2];       a[4][1] = 0.;
+    a[5][0] = 0.;         a[5][1] = u[2];
+    a[6][0] = u[3];       a[6][1] = 0.;
+    a[7][0] = 0.;         a[7][1] = u[3];
   }
 
 	template< class Thermodynamics >
@@ -335,7 +328,7 @@ protected:
     diff[0][0] = 0.;                   diff[0][1] = 0.;
     // 2nd row
     //diff[1][0] = tau00;                diff[1][1] = tau01;
-       diff[1][0] = muLoc*dxu;                diff[1][1] = 0.; 
+    diff[1][0] = muLoc*dxu;                diff[1][1] = 0.; 
    // 3rd row
   //  diff[2][0] = tau10;                diff[2][1] = tau11;
     diff[2][0] = 0.;                diff[2][1] = muLoc*dzw;
@@ -385,8 +378,8 @@ protected:
     // 1st row
     diff[0][0] = 0.;                   diff[0][1] = 0.;
     // 2nd row
-//v   diff[1][0] = tau00;                diff[1][1] = tau01;
-      diff[1][0] = muLoc*dxu;                diff[1][1] = 0.; 
+    // diff[1][0] = tau00;                diff[1][1] = tau01;
+    diff[1][0] = muLoc*dxu;                diff[1][1] = 0.; 
       // 3rd row
   //  diff[2][0] = tau10;                diff[2][1] = tau11;
       diff[2][0] = 0.;                diff[2][1] = muLoc*dzw;
@@ -433,16 +426,18 @@ protected:
     const double dyphi = rho_inv*(dyrhophi - phi*dyrho);
 
   // double tension = delta_*rhodxphi*dxphi;
-  
+    // |\nabla\phi|^2*0.5
+    double const gradphisquarehalf=0.5*(dxphi*dxphi+dyphi*dyphi);
+
     diff[0]=0; 
     diff[1]=0;
-    diff[2]=dxphi*dxphi;
+    diff[2]=dxphi*dxphi-gradphisquarehalf;
     diff[3]=dyphi*dxphi;
     diff[4]=dyphi*dxphi;
-    diff[5]=dyphi*dyphi;
+    diff[5]=dyphi*dyphi-gradphisquarehalf;
     diff[6]=0;
     diff[7]=0;
-    diff*=0.5*delta_;
+    diff*=delta_;
 }
 
 

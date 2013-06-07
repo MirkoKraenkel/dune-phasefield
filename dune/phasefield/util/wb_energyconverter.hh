@@ -88,7 +88,7 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
       energyLF.axpy(quad[qP],total);
       kineticEnergy+=kin*volume;
       integral+=total*volume;
-      
+       
     }
   
   }

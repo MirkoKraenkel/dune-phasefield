@@ -7,7 +7,7 @@
 #include <dune/fem/space/common/adaptmanager.hh>
 #include <dune/fem/base/base.hh>
 
-
+adfsd
 //Note Problen should be independent of Operator/Scheme
 #include<dune/phasefield/algorithmtraits.hh>
 
@@ -108,7 +108,8 @@ public:
 
 	// type of IOTuple 
 //	typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType* > IOTupleType; 
-	typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*,DiscreteThetaType* > IOTupleType; 
+  //Pointers for (rho,rho v,rho phi),(v,p,phi),(totalenergy),(\theta)
+  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*,DiscreteThetaType* > IOTupleType; 
 	
   // type of data writer 
   typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
@@ -351,7 +352,8 @@ public:
                 dgOperator_.theta(solution(),*theta1);
               }
             // calculate additional variables from the current num. solution
-					  setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
+			  
+            setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
 					}
 
             
@@ -529,7 +531,10 @@ public:
 		RangeType error = L2err.norm(problem(), u, tp.time());
 		return error.two_norm();
 	}
-	
+
+
+
+
 	virtual void finalizeStep(TimeProviderType& tp)
 	{ 
 		DiscreteFunctionType& u = solution();
@@ -594,6 +599,7 @@ public:
 
 		if( addVars ) 
 			{
+        std::cout<<"finalize addVars\n";
 				problem().finalizeSimulation( *addVars, eocloop );
 			}
 		else 

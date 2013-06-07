@@ -32,7 +32,7 @@ public:
   {
     delta_=Dune::Fem::Parameter::getValue<double>("phasefield.delta");
     delta_inv_=1./delta_;
-    epsilon_=Dune::Fem::Parameter::getValue<double>("phasefield.delta");
+    epsilon_=Dune::Fem::Parameter::getValue<double>("phasefield.epsilon");
   }
   
   inline double helmholtz(double& rho,double& phi) const
@@ -159,7 +159,7 @@ public:
 	inline double delta()const {return delta_;}
 	inline double delta_inv()const {return delta_inv_;}
 	inline double mu1() const{ return epsilon_;}
-	inline double mu2()const {  return epsilon_;}
+inline double mu2()const {  return epsilon_;}
 
 private:
 	mutable double  delta_;

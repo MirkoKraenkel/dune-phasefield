@@ -15,7 +15,7 @@
 #include <config.h>
 
 #include <dune/common/version.hh>
-#include <dune/fem/misc/threadmanager.hh>
+#include <dune/fem/misc/threads/threadmanager.hh>
 
 #if defined USE_SMP_PARALLEL 
 #if HAVE_DUNE_FEM_DG 
@@ -29,7 +29,7 @@
 // problem dependent
 #include <problemcreator.hh>
 #if MYALGO
-#include <dune/phasefield/phasefieldalgorithm.hh> 
+#include <dune/phasefield/phasefieldalgorithm_eq.hh> 
 #else
 #include "stepper.hh"
 #endif

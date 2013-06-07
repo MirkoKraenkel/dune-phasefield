@@ -7,7 +7,7 @@
 
 // Dune-Fem includes
 #include <dune/fem/space/fvspace.hh>
-#include <dune/fem/space/dgspace.hh>
+#include <dune/fem/space/discontinuousgalerkin.hh>
 #include <dune/fem/pass/dgdiscretemodel.hh>
 #include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>

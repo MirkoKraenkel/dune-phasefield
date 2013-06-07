@@ -16,7 +16,7 @@
 
 
 # -*- Makefile -*-
-# $Id: global-rules 5784 2009-12-14 19:51:06Z christi $
+# $Id$
 
 #
 # this file should be included into any Makefile.am so that we can
@@ -24,13 +24,13 @@
 #
 
 # -*- Makefile -*-
-# $Id: sourcescheck 6115 2010-09-01 19:17:42Z christi $
+# $Id$
 
 # -*- Makefile -*-
 # $Id: sourcescheck 5183 2008-04-27 17:37:08Z christi $
 
 # -*- Makefile -*-
-# $Id: checklog 6488 2011-08-12 17:28:43Z sander $
+# $Id$
 
 #
 # check-log
@@ -222,8 +222,8 @@ HEADERS = $(phase_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /disk1/DuneTrunk/dune-phasefield/missing --run aclocal-1.11
-ACLOCAL_AMFLAGS = -I . -I m4 -I /disk1/DuneTrunk/dune-common/m4 -I /disk1/DuneTrunk/dune-geometry/m4 -I /disk1/DuneTrunk/dune-grid/m4 -I /disk1/DuneTrunk/dune-istl/m4 -I /disk1/DuneTrunk/dune-localfunctions/m4 -I /disk1/DuneTrunk/dune-fem/m4 -I /disk1/DuneTrunk/dune-fem-dg/m4 -I /disk1/DuneTrunk/dune-spgrid/m4
+ACLOCAL = ${SHELL} /usr/people/kraenkel/Dune/dune-phasefield/missing --run aclocal-1.11
+ACLOCAL_AMFLAGS = -I . -I m4 -I /usr/people/kraenkel/Dune/dune-common/m4 -I /usr/people/kraenkel/Dune/dune-geometry/m4 -I /usr/people/kraenkel/Dune/dune-grid/m4 -I /usr/people/kraenkel/Dune/dune-istl/m4 -I /usr/people/kraenkel/Dune/dune-localfunctions/m4 -I /usr/people/kraenkel/Dune/dune-spgrid/m4 -I /usr/people/kraenkel/Dune/dune-fem/m4 -I /usr/people/kraenkel/Dune/dune-fem-dg/m4
 ALBERTA1D_CPPFLAGS = $(ALBERTA_INCLUDE_CPPFLAGS) -DALBERTA_DIM=1 -DENABLE_ALBERTA
 ALBERTA1D_LDFLAGS = 
 ALBERTA1D_LIBS = $(DUNE_GRID_LIBDIR)/libdunealbertagrid_1d.la $(DUNE_GRID_LIBDIR)/libdunegrid.la $(ALBERTA_LIBPATHFLAGS) -lalberta_1d $(ALBERTA_BASE_LIBS)
@@ -260,12 +260,12 @@ ALBERTA_INCLUDE_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/alberta/in
 ALBERTA_LDFLAGS = $(ALBERTA$(ALBERTA_DIM)D_LDFLAGS)
 ALBERTA_LIBPATHFLAGS = 
 ALBERTA_LIBS = $(ALBERTA$(ALBERTA_DIM)D_LIBS)
-ALL_PKG_CPPFLAGS =   -I/disk1/DuneTrunk/dune-common  -I/disk1/DuneTrunk/dune-geometry  -I/disk1/DuneTrunk/dune-grid  -I/disk1/DuneTrunk/dune-istl  -I/disk1/DuneTrunk/dune-localfunctions  -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1 -I/disk1/DuneTrunk/dune-fem  -I/disk1/DuneTrunk/dune-fem-dg  -I/disk1/DuneTrunk/dune-spgrid   ${DUNEMPICPPFLAGS} ${GMP_CPPFLAGS} -I/disk1/DuneTrunk/dune-common -I/disk1/DuneTrunk/dune-geometry -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE) ${ALBERTA_CPPFLAGS} ${UG_CPPFLAGS} ${DUNEMPICPPFLAGS} -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/include -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/include/serial -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/include/duneinterface -DENABLE_ALUGRID -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/include/parallel -I/disk1/DuneTrunk/dune-grid ${SUPERLU_CPPFLAGS} -I/disk1/DuneTrunk/dune-istl -I/disk1/DuneTrunk/dune-localfunctions -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1 -I/disk1/DuneTrunk/dune-fem -I/disk1/DuneTrunk/dune-fem-dg -I/disk1/DuneTrunk/dune-spgrid
-ALL_PKG_LDFLAGS =             -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib        ${DUNEMPILDFLAGS}     ${ALBERTA_LDFLAGS} ${UG_LDFLAGS} ${DUNEMPILDFLAGS}     -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib   
-ALL_PKG_LIBS =   /disk1/DuneTrunk/dune-fem/lib/libdunefem.la   /disk1/DuneTrunk/dune-grid/lib/libdunegrid.la /disk1/DuneTrunk/dune-geometry/lib/libdunegeometry.la /disk1/DuneTrunk/dune-common/lib/libdunecommon.la       -lumfpack -lamd      /disk1/DuneTrunk/dune-fem/lib/libdunefem.la   ${SUPERLU_LIBS} /disk1/DuneTrunk/dune-grid/lib/libdunegrid.la -L/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/lib -lalugrid ${DUNEMPILIBS} ${UG_LIBS} ${ALBERTA_LIBS}  /disk1/DuneTrunk/dune-geometry/lib/libdunegeometry.la /disk1/DuneTrunk/dune-common/lib/libdunecommon.la ${GMP_LIBS} ${DUNEMPILIBS}  -lumfpack -lamd -lm 
-ALUGRID_CPPFLAGS = ${DUNEMPICPPFLAGS} -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/include -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/include/serial -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/include/duneinterface -DENABLE_ALUGRID -I/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/include/parallel
+ALL_PKG_CPPFLAGS =   ${DUNEMPICPPFLAGS} ${GMP_CPPFLAGS} ${DUNE_COMMON_CPPFLAGS} ${DUNE_GEOMETRY_CPPFLAGS} -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE) ${ALBERTA_CPPFLAGS} ${UG_CPPFLAGS} ${ALUGRID_CPPFLAGS} ${DUNE_GRID_CPPFLAGS} ${SUPERLU_CPPFLAGS} ${DUNE_ISTL_CPPFLAGS} ${DUNE_LOCALFUNCTIONS_CPPFLAGS} ${UMFPACK_CPPFLAGS} ${DUNE_FEM_CPPFLAGS} ${DUNE_FEM_DG_CPPFLAGS} ${DUNE_SPGRID_CPPFLAGS}
+ALL_PKG_LDFLAGS =   ${DUNEMPILDFLAGS}  ${DUNE_COMMON_LDFLAGS} ${DUNE_GEOMETRY_LDFLAGS}  ${ALBERTA_LDFLAGS} ${UG_LDFLAGS} ${ALUGRID_LDFLAGS} ${DUNE_GRID_LDFLAGS}  ${DUNE_ISTL_LDFLAGS} ${DUNE_LOCALFUNCTIONS_LDFLAGS} ${UMFPACK_LDFLAGS} ${DUNE_FEM_LDFLAGS} ${DUNE_FEM_DG_LDFLAGS} ${DUNE_SPGRID_LDFLAGS}
+ALL_PKG_LIBS = ${DUNE_SPGRID_LIBS} ${DUNE_FEM_DG_LIBS} ${DUNE_FEM_LIBS} ${UMFPACK_LIBS} ${DUNE_LOCALFUNCTIONS_LIBS} ${DUNE_ISTL_LIBS} ${SUPERLU_LIBS} ${DUNE_GRID_LIBS} ${ALUGRID_LIBS} ${UG_LIBS} ${ALBERTA_LIBS}  ${DUNE_GEOMETRY_LIBS} ${DUNE_COMMON_LIBS} ${GMP_LIBS} ${DUNEMPILIBS}  -lm 
+ALUGRID_CPPFLAGS = ${DUNEMPICPPFLAGS} -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/serial -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/duneinterface -DENABLE_ALUGRID -I/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/include/parallel
 ALUGRID_LDFLAGS = ${DUNEMPILDFLAGS}
-ALUGRID_LIBS = -L/hosts/raid5/aragorn/dune/modules/x86_64/ALUGrid-1.52/lib -lalugrid ${DUNEMPILIBS}
+ALUGRID_LIBS = -L/usr/people/kraenkel/Work/Mymodules/ALUGrid-1.52/lib -lalugrid ${DUNEMPILIBS}
 AMIRAMESH_CPPFLAGS = 
 AMIRAMESH_LDFLAGS = 
 AMIRAMESH_LIBS = 
@@ -277,9 +277,9 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
 AM_DEFAULT_VERBOSITY = 1
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 AR = ar
-AUTOCONF = ${SHELL} /disk1/DuneTrunk/dune-phasefield/missing --run autoconf
-AUTOHEADER = ${SHELL} /disk1/DuneTrunk/dune-phasefield/missing --run autoheader
-AUTOMAKE = ${SHELL} /disk1/DuneTrunk/dune-phasefield/missing --run automake-1.11
+AUTOCONF = ${SHELL} /usr/people/kraenkel/Dune/dune-phasefield/missing --run autoconf
+AUTOHEADER = ${SHELL} /usr/people/kraenkel/Dune/dune-phasefield/missing --run autoheader
+AUTOMAKE = ${SHELL} /usr/people/kraenkel/Dune/dune-phasefield/missing --run automake-1.11
 AWK = gawk
 BIBTEX = bibtex
 BLAS_LIBS = -lblas
@@ -294,7 +294,7 @@ CPPFLAGS =
 CXX = g++ -std=c++0x
 CXXCPP = g++ -E -std=c++0x
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -O3 -Wall -DNDEBUG -funroll-loops -finline-functions
+CXXFLAGS = -O3 -Wall -DNDEBUG -funroll-loops -finline-functions --param max-inline-insns-single=4000 --param large-function-growth=4500 --param inline-unit-growth=4000
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -308,65 +308,65 @@ DUNEMPICPPFLAGS =
 DUNEMPILDFLAGS = 
 DUNEMPILIBS = 
 DUNEWEBDIR = no
-DUNE_COMMON_CPPFLAGS = 
+DUNE_COMMON_CPPFLAGS = -I/usr/people/kraenkel/Dune/dune-common
 DUNE_COMMON_LDFLAGS = 
-DUNE_COMMON_LIBDIR = /disk1/DuneTrunk/dune-common/lib
-DUNE_COMMON_LIBS = /disk1/DuneTrunk/dune-common/lib/libdunecommon.la
-DUNE_COMMON_ROOT = /disk1/DuneTrunk/dune-common
+DUNE_COMMON_LIBDIR = /usr/people/kraenkel/Dune/dune-common/lib
+DUNE_COMMON_LIBS = /usr/people/kraenkel/Dune/dune-common/lib/libdunecommon.la
+DUNE_COMMON_ROOT = /usr/people/kraenkel/Dune/dune-common
 DUNE_COMMON_VERSION = 2.3-svn
 DUNE_COMMON_VERSION_MAJOR = 2
 DUNE_COMMON_VERSION_MINOR = 3
 DUNE_COMMON_VERSION_REVISION = 0
-DUNE_CPPFLAGS =  -I/disk1/DuneTrunk/dune-common -I/disk1/DuneTrunk/dune-geometry -I/disk1/DuneTrunk/dune-grid -I/disk1/DuneTrunk/dune-istl -I/disk1/DuneTrunk/dune-localfunctions -I/disk1/DuneTrunk/dune-fem -I/disk1/DuneTrunk/dune-fem-dg -I/disk1/DuneTrunk/dune-spgrid
-DUNE_FEM_CPPFLAGS = 
-DUNE_FEM_DG_CPPFLAGS = 
+DUNE_CPPFLAGS =  -I/usr/people/kraenkel/Dune/dune-common ${DUNE_COMMON_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-geometry ${DUNE_GEOMETRY_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-grid ${DUNE_GRID_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-istl ${DUNE_ISTL_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-localfunctions ${DUNE_LOCALFUNCTIONS_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-fem ${DUNE_FEM_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-fem-dg ${DUNE_FEM_DG_CPPFLAGS} -I/usr/people/kraenkel/Dune/dune-spgrid ${DUNE_SPGRID_CPPFLAGS}
+DUNE_FEM_CPPFLAGS = -I/usr/people/kraenkel/Dune/dune-fem
+DUNE_FEM_DG_CPPFLAGS = -I/usr/people/kraenkel/Dune/dune-fem-dg
 DUNE_FEM_DG_LDFLAGS = 
 DUNE_FEM_DG_LIBS = 
-DUNE_FEM_DG_ROOT = /disk1/DuneTrunk/dune-fem-dg
+DUNE_FEM_DG_ROOT = /usr/people/kraenkel/Dune/dune-fem-dg
 DUNE_FEM_DG_VERSION = 0.1
 DUNE_FEM_DG_VERSION_MAJOR = 0
 DUNE_FEM_DG_VERSION_MINOR = 1
 DUNE_FEM_DG_VERSION_REVISION = 0
 DUNE_FEM_LDFLAGS = 
-DUNE_FEM_LIBDIR = /disk1/DuneTrunk/dune-fem/lib
-DUNE_FEM_LIBS = /disk1/DuneTrunk/dune-fem/lib/libdunefem.la
-DUNE_FEM_ROOT = /disk1/DuneTrunk/dune-fem
+DUNE_FEM_LIBDIR = /usr/people/kraenkel/Dune/dune-fem/lib
+DUNE_FEM_LIBS = /usr/people/kraenkel/Dune/dune-fem/lib/libdunefem.la
+DUNE_FEM_ROOT = /usr/people/kraenkel/Dune/dune-fem
 DUNE_FEM_VERSION = 1.4.0
 DUNE_FEM_VERSION_MAJOR = 1
 DUNE_FEM_VERSION_MINOR = 4
 DUNE_FEM_VERSION_REVISION = 0
-DUNE_GEOMETRY_CPPFLAGS = 
+DUNE_GEOMETRY_CPPFLAGS = -I/usr/people/kraenkel/Dune/dune-geometry
 DUNE_GEOMETRY_LDFLAGS = 
-DUNE_GEOMETRY_LIBDIR = /disk1/DuneTrunk/dune-geometry/lib
-DUNE_GEOMETRY_LIBS = /disk1/DuneTrunk/dune-geometry/lib/libdunegeometry.la
-DUNE_GEOMETRY_ROOT = /disk1/DuneTrunk/dune-geometry
+DUNE_GEOMETRY_LIBDIR = /usr/people/kraenkel/Dune/dune-geometry/lib
+DUNE_GEOMETRY_LIBS = /usr/people/kraenkel/Dune/dune-geometry/lib/libdunegeometry.la
+DUNE_GEOMETRY_ROOT = /usr/people/kraenkel/Dune/dune-geometry
 DUNE_GEOMETRY_VERSION = 2.3-svn
 DUNE_GEOMETRY_VERSION_MAJOR = 2
 DUNE_GEOMETRY_VERSION_MINOR = 3
 DUNE_GEOMETRY_VERSION_REVISION = 0
-DUNE_GRID_CPPFLAGS = 
+DUNE_GRID_CPPFLAGS = -I/usr/people/kraenkel/Dune/dune-grid
 DUNE_GRID_LDFLAGS = 
-DUNE_GRID_LIBDIR = /disk1/DuneTrunk/dune-grid/lib
-DUNE_GRID_LIBS = /disk1/DuneTrunk/dune-grid/lib/libdunegrid.la
-DUNE_GRID_ROOT = /disk1/DuneTrunk/dune-grid
+DUNE_GRID_LIBDIR = /usr/people/kraenkel/Dune/dune-grid/lib
+DUNE_GRID_LIBS = /usr/people/kraenkel/Dune/dune-grid/lib/libdunegrid.la
+DUNE_GRID_ROOT = /usr/people/kraenkel/Dune/dune-grid
 DUNE_GRID_VERSION = 2.3-svn
 DUNE_GRID_VERSION_MAJOR = 2
 DUNE_GRID_VERSION_MINOR = 3
 DUNE_GRID_VERSION_REVISION = 0
-DUNE_ISTL_CPPFLAGS = 
+DUNE_ISTL_CPPFLAGS = -I/usr/people/kraenkel/Dune/dune-istl
 DUNE_ISTL_LDFLAGS = 
 DUNE_ISTL_LIBS = 
-DUNE_ISTL_ROOT = /disk1/DuneTrunk/dune-istl
+DUNE_ISTL_ROOT = /usr/people/kraenkel/Dune/dune-istl
 DUNE_ISTL_VERSION = 2.3-svn
 DUNE_ISTL_VERSION_MAJOR = 2
 DUNE_ISTL_VERSION_MINOR = 3
 DUNE_ISTL_VERSION_REVISION = 0
-DUNE_LDFLAGS =                 
-DUNE_LIBS =     /disk1/DuneTrunk/dune-fem/lib/libdunefem.la /disk1/DuneTrunk/dune-fem/lib/libdunefem.la     /disk1/DuneTrunk/dune-grid/lib/libdunegrid.la /disk1/DuneTrunk/dune-grid/lib/libdunegrid.la /disk1/DuneTrunk/dune-geometry/lib/libdunegeometry.la /disk1/DuneTrunk/dune-geometry/lib/libdunegeometry.la /disk1/DuneTrunk/dune-common/lib/libdunecommon.la /disk1/DuneTrunk/dune-common/lib/libdunecommon.la 
-DUNE_LOCALFUNCTIONS_CPPFLAGS = 
+DUNE_LDFLAGS =   ${DUNE_COMMON_LDFLAGS}  ${DUNE_GEOMETRY_LDFLAGS}  ${DUNE_GRID_LDFLAGS}  ${DUNE_ISTL_LDFLAGS}  ${DUNE_LOCALFUNCTIONS_LDFLAGS}  ${DUNE_FEM_LDFLAGS}  ${DUNE_FEM_DG_LDFLAGS}  ${DUNE_SPGRID_LDFLAGS}
+DUNE_LIBS = ${DUNE_SPGRID_LIBS} ${DUNE_FEM_DG_LIBS} ${DUNE_FEM_LIBS} ${DUNE_LOCALFUNCTIONS_LIBS} ${DUNE_ISTL_LIBS} ${DUNE_GRID_LIBS} ${DUNE_GEOMETRY_LIBS} ${DUNE_COMMON_LIBS} 
+DUNE_LOCALFUNCTIONS_CPPFLAGS = -I/usr/people/kraenkel/Dune/dune-localfunctions
 DUNE_LOCALFUNCTIONS_LDFLAGS = 
 DUNE_LOCALFUNCTIONS_LIBS = 
-DUNE_LOCALFUNCTIONS_ROOT = /disk1/DuneTrunk/dune-localfunctions
+DUNE_LOCALFUNCTIONS_ROOT = /usr/people/kraenkel/Dune/dune-localfunctions
 DUNE_LOCALFUNCTIONS_VERSION = 2.3-svn
 DUNE_LOCALFUNCTIONS_VERSION_MAJOR = 2
 DUNE_LOCALFUNCTIONS_VERSION_MINOR = 3
@@ -378,12 +378,12 @@ DUNE_PHASEFIELD_VERSION = 0.0
 DUNE_PHASEFIELD_VERSION_MAJOR = 0
 DUNE_PHASEFIELD_VERSION_MINOR = 0
 DUNE_PHASEFIELD_VERSION_REVISION = 0
-DUNE_SPGRID_CPPFLAGS = 
+DUNE_SPGRID_CPPFLAGS = -I/usr/people/kraenkel/Dune/dune-spgrid
 DUNE_SPGRID_LDFLAGS = 
 DUNE_SPGRID_LIBS = 
-DUNE_SPGRID_ROOT = /disk1/DuneTrunk/dune-spgrid
-DUNE_SPGRID_VERSION = 2012.13
-DUNE_SPGRID_VERSION_MAJOR = 2012
+DUNE_SPGRID_ROOT = /usr/people/kraenkel/Dune/dune-spgrid
+DUNE_SPGRID_VERSION = 2013.13
+DUNE_SPGRID_VERSION_MAJOR = 2013
 DUNE_SPGRID_VERSION_MINOR = 13
 DUNE_SPGRID_VERSION_REVISION = 0
 DVIPDF = dvipdf
@@ -415,7 +415,7 @@ GREP = /bin/grep
 GRIDDIM = 1 
 GRIDDIM_CPPFLAGS = -DGRIDDIM=$(GRIDDIM) -DWORLDDIM=$(WORLDDIM) -D$(GRIDTYPE)
 
-#GRIDTYPE = ONEDGRID
+#GRIDTYPE = ALUGRID
 GRIDTYPE = SPGRID
 INKSCAPE = inkscape
 INSTALL = /usr/bin/install -c
@@ -427,17 +427,17 @@ LAPACK_LIBS = -llapack
 LD = /usr/x86_64-pc-linux-gnu/bin/ld -m elf_x86_64
 LDFLAGS = 
 LIBOBJS = 
-LIBS =     /disk1/DuneTrunk/dune-fem/lib/libdunefem.la /disk1/DuneTrunk/dune-fem/lib/libdunefem.la     /disk1/DuneTrunk/dune-grid/lib/libdunegrid.la /disk1/DuneTrunk/dune-grid/lib/libdunegrid.la /disk1/DuneTrunk/dune-geometry/lib/libdunegeometry.la /disk1/DuneTrunk/dune-geometry/lib/libdunegeometry.la /disk1/DuneTrunk/dune-common/lib/libdunecommon.la /disk1/DuneTrunk/dune-common/lib/libdunecommon.la 
+LIBS = ${DUNE_SPGRID_LIBS} ${DUNE_FEM_DG_LIBS} ${DUNE_FEM_LIBS} ${DUNE_LOCALFUNCTIONS_LIBS} ${DUNE_ISTL_LIBS} ${DUNE_GRID_LIBS} ${DUNE_GEOMETRY_LIBS} ${DUNE_COMMON_LIBS} 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /disk1/DuneTrunk/dune-phasefield/missing --run makeinfo
+MAKEINFO = ${SHELL} /usr/people/kraenkel/Dune/dune-phasefield/missing --run makeinfo
 MANIFEST_TOOL = :
 METIS = 
-METIS_INCLUDE = 
-METIS_LDFLAGS = 
-METIS_LIB = 
+METIS_INCLUDE = -I/usr/include/metis
+METIS_LDFLAGS = -L/usr/lib
+METIS_LIB = -lmetis
 MKDIR_P = /bin/mkdir -p
 MPICC = 
 MPILIBS = 
@@ -466,9 +466,9 @@ PARMETIS_LIBS =
 PATH_SEPARATOR = :
 PERL = perl
 PETSC = 
-PETSC_CPPFLAGS =  -DENABLE_PETSC=1
-PETSC_LDFLAGS = -L/disk1/Work/Mymodules/petsc-3.3-p4/lib  -Wl,--rpath -Wl,/disk1/Work/Mymodules/petsc-3.3-p4/lib
-PETSC_LIBS = -lpetsc -llapack -lblas -lX11 
+PETSC_CPPFLAGS = 
+PETSC_LDFLAGS = 
+PETSC_LIBS = 
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
@@ -493,9 +493,9 @@ SUPERLU_DIST_LDFLAGS = -L/usr/local/
 SUPERLU_DIST_LIBS = 
 SUPERLU_LIBS = 
 TEX = latex
-UG_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UG_8441/include   -DENABLE_UG
+UG_CPPFLAGS = 
 UG_LDFLAGS = 
-UG_LIBS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UG_8441/lib   -lugS2 -lugS3 -ldevS
+UG_LIBS = 
 UMFPACK_CPPFLAGS = -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UFconfig -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Include -I/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/SuiteSparse_config -DENABLE_UMFPACK=1
 UMFPACK_LDFLAGS = -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/UMFPACK/Lib -L/hosts/raid5/aragorn/dune/modules/x86_64/UMFPACK/AMD/Lib
 UMFPACK_LIBS = -lumfpack -lamd
@@ -507,10 +507,10 @@ X_CFLAGS =  -I/usr/X11R6/include
 X_EXTRA_LIBS = 
 X_LIBS =  -L/usr/X11R6/lib
 X_PRE_LIBS =  -lSM -lICE
-abs_builddir = /disk1/DuneTrunk/dune-phasefield/src/problems/1dphase
-abs_srcdir = /disk1/DuneTrunk/dune-phasefield/src/problems/1dphase
-abs_top_builddir = /disk1/DuneTrunk/dune-phasefield
-abs_top_srcdir = /disk1/DuneTrunk/dune-phasefield
+abs_builddir = /usr/people/kraenkel/Dune/dune-phasefield/src/problems/1dphase
+abs_srcdir = /usr/people/kraenkel/Dune/dune-phasefield/src/problems/1dphase
+abs_top_builddir = /usr/people/kraenkel/Dune/dune-phasefield
+abs_top_srcdir = /usr/people/kraenkel/Dune/dune-phasefield
 ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_CXX = 
@@ -523,7 +523,7 @@ am__leading_dot = .
 am__quote = 
 am__tar = tar --format=posix -chf - "$$tardir"
 am__untar = tar -xf -
-am_dir = /disk1/DuneTrunk/dune-common/am
+am_dir = /usr/people/kraenkel/Dune/dune-common/am
 bindir = ${exec_prefix}/bin
 build = x86_64-unknown-linux-gnu
 build_alias = 
@@ -544,7 +544,7 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /disk1/DuneTrunk/dune-phasefield/install-sh
+install_sh = ${SHELL} /usr/people/kraenkel/Dune/dune-phasefield/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -556,7 +556,7 @@ pdfdir = ${docdir}
 prefix = /usr/local
 program_transform_name = s,x,x,
 psdir = ${docdir}
-resolved_top_srcdir = /disk1/DuneTrunk/dune-phasefield
+resolved_top_srcdir = /usr/people/kraenkel/Dune/dune-phasefield
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
 srcdir = .
@@ -576,20 +576,22 @@ phase_model_spec.hh problemtype.hh
 LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUNEMPILIBS) 
 BASEDIR = ../../../dune/fem/main
 SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
-POLORDER = 1 
+POLORDER = 2 
 USEJACOBIAN = 1
 PROBLEM = 1# check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 phasefield_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO 
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO -DMASTER 
 phasefield_P0_SOURCES = $(SOURCES) 
 phasefield_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO 
 phasefield_nc_SOURCES = $(SOURCES) 
-phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
+phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO -DMASTER
 phasefield_nc_P1_SOURCES = $(SOURCES) 
 phasefield_nc_P1_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=1 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
 phasefield_nc_jac_SOURCES = $(SOURCES) 
 phasefield_nc_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=$(USEJACOBIAN) -DWELLBALANCED -DMYALGO
+phasefield2d_SOURCES = $(SOURCES) 
+phasefield2d_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DGRIDDIM=2 -DMYALGO -DMASTER 
 DISTCHECK_CONFIGURE_FLAGS = DOXYGEN="true"
 EXTRA_DIST = paramFiles/param*
 CLEANFILES = manager.*.log 

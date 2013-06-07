@@ -6,7 +6,7 @@
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
 // Dune-Fem includes
-#include <dune/fem/space/dgspace.hh>
+#include <dune/fem/space/discontinuousgalerkin.hh>
 #include <dune/fem/pass/dgdiscretemodel.hh>
 #include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
@@ -201,22 +201,13 @@ namespace Dune {
     {
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 
-      typedef typename ArgumentTuple::template Get<passUId>::Type UType;
-      UType uRight;
+      RangeType uRight;
     
-       if( false /*model_.hasBoundaryValue(it,time,x)*/ )
-       {
-        model_.boundaryValue(it, time, x, uLeft[ uVar ], uRight);
-       }
-       else 
-       {
-        uRight = uLeft[ uVar ];
-  	   } 
 
- double tmp= gradientFlux_.gradientBoundaryFlux(it, inside(),
+     double tmp= gradientFlux_.gradientBoundaryFlux(it, inside(),
 						time, faceQuadInner, quadPoint,
 						uLeft[ uVar ],
-						uRight, 
+            uLeft[ uVar ],
 						gLeft,
 						gDiffLeft );
     

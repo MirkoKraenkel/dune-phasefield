@@ -16,7 +16,7 @@
 @SET_MAKE@
 
 # -*- Makefile -*-
-# $Id: global-rules 5784 2009-12-14 19:51:06Z christi $
+# $Id$
 
 #
 # this file should be included into any Makefile.am so that we can
@@ -24,13 +24,13 @@
 #
 
 # -*- Makefile -*-
-# $Id: sourcescheck 6115 2010-09-01 19:17:42Z christi $
+# $Id$
 
 # -*- Makefile -*-
 # $Id: sourcescheck 5183 2008-04-27 17:37:08Z christi $
 
 # -*- Makefile -*-
-# $Id: checklog 6488 2011-08-12 17:28:43Z sander $
+# $Id$
 
 #
 # check-log

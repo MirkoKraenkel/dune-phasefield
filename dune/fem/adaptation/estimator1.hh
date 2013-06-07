@@ -11,7 +11,7 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/spaceoperatorif.hh> 
 #include <dune/fem/operator/matrix/blockmatrix.hh>
-#include <dune/fem/space/dgspace.hh>
+#include <dune/fem/space/discontinuousgalerkin.hh>
 #include <dune/fem/space/combinedspace.hh>
 #include <dune/fem/quadrature/intersectionquadrature.hh>
 #include <dune/fem/misc/h1norm.hh>

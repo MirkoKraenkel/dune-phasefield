@@ -16,7 +16,7 @@
 @SET_MAKE@
 
 # -*- Makefile -*-
-# $Id: global-rules 5784 2009-12-14 19:51:06Z christi $
+# $Id$
 
 #
 # this file should be included into any Makefile.am so that we can
@@ -24,13 +24,13 @@
 #
 
 # -*- Makefile -*-
-# $Id: sourcescheck 6115 2010-09-01 19:17:42Z christi $
+# $Id$
 
 # -*- Makefile -*-
 # $Id: sourcescheck 5183 2008-04-27 17:37:08Z christi $
 
 # -*- Makefile -*-
-# $Id: checklog 6488 2011-08-12 17:28:43Z sander $
+# $Id$
 
 #
 # check-log
@@ -415,7 +415,7 @@ GREP = @GREP@
 GRIDDIM = 1 
 GRIDDIM_CPPFLAGS = @GRIDDIM_CPPFLAGS@
 
-#GRIDTYPE = ONEDGRID
+#GRIDTYPE = ALUGRID
 GRIDTYPE = SPGRID
 INKSCAPE = @INKSCAPE@
 INSTALL = @INSTALL@
@@ -576,20 +576,22 @@ phase_model_spec.hh problemtype.hh
 LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUNEMPILIBS) 
 BASEDIR = ../../../dune/fem/main
 SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
-POLORDER = 1 
+POLORDER = 2 
 USEJACOBIAN = 1
 PROBLEM = 1# check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 phasefield_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO 
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO -DMASTER 
 phasefield_P0_SOURCES = $(SOURCES) 
 phasefield_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO 
 phasefield_nc_SOURCES = $(SOURCES) 
-phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
+phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO -DMASTER
 phasefield_nc_P1_SOURCES = $(SOURCES) 
 phasefield_nc_P1_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=1 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
 phasefield_nc_jac_SOURCES = $(SOURCES) 
 phasefield_nc_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=$(USEJACOBIAN) -DWELLBALANCED -DMYALGO
+phasefield2d_SOURCES = $(SOURCES) 
+phasefield2d_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DGRIDDIM=2 -DMYALGO -DMASTER 
 DISTCHECK_CONFIGURE_FLAGS = DOXYGEN="true"
 EXTRA_DIST = paramFiles/param*
 CLEANFILES = manager.*.log 

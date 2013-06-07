@@ -94,7 +94,7 @@ struct ProblemGenerator
   }
 
 };
-#include<dune/phasefield/phasefieldalgorithm.hh>
+#include<dune/phasefield/phasefieldalgorithm_eq.hh>
 
 
 #endif // PHASE_PROBLEMCREATOR_HH

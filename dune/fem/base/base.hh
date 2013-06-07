@@ -12,7 +12,7 @@
 #endif
 
 #include <dune/fem/misc/mpimanager.hh>
-#include <dune/fem/misc/utility.hh>
+//#include <dune/fem/misc/utility.hh>
 #include <dune/fem/misc/l2error.hh>
 #include <dune/fem/misc/femeoc.hh>
 #include <dune/fem/misc/femtimer.hh>

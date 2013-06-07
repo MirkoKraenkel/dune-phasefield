@@ -31,7 +31,6 @@ AC_CONFIG_FILES([
   dune/fem/main/Makefile
   dune/fem/fluxes/Makefile
   dune/fem/operator/Makefile
-  src/problems/2dphase/Makefile
   src/problems/1dphase/Makefile
   src/problems/Makefile
   m4/Makefile

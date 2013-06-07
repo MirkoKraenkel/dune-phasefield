@@ -8,9 +8,9 @@
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
 // Dune-Fem includes
-#include <dune/fem/space/fvspace.hh>
-#include <dune/fem/space/dgspace.hh>
-#include <dune/fem/pass/dgdiscretemodel.hh>
+#include <dune/fem/space/finitevolume.hh>
+#include <dune/fem/space/discontinuousgalerkin.hh>
+#include <dune/fem/pass/localdg/discretemodel.hh>
 #include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/misc/boundaryidentifier.hh>
@@ -346,12 +346,10 @@ public:
 					    faceQuadInner, quadPoint,
 					    uLeft );
       
-    typedef typename ArgumentTuple::template Get<passGradId>::Type SigmaType;
     // make sure user sets specific boundary implementation
     gLeft = std::numeric_limits< double >::quiet_NaN();
     gDiffLeft = 0;
  
-    SigmaType sigmaRight(0.); 
     if (advection)
     {
       if( hasBndValue )
@@ -711,27 +709,28 @@ public:
   template <class QuadratureImp, 
 	    class ArgumentTuple, class JacobianTuple>
   double boundaryFlux(const Intersection& it,
-		      const double time, 
+		                  const double time, 
 											const QuadratureImp& faceQuadInner,
-		      const int quadPoint,
-		      const ArgumentTuple& uLeft,
-		      const JacobianTuple& jacLeft,
-		      RangeType& gLeft,
-		      JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
+	            	      const int quadPoint,
+		                  const ArgumentTuple& uLeft,
+		                  const JacobianTuple& jacLeft,
+		                  RangeType& gLeft,
+		                  JacobianRangeType& gDiffLeft ) const   
   {
      
     const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 
-    const bool hasBndValue = boundaryValue( it, time, 
-					    faceQuadInner, quadPoint,
-					    uLeft );
+    const bool hasBndValue = boundaryValue( it, 
+                                            time,
+                                            faceQuadInner, 
+                                            quadPoint,
+					                                  uLeft );
       
-    typedef typename ArgumentTuple::template Get<passGradId>::Type SigmaType;
     // make sure user sets specific boundary implementation
     gLeft = std::numeric_limits< double >::quiet_NaN();
+   
     gDiffLeft = 0;
-#if 1  
-    SigmaType sigmaRight(0.); 
+    
     if (advection)
       {
         if( hasBndValue )
@@ -747,7 +746,7 @@ public:
 					                               uLeft[ uVar ], 
                                          uBnd_,
                                          uLeft[sigmaVar],
-                                         sigmaRight, 
+                                         uLeft[sigmaVar], 
                                          gLeft, 
                                          gRight);
 	        }
@@ -761,7 +760,6 @@ public:
         gLeft = 0.;
         return 0.;
       }
-#endif
     return 0.;
   }
   /*@LST0S@*/

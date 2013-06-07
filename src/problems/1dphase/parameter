@@ -4,7 +4,7 @@ fem.resolvevariables: 1
 #------------
 fem.prefix: ./data_$(scheme)_P$(order) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-3 #save data every time interval 
+fem.io.savestep: 10 #save data every time interval 
 fem.io.savecount: 0  # save every i-th ste
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy.gnu
@@ -37,10 +37,10 @@ mu: 1.
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
 phasefield.penalty: 1
-phasefield.acpenalty: 0
+phasefield.acpenalty: 0 
 c1:1
 c2:2
-smear: 0.25
+phasefield.smear: 2.0
 phiscale: 0.99
 pressure: 1
 gamma: 0.3
@@ -71,6 +71,8 @@ dgiffusionflux.upwind: -1 -3.141
 paramfile: ../parameter/paramSolver
 femhowto.maxTimeStep: 0.5
 fem.ode.tolerance: 1e-8
+
+phasefield.timeStepTolerance: 1e-8
 # Output
 #------------
 phasefield.additionalvariables: true 

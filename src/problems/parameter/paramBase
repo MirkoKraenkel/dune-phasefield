@@ -41,7 +41,7 @@ gridsol.usegridsolution: false
 #-----------------
 
 femhowto.eocSteps: 2 
-femhowto.printCount: 0
+femhowto.printCount: 10000 
 femhowto.verbose: 0
 
 # create a file with sampled values of the numerical solution
@@ -73,6 +73,6 @@ fem.adaptation.adaptcount: 0 # after this many time step, 0 disables adaptation
 
  DOMAIN CONFIGURATION
 #---------------------
-femhowto.startLevel: 4 
+femhowto.startLevel: 0 
 
-phasefield.endTime: 1. 
+phasefield.endTime: 0.1

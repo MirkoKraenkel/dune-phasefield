@@ -1,5 +1,5 @@
 #!/bin/sh
-x=0
+x=1
 MAXORD=$1
 echo $MAXORD
 while [ $x -le $MAXORD ]

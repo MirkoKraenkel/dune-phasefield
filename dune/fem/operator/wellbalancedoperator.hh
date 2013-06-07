@@ -5,10 +5,9 @@
 
 // dune-fem includes
 #include <dune/fem/gridpart/common/gridpart.hh>
-#include <dune/fem/pass/dgdiscretemodel.hh>
-#include <dune/fem/pass/selection.hh>
+#include <dune/fem/pass/localdg/discretemodel.hh>
 #include <dune/fem/solver/timeprovider.hh>
-#include <dune/fem/space/dgspace.hh>
+#include <dune/fem/space/discontinuousgalerkin.hh>
 #include <dune/fem/operator/common/spaceoperatorif.hh>
 
 // dune-fem-dg includes

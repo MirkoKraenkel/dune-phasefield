@@ -22,14 +22,13 @@ void setupAdditionalVariables( const ConsDiscreteFunctionType& consDF,
                                const ModelType& model,
                                PrimDiscreteFunctionType& primDF ) 
 {
-  typedef typename ConsDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
-    ConsDiscreteFunctionSpaceType;
-  typedef typename PrimDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
-    PrimDiscreteFunctionSpaceType;
-   typedef typename GradientDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
-    GradientDiscreteFunctionSpaceType;
-
-   enum{ dimDomain=ModelType::dimDomain};
+  typedef typename ConsDiscreteFunctionType::Traits::DiscreteFunctionSpaceType ConsDiscreteFunctionSpaceType;
+  typedef typename PrimDiscreteFunctionType::Traits::DiscreteFunctionSpaceType PrimDiscreteFunctionSpaceType;
+  typedef typename GradientDiscreteFunctionType::Traits::DiscreteFunctionSpaceType GradientDiscreteFunctionSpaceType;
+  
+  enum { dimDomain = ModelType::dimDomain };
+  enum { pressureId = dimDomain };
+  enum { phasefieldId = dimDomain+1 };
 
   typedef typename ConsDiscreteFunctionSpaceType::Traits::GridPartType GridPartType;
   typedef typename GridPartType::GridType GridType;
@@ -94,7 +93,7 @@ typedef typename ModelType::JacobianRangeType JacobianRangeType;
 #endif
 
       model.conservativeToPrimitive( xgl, cons, prim );
-      prim[dimDomain]+=model.delta()*0.5*gradphi*gradphi; 
+      prim[pressureId]-=model.delta()*0.5*gradphi*gradphi; 
       prim *=  quad.weight(qP);
       primLF.axpy( quad[qP] , prim );
     }
