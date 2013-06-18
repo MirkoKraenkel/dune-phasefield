@@ -35,7 +35,7 @@ class PhasefieldPhysics<2,Thermodynamics>
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
     thermoDynamics_(thermodyn),
     delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
-    delta_inv_(1./delta_)
+    deltaInv_(1./delta_)
   {
 	}
  
@@ -97,15 +97,15 @@ class PhasefieldPhysics<2,Thermodynamics>
 
 
 public:
-	inline double delta()const {return delta_;}
-	inline double delta_inv(){return delta_inv_;}
-  inline double mu1()const {return thermoDynamics_.mu1();}
- 	inline double mu2()const {return thermoDynamics_.mu2();}
+	inline double delta()const { return delta_;}
+	inline double deltaInv()   { return deltaInv_;}
+  inline double mu1()const   { return thermoDynamics_.mu1();}
+ 	inline double mu2()const   { return thermoDynamics_.mu2();}
 
 
 protected:
 	const double delta_; 
-	double delta_inv_;
+	double deltaInv_;
  };
 
 
@@ -257,8 +257,8 @@ protected:
       f[0]=0;
 			f[1]=-dtheta[0][0]*u[0]-du[6]*theta[1];
 			f[2]=-dtheta[0][1]*u[0]-du[7]*theta[1];
-	    f[3]=-theta[1]*delta_inv_;
-      return delta_inv_;  
+	    f[3]=-theta[1]*deltaInv_;
+      return deltaInv_;  
   }
 
   template<class Thermodynamics>

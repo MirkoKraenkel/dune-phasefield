@@ -50,7 +50,8 @@ class PhasefieldPhysics<1,Thermodynamics>
   template < class JacobianRangeImp >
   inline void totalEnergy( const RangeType& cons, 
                            const JacobianRangeImp& grad,
-                          double& res ) const;
+                           double& kin,
+                           double& res ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -146,7 +147,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   inline void PhasefieldPhysics<1,Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const JacobianRangeImp& grad , 
-                  double& res ) const
+                  double& kin,
+                  double& total ) const
   {
     assert( cons[0] > 0. );
 	  double rho = cons[0];
@@ -168,8 +170,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 //    surfaceEnergy=gradphi;
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
-    res= kineticEnergy; 
-	//  res = surfaceEnergy+freeEnergy+kineticEnergy;
+  kin= kineticEnergy; 
+	total = surfaceEnergy+freeEnergy+kineticEnergy;
   }
 
   template< class Thermodynamics >
@@ -263,8 +265,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double reaction=thermoDynamics_.reaction(rho,phi);
     f[0]=0;
     f[1]=0;
-    f[2]=-reaction;
-	  return delta_;
+    f[2]=-delta_inv_*reaction;
+	  return delta_inv_;
   }
 
   template< class Thermodynamics >
@@ -292,7 +294,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
-    diff[2][0]=dxphi*delta_;
+    diff[2][0]=dxphi;
     
   }
    template< class Thermodynamics >

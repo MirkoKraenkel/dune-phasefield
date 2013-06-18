@@ -31,7 +31,7 @@ public:
   {
     delta_=Dune::Fem::Parameter::getValue<double>("phasefield.delta");
     delta_inv_=1./delta_;
-    epsilon_=Dune::Fem::Parameter::getValue<double>("phasefield.delta");
+    epsilon_=Dune::Fem::Parameter::getValue<double>("phasefield.epsilon");
     std::cout<<"init epsilon="<<epsilon_<<"\n"; 
   }
   

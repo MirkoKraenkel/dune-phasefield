@@ -152,12 +152,14 @@ namespace Dune {
 															 , ThetaRangeType& s ) const 
 		{
 			double mu,reaction;
- 
-		  phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
+      
+      phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
       //stheta[0]=dF/drho stheta[1]=dF/dphi
       s[0]=mu;
 			s[1]=reaction;
-			return phasefieldPhysics_.delta();
+      double deltaInv=phasefieldPhysics_.deltaInv();
+
+			return deltaInv*deltaInv*0.4;
 		}
 
     

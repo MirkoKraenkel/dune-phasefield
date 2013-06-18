@@ -23,15 +23,19 @@ class BalancedThermodynamics:
 
 public:
   BalancedThermodynamics():
-    BaseType()
+   BaseType(),
+   delta_( Dune::Fem::Parameter::getValue<double>( "phasefield.delta" ) ),
+   deltaInv_( 1./delta_ ),
+   epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
+   mu1_( epsilon_ ),
+   mu2_( epsilon_ )
   {
-    init();
   }
 
   inline void init() const 
   {
-    delta_=Dune::Fem::Parameter::getValue<double>("phasefield.delta");
-    delta_inv_=1./delta_;
+    abort();
+    deltaInv_=1./delta_;
     epsilon_=Dune::Fem::Parameter::getValue<double>("phasefield.epsilon");
   }
   
@@ -134,12 +138,7 @@ t11-t13)*(-7.0*rho+3.0*t17+0.945940263E1));
         return(-0.1E-7*t23/delta);
       }
 
-  
-  
-  
-  
-  
-  
+ 
   }
 
    
@@ -156,15 +155,16 @@ t11-t13)*(-7.0*rho+3.0*t17+0.945940263E1));
 
 public:
 
-	inline double delta()const {return delta_;}
-	inline double delta_inv()const {return delta_inv_;}
-	inline double mu1() const{ return epsilon_;}
-inline double mu2()const {  return epsilon_;}
+	inline double delta()    const { return delta_; }
+	inline double deltaInv() const { return deltaInv_; }
+	inline double mu1()      const { return mu2_; }
+  inline double mu2()      const { return mu1_; }
 
 private:
 	mutable double  delta_;
-	mutable double  delta_inv_;
-	mutable  double epsilon_;
+	mutable double  deltaInv_;
+	mutable double  epsilon_;
+  mutable double  mu1_,mu2_;
 
 };
 

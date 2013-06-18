@@ -49,7 +49,7 @@ class PhasefieldPhysics
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
     thermoDynamics_(thermodyn),
     delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
-    delta_inv_(1./delta_)
+    deltaInv_(1./delta_)
   {
   }
  
@@ -115,14 +115,14 @@ class PhasefieldPhysics
 
   public:
 
-	inline double delta()const {return delta_;}
-	inline double delta_inv(){return delta_inv_;}
-	inline double mu1() const {return 1.;}
-	inline double mu2(){return 1.;}
+	inline double delta()    const { return delta_;}
+	inline double deltaInv() const { return deltaInv_;}
+	inline double mu1()      const { abort(); return 1.;}
+	inline double mu2()      const { abort(); return 1.;}
   
   protected:
 	const double delta_; 
-	double delta_inv_;
+	double deltaInv_;
  };
 }
 
@@ -130,7 +130,7 @@ class PhasefieldPhysics
 #include "physicswb_inline1d.hh"
 #include "physicswb_inline2d.hh"
 #else
-#include "physics_inline1d.hh"
+#include "physicstest1d.hh"
 #include "physics_inline2d.hh"
 #endif
 	//end namspace DUNE
