@@ -41,18 +41,17 @@ class TanhProblem : public EvolutionProblemInterface<
   
   TanhProblem() : 
 		 myName_( "Constant Problem" ),
-		 endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime" )), 
-		 mu_( Fem::Parameter :: getValue< double >( "mu" )),
+		 endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime", 1.)), 
+		 mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
 		 delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
      rho1_(Fem::Parameter :: getValue< double >( "phasefield.rho1")),
 		 rho2_(Fem::Parameter ::getValue< double> ("phasefield.rho2")),
-		 smear_( Fem::Parameter::getValue<double> ("smear")),
-		 phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+		 smear_( Fem::Parameter::getValue<double> ("phasefield.smear")),
+		 persistentsmear_(smear_),
+     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
 		 gamma_(Fem::Parameter::getValue<double> ("gamma")),
      thermodyn_()
      {
-      thermodyn_.init();
-      std::cout<<"constprob constructor delta"<<delta_<<"\n";
      }
 
 
@@ -69,8 +68,21 @@ class TanhProblem : public EvolutionProblemInterface<
   // this is the initial data
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
-    thermodyn_.delta();
-    evaluate( 0., arg, res );
+    double x=arg[0];
+ 
+   for(int i=1;i<=dimension;i++)
+        res[i]=0;
+
+   double tanx;
+  
+
+    tanx=smear_*0.5*tanh(x/delta_)+0.5;
+  
+   res[0]=1.;
+   
+   res[dimension+1]=tanx;
+ 
+
   }
 
 
@@ -103,13 +115,16 @@ class TanhProblem : public EvolutionProblemInterface<
   inline double rho1() const {return rho1_;}
   inline double rho2() const {return rho2_;}
   inline double gamma() const {return gamma_;}
-protected:
+  inline void smearone()  {smear_=1.;}
+  inline void resetsmear()  {smear_=persistentsmear_;}
+  protected:
   const std::string myName_;
   const double endTime_;
   const double mu_;
   const double delta_;
   const double rho1_,rho2_;
-  const double smear_;
+  double smear_;
+  double persistentsmear_;
   const double phiscale_;
   const double gamma_;
   const ThermodynamicsType thermodyn_;
@@ -144,7 +159,7 @@ inline void TanhProblem<GridType>
    double tanx;
   
   if(t==0.)
-    tanx=0.95*0.5*tanh(x/delta_)+0.5;
+    tanx=0.4*tanh(x/delta_)+0.5;
   else
     tanx=0.5*tanh(x/delta_)+0.5;
   
@@ -158,7 +173,7 @@ template <class GridType>
 inline double TanhProblem<GridType>
 ::rhoval( const double x ) const 
 {
-  return exp((0.9-0.54E1*x*x*x*x*x+0.135E2*x*x*x*x-0.9E1*x*x*x)/(-0.12E1*x*x*x*x*x+0.3E1*x*x*x*x-0.2E1*x*x*x+0.16E1));
+abort();
 
 }
 

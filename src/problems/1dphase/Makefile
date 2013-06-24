@@ -294,7 +294,7 @@ CPPFLAGS =
 CXX = g++ -std=c++0x
 CXXCPP = g++ -E -std=c++0x
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -O3 -Wall -DNDEBUG -funroll-loops -finline-functions --param max-inline-insns-single=4000 --param large-function-growth=4500 --param inline-unit-growth=4000
+CXXFLAGS = -O3 -Wall -DNDEBUG -funroll-loops -finline-functions
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -576,20 +576,20 @@ phase_model_spec.hh problemtype.hh
 LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUNEMPILIBS) 
 BASEDIR = ../../../dune/fem/main
 SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
-POLORDER = 2 
+POLORDER = 0 
 USEJACOBIAN = 1
-PROBLEM = 1# check ./problemtype.hh
+PROBLEM = 5 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 phasefield_SOURCES = $(SOURCES) 
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO -DMASTER 
 phasefield_P0_SOURCES = $(SOURCES) 
-phasefield_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO 
+phasefield_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO -DMASTER 
 phasefield_nc_SOURCES = $(SOURCES) 
 phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO -DMASTER
 phasefield_nc_P1_SOURCES = $(SOURCES) 
-phasefield_nc_P1_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=1 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO
+phasefield_nc_P1_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=1 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO -DMASTER
 phasefield_nc_jac_SOURCES = $(SOURCES) 
-phasefield_nc_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=$(USEJACOBIAN) -DWELLBALANCED -DMYALGO
+phasefield_nc_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=$(USEJACOBIAN) -DWELLBALANCED -DMYALGO -DMASTER
 phasefield2d_SOURCES = $(SOURCES) 
 phasefield2d_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DGRIDDIM=2 -DMYALGO -DMASTER 
 DISTCHECK_CONFIGURE_FLAGS = DOXYGEN="true"

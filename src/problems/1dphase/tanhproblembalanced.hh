@@ -44,20 +44,19 @@ class TanhProblem : public EvolutionProblemInterface<
   typedef BalancedThermodynamics  ThermodynamicsType;
   
   TanhProblem() : 
-		 myName_( "Constant Problem" ),
-		 endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime" )), 
-		 mu_( Fem::Parameter :: getValue< double >( "mu" )),
-		 delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
-     rho1_(Fem::Parameter :: getValue< double >( "phasefield.rho1")),
-		 rho2_(Fem::Parameter ::getValue< double> ("phasefield.rho2")),
-		 smear_( Fem::Parameter::getValue<double> ("phasefield.smear")),
-		 phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
-		 gamma_(Fem::Parameter::getValue<double> ("gamma")),
-     thermodyn_()
-     {
-      thermodyn_.init();
-      std::cout<<"constprob constructor delta"<<delta_<<"\n";
-     }
+    myName_( "TanhBalanced Problem" ),
+    endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
+    mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
+    delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
+    rho1_(Fem::Parameter :: getValue< double >( "phasefield.rho1")),
+    rho2_(Fem::Parameter ::getValue< double> ("phasefield.rho2")),
+    smear_( Fem::Parameter::getValue<double> ("phasefield.smear")),
+    persistentsmear_(smear_),
+    phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+    gamma_(Fem::Parameter::getValue<double> ("gamma")),
+    thermodyn_()
+    {
+    }
 
 
 
@@ -73,7 +72,6 @@ class TanhProblem : public EvolutionProblemInterface<
   // this is the initial data
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
-    std::cout<<"initial\n";
     thermodyn_.delta();
     double x=arg[0];
  
@@ -81,7 +79,6 @@ class TanhProblem : public EvolutionProblemInterface<
       res[i]=0;
 
     double tanx=0.5*tanh(x/(smear_*delta_))+0.5;
-  //double tanx=0.9;
    
    res[0]=rhoval(tanx);
   
@@ -119,13 +116,16 @@ class TanhProblem : public EvolutionProblemInterface<
   inline double rho1() const {return rho1_;}
   inline double rho2() const {return rho2_;}
   inline double gamma() const {return gamma_;}
-protected:
+  inline void smearone()   {smear_=1.;}
+  inline void resetsmear()  {smear_=persistentsmear_;}
+  protected:
   const std::string myName_;
   const double endTime_;
   const double mu_;
   const double delta_;
   const double rho1_,rho2_;
-  const double smear_;
+  double smear_;
+  double persistentsmear_;
   const double phiscale_;
   const double gamma_;
   const ThermodynamicsType thermodyn_;
