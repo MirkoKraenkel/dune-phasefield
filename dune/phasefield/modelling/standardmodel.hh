@@ -108,17 +108,17 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 
     DomainType xgl = en.geometry().global( x );
  
-    double deltainv=phasefieldPhysics_.delta_inv();
-		double delta=phasefieldPhysics_.delta();
+    double deltainv=phasefieldPhysics_.deltaInv();
     double reaction,pressure;
+ 
     //reaction=-dF/dphi
     phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
         
     s[0]=0.;
     for(int i=0;i<dimDomain;i++)
-     s[i+1]=0;
+      s[i+1]=0;
   	
-    s[dimDomain+1]=-reaction*deltainv;
+    s[dimDomain+1]=-deltainv*reaction;
     return deltainv;
   }
 

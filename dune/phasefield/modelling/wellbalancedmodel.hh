@@ -102,9 +102,7 @@ namespace Dune {
 		PhaseModel( const ThermodynamicsType& thermo ):
       phasefieldPhysics_( thermo )
 		{
-		  std::cout<<"constructor wellbalancedmodel\n";
     }
-
 		inline bool hasStiffSource() const { return true; }
 		inline bool hasNonStiffSource() const { return false; }
 		inline bool hasFlux() const { return true ; }
@@ -158,7 +156,6 @@ namespace Dune {
       s[0]=mu;
 			s[1]=reaction;
       double deltaInv=phasefieldPhysics_.deltaInv();
-
 			return deltaInv*deltaInv*0.4;
 		}
 
