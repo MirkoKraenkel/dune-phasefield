@@ -45,9 +45,9 @@ static void computeAdaptive(Algorithm & algorithm)
 
   // get tolerance for adaptive problem 
   double tolerance = 1.0;  // default value 
-  tolerance = Dune::Parameter::getValue("femhowto.tolerance", tolerance);
+  tolerance = Dune::Parameter::getValue("phasefield.tolerance", tolerance);
   // get some parameters
-  const int eocSteps   = Dune::Parameter::getValue<int>("femhowto.eocSteps", 1);
+  const int eocSteps   = Dune::Parameter::getValue<int>("phasefield.eocSteps", 1);
 
   // Initialize the DataOutput that writes the solution on the harddisk in a
   // format readable by e.g. Paraview in each adaption step

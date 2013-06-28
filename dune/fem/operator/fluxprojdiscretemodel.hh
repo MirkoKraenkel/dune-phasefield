@@ -600,7 +600,6 @@ namespace Dune {
 				numericalFlux( it, time, faceQuadInner, faceQuadOuter,
                        quadPoint, uLeft, uRight, jacLeft, jacRight, 
                        gLeft, gRight, gDiffLeft, gDiffRight );
-      
       // diffusion
 
       double diffTimeStep = 0.0;
@@ -702,7 +701,6 @@ namespace Dune {
       // advection
     
       BaseType :: analyticalFlux( en, time, x, u, jac, f );
-
       // diffusion
    
       

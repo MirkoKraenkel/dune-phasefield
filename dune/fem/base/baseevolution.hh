@@ -1,234 +1,234 @@
 #ifndef FEMHOWTO_BASEEVOL_HH
 #define FEMHOWTO_BASEEVOL_HH
 #warning "BASE EVOL"
-// system includes
+  // system includes
 #include <sstream>
 
-// dune-fem includes
+  // dune-fem includes
 #include <dune/fem/io/file/datawriter.hh>
 #include <dune/fem/space/common/adaptmanager.hh>
 
-// local includes
+  // local includes
 #include "base.hh"
 #include "../util/cons2prim.hh"
 #include "../util/energyconverter.hh"
-/////////////////////////////////////////////////////////////////////////////
-//
-//  EOC output parameter class 
-//
-/////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  //
+  //  EOC output parameter class 
+  //
+  /////////////////////////////////////////////////////////////////////////////
 
-struct EocDataOutputParameters :   /*@LST1S@*/
-	public Dune::LocalParameter<Dune::DataWriterParameters,EocDataOutputParameters> 
-{
-  std::string loop_;
-  EocDataOutputParameters(int loop, const std::string& name) {
-    std::stringstream ss;
-    ss << name << loop;
-    loop_ = ss.str();
-  }
-  EocDataOutputParameters(const EocDataOutputParameters& other)
-		: loop_(other.loop_) {}
+  struct EocDataOutputParameters :   /*@LST1S@*/
+    public Dune::LocalParameter<Dune::DataWriterParameters,EocDataOutputParameters> 
+  {
+    std::string loop_;
+    EocDataOutputParameters(int loop, const std::string& name) {
+      std::stringstream ss;
+      ss << name << loop;
+      loop_ = ss.str();
+    }
+    EocDataOutputParameters(const EocDataOutputParameters& other)
+      : loop_(other.loop_) {}
 
-  std::string path() const {
-    return loop_;
-  }
-};                              /*@LST1E@*/
+    std::string path() const {
+      return loop_;
+    }
+  };                              /*@LST1E@*/
 
-/////////////////////////////////////////////////////////////////////////////
-	//
-	//  Base class for evolutionary problems 
-	//
-	/////////////////////////////////////////////////////////////////////////////
-	// TraitsImp see steppertraits.hh
-	template <class TraitsImp> 
-	class AlgorithmBase
-	{
-		typedef TraitsImp Traits ;
-	public:
-		// type of Grid
-		typedef typename Traits :: GridType                  GridType;
+  /////////////////////////////////////////////////////////////////////////////
+    //
+    //  Base class for evolutionary problems 
+    //
+    /////////////////////////////////////////////////////////////////////////////
+    // TraitsImp see steppertraits.hh
+    template <class TraitsImp> 
+    class AlgorithmBase
+    {
+      typedef TraitsImp Traits ;
+    public:
+      // type of Grid
+      typedef typename Traits :: GridType                  GridType;
 
-		// type of the problem
-		typedef typename Traits :: InitialDataType           ProblemType;
+      // type of the problem
+      typedef typename Traits :: InitialDataType           ProblemType;
 
-		// type of the model 
-		typedef typename Traits :: ModelType                 ModelType;
+      // type of the model 
+      typedef typename Traits :: ModelType                 ModelType;
 
-		// choose a suitable GridView
-		typedef typename Traits :: GridPartType              GridPartType;
+      // choose a suitable GridView
+      typedef typename Traits :: GridPartType              GridPartType;
 
-		// the space type
-		typedef typename Traits :: DiscreteSpaceType         DiscreteSpaceType;
+      // the space type
+      typedef typename Traits :: DiscreteSpaceType         DiscreteSpaceType;
 
-		// the discrete function type
-		typedef typename Traits :: DiscreteFunctionType      DiscreteFunctionType;
-		// the discrete function type
-		typedef typename Traits :: DiscreteGradientType      DiscreteGradientType;
-		//     // the space type
-		typedef typename Traits :: ScalarDiscreteSpaceType         ScalarDiscreteSpaceType;
+      // the discrete function type
+      typedef typename Traits :: DiscreteFunctionType      DiscreteFunctionType;
+      // the discrete function type
+      typedef typename Traits :: DiscreteGradientType      DiscreteGradientType;
+      //     // the space type
+      typedef typename Traits :: ScalarDiscreteSpaceType         ScalarDiscreteSpaceType;
 
-		// the discrete function type
-		typedef typename Traits :: ScalarDFType      ScalarDFType;
-
-
-
-		// the indicator function type (for limiting only)
-		typedef typename Traits :: IndicatorType             IndicatorType;
-
-		// the type of domain and range
-		typedef typename DiscreteFunctionType::DomainType    DomainType;
-		typedef typename DiscreteFunctionType::RangeType     RangeType;
-
-		// the restriction and prolongation projection 
-		typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
-
-		// type of adaptation manager 
-		typedef Dune::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
-
-		// type of IOTuple 
-		typedef Dune::tuple< DiscreteFunctionType*,  DiscreteFunctionType*,IndicatorType* > IOTupleType; 
-		// type of data writer 
-		typedef Dune::DataWriter< GridType, IOTupleType >    DataWriterType;
-
-		// type of time provider organizing time for time loops 
-		typedef Dune::GridTimeProvider< GridType >                 TimeProviderType;
-
-		//! constructor 
-		AlgorithmBase(GridType& grid) 
-			: grid_( grid ),
-				gridPart_( grid_ ),
-				space_( gridPart_ ),
-				energyspace_( gridPart_ ),
-				eocLoopData_( 0 ),
-				eocDataTup_(),
-				// Initialize Timer for CPU time measurements
-				timeStepTimer_( Dune::FemTimer::addTo("max time/timestep") ),
-				loop_( 0 ),
-				fixedTimeStep_( Dune::Parameter::getValue<double>("fixedTimeStep",0) ),
-				fixedTimeStepEocLoopFactor_( Dune::Parameter::getValue<double>("fixedTimeStepEocLoopFactor",1.) )
-		{
-		}
-
-		//! also have virtual destructor 
-		virtual ~AlgorithmBase() 
-		{
-			delete eocLoopData_; 
-			eocLoopData_ = 0 ;
-		} 
-
-		//! return reference to space 
-		DiscreteSpaceType& space()
-		{
-			return space_;
-		}
-		ScalarDiscreteSpaceType& energyspace()
-		{
-			return energyspace_;
-		}
-
-		// return size of grid 
-		virtual size_t gridSize() const 
-		{ 
-			size_t grSize = grid_.size( 0 );
-			return grid_.comm().sum( grSize );
-		}
-
-		virtual std::string dataPrefix () const = 0;
-
-		virtual const ProblemType& problem() const = 0;
-		virtual const ModelType& model() const = 0;
-
-		// return reference to solution 
-		virtual DiscreteFunctionType& solution () = 0;
+      // the discrete function type
+      typedef typename Traits :: ScalarDFType      ScalarDFType;
 
 
-		virtual DiscreteGradientType& theta () = 0;
-  
-  
-		virtual ScalarDFType& energy () = 0;
- 
-		// return reference to additional variables 
-		virtual DiscreteFunctionType* additionalVariables () = 0;
-		// return reference to additional variables 
-		virtual IndicatorType* indicator()  { return 0; }
 
-		//! initialize method for time loop, i.e. L2-project initial data 
-		virtual void initializeStep(TimeProviderType& tp) = 0;
+      // the indicator function type (for limiting only)
+      typedef typename Traits :: IndicatorType             IndicatorType;
 
-		//! solve one time step 
-		virtual void step(TimeProviderType& tp,
-											int& newton_iterations,
-											int& ils_iterations,
-											int& max_newton_iterations,
-											int& max_ils_iterations) = 0;
+      // the type of domain and range
+      typedef typename DiscreteFunctionType::DomainType    DomainType;
+      typedef typename DiscreteFunctionType::RangeType     RangeType;
 
-		//! call limiter if necessary 
-		virtual void limitSolution () {} 
+      // the restriction and prolongation projection 
+      typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
 
-		//! finalize problem, i.e. calculate EOC ...
-		virtual void finalizeStep(TimeProviderType& tp) = 0;
+      // type of adaptation manager 
+      typedef Dune::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
 
-		//! restore all data from check point (overload to do something)
-		virtual void restoreFromCheckPoint(TimeProviderType& tp) {} 
+      // type of IOTuple 
+      typedef Dune::tuple< DiscreteFunctionType*,  DiscreteFunctionType*,IndicatorType* > IOTupleType; 
+      // type of data writer 
+      typedef Dune::DataWriter< GridType, IOTupleType >    DataWriterType;
 
-		//! write a check point (overload to do something)
-		virtual void writeCheckPoint(TimeProviderType& tp,
-																 AdaptationManagerType& am ) const {}
+      // type of time provider organizing time for time loops 
+      typedef Dune::GridTimeProvider< GridType >                 TimeProviderType;
 
-		//! estimate and mark cell for refinement/coarsening
-		virtual void estimateMarkAdapt( AdaptationManagerType& am ) = 0;
+      //! constructor 
+      AlgorithmBase(GridType& grid) 
+        : grid_( grid ),
+          gridPart_( grid_ ),
+          space_( gridPart_ ),
+          energyspace_( gridPart_ ),
+          eocLoopData_( 0 ),
+          eocDataTup_(),
+          // Initialize Timer for CPU time measurements
+          timeStepTimer_( Dune::FemTimer::addTo("max time/timestep") ),
+          loop_( 0 ),
+          fixedTimeStep_( Dune::Parameter::getValue<double>("fixedTimeStep",0) ),
+          fixedTimeStepEocLoopFactor_( Dune::Parameter::getValue<double>("fixedTimeStepEocLoopFactor",1.) )
+      {
+      }
 
-		//! write data, if pointer to additionalVariables is true, they are calculated first 
-		void writeData( DataWriterType& eocDataOutput, 
-										TimeProviderType& tp, 
-										const bool reallyWrite )
-		{
+      //! also have virtual destructor 
+      virtual ~AlgorithmBase() 
+      {
+        delete eocLoopData_; 
+        eocLoopData_ = 0 ;
+      } 
 
-			if( reallyWrite ) 
-				{
-					DiscreteFunctionType* additionalVariables = this->additionalVariables();
-					// calculate DG-projection of additional variables
-					if ( additionalVariables )
-						{
-							// calculate additional variables from the current num. solution
-							setupAdditionalVariables( solution(), model(), *additionalVariables );
-						}
+      //! return reference to space 
+      DiscreteSpaceType& space()
+      {
+        return space_;
+      }
+      ScalarDiscreteSpaceType& energyspace()
+      {
+        return energyspace_;
+      }
+
+      // return size of grid 
+      virtual size_t gridSize() const 
+      { 
+        size_t grSize = grid_.size( 0 );
+        return grid_.comm().sum( grSize );
+      }
+
+      virtual std::string dataPrefix () const = 0;
+
+      virtual const ProblemType& problem() const = 0;
+      virtual const ModelType& model() const = 0;
+
+      // return reference to solution 
+      virtual DiscreteFunctionType& solution () = 0;
+
+
+      virtual DiscreteGradientType& theta () = 0;
     
-				 energyconverter(solution(),theta(),model(),energy());  
-				}
-
-			// write the data 
-			eocDataOutput.write( tp );    
-		}
-
-
-		//! default time loop implementation, overload for changes 
-		virtual void operator()(double& averagedt, double& mindt, double& maxdt, size_t& counter,
-														int& total_newton_iterations, int& total_ils_iterations,
-														int& max_newton_iterations, int& max_ils_iterations)
-		{
-			const bool verbose = Dune::Parameter :: verbose ();
-			int printCount = Dune::Parameter::getValue<int>("femhowto.printCount", -1);
-
-			// if adaptCount is 0 then no dynamics grid adaptation
-			int adaptCount = 0;
-			int maxAdaptationLevel = 0;
-			Dune::AdaptationMethod< GridType > am( grid_ );
-			if( am.adaptive() )
-				{
-					adaptCount = Dune::Parameter::getValue<int>("fem.adaptation.adaptcount");
-					maxAdaptationLevel = Dune::Parameter::getValue<int>("fem.adaptation.finestLevel");
-				}
-
     
-			double maxTimeStep =
-				Dune::Parameter::getValue("femhowto.maxTimeStep", std::numeric_limits<double>::max());
-			const double startTime = Dune::Parameter::getValue<double>("femhowto.startTime", 0.0);
-			const double endTime   = Dune::Parameter::getValue<double>("femhowto.endTime");
+      virtual ScalarDFType& energy () = 0;
+   
+      // return reference to additional variables 
+      virtual DiscreteFunctionType* additionalVariables () = 0;
+      // return reference to additional variables 
+      virtual IndicatorType* indicator()  { return 0; }
 
-			const int maximalTimeSteps =
-				Dune::Parameter::getValue("femhowto.maximaltimesteps", std::numeric_limits<int>::max());
+      //! initialize method for time loop, i.e. L2-project initial data 
+      virtual void initializeStep(TimeProviderType& tp) = 0;
+
+      //! solve one time step 
+      virtual void step(TimeProviderType& tp,
+                        int& newton_iterations,
+                        int& ils_iterations,
+                        int& max_newton_iterations,
+                        int& max_ils_iterations) = 0;
+
+      //! call limiter if necessary 
+      virtual void limitSolution () {} 
+
+      //! finalize problem, i.e. calculate EOC ...
+      virtual void finalizeStep(TimeProviderType& tp) = 0;
+
+      //! restore all data from check point (overload to do something)
+      virtual void restoreFromCheckPoint(TimeProviderType& tp) {} 
+
+      //! write a check point (overload to do something)
+      virtual void writeCheckPoint(TimeProviderType& tp,
+                                   AdaptationManagerType& am ) const {}
+
+      //! estimate and mark cell for refinement/coarsening
+      virtual void estimateMarkAdapt( AdaptationManagerType& am ) = 0;
+
+      //! write data, if pointer to additionalVariables is true, they are calculated first 
+      void writeData( DataWriterType& eocDataOutput, 
+                      TimeProviderType& tp, 
+                      const bool reallyWrite )
+      {
+
+        if( reallyWrite ) 
+          {
+            DiscreteFunctionType* additionalVariables = this->additionalVariables();
+            // calculate DG-projection of additional variables
+            if ( additionalVariables )
+              {
+                // calculate additional variables from the current num. solution
+                setupAdditionalVariables( solution(), model(), *additionalVariables );
+              }
+      
+           energyconverter(solution(),theta(),model(),energy());  
+          }
+
+        // write the data 
+        eocDataOutput.write( tp );    
+      }
+
+
+      //! default time loop implementation, overload for changes 
+      virtual void operator()(double& averagedt, double& mindt, double& maxdt, size_t& counter,
+                              int& total_newton_iterations, int& total_ils_iterations,
+                              int& max_newton_iterations, int& max_ils_iterations)
+      {
+        const bool verbose = Dune::Parameter :: verbose ();
+        int printCount = Dune::Parameter::getValue<int>("phasefield.printCount", -1);
+
+        // if adaptCount is 0 then no dynamics grid adaptation
+        int adaptCount = 0;
+        int maxAdaptationLevel = 0;
+        Dune::AdaptationMethod< GridType > am( grid_ );
+        if( am.adaptive() )
+          {
+            adaptCount = Dune::Parameter::getValue<int>("fem.adaptation.adaptcount");
+            maxAdaptationLevel = Dune::Parameter::getValue<int>("fem.adaptation.finestLevel");
+          }
+
+      
+        double maxTimeStep =
+          Dune::Parameter::getValue("phasefield.maxTimeStep", std::numeric_limits<double>::max());
+        const double startTime = Dune::Parameter::getValue<double>("phasefield.startTime", 0.0);
+        const double endTime   = Dune::Parameter::getValue<double>("phasefield.endTime");
+
+        const int maximalTimeSteps =
+          Dune::Parameter::getValue("phasefield.maximaltimesteps", std::numeric_limits<int>::max());
 
 			// for statistics
 			maxdt     = 0.;

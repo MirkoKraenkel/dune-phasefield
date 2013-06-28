@@ -33,9 +33,7 @@ class PhasefieldPhysics<2,Thermodynamics>
     const ThermodynamicsType thermoDynamics_;
   public:
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
-    thermoDynamics_(thermodyn),
-    delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
-    deltaInv_(1./delta_)
+    thermoDynamics_(thermodyn)
   {
 	}
  
@@ -97,15 +95,12 @@ class PhasefieldPhysics<2,Thermodynamics>
 
 
 public:
-	inline double delta()const { return delta_;}
-	inline double deltaInv()   { return deltaInv_;}
+	inline double delta()const { return thermoDynamics_.delta();}
+	inline double deltaInv()  const  { return thermoDynamics_.deltaInv();}
   inline double mu1()const   { return thermoDynamics_.mu1();}
  	inline double mu2()const   { return thermoDynamics_.mu2();}
 
 
-protected:
-	const double delta_; 
-	double deltaInv_;
  };
 
 
@@ -155,7 +150,7 @@ protected:
     surfaceEnergy=grad[phaseId][0]*grad[phaseId][0]+grad[phaseId][1]*grad[phaseId][1];
   
     kineticEnergy*=0.5*rho_inv;
-    surfaceEnergy*=delta_*0.5*rho_inv;
+    surfaceEnergy*=delta()*0.5*rho_inv;
 
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
@@ -196,19 +191,7 @@ protected:
   inline void  PhasefieldPhysics< 2,Thermodynamics >
   ::analyticalFlux( const RangeType& u, JacobianRangeType& f ) const
   {
-		assert( u[0] > 1e-10 );
-		const double rho_inv = 1. / u[0];
-		const double vx = u[1]*rho_inv;
-		const double vy = u[2]*rho_inv;
-
-   
-		f[0][0] = u[1];
-	  f[0][1] = u[2]; 
-    f[1][0] = vx*u[1];
-	  f[1][1] = vx*u[2];
-    f[2][0] = vy*u[1];
-    f[2][1] = vy*u[2];
-    f[3][0] = u[phaseId];
+    f=0.;
   }
 
   template<class Thermodynamics> 
@@ -252,13 +235,12 @@ protected:
 								const ThetaJacobianRangeType& dtheta,
 								const JacobianRangeType& jacU,
                 RangeType& f) const
-	{		   std::cout<<"Checkme physics_inline2d.hh stiffSourc\n";
-		
-      f[0]=0;
-			f[1]=-dtheta[0][0]*u[0]-du[6]*theta[1];
-			f[2]=-dtheta[0][1]*u[0]-du[7]*theta[1];
-	    f[3]=-theta[1]*deltaInv_;
-      return deltaInv_;  
+{	
+      f[0]=0.;
+			f[1]=0.;
+			f[2]=0.;
+	    f[3]=-theta[1]*deltaInv();
+      return deltaInv();  
   }
 
   template<class Thermodynamics>
@@ -298,10 +280,10 @@ protected:
     diff[0][0] = 0.;                   diff[0][1] = 0.;
 
     // 2nd row
-    diff[1][0] = tau00;                diff[1][1] = tau01;
+    diff[1][0] = 0.;                   diff[1][1] = 0.;
 
     // 3rd row
-    diff[2][0] = tau10;                diff[2][1] = tau11;
+   diff[2][0] = 0.;                diff[2][1] = 0.;
 
     // 4th row
      diff[3][0] =0.;                diff[3][1] = 0.;
@@ -329,8 +311,8 @@ protected:
 	 
 	  diff[0][0]=0.;
     diff[0][1]=0.;
-    diff[1][0]=-delta_*du[3][0];
-    diff[1][1]=-delta_*du[3][1];
+    diff[1][0]=-delta()*du[3][0];
+    diff[1][1]=-delta()*du[3][1];
   }
   template< class Thermodynamics >
   template< class JacobianRangeImp >
@@ -352,7 +334,6 @@ protected:
  inline double PhasefieldPhysics< 2, Thermodynamics >
  ::maxSpeed( const DomainType& n, const RangeType& u) const
  {
-   abort();
   return 0.;
  } 
 

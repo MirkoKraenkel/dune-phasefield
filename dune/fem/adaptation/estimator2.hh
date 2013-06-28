@@ -83,7 +83,7 @@ namespace Dune
 	 indicator_( indexSet_.size( 0 )),
 	 totalIndicator2_(0),
 	 maxIndicator_(0),
-	 theta_( Dune::Parameter::getValue("femhowto.adaptive.theta",0.) ),
+	 theta_( Dune::Parameter::getValue("phasefield.adaptive.theta",0.) ),
 	 maxLevel_(Dune::Parameter::getValue<int>("fem.adaptation.finestLevel")), 
 	 minLevel_(Dune::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
 	 coarsen_(Dune::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1))

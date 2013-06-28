@@ -117,19 +117,17 @@ namespace Dune {
 			const DomainType normal = intersection.integrationOuterNormal( x );
 
 			// determine side 
-			//      const bool useInterior = determineDirection( normal );
+   // const bool useInterior = determineDirection( normal );
 		//	const bool useInterior = determineDirection(false,0.,0.,intersection );
     gLeft=0.;	
-		GradientJacobianType diffmatrix; 
-		model_.jacobian(inside,         /* inside entity */
-										time,           /* for time dependent diffusion */
-										faceQuadInner.point( quadPoint ),      /* inside point on intersection */
-										uLeft,          /* { u_(x^-) } */
-										diffmatrix      /* return diffusion tensor */
-										);
-		diffmatrix.mv(normal, gLeft);
-				
-          
+	GradientJacobianType diffmatrix; 
+       model_.jacobian(inside,         /* inside entity */
+			   							time,           /* for time dependent diffusion */
+				  						faceQuadInner.point( quadPoint ),      /* inside point on intersection */
+					  					uLeft,          /* { u_(x^-) } */
+						  				diffmatrix      /* return diffusion tensor */
+							  			);
+		  diffmatrix.mv(normal, gLeft);
     model_.jacobian(outside,       /* outside entity */
 										 time,          /* for time dependent diffusion */
 										 faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
@@ -138,8 +136,7 @@ namespace Dune {
 										);
       //We want to add it for mean value
   		diffmatrix.umv(normal, gLeft);
-
-       gLeft*=0.5;
+      gLeft*=0.5;
 
 			 // mutliply with normal 
 			// copy flux 
@@ -263,24 +260,22 @@ namespace Dune {
 			 **********************************/
       JacobianRangeType diffmatrix(0.);
 			
-      // determine side (needs to be opposite of above)
-    //  const bool useExterior = ! determineDirection(false,0.,0.,intersection );
 
-					model_.diffusion( inside, time, 
-														faceQuadInner.point( quadPoint ),
-														uLeft, sigmaLeft, diffmatrix);
-  	      diffmatrix.mv(normal, gLeft);
+			model_.diffusion( inside, time, 
+												faceQuadInner.point( quadPoint ),
+												uLeft, sigmaLeft, diffmatrix);
+      diffmatrix.mv(normal, gLeft);
  
-
 				
-					model_.diffusion( outside, time, 
-														faceQuadOuter.point( quadPoint ),
-														uRight, sigmaRight, diffmatrix);
+			model_.diffusion( outside, time, 
+												faceQuadOuter.point( quadPoint ),
+												uRight, sigmaRight, diffmatrix);
 			
-         diffmatrix.umv(normal,gLeft);
-         gLeft*=0.5; 
-      
+      diffmatrix.umv(normal,gLeft);
 
+      gLeft*=0.5; 
+   //   std::cout<<"LDGflux WB gLeft="<<gLeft<<"\n"; 
+#if 0
       // apply normal 
    
  
@@ -315,7 +310,7 @@ namespace Dune {
 
       // take minimum to proceed 
       const double diffTimeStep = std::max( diffTimeLeft, diffTimeRight );
-      if( penaltyTerm_ )
+      if(0/* penaltyTerm_*/ )
 				{
 					// add penalty term ( enVolume() is available since we derive from
 					//    DiscreteModelDefaultWithInsideOutside)
@@ -326,7 +321,7 @@ namespace Dune {
 					jump -= uRight;
 					gLeft.axpy(factor, jump);
 				}
-
+#endif
       gRight = gLeft ;
 
       // gDiffLeft should be 0 in case of LDG
@@ -335,6 +330,7 @@ namespace Dune {
 
       // timestep restict to diffusion timestep
       // WARNING: reconsider this
+      double diffTimeStep=1.;
       return diffTimeStep * cflDiffinv_;
     }
 
@@ -359,7 +355,6 @@ namespace Dune {
       return boundaryFlux( intersection, discreteModel, time,
                            faceQuadInner, quadPoint, uLeft, uRight,
                            jacLeft, 
-                           //<F2>tensLeft,
                            gLeft, gDiffLeft );
     }
 
@@ -433,7 +428,7 @@ namespace Dune {
 
   protected:
     const double penalty_;
-    const bool penaltyTerm_;
+    const bool   penaltyTerm_;
 
   }; // end LDGDiffusionFlux                        
 

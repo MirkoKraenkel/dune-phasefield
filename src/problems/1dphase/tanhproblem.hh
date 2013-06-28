@@ -68,21 +68,7 @@ class TanhProblem : public EvolutionProblemInterface<
   // this is the initial data
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
-    double x=arg[0];
- 
-   for(int i=1;i<=dimension;i++)
-        res[i]=0;
-
-   double tanx;
-  
-
-    tanx=smear_*0.5*tanh(x/delta_)+0.5;
-  
-   res[0]=1.;
-   
-   res[dimension+1]=tanx;
- 
-
+    evaluate(0.,arg,res);
   }
 
 
@@ -159,7 +145,7 @@ inline void TanhProblem<GridType>
    double tanx;
   
   if(t==0.)
-    tanx=0.4*tanh(x/delta_)+0.5;
+    tanx=0.5*tanh(x/delta_)+0.5;
   else
     tanx=0.5*tanh(x/delta_)+0.5;
   

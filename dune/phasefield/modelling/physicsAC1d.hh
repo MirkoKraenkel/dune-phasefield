@@ -220,7 +220,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  
   
  		f[0][0] = 0;
-		f[1][0] = 0;
+		f[1][0] = p;
 		f[2][0] = 0;
   }
 
@@ -228,7 +228,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   inline void PhasefieldPhysics< 1, Thermodynamics>
   ::jacobian( const RangeType & u, JacobianFluxRangeType& a) const
   {
-    assert(u[0] > 1e-10);
+   // assert(u[0] > 1e-10);
 
     a[0][0] = u[0]; //rho
     a[1][0] = u[1];//(rho v) 
@@ -261,7 +261,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double reaction=thermoDynamics_.reaction(rho,phi);
     f[0]=0;
     f[1]=0;
-    f[2]=-1*reaction;
+    f[2]=-reaction;//-deltaInv*reaction;
 	  return deltaInv();
   }
 
@@ -290,7 +290,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
     diff[0][0]=0.;
     diff[1][0]=0 ;
-    diff[2][0]=dxphi;
+    diff[2][0]=delta()*dxphi;
     
   }
    template< class Thermodynamics >
@@ -364,7 +364,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
     double tension =delta()*(0.5*dxphi*dxphi);
     diff[0]=0.;
-    diff[1]=0.;
+    diff[1]=tension;
     diff[2]=0.;                    
   }
 }//end namespace Dune

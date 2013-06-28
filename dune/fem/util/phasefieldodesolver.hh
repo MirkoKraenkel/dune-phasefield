@@ -93,24 +93,25 @@ public:
 
   }
 
-  //! solver the ODE 
+  //! solve the ODE 
   void solve( DestinationType& U , 
               MonitorType& monitor ) 
   {
     // take CPU time of solution process 
     Timer timer ;
-		
+	  DestinationType tmp(U);	
     operator_.switchupwind();
   
     // reset compute time counter 
     resetComputeTime();
 
+     operator_(U,tmp);
 //    double maxAdvStep  = 0;
 //    double maxDiffStep = 0;
 
    
     {
-      assert( odeSolver_ );
+  //    assert( odeSolver_ );
       odeSolver_->solve( U, monitor );
 
      
@@ -119,13 +120,15 @@ public:
       maxIterationSteps_ = std::max( maxIterationSteps_, iterationSteps );
     }
 
-   
+    U.assign(tmp);
 		
     // store needed time 
     monitor.odeSolveTime_     = timer.elapsed();
     monitor.operatorTime_     = operatorTime();
     monitor.numberOfElements_ = numberOfElements();
   }
+
+
 
   //! return CPU time needed for the operator evaluation
   double operatorTime() const 
@@ -170,7 +173,7 @@ protected:
     else 
     {
       std::cerr << "WARNING: deprecated key, use `fem.ode.odesolver' instread!" << std::endl;
-      return Fem::Parameter::getEnum( "femhowto.odesolver", odeSolver, 0 );
+      return Fem::Parameter::getEnum( "phasefield.odesolver", odeSolver, 0 );
     }
   }
 

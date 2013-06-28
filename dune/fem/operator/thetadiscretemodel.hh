@@ -99,14 +99,14 @@ namespace Dune {
 		:: IntersectionIteratorType                            IntersectionIterator;
 		typedef typename IntersectionIterator :: Intersection            Intersection;
 		enum { dimRange = Traits::dimRange };
-		enum { evaluateJacobian = false };
+		enum { evaluateJacobian = true };
 		static const bool ApplyInverseMassOperator = true;
 
 	public:
     
-		ThetaModel(const Model& mod):
-			acpenalty_(Fem::Parameter::getValue<double>("phasefield.acpenalty")),
-			model_(mod){}
+		ThetaModel( const Model& mod ):
+			acpenalty_( Fem::Parameter::getValue<double>( "phasefield.acpenalty" ) ),
+      model_( mod ){}
       
 		bool hasSource() const { return true; } 
 		bool hasFlux() const { return true; } 
@@ -121,10 +121,11 @@ namespace Dune {
 		{ 
 			
 			s = 0;
-		//s[0]=dF/drho  s[1]=-dF/dphi
+		
+      //s[0]=dF/drho  s[1]=-dF/dphi
       const double dtStiff = model_.thetaSource( en, time, x, u[uVar], u[sigmaVar], s );
-			
-			return dtStiff;
+      
+      return dtStiff;
 		} 
 
 		template <class QuadratureImp, class ArgumentTupleVector > 
@@ -166,11 +167,6 @@ namespace Dune {
 
       gDiffLeft = 0;
 			
-
-		
-			
-
-
 			double diffTimeStep(0.);
 			return diffTimeStep;
 	
@@ -183,9 +179,8 @@ namespace Dune {
 												const JacobianTuple& jac,
 												JacobianRangeType& f)
 		{
-				model_.allenCahnDiffusion(u[uVar],u[sigmaVar], f);
-		}                     
-
+      model_.allenCahnDiffusion(u[uVar],u[sigmaVar], f);
+    }
            
 		template< class QuadratureImp,
 							class ArgumentTuple, 
@@ -210,14 +205,19 @@ namespace Dune {
 			const DomainType normal = it.integrationOuterNormal(x);
 			
 			JacobianRangeType diffmatL(0.),diffmatR(0.);
- 	
-		 	model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
- 			model_.allenCahnDiffusion(uRight[uVar],uLeft[sigmaVar], diffmatR);
-			
-			diffmatL.mv(normal, gLeft);
-			diffmatR.umv(normal, gLeft);
-			gLeft*=0.5;
-			gRight=gLeft;
+      
+      model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+     
+      diffmatL.mv(normal, gLeft);
+      
+      model_.allenCahnDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
+  		
+      diffmatR.umv(normal, gLeft);
+      			
+	
+      gLeft*=0.5;
+    // std::cout<<"Theta d Model gLeft="<<gLeft<<"\n"; 
+      gRight=gLeft;
 			gDiffLeft = 0;
       gDiffRight = 0;     
 			
@@ -226,40 +226,21 @@ namespace Dune {
       // add penalty term ( enVolume() is available since we derive from
 			//    DiscreteModelDefaultWithInsideOutside)
 			const double factor = acpenalty_/h  ;
-			
+#if 0			
 	 		double jmp( uLeft[uVar][dimDomain+1] );
 			jmp -= uRight[uVar][dimDomain+1];
 			RangeType jump(0.);
 			jump[1]=jmp;
 			gLeft.axpy(factor, jump);
-			
+#endif			
 
 
 			double diffTimeStep(0.);
 			return diffTimeStep;
 		}
-
-		template <class ArgumentTuple, class JacobianTuple >
-    void analyticalFlux( const EntityType& en,
-                         const double time,
-                         const DomainType& x,
-                         const ArgumentTuple& u,
-                         const JacobianTuple& jac,
-                         JacobianRangeType& f ) const
-    {
-			JacobianRangeType diffmatrix;
-		
-			model_.allenCahndiffusion(u[sigmaVar], diffmatrix);
-			
-			f = diffmatrix;
-    }
-
-
-
-
 	private:
 		const double acpenalty_;
-		const Model& model_;
+    const Model& model_;
 	};
 }//end namespce
 #endif

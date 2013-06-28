@@ -118,7 +118,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     for(int i=0;i<dimDomain;i++)
       s[i+1]=0;
   	
-    s[dimDomain+1]=-deltainv*reaction;
+    s[dimDomain+1]=-reaction;
     return deltainv;
   }
 

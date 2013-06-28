@@ -123,7 +123,7 @@ struct StepperBase
     solution_( "solution", space() ),
 		theta_( "theta", space() ),
 		energy_("energy",energyspace()),
-    additionalVariables_( Parameter :: getValue< bool >("femhowto.additionalvariables", false) ? 
+    additionalVariables_( Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
 													new DiscreteFunctionType("additional", space() ) : 0 ),
     problem_( ProblemTraits::problem() ),
     model_( new ModelType( problem() ) ),

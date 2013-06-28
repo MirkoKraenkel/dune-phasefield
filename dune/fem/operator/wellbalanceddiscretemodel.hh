@@ -344,10 +344,10 @@ namespace Dune {
 			: BaseType( mod, numf ),
 				diffFlux_( diffflux ),
 				penalty_( 1.0 ),
-        switch_(Fem::Parameter::getValue<double>("phasefield.thetaswitch",1)),
+        switch_(Fem::Parameter::getValue<double>("phasefield.thetaswitch")),
 				cflDiffinv_( 8.0 * ( polOrd + 1) )
-		{}
-
+		{
+    }
 		bool hasSource() const
 		{                
 			return ( model_.hasNonStiffSource() || model_.hasStiffSource() );
@@ -370,7 +370,8 @@ namespace Dune {
       //we need \sigma_phi= u[sigmaVar][dimDomain+1]
 			//        \theta_1=u[thetaVar][1]
 			//        \nablan\theta_2 jac[thetatVar]
-			double dtEst = std::numeric_limits< double > :: max();
+
+      double dtEst = std::numeric_limits< double > :: max();
 
 			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar],jac[uVar], s );
 		  
@@ -418,7 +419,7 @@ namespace Dune {
 			// diffusion
 			double diffTimeStep = 0.0;
 			if( diffusion ) 
-				{
+				{ 
 					RangeType dLeft, dRight;
 					diffTimeStep = diffFlux_.numericalFlux(it, *this,
 																								 time, faceQuadInner, faceQuadOuter, quadPoint,
@@ -460,24 +461,23 @@ namespace Dune {
    
       //nonCon
       nonCons[1]+=switch_*average[1];
-      
-
 
 
     
       //factor comes from the meanvalue of the testfunctions
-      nonCons*=-0.5;
+      nonCons*=0.5;
       
       //{{\theta}}[[phi]]
-      gLeft+=nonCons;
-		  gRight-=nonCons;
+      gLeft +=nonCons;
+      gRight-=nonCons;
 	
+
+
 			gDiffLeft  = 0;
 			gDiffRight = 0;
 
 			maxAdvTimeStep_  = std::max( wave, maxAdvTimeStep_ );
 			maxDiffTimeStep_ = std::max( diffTimeStep, maxDiffTimeStep_ );
-
 			return std::max( wave, diffTimeStep );
 		}
 
@@ -533,6 +533,7 @@ namespace Dune {
 			else
 				gDiffLeft = 0;
 
+
 			maxAdvTimeStep_  = std::max( wave, maxAdvTimeStep_ );
 			maxDiffTimeStep_ = std::max( diffTimeStep, maxDiffTimeStep_ );
 
@@ -551,7 +552,7 @@ namespace Dune {
 												 const JacobianTuple& jac, 
 												 JacobianRangeType& f ) const
 		{
-			// advection
+      // advection
 			BaseType :: analyticalFlux( en, time, x, u, jac, f );
 
 			// diffusion
@@ -562,7 +563,6 @@ namespace Dune {
 					// ldg case 
 					f += diffmatrix;
 				}
- 
 		}
 	protected:
 		mutable DiffusionFluxType& diffFlux_;

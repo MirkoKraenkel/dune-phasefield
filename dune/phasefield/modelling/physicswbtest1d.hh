@@ -271,7 +271,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 #if THETASOURCE
     diff[2][0]=0.;
 #else
-    diff[2][0]=delta()*du[2][0];
+    diff[2][0]=du[2][0];
 #endif 
   }
   template<class Thermodynamics>

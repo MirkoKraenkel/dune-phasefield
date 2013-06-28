@@ -51,7 +51,7 @@ Dune::GridPtr< HGridType > initialize( const std::string& problemDescription )
   Dune::Fem::FemEoc::initialize(eocOutPath, "eoc", problemDescription); /*@\label{fv:femeocInit}@*/
 
   // and refine the grid until the startLevel is reached
-  const int startLevel = Dune::Fem::Parameter::getValue<int>("femhowto.startLevel", 0);
+  const int startLevel = Dune::Fem::Parameter::getValue<int>("phasefield.startLevel", 0);
   for(int level=0; level < startLevel ; ++level)
     Dune::Fem::GlobalRefine::apply(*gridptr, 1 ); /*@\label{fv:globalRefine1}@*/
   return gridptr;
@@ -73,7 +73,7 @@ void compute(Algorithm& algorithm)
   GridType& grid = gridPart.grid();
 
   // get some parameters
-  const int eocSteps   = Dune::Fem::Parameter::getValue<int>("femhowto.eocSteps", 1);
+  const int eocSteps   = Dune::Fem::Parameter::getValue<int>("phasefield.eocSteps", 1);
 
   typename Algorithm::IOTupleType dataTup ( &algorithm.solution() );
   typedef Dune::Fem::DataOutput<GridType, typename Algorithm::IOTupleType> DataOutputType;

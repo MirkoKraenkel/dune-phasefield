@@ -26,7 +26,7 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefield_P0 phasefield_nc phasefield_nc_P1 phasefield_nc_jac
+check_PROGRAMS = phasefield phasefield_P0 phasefield_nc phasefield_nctheta phasefield_nc_jac phasefield2d phasefield2dnc
 phasefield_SOURCES = $(SOURCES) 
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO -DMASTER 
 
@@ -37,8 +37,8 @@ phasefield_P0_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=0 -DMYALGO -DMASTER
 phasefield_nc_SOURCES = $(SOURCES) 
 phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO -DMASTER
 
-phasefield_nc_P1_SOURCES = $(SOURCES) 
-phasefield_nc_P1_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=1 -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO -DMASTER
+phasefield_nctheta_SOURCES = $(SOURCES) 
+phasefield_nctheta_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=0 -DWELLBALANCED -DMYALGO -DMASTER -DTHETASOURCE
 
 
 phasefield_nc_jac_SOURCES = $(SOURCES) 
@@ -46,6 +46,10 @@ phasefield_nc_jac_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN
 
 phasefield2d_SOURCES = $(SOURCES) 
 phasefield2d_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DGRIDDIM=2 -DMYALGO -DMASTER 
+
+phasefield2dnc_SOURCES = $(SOURCES) 
+phasefield2dnc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DGRIDDIM=2 -DWELLBALANCED -DMYALGO -DMASTER 
+
 
 
 

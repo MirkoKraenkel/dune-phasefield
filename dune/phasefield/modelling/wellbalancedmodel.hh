@@ -152,6 +152,7 @@ namespace Dune {
 			double mu,reaction;
       
       phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
+      
       //stheta[0]=dF/drho stheta[1]=dF/dphi
       s[0]=mu;
 			s[1]=reaction;
@@ -282,7 +283,9 @@ namespace Dune {
 		{
 			phasefieldPhysics_.diffusion( u, jac, diff );
 		}
-	  inline void boundarydiffusion( const EntityType& en,
+
+    
+    inline void boundarydiffusion( const EntityType& en,
 						  	      			const double time,
 							  		      	const DomainType& x,
 									        	const RangeType& u,
@@ -321,7 +324,8 @@ namespace Dune {
     template <class JacobianRangeImp>
 	  inline	void allenCahnDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
-			phasefieldPhysics_.allenCahn(u,du,dv);
+
+      phasefieldPhysics_.allenCahn(u,du,dv);
 		}
 
 

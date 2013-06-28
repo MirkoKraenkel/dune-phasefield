@@ -1,5 +1,6 @@
 #ifndef PHYSICS_INLINE2D_HH
 #define PHYSICS_INLINE2D_HH
+csdcsd
 namespace Dune{
 template<class Thermodynamics>
 class PhasefieldPhysics<2,Thermodynamics>
@@ -218,17 +219,19 @@ protected:
     double phi=u[phaseId];
     phi*=rho_inv;
     p=thermoDynamics_.pressure(rho,phi);
- 
-   
-		f[0][0] = u[1];
-	  f[0][1] = u[2]; 
-    f[1][0] = vx*u[1]+p;
-	  f[1][1] = vx*u[1];
-    f[2][0] = f[1][1];
+
+    
+    f[0][0] = u[1]; //rho*vx
+	  f[0][1] = u[2]; //rho*vy
+    f[1][0] = vx*u[1]+p; //rho*vx^2+p
+	  f[1][1] = vx*u[2];   //rho*vx*vy
+    f[2][0] = f[1][1]; 
     f[2][1] = vy*u[2]+p;
     f[3][0] = u[phaseId]*vx;
     f[3][1] = u[phaseId]*vy;
-  }
+ 
+   
+}
 
   template<class Thermodynamics> 
   inline void PhasefieldPhysics< 2,Thermodynamics>

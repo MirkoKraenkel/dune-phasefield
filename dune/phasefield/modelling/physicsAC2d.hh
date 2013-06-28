@@ -33,7 +33,7 @@ class PhasefieldPhysics<2,Thermodynamics>
     const ThermodynamicsType thermoDynamics_;
   public:
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
-    thermoDynamics_(thermodyn),
+    thermoDynamics_(thermodyn)
   {
 	}
  
@@ -154,7 +154,7 @@ public:
     surfaceEnergy=grad[phaseId][0]*grad[phaseId][0]+grad[phaseId][1]*grad[phaseId][1];
   
     kineticEnergy*=0.5*rho_inv;
-    surfaceEnergy*=delta_*0.5*rho_inv;
+    surfaceEnergy*=delta()*0.5*rho_inv;
 
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
@@ -204,25 +204,7 @@ public:
   inline void  PhasefieldPhysics< 2,Thermodynamics >
   ::analyticalFlux( const RangeType& u, JacobianRangeType& f ) const
   {
-		assert( u[0] > 1e-10 );
-		const double rho_inv = 1. / u[0];
-		const double vx = u[1]*rho_inv;
-		const double vy = u[2]*rho_inv;
-		double p;
-  	double rho=u[0];
-    double phi=u[phaseId];
-    phi*=rho_inv;
-    p=thermoDynamics_.pressure(rho,phi);
- 
-   
-		f[0][0] = u[1];
-	  f[0][1] = u[2]; 
-    f[1][0] = vx*u[1]+p;
-	  f[1][1] = vx*u[1];
-    f[2][0] = f[1][1];
-    f[2][1] = vy*u[2]+p;
-    f[3][0] = u[phaseId]*vx;
-    f[3][1] = u[phaseId]*vy;
+   f=0.;
   }
 
   template<class Thermodynamics> 
@@ -247,8 +229,8 @@ public:
   }
 
 	template< class Thermodynamics >
- 	inline void   PhasefieldPhysics< 2, Thermodynamics >
-	::nonConProduct(const RangeType & uL, 
+ 	inline void   PhasefieldPhysics< 2, Thermodynamics>
+  ::nonConProduct(const RangeType & uL, 
 									const RangeType & uR,
 									const ThetaRangeType& thetaL,
 									const ThetaRangeType& thetaR,
@@ -278,7 +260,7 @@ public:
    f[1]=0;
 	 f[2]=0;
 	 f[3]=-deltaInv*reaction;
-    return 0.4*deltaInv*deltaInv_;
+    return 0.4*deltaInv*deltaInv();
   }
   
   template<class Thermodynamics>
@@ -322,11 +304,9 @@ public:
     // 1st row
     diff[0][0] = 0.;                   diff[0][1] = 0.;
     // 2nd row
-    //diff[1][0] = tau00;                diff[1][1] = tau01;
-    diff[1][0] = muLoc*dxu;                diff[1][1] = 0.; 
+    diff[1][0] =0;                diff[1][1] = 0.; 
    // 3rd row
-  //  diff[2][0] = tau10;                diff[2][1] = tau11;
-    diff[2][0] = 0.;                diff[2][1] = muLoc*dzw;
+    diff[2][0] = 0.;                diff[2][1] =0.;
   // 4th row
     diff[3][0] = dxphi;                diff[3][1] = dzphi;
     
@@ -374,10 +354,10 @@ public:
     diff[0][0] = 0.;                   diff[0][1] = 0.;
     // 2nd row
     // diff[1][0] = tau00;                diff[1][1] = tau01;
-    diff[1][0] = muLoc*dxu;                diff[1][1] = 0.; 
+    diff[1][0] = 0.;                diff[1][1] = 0.; 
       // 3rd row
   //  diff[2][0] = tau10;                diff[2][1] = tau11;
-      diff[2][0] = 0.;                diff[2][1] = muLoc*dzw;
+      diff[2][0] = 0.;                diff[2][1] = 0.;
   // 4th row
     diff[3][0] = 0;                diff[3][1] = 0;
     
@@ -391,11 +371,7 @@ public:
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
-   assert( u[0] > 1e-10 );
-	 
-	 diff[0][0]=0.;
-	 diff[1][0]=delta_*du[2][0];
-
+	   abort(); 
   }
 
   template< class Thermodynamics >
@@ -406,33 +382,6 @@ public:
 	           GradientRangeType& diff ) const 
   {
     assert( u[0] > 1e-10 );
-    double rho_inv = 1. / u[0];
-  
-    const double phi =  u[dimDomain+1]*rho_inv;
- 
-    const double dxrho     = du[0][0]; //drho/dx
-    const double dyrho     = du[0][1]; //drho/dy
-   
-    const double dxrhophi  = du[3][0]; //d(rho*phi)/dx
-    const double dyrhophi  = du[3][1]; //d(rho*phi)/dy
-  
-  
-    const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
-    const double dyphi = rho_inv*(dyrhophi - phi*dyrho);
-
-  // double tension = delta_*rhodxphi*dxphi;
-    // |\nabla\phi|^2*0.5
-    double const gradphisquarehalf=0.5*(dxphi*dxphi+dyphi*dyphi);
-
-    diff[0]=0; 
-    diff[1]=0;
-    diff[2]=dxphi*dxphi-gradphisquarehalf;
-    diff[3]=dyphi*dxphi;
-    diff[4]=dyphi*dxphi;
-    diff[5]=dyphi*dyphi-gradphisquarehalf;
-    diff[6]=0;
-    diff[7]=0;
-    diff*=delta_;
 }
 
 

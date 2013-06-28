@@ -452,15 +452,15 @@ public:
 
 		writeData( eocDataOutput, tp,std::cout, eocDataOutput.willWrite( tp ) );
 		
-		while( timeStepError > timeStepTolerance_ && counter< maximalTimeSteps && tp.time()<endTime )   
+		while( timeStepError > timeStepTolerance_ && counter< 1 && tp.time()<endTime )   
 			{ 
 				tp.provideTimeStepEstimate(maxTimeStep);                                         
-		    std::cout<<"Counter "<<counter<<"\n";	
 				const double tnow  = tp.time();
 				const double ldt   = tp.deltaT();
 				
 				counter  = tp.timeStep();
-					
+			   std::cout<<"Counter "<<counter<<"\n";	
+				
 				Dune::FemTimer::start(timeStepTimer_);
 				// grid adaptation (including marking of elements)
 				if( (adaptCount > 0) && (counter % adaptCount) == 0 )
@@ -473,7 +473,7 @@ public:
 
         if (! U.dofsValid()) 
 					{
-						std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
+						std::cout << "Loop(" << loop_ << "): Invalid DOFs " <<  counter <<std::endl;
 			   		eocDataOutput.write(tp);
 				    energyfile.close();
 
@@ -497,7 +497,9 @@ public:
 
 				writeData( eocDataOutput, tp,energyfile, eocDataOutput.willWrite( tp ) );
 				writeCheckPoint( tp, adaptManager );
-							 
+						
+        if(counter==1)
+          abort();
 				// next time step is prescribed by fixedTimeStep
 				// it fixedTimeStep is not 0
 				if ( fixedTimeStep_ > 1e-20 )

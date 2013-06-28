@@ -9,8 +9,6 @@ fem.parallel.numberofthreads: 1
 # 3 only write 0, others at end, 4 all files at end for scaling) 
 fem.parallel.runfile: 1
 
-# maximal number of timesteps done (for debugging)
-# femhowto.maximaltimesteps: 10
 
 
 # DATA WRITER
@@ -18,7 +16,7 @@ fem.parallel.runfile: 1
 
 # toggle verbosity of on process 
 # (-1: off, p: process p is verbose, in general 0 is a good choice)
-fem.verboserank: 0 
+fem.verboserank: 0
 
 fem.io.outputformat: gnuplot # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-cel
 fem.io.subsamplinglevel: 3 
@@ -27,7 +25,7 @@ fem.io.grapedisplay: 0
 # add time stamp to eoc file name
 # to avoid overwriting the eoc files
 fem.io.eocFileTimeStamp: 1
-#@femhowto.eocOutputPath: ./data
+#@phasefield.eocOutputPath: ./data
 
 
 # GRID SOLUTION 
@@ -40,12 +38,12 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-femhowto.eocSteps: 2 
-femhowto.printCount: 10000 
-femhowto.verbose: 0
+phasefield.eocSteps: 1 
+phasefield.printCount: 0 
+phasefield.verbose: 0 
 
 # create a file with sampled values of the numerical solution
-femhowto.sampleAlongLine: 0
+phasefield.sampleAlongLine: 0
 linesegmentsamplerresolution: 100.
 
 # GRID ADAPTATION
@@ -73,6 +71,7 @@ fem.adaptation.adaptcount: 0 # after this many time step, 0 disables adaptation
 
  DOMAIN CONFIGURATION
 #---------------------
-femhowto.startLevel: 0 
+phasefield.startLevel: 7 
 
-phasefield.endTime: 0.1
+phasefield.endTime: 1e-2
+ 

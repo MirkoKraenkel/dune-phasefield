@@ -40,7 +40,7 @@ public:
 
   LLFFlux( const Model& mod )
     : model_(mod),
-      visc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",1))
+      visc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))
   {}
 
   static std::string name () { return "LLF"; }
@@ -143,8 +143,8 @@ public:
   
 	WBFlux( const Model& mod )
     : model_(mod),
-      visc_(model_.visc()),
-			alpha1_(model_.visc())
+      visc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",1)),
+			alpha1_(Dune::Fem::Parameter::getValue<double>("phasefield.nonconvisc",0.))
   {
     std::cout<<"Specify alpha="<<alpha1_<<" correctly!\n";
 //    abort();
@@ -191,8 +191,8 @@ public:
 
     for(int i=0; i<dimDomain; i++)
     {
-      vLeft[i]=uLeft[1+i]/rhoLeft;
-      vRight[i]=uRight[1+i]/rhoRight;
+      vLeft[i]  = uLeft[1+i]/rhoLeft;
+      vRight[i] = uRight[1+i]/rhoRight;
     }
 
     
@@ -207,7 +207,7 @@ public:
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
-   model_.thetaSource( outside, time, faceQuadOuter.point( quadPoint ),
+    model_.thetaSource( outside, time, faceQuadOuter.point( quadPoint ),
                       uRight,thetaFluxRight );
 
 
@@ -238,38 +238,41 @@ public:
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
     viscpara*=visc_;
     visc = uRight;
-    
+   
     visc -= uLeft;
 
-    visc *= viscpara;
-#if 1    
+   // visc *= viscpara;
+//    visc *=  visc_;
+
+#if 0 
     for(int i=1; i<dimDomain;i++)
-			{
-				gLeft[i] -= visc[i];
-      }
+  		{
+			gLeft[i] -= visc[i];
+     }
 
    if( intersection.neighbor() )
    {  
       newvisc=thetaFluxLeft;
  	    newvisc-=thetaFluxRight;
-	    //newvisc*=10;
+      newvisc*=alpha1_;
+     
       gLeft[0]-=newvisc[0];
    	
 	    for(int i=1; i<dimDomain;i++)
 	  		{
 			  	gLeft[i] -= (vLeft[i]+vRight[i])*0.5*newvisc[0];
-		  	}
+		  	
+        }
 
      gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
     }  
 #endif   
    
    
-   
    gLeft *= 0.5*len; 
    gRight = gLeft;
-
-    return maxspeed * len;
+//   std::cout<<"NUmflux out "<<maxspeed << std::endl;
+   return maxspeed * len;
   }
 
  protected:

@@ -57,7 +57,7 @@ int main(int argc, char ** argv, char ** envp) {
   Dune :: Fem :: ThreadManager :: setMaxNumberThreads( numThreads );
 
   int polynomialOrder = 1;
-  polynomialOrder = Dune::Fem::Parameter :: getValue("femhowto.polynomialOrder", polynomialOrder );
+  polynomialOrder = Dune::Fem::Parameter :: getValue("phasefield.polynomialOrder", polynomialOrder );
 
   simulation :: simulate();  
 	// write parameters used 
