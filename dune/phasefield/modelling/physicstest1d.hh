@@ -260,8 +260,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double reaction=thermoDynamics_.reaction(rho,phi);
     f[0]=0;
     f[1]=0;
-    f[2]=-deltaInv()*reaction;
-	  return deltaInv();
+    f[2]=deltaInv()*reaction;
+	  return 4*deltaInv()*deltaInv();
   }
 
   template< class Thermodynamics >

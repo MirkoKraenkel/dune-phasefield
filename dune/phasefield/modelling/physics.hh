@@ -127,10 +127,10 @@ class PhasefieldPhysics
 }
 
 #if WELLBALANCED
-#include "physicswbAC1d.hh"
+#include "physicswb_inline1d.hh"
 #include "physicswbAC2d.hh"
 #else
-#include "physicsAC1d.hh"
+#include "physicstest1d.hh"
 #include "physicsAC2d.hh"
 #endif
 	//end namspace DUNE

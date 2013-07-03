@@ -60,8 +60,9 @@ public:
 	
 	inline double  pressure( double& rho, double& phi) const
 	{
+    //return -helmholtz(rho,phi);
     return -helmholtz(rho,phi);
-  }
+}
 		
 
 	inline double a(double rho,double phi) const

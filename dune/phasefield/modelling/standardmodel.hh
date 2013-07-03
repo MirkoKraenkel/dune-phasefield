@@ -113,12 +113,13 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
  
     //reaction=-dF/dphi
     phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
-        
+
+
     s[0]=0.;
     for(int i=0;i<dimDomain;i++)
       s[i+1]=0;
   	
-    s[dimDomain+1]=-reaction;
+    s[dimDomain+1]=-reaction*deltainv;
     return deltainv;
   }
 

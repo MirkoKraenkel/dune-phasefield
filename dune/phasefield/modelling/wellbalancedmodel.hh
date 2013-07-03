@@ -93,8 +93,6 @@ namespace Dune {
 		typedef typename Traits :: ThetaRangeType                 ThetaRangeType;
 		typedef typename Traits :: ThetaGradientRangeType         ThetaGradientRangeType;
 		typedef typename Traits :: ThetaJacobianRangeType         ThetaJacobianRangeType;
-	
-		
 
 		typedef typename Traits :: JacobianFluxRangeType          JacobianFluxRangeType;
 
@@ -103,18 +101,21 @@ namespace Dune {
       phasefieldPhysics_( thermo )
 		{
     }
-		inline bool hasStiffSource() const { return true; }
-		inline bool hasNonStiffSource() const { return false; }
-		inline bool hasFlux() const { return true ; }
 
-	 
+    inline bool hasStiffSource() const { return true; }
+    
+    inline bool hasNonStiffSource() const { return false; }
+    
+    inline bool hasFlux() const { return true ; }
+
+
 		inline void nonConProduct(const RangeType & uL, 
 															const RangeType & uR,
 															const ThetaRangeType& thetaL,
 															const ThetaRangeType& thetaR,
 															RangeType& ret) const
 		{
-			phasefieldPhysics_.nonConProduct(uL, uR,thetaL,thetaR,ret);
+      abort();
 		}
 
 
@@ -128,7 +129,7 @@ namespace Dune {
 															 const JacobianRangeType& jacU,
                                RangeType & s) const
 		{	
-     return phasefieldPhysics_.stiffSource(u, du,theta,dtheta,jacU,s);
+      return phasefieldPhysics_.stiffSource(u, du,theta,dtheta,jacU,s);
  		}
 
 
@@ -165,10 +166,10 @@ namespace Dune {
 													 const double time,
 													 const DomainType& x,
 													 const RangeType& u,
-													 JacobianRangeType& f ) const 
-		{
+													 JacobianRangeType& f ) const
+    {
 			phasefieldPhysics_.analyticalFlux(u, f);
-		}
+    }
 
 
 		inline double diffusionTimeStep( const IntersectionType& it,
@@ -309,9 +310,6 @@ namespace Dune {
 			phasefieldPhysics_.boundarydiffusion( u, jac, diff );
 		}
 	
-
-
-
 		
   	inline void allenCahnDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
 		{

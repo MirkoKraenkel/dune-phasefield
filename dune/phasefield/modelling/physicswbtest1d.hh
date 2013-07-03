@@ -154,7 +154,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
  
-	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
+    double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
     kin = kineticEnergy;
     total = surfaceEnergy+freeEnergy+kineticEnergy; 
   }
@@ -249,11 +249,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     chemPotAndReaction(u,mu,reaction);
     f[0]=0;
   	f[1]=-dtheta[0]*u[0]-dphi*theta[1];
-#if THETASOURCE
     f[2]=-theta[1]*deltaInv();
-#else	
-    f[2]=-reaction*deltaInv();
-#endif  
+    
     return 0.4*deltaInv()*deltaInv();
   }
   template< class Thermodynamics >
@@ -263,16 +260,12 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
   {
-    assert( u[0] > 1e-10 );
+//    assert( u[0] > 1e-10 );
 		const double muLoc = mu1();
     const double dxv   = du[1][0]; //dv/dx
 		diff[0][0]=0.;
 		diff[1][0]=muLoc*dxv;
-#if THETASOURCE
     diff[2][0]=0.;
-#else
-    diff[2][0]=du[2][0];
-#endif 
   }
   template<class Thermodynamics>
   template< class JacobianRangeImp >

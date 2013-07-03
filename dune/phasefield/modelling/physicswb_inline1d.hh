@@ -211,7 +211,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
    
  		f[0][0] = u[1];
 		f[1][0] = v*u[1];
-		f[2][0] = 0;//u[2]*v;
+		f[2][0] = u[2]*v;
   }
 
   template< class Thermodynamics > 

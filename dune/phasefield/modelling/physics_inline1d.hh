@@ -39,9 +39,7 @@ class PhasefieldPhysics<1,Thermodynamics>
     const ThermodynamicsType thermoDynamics_;
   public:
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
-    thermoDynamics_(thermodyn),
-    delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
-    deltaInv_(1./delta_)
+    thermoDynamics_(thermodyn)
   {
   }
  
@@ -108,16 +106,13 @@ class PhasefieldPhysics<1,Thermodynamics>
 
 public:
 
-	inline double delta()const {return delta_;}
-	inline double deltaInv()const{return delta_inv_;}
+	inline double delta()const {return thermodynamic_.delta();}
+	inline double deltaInv()const{return thermoDynamics_.deltaInv();}
 	inline double mu1()const {return thermoDynamics_.mu1();}
 	inline double mu2(){return 1;}
 
 
 
-protected:
-	const double delta_; 
-	double deltaInv_;
  };
 
 
@@ -166,7 +161,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     surfaceEnergy=gradphi*gradphi;
   
     kineticEnergy*=0.5*rho_inv;
-    surfaceEnergy*=delta_*0.5;
+    surfaceEnergy*=delta()*0.5;
 //    surfaceEnergy=gradphi;
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
@@ -266,7 +261,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     f[0]=0;
     f[1]=0;
     f[2]=-deltaInv*reaction;
-	  return delta_;
+	  return delta();
   }
 
   template< class Thermodynamics >
@@ -294,7 +289,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
-    diff[2][0]=dxphi*delta_*deltaInv_;
+    diff[2][0]=dxphi;
     
   }
    template< class Thermodynamics >
@@ -364,7 +359,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
            
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
-    double tension =delta_*(0.5*dxphi*dxphi);
+    double tension =delta()*(0.5*dxphi*dxphi);
                   
     diff[0]=0.;
     diff[1]=tension;
