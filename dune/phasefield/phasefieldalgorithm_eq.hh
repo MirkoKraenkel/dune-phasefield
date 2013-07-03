@@ -438,7 +438,7 @@ public:
 		
 		// set initial data (and create ode solver)
 		initializeStep( tp );
-	  Uold.assign(U);	
+	  Uold.clear();	
 		// start first time step with prescribed fixed time step 
 		// if it is not 0 otherwise use the internal estimate
 		
@@ -452,15 +452,19 @@ public:
 
 		writeData( eocDataOutput, tp,std::cout, eocDataOutput.willWrite( tp ) );
 		
-		while( timeStepError > timeStepTolerance_ && counter< 1 && tp.time()<endTime )   
+		for( ;tp.time()<endTime; )   
 			{ 
 				tp.provideTimeStepEstimate(maxTimeStep);                                         
 				const double tnow  = tp.time();
 				const double ldt   = tp.deltaT();
 				
 				counter  = tp.timeStep();
-			   std::cout<<"Counter "<<counter<<"\n";	
-				
+			
+        //calculate Residuum
+        dgOperator_(U,Uold);
+
+
+
 				Dune::FemTimer::start(timeStepTimer_);
 				// grid adaptation (including marking of elements)
 				if( (adaptCount > 0) && (counter % adaptCount) == 0 )
@@ -468,9 +472,11 @@ public:
 		
 				//this is where the magic happens
 				step( tp );
-				
-				// Check that no NAN have been generated
+      
+        timeStepError = residuum( Uold);
 
+				// Check that no NAN have been generated
+#if 1 
         if (! U.dofsValid()) 
 					{
 						std::cout << "Loop(" << loop_ << "): Invalid DOFs " <<  counter <<std::endl;
@@ -479,8 +485,8 @@ public:
 
             abort();
 					}
-
-        timeStepError = stepError(U, Uold);
+#endif
+//        timeStepError = stepError(U, Uold);
     
    //     timeStepError/=ldt;
         Uold.assign(U);
@@ -498,8 +504,7 @@ public:
 				writeData( eocDataOutput, tp,energyfile, eocDataOutput.willWrite( tp ) );
 				writeCheckPoint( tp, adaptManager );
 						
-        if(counter==1)
-          abort();
+  
 				// next time step is prescribed by fixedTimeStep
 				// it fixedTimeStep is not 0
 				if ( fixedTimeStep_ > 1e-20 )
@@ -541,6 +546,15 @@ public:
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 		Fem::L2Norm<GridPartType> l2norm(gridPart_);
 	  return l2norm.distance(uOld, uNew);
+
+	}
+
+  //compute Error between old and NewTimeStep
+  inline double residuum(const DiscreteFunctionType& u)
+	{
+		typedef typename DiscreteFunctionType :: RangeType RangeType;
+		Fem::L2Norm<GridPartType> l2norm(gridPart_);
+	  return l2norm.norm(u);
 
 	}
 

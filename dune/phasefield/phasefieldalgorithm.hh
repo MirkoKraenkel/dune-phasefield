@@ -7,7 +7,6 @@
 #include <dune/fem/space/common/adaptmanager.hh>
 #include <dune/fem/base/base.hh>
 
-adfsd
 //Note Problen should be independent of Operator/Scheme
 #include<dune/phasefield/algorithmtraits.hh>
 
@@ -23,7 +22,8 @@ adfsd
 #include <dune/fem/util/phasefieldodesolver.hh>
 
 #if WELLBALANCED
-#include <dune/fem/operator/wellbalancedoperator.hh>
+//#include <dune/fem/operator/wellbalancedoperator.hh>
+#include <dune/fem/operator/wbsplitoperator.hh>
 #else
 #include <dune/fem/operator/fluxprojoperator.hh>
 #endif
