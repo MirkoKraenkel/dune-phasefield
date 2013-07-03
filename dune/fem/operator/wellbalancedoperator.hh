@@ -119,9 +119,9 @@ namespace Dune {
       discModel2_(model_),
       discModel3_(model_, numflux_, diffFlux_),
       pass0_ (),
-      pass1_(discModel1_, pass0_, space1_),    /*@\label{ad:initialisepass1}@*/
-      pass2_(discModel2_, pass1_, space2_),     /*@\label{ad:initialisepass2}@*/
-      pass3_(discModel3_, pass2_, space3_)     /*@\label{ad:initialisepass2}@*/
+      pass1_(discModel1_, pass0_, space1_),    
+      pass2_(discModel2_, pass1_, space2_),   
+      pass3_(discModel3_, pass2_, space3_)  
     { }
 
     void setTime(const double time) {
@@ -143,12 +143,6 @@ namespace Dune {
       pass1_(arg,dest);
     }
     
-     void energy(const DestinationType &u,const Destination1Type& du,  ScalarDFType& en)const
-     {
-       abort();
-       // du.print(cout); 
-     }
-
 
     inline const SpaceType& space() const {
 	    return space3_;

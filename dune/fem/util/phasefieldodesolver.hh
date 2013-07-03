@@ -105,13 +105,13 @@ public:
     // reset compute time counter 
     resetComputeTime();
 
-     operator_(U,tmp);
+//     operator_(U,tmp);
 //    double maxAdvStep  = 0;
 //    double maxDiffStep = 0;
 
    
     {
-  //    assert( odeSolver_ );
+      assert( odeSolver_ );
       odeSolver_->solve( U, monitor );
 
      
@@ -120,7 +120,7 @@ public:
       maxIterationSteps_ = std::max( maxIterationSteps_, iterationSteps );
     }
 
-    U.assign(tmp);
+  //  U.assign(tmp);
 		
     // store needed time 
     monitor.odeSolveTime_     = timer.elapsed();

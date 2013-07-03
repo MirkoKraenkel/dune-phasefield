@@ -227,7 +227,7 @@ public:
     double viscparal, viscparar, viscpara;
     
     const DomainType xGlobal = intersection.geometry().global(x);
-
+#if 0
     model_.maxSpeed( normal, time, xGlobal, 
                      uLeft, viscparal, maxspeedl );
     model_.maxSpeed( normal, time, xGlobal,
@@ -241,10 +241,9 @@ public:
    
     visc -= uLeft;
 
-   // visc *= viscpara;
-//    visc *=  visc_;
+    visc *= viscpara;
+    visc *=  visc_;
 
-#if 0 
     for(int i=1; i<dimDomain;i++)
   		{
 			gLeft[i] -= visc[i];
@@ -267,7 +266,6 @@ public:
      gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
     }  
 #endif   
-   
    
    gLeft *= 0.5*len; 
    gRight = gLeft;
