@@ -145,7 +145,7 @@ inline void TanhProblem<GridType>
    double tanx;
   
   if(t==0.)
-    tanx=0.5*tanh(x/delta_)+0.5;
+    tanx=0.5*tanh(x/(smear_*delta_))+0.5;
   else
     tanx=0.5*tanh(x/delta_)+0.5;
   
