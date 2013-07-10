@@ -72,7 +72,9 @@ class PhasefieldPhysics<1,Thermodynamics>
 
   inline double maxSpeed( const DomainType& n, const RangeType& u ) const;
   
-  inline double stiffSource(const RangeType& u,
+  inline double stiffSource(const DomainType& x,
+                            const double time,
+                            const RangeType& u,
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
@@ -208,7 +210,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		assert( u[0] > 1e-10 );
 		double rho_inv = 1. / u[0];
 		const double v = u[1]*rho_inv;
-   
  		f[0][0] = u[1];
 		f[1][0] = v*u[1];
 		f[2][0] = u[2]*v;
@@ -233,14 +234,13 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 									const ThetaRangeType& thetaR,
 									RangeType& ret) const
 	{ abort();
-	  ret[0]=0;
-    ret[1]=0.5*(uL[0]+uR[0])*(thetaL[0]-thetaR[0]);
- 	  ret[2]=0;
   }
 	
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
-	::stiffSource(const RangeType& u,
+	::stiffSource(const DomainType& x,
+                const double time,
+                const RangeType& u,
 								const GradientRangeType& du,
 					  		const ThetaRangeType& theta,
 								const ThetaJacobianRangeType& dtheta,
@@ -286,6 +286,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	
 	 diff[0][0]=0.;
 	 diff[1][0]=-delta()*du[2][0];
+
 
   }
   template< class Thermodynamics >
