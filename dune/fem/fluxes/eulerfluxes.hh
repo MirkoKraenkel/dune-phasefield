@@ -147,7 +147,6 @@ public:
 			alpha1_(Dune::Fem::Parameter::getValue<double>("phasefield.nonconvisc",0.))
   {
     std::cout<<"Specify alpha="<<alpha1_<<" correctly!\n";
-//    abort();
   }
 
   static std::string name () { return "WB"; }
@@ -177,17 +176,15 @@ public:
     DomainType normal = intersection.integrationOuterNormal(x);  
     const double len = normal.two_norm();
     normal *= 1./len;
-    double rhoLeft,rhoRight;  
-    double phiLeft,phiRight;
-    double vLeft[dimDomain],vRight[dimDomain];
-
-    
-    rhoLeft  = uLeft[0];
-    rhoRight = uRight[0];
-    phiLeft  = uLeft[dimDomain+1];
-    phiRight = uRight[dimDomain+1];
+        
+    double rhoLeft  = uLeft[0];
+    double rhoRight = uRight[0];
+    double phiLeft  = uLeft[dimDomain+1];
+    double phiRight = uRight[dimDomain+1];
     phiLeft/=rhoLeft;
     phiRight/=rhoRight;
+
+    double vLeft[dimDomain],vRight[dimDomain];
 
     for(int i=0; i<dimDomain; i++)
     {
@@ -203,6 +200,10 @@ public:
    
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
+     // if there's neighbor, update the value of anaflux
+    //if ( intersection.neighbor() )
+    model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
+											uRight, anaflux );
     
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
@@ -215,19 +216,15 @@ public:
     // set gLeft 
     anaflux.mv( normal, gLeft );
 
-    // if there's neighbor, update the value of anaflux
-    //if ( intersection.neighbor() )
-    model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
-											uRight, anaflux );
-   //add F(uleft) 
- //   if ( intersection.neighbor() )
+  //add F(uleft) 
+   //   if ( intersection.neighbor() )
      anaflux.umv( normal, gLeft );
 
     double maxspeedl, maxspeedr, maxspeed;
     double viscparal, viscparar, viscpara;
     
     const DomainType xGlobal = intersection.geometry().global(x);
-#if 0
+#if  0 
     model_.maxSpeed( normal, time, xGlobal, 
                      uLeft, viscparal, maxspeedl );
     model_.maxSpeed( normal, time, xGlobal,
@@ -242,18 +239,20 @@ public:
     visc -= uLeft;
 
     visc *= viscpara;
-    visc *=  visc_;
 
     for(int i=1; i<dimDomain;i++)
-  		{
+ 		{
 			gLeft[i] -= visc[i];
      }
 
    if( intersection.neighbor() )
    {  
-      newvisc=thetaFluxLeft;
- 	    newvisc-=thetaFluxRight;
-      newvisc*=alpha1_;
+      
+     // \delta\mu  consider sign!!!!!!!!
+      newvisc=thetaFluxRight;
+ 	    newvisc-=thetaFluxLeft;
+      
+     // newvisc=.;
      
       gLeft[0]-=newvisc[0];
    	
@@ -269,9 +268,69 @@ public:
    
    gLeft *= 0.5*len; 
    gRight = gLeft;
-//   std::cout<<"NUmflux out "<<maxspeed << std::endl;
+ 
+   RangeType nonConProd(0);
+
+   nonConFlux( normal,
+               rhoLeft,
+               rhoRight, 
+               thetaLeft, 
+               thetaRight,
+               phiLeft,
+               phiRight,
+               nonConProd);
+#if 1          
+   gLeft -=nonConProd;
+   gRight+=nonConProd;
+#endif   
+   
+   //   std::cout<<"NUmflux out "<<maxspeed << std::endl;
    return maxspeed * len;
   }
+
+
+  inline void nonConFlux( const DomainType& normal,
+                          const double length,  
+                          const double rhoLeft,
+                           const double rhoRight,
+                           const ThetaRangeType& thetaLeft,
+                           const ThetaRangeType& thetaRight,
+                           const double phiLeft,
+                           const double phiRight,
+                           RangeType& nonConProd) const
+  {
+      // {{rho}}
+      double averageRho=rhoLeft+rhoRight;
+      averageRho*=0.5;
+       //[[\mu]]
+      double jumpMu=thetaLeft[0]-thetaRight[0];
+
+    
+
+#if USEJACOBIAN
+      //{{\tau}}
+      double averageTau=thetaLeft[1]-thetaRight[1];
+      //[\phi]
+      double jumpPhi=phiLeft-phiRight;
+#else
+      double averageTau=0.;
+      double jumpPhi=0.;
+
+#endif
+      
+      for(int i=0;i<dimDomain;i++)
+      {  
+        nonConProd[i+1]=normal[i];
+        nonConProd[i+1]*=averageRho*jumpMu;//+averageTau*jumpPhi;        
+      }   
+ 
+      //factor comes from the meanvalue of the testfunctions
+      nonConProd*=0.5*length;
+  }
+                           
+                           
+
+
 
  protected:
   const Model& model_;
