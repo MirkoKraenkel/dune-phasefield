@@ -272,6 +272,7 @@ public:
    RangeType nonConProd(0);
 
    nonConFlux( normal,
+               len,        
                rhoLeft,
                rhoRight, 
                thetaLeft, 
