@@ -18,9 +18,7 @@
 
 namespace Dune
 {
-
-  
-                 
+               
   template<class UFunction>
   class Estimator1
   {
@@ -84,7 +82,7 @@ namespace Dune
 				 maxIndicator_(0),
 				 theta_( Dune::Fem::Parameter::getValue("phasefield.adaptive.theta",0.) ),
 				 maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
-				 coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1))
+				 coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",1e-50))
     {
 			clear();
     }
@@ -122,32 +120,33 @@ namespace Dune
         const LocalFunctionType uLocal = uh_.localFunction( entity );
   
         estimateLocal(entity, uLocal );
-
+#if 1 
         IntersectionIteratorType end = gridPart_.iend( entity );
-    //     for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
-//         {
-//           const IntersectionType &intersection = *inter;
-//           if( intersection.neighbor() )
-//             estimateIntersection( intersection, entity, uLocal );
-//           else
-//             estimateBoundary( intersection,entity,uLocal);
-//         }
-
+         for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
+         {
+           const IntersectionType &intersection = *inter;
+           if( intersection.neighbor() )
+             estimateIntersection( intersection, entity, uLocal );
+           else
+             estimateBoundary( intersection,entity,uLocal);
+         }
+#endif
  
       }
       return computeIndicator();
     }
+    
     double computeIndicator()
     {
       totalIndicator2_ = 0.0;
   
-        for (unsigned int i=0;i<indicator_.size();++i)
-        {
-          totalIndicator2_ += indicator_[ i ];
-          maxIndicator_ = std::max(maxIndicator_,indicator_[i]);
-        }
+      for (unsigned int i=0;i<indicator_.size();++i)
+      {
+        totalIndicator2_ += indicator_[ i ];
+        maxIndicator_ = std::max(maxIndicator_,indicator_[i]);
+      }
 	
-	return sqrt( totalIndicator2_ );
+    	return sqrt( totalIndicator2_ );
     }
 
 
@@ -163,12 +162,13 @@ namespace Dune
           const ElementType &entity = *it;
            grid_.mark( 1, entity );
           ++marked;
-	}
+  	    }
       }
       else
       {
-	const double localTol2=tolerance;
-	// loop over all elements 
+      	const double localTol2=tolerance;
+   
+        // loop over all elements 
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
@@ -176,58 +176,66 @@ namespace Dune
           // check local error indicator 
           if( (indicator_[ indexSet_.index( entity ) ] > localTol2 && theta_ == 0) ||
               (indicator_[ indexSet_.index( entity ) ] == -1 && theta_ > 0) )
-	    { 
-	      if(entity.level()<maxLevel_)
-		{
-		  grid_.mark( 1, entity );
-		  IntersectionIteratorType end = gridPart_.iend( entity );
+	          { 
+	            
+              if(entity.level()<maxLevel_)
+              {
+		            grid_.mark( 1, entity );
+		            
+                IntersectionIteratorType end = gridPart_.iend( entity );
 		  
-		  for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
-		    {
-		      const IntersectionType &intersection = *inter;
-		      if( intersection.neighbor() )
-			{
-			  const ElementPointerType pOutside = intersection.outside();
-			  const ElementType &outside = *pOutside;  
-			  if(outside.level()<maxLevel_)
-			    {
-			      grid_.mark( 1, outside );
-			      ++marked;
-			    }
-			}
-		    }
-
-		  ++marked;
-		}
-	    }
-	  else if(indicator_[ indexSet_.index( entity ) ] < coarsen_ )
-	    { 
-	      if(entity.level()>0)
-		 grid_.mark(-1,entity);
-	    }
-	  else{
-	    grid_.mark(0,entity);
-	  }
-	  
-
-	}
+		            for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
+                {
+                  const IntersectionType &intersection = *inter;
+           
+                  if( intersection.neighbor() )
+                  {
+			              const ElementPointerType pOutside = intersection.outside();
+			              
+                    const ElementType &outside = *pOutside;  
+			              
+                    if(outside.level()<maxLevel_)
+			              {
+			              
+                      grid_.mark( 1, outside );
+			             
+                      ++marked;
+			              
+                    }
+			            }
+		            }
+                
+                ++marked;
+		          
+              }
+	          }
+  	        else if(indicator_[ indexSet_.index( entity ) ] < coarsen_ )
+            {  
+	            
+              if(entity.level()>0)
+		           grid_.mark(-1,entity);
+	          
+            }
+	          else
+            {
+	            grid_.mark(0,entity);
+	          }
+        }
       }
-
-    //   std::cout << "MARKED: " << marked << " from " << indexSet_.size(0) << std::endl;
-
+      
       return (marked > 0);
+    
     }
     
     bool estimateAndMark(double tolerance)
     {
       double esti=estimate();
       //  std::cout<<"EstimateValue="<<esti<<std::endl;
-    
-  return mark(tolerance);
+      return mark(tolerance);
     }
     
 
-  protected:
+protected:
     //! caclulate error on element 
     void estimateLocal ( const ElementType &entity,
                          const LocalFunctionType &uLocal )
@@ -242,17 +250,18 @@ namespace Dune
       const int numQuadraturePoints = quad.nop();
       for( int qp = 0; qp < numQuadraturePoints; ++qp )
       {
-	JacobianRangeType gradient;
+	      
+        JacobianRangeType gradient;
 
-	uLocal.jacobian(quad[qp],gradient);
+        uLocal.jacobian(quad[qp],gradient);
 	
         RangeType y(0.),tmp(0.);
 
-	const DomainType global = geometry.global(quad.point(qp));
+	      const DomainType global = geometry.global(quad.point(qp));
 	
-	const double weight = quad.weight( qp ) * geometry.integrationElement( quad.point( qp ) );
+	      const double weight = quad.weight( qp ) * geometry.integrationElement( quad.point( qp ) );
 	
-	indicator_[ index ] += h2*weight * (gradient[dimension+1] * gradient[dimension+1]);
+      	indicator_[ index ] += h2*weight * (gradient[dimension+1] * gradient[dimension+1]);
       }
 
     }
@@ -260,11 +269,10 @@ namespace Dune
     
     
     void estimateBoundary ( const IntersectionType &intersection,
-			    const ElementType &inside,
-			    const LocalFunctionType &uInside)
+			                      const ElementType &inside,
+			                      const LocalFunctionType &uInside)
     {
 
-     
       // WARNING: correct boundary treatment still missing!
       return;
 
