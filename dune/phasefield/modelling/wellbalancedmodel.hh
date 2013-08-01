@@ -62,13 +62,14 @@ namespace Dune {
   };
 
 
-	template< class GridPartType , class Thermodynamics>
+	template< class GridPartType,class Problem>
 	class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 	{
   public:
-		typedef Thermodynamics          ThermodynamicsType;
-    typedef typename GridPartType::GridType                   GridType;
-  	typedef PhaseModelTraits< GridPartType >                   Traits;
+		typedef Problem                                         ProblemType;
+    typedef typename ProblemType::ThermodynamicsType        ThermodynamicsType;
+    typedef typename GridPartType::GridType                 GridType;
+  	typedef PhaseModelTraits< GridPartType >                Traits;
     
   
  		enum { dimDomain = Traits :: dimDomain };
@@ -97,8 +98,9 @@ namespace Dune {
 		typedef typename Traits :: JacobianFluxRangeType          JacobianFluxRangeType;
 
 	public:
-		PhaseModel( const ThermodynamicsType& thermo ):
-      phasefieldPhysics_( thermo )
+		PhaseModel( const ProblemType& problem ):
+      problem_(problem),
+      phasefieldPhysics_(problem_.thermodynamics() )
 		{
     }
 
@@ -108,18 +110,7 @@ namespace Dune {
     
     inline bool hasFlux() const { return true ; }
 
-
-		inline void nonConProduct(const RangeType & uL, 
-															const RangeType & uR,
-															const ThetaRangeType& thetaL,
-															const ThetaRangeType& thetaR,
-															RangeType& ret) const
-		{
-      abort();
-		}
-
-
-		inline double stiffSource( const EntityType& en,
+		inline double stiffSource( const EntityType& entity,
 															 const double time,
 															 const DomainType& x,
 															 const RangeType& u,
@@ -129,8 +120,11 @@ namespace Dune {
 															 const JacobianRangeType& jacU,
                                RangeType & s) const
 		{	
-      return phasefieldPhysics_.stiffSource(u, du,theta,dtheta,jacU,s);
- 		}
+      DomainType xglobal=entity.geometry().global(x);
+
+      return phasefieldPhysics_.stiffSource(xglobal,time,u,du,theta,dtheta,jacU,s);
+ 		
+    }
 
 
 		inline double thetaSource( const EntityType& en,
@@ -145,18 +139,27 @@ namespace Dune {
 
 
 		inline double thetaSource( const EntityType& en
-															 , const double time
+                               , const double time
 															 , const DomainType& x
 															 , const RangeType& u
 															 , ThetaRangeType& s ) const 
 		{
 			double mu,reaction;
+      DomainType xgl=en.geometry().global(x);
       
       phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
       
       //stheta[0]=dF/drho stheta[1]=dF/dphi
-      s[0]=mu;
-			s[1]=reaction;
+
+      s[0]=0;
+#if 0 
+      //s[1]= M_PI*(4*dimDomain*M_PI*std::cos( M_PI*time)-sin(M_PI*time));
+      s[1]= M_PI*M_PI*dimDomain;
+      for(int i=0;i<dimDomain; i++)
+        s[1]*=sin(M_PI*xgl[i]);
+      s*=-1.; 
+#endif
+      s[1]=reaction;
       double deltaInv=phasefieldPhysics_.deltaInv();
 			return deltaInv*deltaInv*0.4;
 		}
@@ -199,7 +202,7 @@ namespace Dune {
 																	, const double time
 																	, const FaceDomainType& x ) const 
 		{ 
-			return true;
+			return false;
 		}
  
 
@@ -231,7 +234,11 @@ namespace Dune {
 																				 const JacobianRangeImp& jacLeft,
 																				 RangeType& gLeft ) const  
 		{
-			return 1.;
+	
+      
+
+      gLeft=0;//uLeft;
+      return 1.;
 		}
 
 
@@ -239,8 +246,8 @@ namespace Dune {
 															 const double time,
 															 const FaceDomainType& x,
 															 const RangeType& uLeft,
-															 RangeType& uRight ) const; 
- 
+															 RangeType& uRight ) const ;
+   
   
 		// here x is in global coordinates
 		inline void maxSpeed( const DomainType& normal,
@@ -304,10 +311,12 @@ namespace Dune {
 										const double time,
 										const DomainType& x,
 										const RangeType& u,
-										const JacobianRangeImp& jac,
+										const JacobianRangeImp& jacLeft,
 										JacobianRangeType& diff ) const
 		{
-			phasefieldPhysics_.boundarydiffusion( u, jac, diff );
+			
+     //diff jacRight= diff jacLeft 
+      phasefieldPhysics_.diffusion( u, jacLeft, diff );
 		}
 	
 		
@@ -328,18 +337,21 @@ namespace Dune {
 
 
 
-  	inline void boundaryallenCahnDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
+  	inline void boundaryallenCahnDiffusion(const DomainType xgl,const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
 		{
 			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
-			boundaryallenCahnDiffusion(u,jac,dv);
+			boundaryallenCahnDiffusion(xgl,u,jac,dv);
 		}	
 
     
     template <class JacobianRangeImp>
-	  inline	void boundaryallenCahnDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
+	  inline	void boundaryallenCahnDiffusion(const DomainType xgl,const RangeType& u, JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
-			phasefieldPhysics_.boundaryallenCahn(u,du,dv);
-		}
+		 double deltaInv=phasefieldPhysics_.deltaInv();
+//     du[3][0]=-0.5*(1-tanh(xgl[0]*deltaInv)*tanh(xgl[0]*deltaInv))*deltaInv;
+  //   du[3][1]=0.;
+     phasefieldPhysics_.boundaryallenCahn(u,du,dv);
+    }
 
 
 
@@ -349,8 +361,9 @@ namespace Dune {
 																, const RangeType& uLeft
 																, RangeType& gLeft ) const  
 		{
-			gLeft = 0.;
-			return 0.;
+  abort();
+      gLeft = uLeft;
+	  	return 0.;
 		}
 		
 
@@ -387,25 +400,30 @@ namespace Dune {
   }
 
 
-		
+//Data Members		
 	protected:
 		//const ThermoynamicsType thermo_;
-    const PhysicsType phasefieldPhysics_;
+ const ProblemType problem_;   
+ const PhysicsType phasefieldPhysics_;
 };
 
+/////////////////////////////////////////
+//Implementations
+/////////////////////////////////////////
 
 
 
-	template< class GridPartType, class ProblemImp >
-	inline double PhaseModel< GridPartType, ProblemImp >
-	:: boundaryFlux( const IntersectionType& it
+template< class GridPartType, class ProblemImp >
+inline double PhaseModel< GridPartType, ProblemImp >
+:: boundaryFlux( const IntersectionType& it
 									 , const double time
 									 , const FaceDomainType& x
 									 , const RangeType& uLeft
 									 , const GradientRangeType& duLeft
 									 , RangeType& gLeft ) const  
 	{
-		abort();
+    std::cout<<"Wb model boundary flux\n";
+    abort();
 		DomainType xgl=it.intersectionGlobal().global(x);
 		const typename Traits :: DomainType normal = it.integrationOuterNormal(x); 
 		double p;
@@ -431,18 +449,21 @@ namespace Dune {
 										, const RangeType& uLeft
 										, RangeType& uRight ) const 
 	{
-  
+ 
 		DomainType xgl = it.geometry().global( x );
-		// uRight[0]=uLeft[0];     
-  
-		//v=0 
-		for(int i=1;i<dimDomain+1;i++)
-			uRight[i]=0.;      
-		
+//		 uRight[0]=uLeft[0];     
+ //   RangeType uBnd;
+    problem_.evaluate(xgl,time, uRight);
+//    uRight=-1;
+    //v=0 
+#if 0 
+    for(int i=1;i<dimDomain+1;i++)
+			uRight[i]=uLeft[0];      
+	abort();	
 		//Neumann Boundary for \phi and \rho
 		uRight[0]=uLeft[0];
 		uRight[dimDomain+1]=uLeft[dimDomain+1];
-	
+#endif
  
 	}
 
