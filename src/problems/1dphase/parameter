@@ -6,7 +6,7 @@ fem.resolvevariables: 1
 fem.prefix: ./data$(scheme) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
 fem.io.savestep: 1e-2 #save data every time interval 
-fem.io.savecount: 0   # save every i-th ste
+fem.io.savecount: 1   # save every i-th ste
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy.gnu
 # GRID SOLUTION
@@ -78,6 +78,7 @@ phasefield.maximalTimeSteps: 1
 phasefield.timeStepTolerance: -1.
 # Output
 #------------
+phasefield.storelaststep: true
 phasefield.additionalvariables: false 
 phasefield.energy: true
 phasefield.sigma: true
