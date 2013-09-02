@@ -25,6 +25,8 @@ AC_CONFIG_FILES([
   doc/doxygen/Doxyfile
   dune/Makefile
   dune/phasefield/Makefile
+  dune/phasefield/modelling/Makefile
+  dune/phasefield/util/Makefile
   dune/fem/adaptation/Makefile
   dune/fem/base/Makefile
   dune/fem/util/Makefile
