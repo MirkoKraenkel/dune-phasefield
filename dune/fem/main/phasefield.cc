@@ -1,4 +1,3 @@
-
 // include host specific macros set by configure script   /*@LST0S@*/
 #include <config.h>
 
@@ -7,22 +6,20 @@
 #include <string>
 
 // Dune includes
-#include <dune/fem/misc/threadmanager.hh>
+#include <dune/fem/misc/threads/threadmanager.hh>
 #include <dune/fem/misc/l2error.hh>
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/solver/odesolver.hh>
 
 // local includes
+// definition of simulate() 
 #include "phasefield.hh"
 
 #if HAVE_PETSC
 #include <petsc.h>
 #endif
 
-#if HAVE_SLEPC
-#include <slepc.h>
-#endif
 
 
 /**
@@ -40,13 +37,11 @@ int main(int argc, char ** argv, char ** envp) {
 
 #if HAVE_SLEPC
     SlepcInitialize(&argc,&argv,(char*)0,help);
-#elif HAVE_PETSC 
-    PetscInitialize(&argc,&argv,(char *)0,help);
 #endif
 
   // *** Initialization
 		Dune::Fem::Parameter::append(argc,argv);                      
-  if (argc == 2) {
+    if (argc == 2) {
     Dune::Fem::Parameter::append(argv[1]);
   } else {
     Dune::Fem::Parameter::append("parameter");                   
