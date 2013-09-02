@@ -544,17 +544,22 @@ public:
       if(Uold!=nullptr)
       { 
         timeStepError = stepError(U,*Uold);
+        timeStepError/=ldt;
         Uold->assign(U);
       }
-        double timeStepEstimate=dgOperator_.timeStepEstimate();	
+      double timeStepEstimate=dgOperator_.timeStepEstimate();	
 			
       if( (printCount > 0) && (counter % printCount == 0))
 			{
 //  			size_t grSize = gridSize();
 	
         if( grid_.comm().rank() == 0 )
-				  std::cout << "step: " << counter << "  time = " << tnow << ", dt = " << ldt<<"timeStepEstimate " <<timeStepEstimate << std::endl;
-			
+        {
+          std::cout << "step: " << counter << "  time = " << tnow << ", dt = " << ldt<<"timeStepEstimate " <<timeStepEstimate;
+			   if(Uold!=nullptr)
+           std::cout<< " Error between timesteps="<< timeStepError;
+         std::cout<<std::endl;
+        }
       }
 
 
