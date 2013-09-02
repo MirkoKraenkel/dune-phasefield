@@ -151,7 +151,7 @@ namespace Dune {
       
       //stheta[0]=dF/drho stheta[1]=dF/dphi
 
-      s[0]=0;
+      s[0]=mu;
 #if 0 
       //s[1]= M_PI*(4*dimDomain*M_PI*std::cos( M_PI*time)-sin(M_PI*time));
       s[1]= M_PI*M_PI*dimDomain;
@@ -361,9 +361,10 @@ namespace Dune {
 																, const RangeType& uLeft
 																, RangeType& gLeft ) const  
 		{
-  abort();
+ // abort();
       gLeft = uLeft;
-	  	return 0.;
+      gLeft=0;
+      return 0.;
 		}
 		
 

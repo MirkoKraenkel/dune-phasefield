@@ -12,7 +12,7 @@ class PhasefieldPhysics<2,Thermodynamics>
     enum { dimRange = dimDomain + 2 };
     enum { dimThetaRange =  2 };
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
-    enum { dimGradRange = dimRange * dimDomain };
+    enum { dimGradRange = dimRange * dimDomain };//=8
     
     typedef double RangeFieldType;
 
@@ -27,7 +27,7 @@ class PhasefieldPhysics<2,Thermodynamics>
     typedef FieldVector< double, dimGradRange >               GradientRangeType;
 
    typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
-   typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
+   typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;//8*2
 
   protected:
     const ThermodynamicsType thermoDynamics_;
@@ -65,7 +65,9 @@ class PhasefieldPhysics<2,Thermodynamics>
 
   inline double maxSpeed( const DomainType& n, const RangeType& u ) const;
   
-  inline double stiffSource(const RangeType& u,
+  inline double stiffSource(const DomainType& x,
+                            const double time,
+                            const RangeType& u,
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
@@ -95,7 +97,8 @@ class PhasefieldPhysics<2,Thermodynamics>
 
 
 public:
-	inline double delta()const { return thermoDynamics_.delta();}
+//	inline double delta()const { return 0;}
+		inline double delta()const { return thermoDynamics_.delta();}
 	inline double deltaInv()  const  { return thermoDynamics_.deltaInv();}
   inline double mu1()const   { return thermoDynamics_.mu1();}
  	inline double mu2()const   { return thermoDynamics_.mu2();}
@@ -113,11 +116,10 @@ public:
   inline void PhasefieldPhysics<2,Thermodynamics>
   :: conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
   {
-  	assert( cons[0] > 0. );
   
   	double rho,rho_inv,phi;
   	rho=cons[0];
-    rho_inv=1./rho; 
+    rho_inv=1.; 
     phi=cons[phaseId];
     phi*=rho_inv;
     
@@ -139,9 +141,8 @@ public:
                   double& kin,
                   double& total ) const
   {
-    assert( cons[0] > 0. );
 	  double rho = cons[0];
-	  double rho_inv = 1. /rho;
+	  double rho_inv = 1.;
 	  double phi = cons[dimDomain+1];
     FieldVector<RangeFieldType, dimDomain> v;
     double kineticEnergy,surfaceEnergy;
@@ -165,15 +166,13 @@ public:
 												double& mu,
 												double& reaction ) const
 	{
-		assert( cons[0] > 1e-20 );
 		
 		double rho=cons[0];
 		double phi=cons[phaseId];
-		phi/=rho;
-		
+//		phi/=rho;
+	  rho=1;	
 		mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-		reaction*=-1.;
 	}
 
   template<class Thermodynamics>
@@ -185,61 +184,58 @@ public:
     std::cout<<"Don't call this with WB\n";
 	}
 
-
-
+ 
   template< typename Thermodynamics >
   inline void  PhasefieldPhysics< 2,Thermodynamics >
   ::analyticalFlux( const RangeType& u, JacobianRangeType& f ) const
   {
     f=0.;
   }
-
   template<class Thermodynamics> 
   inline void PhasefieldPhysics< 2,Thermodynamics>
   ::jacobian( const RangeType & u, JacobianFluxRangeType& a) const
   {
-    assert(u[0] > 1e-10);
+   // std::cout<<"RHHHHO "<<u[0]<<"\n";
+
+   a=0;
+#if 0
+   for(int r=0;r<dimRange;r++)
+     for(int d=0;d<dimDomain;d++)
+       a[dimDomain*r+d][d]=u[r];
     
-    const double rho_inv=1./u[0];
-    const double vx = u[1]*rho_inv;
-		const double vy = u[2]*rho_inv;
-    const double phi=u[phaseId]*rho_inv;
- 
-    a[0][0] = u[0];
-    a[1][1] = u[0];
-    a[2][0] = vx;
-    a[2][1] = vx;
-    a[3][0] = vy;
-    a[3][0] = vy;
-    a[4][0] = phi;
-    a[4][0] = phi;
+#endif    
+    
+    
+    
+    
+#if 1    
+    a[6][0] = u[phaseId];
+    a[7][1] = u[phaseId];
+#endif  
   }
 
-	template< class Thermodynamics >
- 	inline void   PhasefieldPhysics< 2, Thermodynamics >
-	::nonConProduct(const RangeType & uL, 
-									const RangeType & uR,
-									const ThetaRangeType& thetaL,
-									const ThetaRangeType& thetaR,
-									RangeType& ret) const
-	{
-    std::cout<<"Checkme physics_inline2d.hh nonConProduct\n";
-	 abort();
-  }
+
+
 	
 	template<class Thermodynamics>
 	inline double PhasefieldPhysics< 2, Thermodynamics  >
-	::stiffSource(const RangeType& u,
+	::stiffSource(const DomainType& x,
+                const double time, 
+                const RangeType& u,
 								const GradientRangeType& du,
 								const ThetaRangeType& theta,
 								const ThetaJacobianRangeType& dtheta,
 								const JacobianRangeType& jacU,
                 RangeType& f) const
 {	
-      f[0]=0.;
-			f[1]=0.;
-			f[2]=0.;
-	    f[3]=-theta[1]*deltaInv();
+      double mu, reaction;
+      chemPotAndReaction(u,mu,reaction);
+
+      f[0]=0;
+			f[1]=-du[6]*theta[1];
+			f[2]=-du[7]*theta[1];
+	    f[3]=-theta[1];
+
       return deltaInv();  
   }
 
@@ -250,31 +246,8 @@ public:
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
   {
-    // du is grad(u) which is 4x2 matrix (for 2d case)
-    assert( u[0] > 1e-10 );
-    double rho_inv = 1. / u[0];
-    const double v[2] = { u[1]*rho_inv, u[2]*rho_inv };
-  
-    const double muLoc = mu1();
-    const double lambdaLoc =mu2();
-  
-    // get dx_u, dz_u, dx_w, dz_w, dx_T, dz_T (in 2d case) for du
-    const double du00=du[0][0];
-    const double du01=du[0][1];
-    const double du10=du[1][0];//dx rho*U_1
-    const double du11=du[1][1];//dy rho*U_1
-    const double du20=du[2][0];//dx rho*U_2
-    const double du21=du[2][1];//dy rho*U_2
-  
-    const double dxu = rho_inv*(du10 - v[0]*du00);//=1/rho(dx(rho*v1)-v1*dx(rho))=dx(v1);
-    const double dzu = rho_inv*(du11 - v[0]*du01);
-    const double dxw = rho_inv*(du20 - v[1]*du00);
-    const double dzw = rho_inv*(du21 - v[1]*du01);
-   
-    const double tau00 = (2.*muLoc+lambdaLoc)*dxu + lambdaLoc*dzw;
-    const double tau01 = muLoc*(dxw + dzu);
-    const double tau10 = tau01;
-    const double tau11 = lambdaLoc*dxu + (2.*muLoc+lambdaLoc)*dzw;
+  diff=0;
+#if 0 
 
     // 1st row
     diff[0][0] = 0.;                   diff[0][1] = 0.;
@@ -283,11 +256,11 @@ public:
     diff[1][0] = 0.;                   diff[1][1] = 0.;
 
     // 3rd row
-   diff[2][0] = 0.;                diff[2][1] = 0.;
+   diff[2][0] = 0.;                    diff[2][1] = 0.;
 
     // 4th row
-     diff[3][0] =0.;                diff[3][1] = 0.;
-    
+    diff[3][0] =delta()*du[3][0];      diff[3][1] =delta()*du[3][1];
+#endif
   }
 
   template<class Thermodynamics>
@@ -298,6 +271,7 @@ public:
                JacobianRangeType& diff) const
   {
     diffusion(u,du,diff);
+//    diff=0;
   } 
 
   template< class Thermodynamics >
@@ -321,12 +295,7 @@ public:
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
-   
-	 
-	  diff[0][0]=0.;
-    diff[0][1]=0.;
-    diff[1][0]=0;
-    diff[1][1]=0;
+   allenCahn(u,du,diff); 
   }
 
 

@@ -27,6 +27,8 @@ struct AlgorithmTraits
 
   // Choose a suitable GridView
   typedef Dune :: Fem::DGAdaptiveLeafGridPart< GridType >       GridPartType;
+  typedef Dune :: Fem::AdaptiveLeafGridPart< GridType >         LagrangeGridPartType;
+
 
   // problem dependent types 
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;

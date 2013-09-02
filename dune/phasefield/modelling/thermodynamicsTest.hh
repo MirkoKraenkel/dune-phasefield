@@ -46,15 +46,16 @@ public:
 
 	inline double reactionSource(double& rho,double& phi) const
 	{ 
-  //    return phi*phi;
+    //    return phi*phi;
     return deltaInv_*4*(2*phi*phi*phi-3*phi*phi+phi);
+   // return 0;
   }
   
 
 
 	inline double chemicalPotential(double& rho,double& phi) const
 	{
-    return 0;
+    return rho;
   }
 
 	

@@ -138,20 +138,23 @@ inline void TanhProblem<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double x=arg[0];
- 
+  //double y=arg[1;
+
   for(int i=1;i<=dimension;i++)
       res[i]=0;
 
    double tanx;
-  
+#if 1  
   if(t==0.)
-    tanx=0.5*tanh(x/(smear_*delta_))+0.5;
+    tanx=0.5*tanh(x/(delta_))+0.5;
   else
     tanx=0.5*tanh(x/delta_)+0.5;
+#endif
+//   tanx=sin(M_PI*x)*sin(M_PI*y);
   
-   res[0]=1.;
+   res[0]=0;
    
-   res[dimension+1]=tanx;
+   res[3]=tanx;
  
 }
 

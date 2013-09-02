@@ -19,7 +19,7 @@
 // local includes
 #include <dune/fem-dg/operator/limiter/limiter.hh>
 #if WELLBALANCED
-#include <dune/fem/fluxes/ldgfluxwellbalanced.hh>
+#include <dune/fem/fluxes/meanfluxwellbalanced.hh>
 #else
 #include <dune/fem/fluxes/ldgfluxtheta.hh>
 #endif
@@ -141,7 +141,7 @@ public:
   // These type definitions allow a convenient access to arguments of paesss.
   integral_constant< int, passUId >    uVar;
   integral_constant< int, passGradId > sigmaVar;    
-  integral_constant<int , passProjId>  thetaVar;
+  integral_constant< int, passProjId > thetaVar;
 
 public:
   enum { dimDomain = Traits :: dimDomain };
@@ -195,7 +195,8 @@ public:
   }
 
   //! dummy method 
-  void switchUpwind() const {
+  void switchUpwind() const 
+  {
     maxAdvTimeStep_ = 0;
     maxDiffTimeStep_ = 0;
   } 
@@ -213,7 +214,7 @@ public:
   inline bool hasSource() const 
   { 
     return model_.hasNonStiffSource(); 
-  }  /*@\label{dm:hasSource}@*/
+  }  
 
   inline bool hasFlux() const { return advection; }
 
@@ -242,8 +243,7 @@ public:
     abort();
     return model_.nonStiffSource( en, time, x, u[ uVar ], s );
   }
-
-
+  
   template <class QuadratureImp, class ArgumentTupleVector > 
   void initializeIntersection(const Intersection& it,
 			      const double time,
@@ -256,64 +256,62 @@ public:
 
   template <class QuadratureImp, class ArgumentTupleVector > 
   void initializeBoundary(const Intersection& it,
-			  const double time,
-			  const QuadratureImp& quadInner, 
-			  const ArgumentTupleVector& uLeftVec)
+			                    const double time,
+			                    const QuadratureImp& quadInner, 
+			                    const ArgumentTupleVector& uLeftVec)
   {
   }
 
 public:
-  /**
-   * @brief flux function on interfaces between cells for advection and diffusion
-   *
-   * @param[in] it intersection
-   * @param[in] time current time given by TimeProvider
-   * @param[in] x coordinate of required evaluation local to \c it
-   * @param[in] uLeft DOF evaluation on this side of \c it
-   * @param[in] uRight DOF evaluation on the other side of \c it
-   * @param[out] gLeft num. flux projected on normal on this side
-   *             of \c it for multiplication with \f$ \phi \f$
-   * @param[out] gRight advection flux projected on normal for the other side 
-   *             of \c it for multiplication with \f$ \phi \f$
-   * @param[out] gDiffLeft num. flux projected on normal on this side
-   *             of \c it for multiplication with \f$ \nabla\phi \f$
-   * @param[out] gDiffRight advection flux projected on normal for the other side 
-   *             of \c it for multiplication with \f$ \nabla\phi \f$
-   *
-   * @note For dual operators we have \c gDiffLeft = 0 and \c gDiffRight = 0.
-   *
-   * @return wave speed estimate (multiplied with the integration element of the intersection),
-   *              to estimate the time step |T|/wave.
-   */
-  template <class QuadratureImp,
-	    class ArgumentTuple, 
-	    class JacobianTuple >          /*@LST0S@*/
+  template < class QuadratureImp,
+             class ArgumentTuple, 
+	           class JacobianTuple >
   double numericalFlux(const Intersection& it,
-		       const double time,
-		       const QuadratureImp& faceQuadInner,
-		       const QuadratureImp& faceQuadOuter,
-		       const int quadPoint, 
-		       const ArgumentTuple& uLeft,
-		       const ArgumentTuple& uRight,
-		       const JacobianTuple& jacLeft,
-		       const JacobianTuple& jacRight,
-		       RangeType& gLeft,
-		       RangeType& gRight,
-		       JacobianRangeType& gDiffLeft,
-		       JacobianRangeType& gDiffRight ) const
+           		         const double time,
+            		       const QuadratureImp& faceQuadInner,
+            		       const QuadratureImp& faceQuadOuter,
+            		       const int quadPoint, 
+            		       const ArgumentTuple& uLeft,
+            		       const ArgumentTuple& uRight,
+            		       const JacobianTuple& jacLeft,
+            		       const JacobianTuple& jacRight,
+            		       RangeType& gLeft,
+            		       RangeType& gRight,
+            		       JacobianRangeType& gDiffLeft,
+	                     JacobianRangeType& gDiffRight ) const
   {
-    gDiffLeft = 0;
+
+    gDiffLeft  = 0;
     gDiffRight = 0;
+
     if( advection ) 
       {
 #if WELLBALANCED
-				double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
-																							time, faceQuadInner, faceQuadOuter, quadPoint, 
-																						uLeft[ uVar ], uRight[ uVar ],uLeft[thetaVar],uRight[thetaVar],gLeft, gRight);
+				double ldt = numflux_.numericalFlux(it, 
+                                            this->inside(), 
+                                            this->outside(),
+																						time, 
+                                            faceQuadInner, 
+                                            faceQuadOuter, 
+                                            quadPoint, 
+																						uLeft[ uVar ], 
+                                            uRight[ uVar ],
+                                            uLeft[ thetaVar ],
+                                            uRight[ thetaVar ],
+                                            gLeft, 
+                                            gRight);
 #else
-				double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
-																						time, faceQuadInner, faceQuadOuter, quadPoint, 
-																						uLeft[ uVar ], uRight[ uVar ],gLeft, gRight);
+				double ldt = numflux_.numericalFlux(it, 
+                                            this->inside(), 
+                                            this->outside(),
+																						time, 
+                                            faceQuadInner, 
+                                            faceQuadOuter, 
+                                            quadPoint, 
+																						uLeft[ uVar ], 
+                                            uRight[ uVar ],
+                                            gLeft, 
+                                            gRight);
 #endif
 				return ldt ;
       }
@@ -339,66 +337,67 @@ public:
 		      RangeType& gLeft,
 		      JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
   {
-     
     const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 
-    const bool hasBndValue = boundaryValue( it, time, 
-					    faceQuadInner, quadPoint,
-					    uLeft );
-      
+    //see if there is a boundaryValue, if yes calculate uBnd_ by calling the model    
+    const bool hasBndValue = boundaryValue( it, 
+                                            time, 
+                                            faceQuadInner, 
+                                            quadPoint, 
+                                            uLeft );
+
     // make sure user sets specific boundary implementation
     gLeft = std::numeric_limits< double >::quiet_NaN();
     gDiffLeft = 0;
  
     if (advection)
-    {
+    { 
       if( hasBndValue )
 	    {
-	     RangeType gRight;
+  	     RangeType gRight;
 #if WELLBALANCED
 	  		return numflux_.numericalFlux(it, this->inside(), this->inside(),
-																				time, faceQuadInner, faceQuadInner, quadPoint, 
-																				uLeft[ uVar ], uBnd_,uLeft[thetaVar],uLeft[thetaVar],gLeft, gRight);
+																			time, faceQuadInner, faceQuadInner, quadPoint, 
+																			uLeft[ uVar ], uBnd_,uLeft[thetaVar],uLeft[thetaVar],gLeft, gRight);
 #else
-         return numflux_.numericalFlux(it, this->inside(), this->inside(),
-					  time, faceQuadInner, faceQuadInner, quadPoint, 
-           uLeft[ uVar ], uBnd_, gLeft, gRight);
+        return numflux_.numericalFlux(it, this->inside(), this->inside(),
+					                            time, faceQuadInner, faceQuadInner, quadPoint, 
+                                      uLeft[ uVar ], uBnd_, gLeft, gRight);
 #endif
       }
-        else 
+      else 
 	    {
 	      return model_.boundaryFlux( it, time, x, uLeft[uVar], gLeft );
 	    }
     }
     else
     {
-         gLeft = 0.;
-          return 0.;
+      gLeft=0;
+      return 0.;
     } 
     return 0.;
   }
-  /*@LST0S@*/
+  
+  
   /**
    * @brief analytical flux function for advection only
    */
   template <class ArgumentTuple, class JacobianTuple >
   void analyticalFlux( const EntityType& en,
-		       const double time, 
-		       const DomainType& x,
-		       const ArgumentTuple& u, 
-		       const JacobianTuple& jac, 
-		       JacobianRangeType& f ) const
+            		       const double time, 
+            		       const DomainType& x,
+            		       const ArgumentTuple& u, 
+            		       const JacobianTuple& jac, 
+            		       JacobianRangeType& f ) const
   {
-      
     if( advection ) 
-      {
-	      model_.advection(en, time, x, u[ uVar ], f);
-      }
+    {
+      model_.advection(en, time, x, u[ uVar ], f);
+    }
     else 
-      {
-      	abort();
-	      f = 0;
-      }
+    {
+      f = 0;
+    }
   }
 
 
@@ -572,7 +571,7 @@ public:
     maxDiffTimeStep_ = 0;
   } 
 
-  // cummy methods doing nothing 
+  // dummy methods doing nothing 
   void setAdaptationHandler( AdaptationHandlerType& adaptation, double weight ) 
   {
   }
@@ -611,7 +610,7 @@ public:
 			const JacobianTuple& jac, 
 			RangeType& s ) const
   {
-    abort();
+   
     return model_.nonStiffSource( en, time, x, u[ uVar ], s );
   }
 
@@ -732,47 +731,49 @@ public:
     gDiffLeft = 0;
     
     if (advection)
+    {
+      if( hasBndValue )
       {
-        if( hasBndValue )
-	       {
-	         RangeType gRight;
-	         return numflux_.numericalFlux(it, 
-                                         this->inside(), 
-                                         this->inside(),
-					                               time, 
-                                         faceQuadInner, 
-                                         faceQuadInner, 
-                                         quadPoint, 
-					                               uLeft[ uVar ], 
-                                         uBnd_,
-                                         uLeft[sigmaVar],
-                                         uLeft[sigmaVar], 
-                                         gLeft, 
-                                         gRight);
-	        }
-        else 
-	        {
-	          return model_.boundaryFlux( it, time, x, uLeft[uVar], gLeft );
-	        }
+        RangeType gRight;
+
+        return numflux_.numericalFlux(it, 
+                                      this->inside(), 
+                                      this->inside(),
+                                      time, 
+                                      faceQuadInner, 
+                                      faceQuadInner, 
+                                      quadPoint, 
+					                            uLeft[ uVar ], 
+                                      uBnd_,
+                                      uLeft[sigmaVar],
+                                      uLeft[sigmaVar], 
+                                      gLeft, 
+                                      gRight);
       }
+      else 
+      {
+        return model_.boundaryFlux( it, time, x, uLeft[uVar], gLeft );
+      }
+    }
     else
-      {
-        gLeft = 0.;
-        return 0.;
-      }
+    {
+      gLeft = 0.;
+      return 0.;
+    }
+    
     return 0.;
   }
-  /*@LST0S@*/
-  /**
-   * @brief analytical flux function for advection only
-   */
+
+
+
+
   template <class ArgumentTuple, class JacobianTuple >
   void analyticalFlux( const EntityType& en,
 											 const double time, 
-		       const DomainType& x,
-		       const ArgumentTuple& u, 
-		       const JacobianTuple& jac, 
-		       JacobianRangeType& f ) const
+            		       const DomainType& x,
+            		       const ArgumentTuple& u, 
+            		       const JacobianTuple& jac, 
+            		       JacobianRangeType& f ) const
   {
       
     if( advection ) 
@@ -787,8 +788,7 @@ public:
 
 
 protected:
-  template <class QuadratureImp, 
-	    class ArgumentTuple>
+  template <class QuadratureImp,class ArgumentTuple>
   bool boundaryValue(const Intersection& it,
 		     const double time, 
 		     const QuadratureImp& faceQuadInner,
@@ -798,7 +798,7 @@ protected:
     const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
     const bool hasBndValue = model_.hasBoundaryValue(it, time, x);
     if( hasBndValue ) 
-      { abort();
+      { 
         model_.boundaryValue(it, time, x, uLeft[ uVar ], uBnd_ );
       }
     else 
@@ -813,274 +813,7 @@ protected:
   mutable RangeType uBnd_;
   mutable double maxAdvTimeStep_;
   mutable double maxDiffTimeStep_;
-};                                              /*@LST0E@*/
-
-//////////////////////////////////////////////////////
-//
-// AdaptiveAdvectionModel
-//
-//////////////////////////////////////////////////////
-#if 0
-template< class Model, 
-	  class NumFlux, 
-	  int polOrd, int passUId, int passGradId,
-	  bool returnAdvectionPart> 
-class AdaptiveAdvectionModel ;
-  
-template <class Model, class NumFlux,
-	  int polOrd, int passUId, int passGradId, bool returnAdvectionPart>
-struct AdaptiveAdvectionTraits 
-  : public AdvectionTraits< Model, NumFlux, polOrd, passUId, passGradId,
-			    returnAdvectionPart >
-{
-  typedef AdaptiveAdvectionModel< Model, NumFlux, polOrd, passUId, passGradId, 
-				  returnAdvectionPart >       DGDiscreteModelType;
-};
-
-/*  \class AdvectionModel
- *
- *  \tparam Model Mathematical model
- *  \tparam NumFlux Numerical flux
- *  \tparam polOrd Polynomial degree
- *  \tparam passUId The id of a pass whose value is used here
- *  \tparam passGradId The id of a pass whose value is used here
- *  \tparam returnAdvectionPart Switch on/off the advection
- */
-template< class Model, 
-	  class NumFlux, 
-	  int polOrd, int passUId, int passGradId,
-	  bool returnAdvectionPart> 
-class AdaptiveAdvectionModel 
-  : public AdvectionModel< Model, NumFlux, polOrd, passUId,  passGradId, returnAdvectionPart >
-{
-public:
-  typedef AdaptiveAdvectionTraits 
-  <Model, NumFlux, polOrd, passUId, passGradId, returnAdvectionPart> Traits;
-
-  typedef AdvectionModel< Model, NumFlux, polOrd, passUId,  passGradId,
-			  returnAdvectionPart > BaseType ;
-
-  // These type definitions allow a convenient access to arguments of pass.
-  integral_constant< int, passUId > uVar;
-  integral_constant< int, passGradId > sigmaVar; 
-public:
-  enum { dimDomain = Traits :: dimDomain };
-  enum { dimRange  = Traits :: dimRange };
-
-  typedef typename BaseType :: DomainType      DomainType ;
-  typedef typename BaseType :: FaceDomainType  FaceDomainType;
-
-  typedef typename Traits :: GridPartType                            GridPartType;
-  typedef typename Traits :: GridType                                GridType;
-  typedef typename GridPartType :: IntersectionIteratorType          IntersectionIterator;
-  typedef typename IntersectionIterator :: Intersection              Intersection;
-  typedef typename BaseType :: EntityType        EntityType;
-  typedef typename EntityType :: EntityPointer  EntityPointerType;
-  typedef typename Traits :: RangeFieldType                          RangeFieldType;
-  typedef typename Traits :: DomainFieldType                         DomainFieldType;
-  typedef typename Traits :: RangeType                               RangeType;
-  typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
-
-  // discrete function storing the adaptation indicator information 
-  typedef typename Traits :: IndicatorType          IndicatorTpye;
-
-  // discrete function storing the adaptation indicator information 
-  typedef typename Traits :: AdaptationHandlerType  AdaptationHandlerType ;
-
-
-public:
-  /**
-   * @brief constructor
-   */
-  AdaptiveAdvectionModel(const Model& mod,
-			 const NumFlux& numf)
-    : BaseType( mod, numf ),
-      adaptation_( 0 ),
-      weight_( 1 )
-  {
-  }
-
-  //! copy constructor (for thread parallel progs mainly)
-  AdaptiveAdvectionModel( const AdaptiveAdvectionModel& other )
-    : BaseType( other ),
-      adaptation_( other.adaptation_ ),
-      weight_( other.weight_ )
-  {
-  }
-
-  void setEntity( const EntityType& entity ) 
-  {
-    BaseType :: setEntity( entity );
-
-    if( adaptation_ ) 
-      adaptation_->setEntity( entity );
-  }
-
-  void setNeighbor( const EntityType& neighbor ) 
-  {
-    BaseType :: setNeighbor( neighbor );
-
-    if( adaptation_ ) 
-      adaptation_->setNeighbor( neighbor );
-  }
-
-  //! set pointer to adaptation indicator 
-  void setAdaptationHandler( AdaptationHandlerType& adaptation, double weight ) 
-  {
-    adaptation_ = & adaptation;       
-    weight_ = weight ;
-  }
-
-  //! remove pointer to adaptation indicator 
-  void removeAdaptationHandler() 
-  {
-    adaptation_ = 0 ;
-  }
-
-public:
-  /**
-   * @brief flux function on interfaces between cells for advection and diffusion
-   *
-   * @param[in] it intersection
-   * @param[in] time current time given by TimeProvider
-   * @param[in] x coordinate of required evaluation local to \c it
-   * @param[in] uLeft DOF evaluation on this side of \c it
-   * @param[in] uRight DOF evaluation on the other side of \c it
-   * @param[out] gLeft num. flux projected on normal on this side
-   *             of \c it for multiplication with \f$ \phi \f$
-   * @param[out] gRight advection flux projected on normal for the other side 
-   *             of \c it for multiplication with \f$ \phi \f$
-   * @param[out] gDiffLeft num. flux projected on normal on this side
-   *             of \c it for multiplication with \f$ \nabla\phi \f$
-   * @param[out] gDiffRight advection flux projected on normal for the other side 
-   *             of \c it for multiplication with \f$ \nabla\phi \f$
-   *
-   * @note For dual operators we have \c gDiffLeft = 0 and \c gDiffRight = 0.
-   *
-   * @return wave speed estimate (multiplied with the integration element of the intersection),
-   *              to estimate the time step |T|/wave.
-   */
-  template <class QuadratureImp,
-	    class ArgumentTuple, 
-	    class JacobianTuple >          /*@LST0S@*/
-  double numericalFlux(const Intersection& it,
-		       const double time,
-		       const QuadratureImp& faceQuadInner,
-		       const QuadratureImp& faceQuadOuter,
-		       const int quadPoint, 
-		       const ArgumentTuple& uLeft,
-		       const ArgumentTuple& uRight,
-		       const JacobianTuple& jacLeft,
-		       const JacobianTuple& jacRight,
-		       RangeType& gLeft,
-		       RangeType& gRight,
-		       JacobianRangeType& gDiffLeft,
-		       JacobianRangeType& gDiffRight ) const
-  {
-    if( ! model_.allowsRefinement( it, time, faceQuadInner.localPoint( quadPoint ) ) )
-      return 0.;
-
-    double ldt = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter, quadPoint, 
-					    uLeft, uRight, jacLeft, jacRight, 
-					    gLeft, gRight, gDiffLeft, gDiffRight );
-
-    if( BaseType :: advection && adaptation_ ) 
-      {
-        RangeType error ;
-        RangeType v ;
-        // v = g( ul, ul ) = f( ul )
-#if 0
-        numflux_.numericalFlux(it, inside(), outside(),
-                               time, faceQuadInner, faceQuadOuter, quadPoint, 
-                               uLeft[ uVar ], uLeft[ uVar ],uLeft[sigmaVar],uRight[sigmaVar], v, error);
-#endif
-        RangeType w ;
-#if 0
-        // v = g( ur, ur ) = f( ur ) 
-        numflux_.numericalFlux(it, inside(), outside(),
-                               time, faceQuadInner, faceQuadOuter, quadPoint, 
-			       uRight[ uVar ], uRight[ uVar ],uLeft[sigmaVar],uRight[sigmaVar], w, error);
-#endif           
-        // err = 2 * g(u,v) - g(u,u) - g(v,v) 
-        // 2 * g(u,v) = gLeft + gRight
-        error  = gLeft ;
-        error += gRight ;  // gRight +  gLeft  = 2*g(v,w) 
-
-        error -= v;
-        error -= w;
-
-        for( int i=0; i<dimRange; ++i ) 
-	  {
-	    error[ i ] = std::abs( error[ i ] );
-	    /*
-	    // otherwise ul = ur 
-	    if( std::abs( error[ i ] > 1e-12 ) )
-            error[ i ] /= (uLeft[ uVar ][i] - uRight[ uVar ][i] );
-            */
-	  }
-
-        const DomainType normal = it.integrationOuterNormal( faceQuadInner.localPoint( quadPoint ) );
-
-        // calculate grid width 
-        double weight = weight_ *
-          (0.5 * ( this->enVolume() + this->nbVolume() ) / normal.two_norm() );
-
-        // add error to indicator 
-        adaptation_->addToEntityIndicator( error, weight );
-        adaptation_->addToNeighborIndicator( error, weight );
-      }
-
-    return ldt ;
-  }
-
-  /**
-   * @brief same as numericalFlux() but for fluxes over boundary interfaces
-   */
-  template <class QuadratureImp, 
-	    class ArgumentTuple, class JacobianTuple>
-  double boundaryFlux(const Intersection& it,
-		      const double time, 
-		      const QuadratureImp& faceQuadInner,
-		      const int quadPoint,
-		      const ArgumentTuple& uLeft,
-		      const JacobianTuple& jacLeft,
-		      RangeType& gLeft,
-		      JacobianRangeType& gDiffLeft ) const 
-  {
-    return BaseType :: boundaryFlux( it, time, faceQuadInner, quadPoint, uLeft,
-				     jacLeft, gLeft, gDiffLeft );
-  }
-
-protected:  
-  using BaseType :: inside ;
-  using BaseType :: outside ;
-  using BaseType :: model_ ;
-  using BaseType :: numflux_ ;
-
-  AdaptationHandlerType* adaptation_;
-  double weight_ ;
 };                                             
-
-#endif
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
 
 } // end namespace Dune
 

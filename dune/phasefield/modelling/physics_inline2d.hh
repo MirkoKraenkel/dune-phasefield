@@ -239,10 +239,7 @@ protected:
   {
     assert(u[0] > 1e-10);
     
-    const double rho_inv=1./u[0];
-    const double vx = u[1]*rho_inv;
-		const double vy = u[2]*rho_inv;
-    const double phi=u[phaseId]*rho_inv;
+
 
     a[0][0] = u[0];       a[0][1] = 0.;
     a[1][0] = 0.;         a[1][1] = u[0];

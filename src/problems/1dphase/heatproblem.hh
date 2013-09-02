@@ -10,11 +10,7 @@
 
 // local includes
 // #include "idealthermodynamics2interpol.hh"
-//#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
-
-#include <dune/phasefield/modelling/thermodynamicsexactequi.hh>
-
-
+#include <dune/phasefield/modelling/thermodynamicsTest.hh>
 #include <dune/fem/probleminterfaces.hh>
 
 
@@ -23,7 +19,7 @@
 namespace Dune {
 
 template <class GridType>
-class TanhProblem : public EvolutionProblemInterface<
+class HeatProblem : public EvolutionProblemInterface<
                     Dune::Fem::FunctionSpace< double, double, GridType::dimension, GridType::dimension + 2 >,
                     true >
                   
@@ -41,22 +37,22 @@ class TanhProblem : public EvolutionProblemInterface<
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
-  typedef BalancedThermodynamics  ThermodynamicsType;
+  typedef PGThermodynamics  ThermodynamicsType;
   
-  TanhProblem() : 
-    myName_( "TanhBalanced Problem" ),
-    endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
-    mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
-    delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
-    rho1_(Fem::Parameter :: getValue< double >( "phasefield.rho1")),
-    rho2_(Fem::Parameter ::getValue< double> ("phasefield.rho2")),
-    smear_( Fem::Parameter::getValue<double> ("phasefield.smear")),
-    persistentsmear_(smear_),
-    phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
-    gamma_(Fem::Parameter::getValue<double> ("gamma")),
-    thermodyn_()
-    {
-    }
+  HeatProblem() : 
+		 myName_( "Constant Problem" ),
+		 endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime", 1.)), 
+		 mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
+		 delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
+     rho1_(Fem::Parameter :: getValue< double >( "phasefield.rho1")),
+		 rho2_(Fem::Parameter ::getValue< double> ("phasefield.rho2")),
+		 smear_( Fem::Parameter::getValue<double> ("phasefield.smear")),
+		 persistentsmear_(smear_),
+     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+		 gamma_(Fem::Parameter::getValue<double> ("gamma")),
+     thermodyn_()
+     {
+     }
 
 
 
@@ -72,21 +68,8 @@ class TanhProblem : public EvolutionProblemInterface<
   // this is the initial data
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
-    
-  double delta=thermodyn_.delta();
-  double x=arg[0];
-   double y=std::abs(x)-0.8;
-
-   for(int i=1;i<=dimension;i++)
-      res[i]=0;
-
-   double tanx=0.48*tanh(y/(smear_*delta))+0.5;
-   
-   res[0]=rhoval(tanx);
-  
-   res[dimension+1]=res[0]*tanx;
-
- }
+    evaluate(0.,arg,res);
+  }
 
 
   // evaluate function 
@@ -113,12 +96,12 @@ class TanhProblem : public EvolutionProblemInterface<
   void paraview_conv2prim() const {}
   std::string description() const;
  
-  inline double mu() const { abort(); return mu_; }
+  inline double mu() const { return mu_; }
   inline double delta() const{return delta_;}
   inline double rho1() const {return rho1_;}
   inline double rho2() const {return rho2_;}
   inline double gamma() const {return gamma_;}
-  inline void smearone()   {smear_=1.;}
+  inline void smearone()  {smear_=1.;}
   inline void resetsmear()  {smear_=persistentsmear_;}
   protected:
   const std::string myName_;
@@ -136,7 +119,7 @@ class TanhProblem : public EvolutionProblemInterface<
 
 
 template <class GridType>
-inline double TanhProblem<GridType>
+inline double HeatProblem<GridType>
 :: init(const bool returnA ) const 
 {
 
@@ -146,41 +129,43 @@ inline double TanhProblem<GridType>
 
 
 template <class GridType>
-inline void TanhProblem<GridType>
+inline void HeatProblem<GridType>
 :: printInitInfo() const
 {}
 
 template <class GridType>
-inline void TanhProblem<GridType>
+inline void HeatProblem<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-   double x=arg[0];
- 
-  for(int i=1;i<=dimension;i++)
+  double x=arg[0];
+  //  double y=std::abs(x)-0.5;
+  double y=arg[1];
+
+  for(int i=0;i<=dimension;i++)
       res[i]=0;
 
-  double tanx=0.5*tanh(x/(delta_))+0.5;
- 
-   res[0]=rhoval(tanx);
+   double u=cos(M_PI*t)*cos(2*M_PI*x)*cos(2*M_PI*y); 
+ //   double u=cos(2*M_PI*x)*cos(2*M_PI*y); 
+
+
   
-   res[dimension+1]=res[0]*tanx;
-   //res[dimension+1]=res[0];
+   
+   res[3]=u;
  
 }
 
 template <class GridType>
-inline double TanhProblem<GridType>
+inline double HeatProblem<GridType>
 ::rhoval( const double x ) const 
 {
-
-  return exp((4.0-18.0*x*x*x*x*x+45.0*x*x*x*x-30.0*x*x*x)/(-0.9E1*x*x*x*x*x+0.225E2*x*x*x*x-0.15E2*x*x*x+3.0));
+abort();
 
 }
 
 
 
 template <class GridType>
-inline std::string TanhProblem<GridType>
+inline std::string HeatProblem<GridType>
 :: description() const
 {
   std::ostringstream stream;

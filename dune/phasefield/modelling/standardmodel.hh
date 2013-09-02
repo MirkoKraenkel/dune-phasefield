@@ -52,11 +52,12 @@ class PhaseModelTraits
 
 
 
-template< class GridPartType , class Thermodynamics  >
+template< class GridPartType , class Problem >
 class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 {
   public:
-  typedef Thermodynamics                                    ThermodynamicsType;
+  typedef Problem                                           ProblemType;
+  typedef typename ProblemType::ThermodynamicsType           ThermodynamicsType;
   typedef typename GridPartType::GridType                   GridType;
   typedef PhaseModelTraits< GridPartType >                  Traits;
 
@@ -79,13 +80,16 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   typedef typename Traits :: JacobianFluxRangeType          JacobianFluxRangeType;
 
  public:
-  PhaseModel( const ThermodynamicsType& thermo ) 
-    : phasefieldPhysics_( thermo )
+  PhaseModel( const ProblemType& problem ) 
+    : problem_( problem ),
+      phasefieldPhysics_( problem_.thermodynamics() )
   {
   }
 
   inline bool hasStiffSource() const { return true; }
+  
   inline bool hasNonStiffSource() const { return false; }
+  
   inline bool hasFlux() const { return true ; }
 
   inline double stiffSource( const EntityType& en,
@@ -378,15 +382,16 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   }
 
   
- 
+///Data Members 
  protected:
+  const ProblemType problem_;
   const PhysicsType phasefieldPhysics_;
 
 };
 
-
-
-
+/////////////////////////////////////////
+//Implementations
+/////////////////////////////////////////
 template< class GridPartType, class ProblemImp >
 inline double PhaseModel< GridPartType, ProblemImp >
 :: boundaryFlux( const IntersectionType& it

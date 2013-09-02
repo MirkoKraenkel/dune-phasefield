@@ -29,7 +29,7 @@
 // problem dependent
 #include <problemcreator.hh>
 #if MYALGO
-#include <dune/phasefield/phasefieldalgorithm_eq.hh> 
+#include <dune/phasefield/phasefieldalgorithm.hh> 
 #else
 #include "stepper.hh"
 #endif

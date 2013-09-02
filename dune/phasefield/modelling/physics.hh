@@ -68,24 +68,20 @@ class PhasefieldPhysics
 	inline void pressureAndReaction( const RangeType& cons, 
 																	 double& p,
 																	 double& reaction ) const;
-  inline void nonConProduct(const RangeType & uL, 
-														const RangeType & uR,
-														const ThetaRangeType& thetaL,
-														const ThetaRangeType& thetaR,
-														RangeType& ret) const;
-
- 
+  
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
   
   inline void jacobian( const RangeType& u, JacobianFluxRangeType& a) const;
 
   inline double maxSpeed( const DomainType& n, const RangeType& u ) const;
   
-  inline double stiffSource(const RangeType& u,
+  inline double stiffSource(const DomainType& x,
+                            const double time,
+                            const RangeType& u,
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
-								         const JacobianRangeType& jacU,
+								            const JacobianRangeType& jacU,
                             RangeType& f) const;
  
   template< class JacobianRangeImp >
@@ -128,7 +124,7 @@ class PhasefieldPhysics
 
 #if WELLBALANCED
 #include "physicswb_inline1d.hh"
-#include "physicswbAC2d.hh"
+#include "physicswb_inline2d.hh"
 #else
 #include "physicstest1d.hh"
 #include "physicsAC2d.hh"

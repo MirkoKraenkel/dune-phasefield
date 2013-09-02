@@ -16,7 +16,6 @@
 
 // local includes
 #include "projectiondiscretemodelcommon.hh"
-#include <dune/fem/fluxes/ldgfluxwellbalanced.hh>
 namespace Dune {
   /*
    *  DiscreteModel for calculation the chemical potential and Allen-Cahn Resisduum
@@ -35,7 +34,7 @@ namespace Dune {
 		enum { dimRange = 2 };
 		enum { dimDomain = ModelTraits::dimDomain };
 
-		typedef MyPassTraits< Model, dimRange, polOrd >                    Traits;
+		typedef MyPassTraits< Model, dimRange, polOrd >                  Traits;
 		//2 dimensional Space
 		typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
 		
@@ -45,7 +44,7 @@ namespace Dune {
 		
 		typedef typename Traits :: GridPartType                          GridPartType;
 		
- 		typedef typename ModelTraits::FaceDomainType              FaceDomainType;
+ 		typedef typename ModelTraits::FaceDomainType                     FaceDomainType;
 
 		typedef typename Traits :: DestinationType                       DestinationType;
 		typedef DestinationType                                          DiscreteFunctionType;
@@ -60,9 +59,9 @@ namespace Dune {
 		//fieldmatrix<2,dimdomain,ctype>
 		typedef typename DestinationType :: JacobianRangeType            JacobianRangeType;
 
-		typedef typename Traits :: AdaptationHandlerType  AdaptationHandlerType ;
+		typedef typename Traits :: AdaptationHandlerType                 AdaptationHandlerType ;
 
-		typedef ThetaModel< Model,polOrd, passUId, passGradId >       DGDiscreteModelType;
+		typedef ThetaModel< Model,polOrd, passUId, passGradId >          DGDiscreteModelType;
 	};
 
 
@@ -96,21 +95,38 @@ namespace Dune {
 		typedef typename Traits::FaceDomainType FaceDomainType;
 
 		typedef typename Traits :: GridPartType
-		:: IntersectionIteratorType                            IntersectionIterator;
+		:: IntersectionIteratorType                                      IntersectionIterator;
 		typedef typename IntersectionIterator :: Intersection            Intersection;
 		enum { dimRange = Traits::dimRange };
 		enum { evaluateJacobian = true };
 		static const bool ApplyInverseMassOperator = true;
-
-	public:
+   
+    DomainType upwindDefault() const
+    {
+      DomainType upwind ( M_PI );
+      // set upwind to some strange numbers 
+      if( dimDomain > 1 ) upwind[1] = M_LN2 ;
+      if( dimDomain > 2 ) upwind[2] = M_E ;
+      return upwind ;
+    }
+	
+  public:
     
 		ThetaModel( const Model& mod ):
 			acpenalty_( Fem::Parameter::getValue<double>( "phasefield.acpenalty" ) ),
-      model_( mod ){}
-      
-		bool hasSource() const { return true; } 
-		bool hasFlux() const { return true; } 
+      model_( mod ),
+      upwind_(upwindDefault())
+      {}
+
+    bool hasSource() const { return true; } 
+		
+    bool hasFlux() const { return true; } 
   
+    bool determineDirection( const DomainType& normal ) const
+    {
+      return ( normal * upwind_ ) < 0 ;
+    }
+
 		template <class ArgumentTuple, class JacobianTuple>
 		double source( const EntityType& en, 
 									 const double time,
@@ -119,12 +135,18 @@ namespace Dune {
 									 const JacobianTuple& jac, 
 									 RangeType& s )
 		{ 
-			
-			s = 0;
+      const DomainType  xgl=en.geometry().global(x);   
+      
+      const double delta=model_.delta(); 
+      
+      const double invdelta=1./delta; 
+      
+      s = 0;
 		
       //s[0]=dF/drho  s[1]=-dF/dphi
-      const double dtStiff = model_.thetaSource( en, time, x, u[uVar], u[sigmaVar], s );
       
+      const double dtStiff = model_.thetaSource( en, time, x, u[uVar], u[sigmaVar], s );
+     
       return dtStiff;
 		} 
 
@@ -154,22 +176,25 @@ namespace Dune {
 												const ArgumentTuple& uLeft,
 												const JacobianTuple& jacLeft,
 												RangeType& gLeft,
-												JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
+												JacobianRangeType& gDiffLeft ) const   
 		{
 			const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
-			const DomainType normal = it.integrationOuterNormal(x);
 			
-			JacobianRangeType diffmatL(0.),diffmatR(0.);
- 	
-		 	model_.boundaryallenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
-			
-			diffmatL.mv(normal, gLeft);
+      const DomainType normal = it.integrationOuterNormal(x);
+		  
+      const DomainType xgl=it.geometry().global(x);
 
+			JacobianRangeType diffmatL(0.);
+ 	
+		 	model_.boundaryallenCahnDiffusion(xgl,uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+		 	
+			diffmatL.mv(normal, gLeft);
+      // gLeft=0;
       gDiffLeft = 0;
 			
 			double diffTimeStep(0.);
-			return diffTimeStep;
-	
+
+      return diffTimeStep;
 		}
 
 		template <class ArgumentTuple, class JacobianTuple>    /*@LST1S@*/
@@ -199,39 +224,55 @@ namespace Dune {
 												 JacobianRangeType& gDiffLeft,
 												 JacobianRangeType& gDiffRight )
 		{
-			
-
 			const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
-			const DomainType normal = it.integrationOuterNormal(x);
 			
+      const DomainType normal = it.integrationOuterNormal(x);
+
+#if 0			
 			JacobianRangeType diffmatL(0.),diffmatR(0.);
-      
-      model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+      if(!determineDirection(normal))
+      {
+         model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+         diffmatL.mv(normal, gLeft);
+      }
+      else
+      {
+        model_.allenCahnDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
+        diffmatR.mv(normal, gLeft);
+      }	
+#else
+  			JacobianRangeType diffmatL(0.),diffmatR(0.);
+
+        model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+        //model_.allenCahnDiffusion(uLeft[uVar],jacLeft[uVar] , diffmatL);
+        diffmatL.mv(normal, gLeft);
+       
+        model_.allenCahnDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
+        // model_.allenCahnDiffusion(uRight[uVar],jacRight[uVar], diffmatR);
+        diffmatR.umv(normal, gLeft);
      
-      diffmatL.mv(normal, gLeft);
-      
-      model_.allenCahnDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
-  		
-      diffmatR.umv(normal, gLeft);
-      			
-	
-      gLeft*=0.5;
-    // std::cout<<"Theta d Model gLeft="<<gLeft<<"\n"; 
-      gRight=gLeft;
-			gDiffLeft = 0;
-      gDiffRight = 0;     
-			
+        gLeft*=0.5;
+#endif     
+        gRight=gLeft;
+		  	gDiffLeft = 0;
+        gDiffRight = 0;     
+#if 1			
       const double faceLengthSqr=normal.two_norm2();
-			const double h=sqrt(faceLengthSqr);
+			
+      const double h=sqrt(faceLengthSqr);
+      
       // add penalty term ( enVolume() is available since we derive from
 			//    DiscreteModelDefaultWithInsideOutside)
-			const double factor = acpenalty_/h  ;
-#if 0			
-	 		double jmp( uLeft[uVar][dimDomain+1] );
-			jmp -= uRight[uVar][dimDomain+1];
-			RangeType jump(0.);
-			jump[1]=jmp;
-			gLeft.axpy(factor, jump);
+  
+      const double factor = acpenalty_ ;
+
+	 		RangeType jmp(0);
+      
+      jmp[1] = uLeft[uVar][dimDomain+1];
+			
+      jmp[1]-= uRight[uVar][dimDomain+1];
+			
+			gLeft.axpy(factor, jmp);
 #endif			
 
 
@@ -241,6 +282,7 @@ namespace Dune {
 	private:
 		const double acpenalty_;
     const Model& model_;
-	};
+    const DomainType upwind_;
+  };
 }//end namespce
 #endif

@@ -59,11 +59,6 @@ class PhasefieldPhysics<1,Thermodynamics>
 	inline void pressureAndReaction( const RangeType& cons, 
 																	 double& p,
 																	 double& reaction ) const;
-  inline void nonConProduct(const RangeType & uL, 
-														const RangeType & uR,
-														const ThetaRangeType& thetaL,
-														const ThetaRangeType& thetaR,
-														RangeType& ret) const;
 
  
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
@@ -72,7 +67,9 @@ class PhasefieldPhysics<1,Thermodynamics>
 
   inline double maxSpeed( const DomainType& n, const RangeType& u ) const;
   
-  inline double stiffSource(const RangeType& u,
+  inline double stiffSource(const DomainType& x,
+                            const double time,
+                            const RangeType& u,
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
@@ -166,8 +163,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		assert( cons[0] > 1e-20 );
 		
 		double rho=cons[0];
-		double phi=cons[phaseId];
-	
+	  double phi=cons[phaseId];
+	  phi/=rho;
 		
 		mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
@@ -197,11 +194,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   inline void  PhasefieldPhysics< 1, Thermodynamics>
   ::analyticalFlux( const RangeType& u, JacobianRangeType& f ) const
   {
-		assert( u[0] > 1e-10 );
-   
- 		f[0][0] = 0;
-		f[1][0] = 0;
-		f[2][0] = 0;
+    f=0; 
   }
 
   template< class Thermodynamics > 
@@ -211,23 +204,15 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     //assert(u[0] > 1e-10);
 
     a[0][0] = u[0]; //rho
-    a[1][0] = u[1];//(rho v)/rho
-    a[2][0] = u[2];//(rho phi)/rho
-  }
-
-	template< class Thermodynamics >
- 	inline void   PhasefieldPhysics< 1, Thermodynamics >
-	::nonConProduct(const RangeType & uL, 
-									const RangeType & uR,
-									const ThetaRangeType& thetaL,
-									const ThetaRangeType& thetaR,
-									RangeType& ret) const
-	{  abort();
+    a[1][0] = u[1]/u[0];//(rho v)/rho
+    a[2][0] = u[2]/u[0];//(rho phi)/rho
   }
 	
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
-	::stiffSource(const RangeType& u,
+	::stiffSource(const DomainType& x,
+                const double time,
+                const RangeType& u,
 								const GradientRangeType& du,
 					  		const ThetaRangeType& theta,
 								const ThetaJacobianRangeType& dtheta,

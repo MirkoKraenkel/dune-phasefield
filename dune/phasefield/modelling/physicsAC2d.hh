@@ -52,11 +52,6 @@ class PhasefieldPhysics<2,Thermodynamics>
 	inline void pressureAndReaction( const RangeType& cons, 
 																	 double& p,
 																	 double& reaction ) const;
-  inline void nonConProduct(const RangeType & uL, 
-														const RangeType & uR,
-														const ThetaRangeType& thetaL,
-														const ThetaRangeType& thetaR,
-														RangeType& ret) const;
 
  
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
@@ -204,7 +199,7 @@ public:
   inline void  PhasefieldPhysics< 2,Thermodynamics >
   ::analyticalFlux( const RangeType& u, JacobianRangeType& f ) const
   {
-   f=0.;
+    f=0.;
   }
 
   template<class Thermodynamics> 
@@ -228,19 +223,6 @@ public:
     a[7][0] = 0.;         a[7][1] = u[3];
   }
 
-	template< class Thermodynamics >
- 	inline void   PhasefieldPhysics< 2, Thermodynamics>
-  ::nonConProduct(const RangeType & uL, 
-									const RangeType & uR,
-									const ThetaRangeType& thetaL,
-									const ThetaRangeType& thetaR,
-									RangeType& ret) const
-	{
-  
-    abort();
-
-
-  }
 	
 	template<class Thermodynamics>
 	inline double PhasefieldPhysics< 2, Thermodynamics  >
@@ -259,7 +241,7 @@ public:
    f[0]=0;
    f[1]=0;
 	 f[2]=0;
-	 f[3]=-deltaInv*reaction;
+   f[3]=0;-reaction;
     return 0.4*deltaInv*deltaInv();
   }
   
@@ -308,7 +290,7 @@ public:
    // 3rd row
     diff[2][0] = 0.;                diff[2][1] =0.;
   // 4th row
-    diff[3][0] = dxphi;                diff[3][1] = dzphi;
+    diff[3][0] = delta()*dxphi;                diff[3][1] =delta()*dzphi;
     
    }
    template<class Thermodynamics>

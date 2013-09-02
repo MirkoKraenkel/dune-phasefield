@@ -1,5 +1,6 @@
-#ifndef DUNE_PHASEFIELD_LDGFLUXWELLBAL_HH
-#define DUNE_PHASEFIELD_LDGFLUXWELLBAL_HH
+#ifndef DUNE_PHASEFIELD_MEANFLUXWELLBAL_HH
+#define DUNE_PHASEFIELD_MEANFLUXWELLBAL_HH
+
 // local includes
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
 
@@ -10,7 +11,7 @@ namespace Dune {
   //-----------------
 
   template <class DiscreteFunctionSpaceImp,
-            class Model>
+						class Model>
   class LDGDiffusionFlux :
     public DGDiffusionFluxBase< DiscreteFunctionSpaceImp, Model>
   {
@@ -84,22 +85,9 @@ namespace Dune {
     }
 
   public:
-    /**
-     * @brief flux function on interfaces between cells
-     *
-     * @param intersection intersection
-     * @param time current time given by TimeProvider
-     * @param x coordinate of required evaluation local to \c intersection
-     * @param uLeft DOF evaluation on this side of \c intersection
-     * @param uRight DOF evaluation on the other side of \c intersection
-     * @param gLeft result for this side of \c intersection
-     * @param gRight result for the other side of \c intersection
-     * @return wave speed estimate (multiplied with the integration element of the intersection).
-     *         To estimate the time step |T|/wave is used
-     */
     template <class QuadratureImp>
     double gradientNumericalFlux(const Intersection& intersection,
-                                 const EntityType& inside,
+																 const EntityType& inside,
                                  const EntityType& outside,
 																 const double time,
 																 const QuadratureImp& faceQuadInner,
@@ -114,34 +102,21 @@ namespace Dune {
 		{
 			const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 			const DomainType normal = intersection.integrationOuterNormal( x );
-			// determine side 
-    const bool useInterior = determineDirection( normal );
-		//	const bool useInterior = determineDirection(false,0.,0.,intersection );
-    gLeft=0.;	  GradientJacobianType diffmatrix(0); 
+      double length=normal.two_norm();  		//	const bool useInterior = determineDirection(false,0.,0.,intersection );
+      gLeft=0.;	  
+    
+      GradientJacobianType diffmatrix(0.); 
+   
+      model_.jacobian(inside, time, faceQuadInner.point( quadPoint ), uLeft, diffmatrix );
+		 
+      diffmatrix.mv(normal, gLeft);
+     
+      model_.jacobian(outside, time, faceQuadOuter.point( quadPoint ), uRight, diffmatrix	);
 
-    if(useInterior)
-    {
-      model_.jacobian(inside,         /* inside entity */
-			   							time,           /* for time dependent diffusion */
-				  						faceQuadInner.point( quadPoint ),      /* inside point on intersection */
-					  					uLeft,          /* { u_(x^-) } */
-						  				diffmatrix      /* return diffusion tensor */
-							  			);
-    }
-    else
-    {
-      model_.jacobian(outside,       /* outside entity */
-										 time,          /* for time dependent diffusion */
-										 faceQuadOuter.point( quadPoint ),  /* outside point on intersection */
-										 uRight,        /* { u_(x^+) } */
-										 diffmatrix     /* return diffusion tensor */
-										);
-      //We want to add it for mean value
-    }
-  	diffmatrix.mv(normal, gLeft);
+      diffmatrix.umv(normal, gLeft);
 
     
-			 // mutliply with normal 
+      gLeft*=0.5;
 			gRight = gLeft;
 
 			gDiffLeft = 0;
@@ -152,7 +127,7 @@ namespace Dune {
 		}
 
     /*
-     * @brief numerical flux for u given as u_h
+     * \tilde{F_u(U^+,UBnd)}=UBND;
 		 */
     template <class QuadratureImp> 
     double gradientBoundaryFlux(const Intersection& intersection,
@@ -168,38 +143,21 @@ namespace Dune {
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
       const DomainType normal = intersection.integrationOuterNormal(x);
       const DomainType& xglInside  = faceQuadInner.point( quadPoint );
-      GradientJacobianType diffmatrix;
+      GradientJacobianType diffmatrix(0.);
 
-      // determine side 
-      //const bool useInterior = determineDirection( normal );
-
-      // get apropriate value 
-      //const RangeType&  uVal = ( useInterior ) ? uLeft : uBnd ;
 
       // for the numerical diffusion flux \tilde u
       // one uses \tilde u = g_D where g_D is Dirichlet boundary data
-      model_.jacobian( inside, 
-                       time,
-                       xglInside,
-                       uBnd,
-                       diffmatrix
-											 );
+      model_.jacobian( inside, time, xglInside, uBnd, diffmatrix );
 
       // apply normal 
       diffmatrix.mv(normal, gLeft); 
-
       // gDiffLeft is not needed for dual formalation (LDG)
       gDiffLeft = 0;
 
       // time step is set in 2nd pass 
       return 0.0;
     }
-   
-    
-    
-    
-    
-    
     /**
      * @brief flux function on interfaces between cells
      *
@@ -259,7 +217,7 @@ namespace Dune {
     {
 			const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 			const DomainType normal = intersection.integrationOuterNormal(x);
-			
+
       const EntityType& inside  = discreteModel.inside();
       const EntityType& outside = discreteModel.outside();
 
@@ -269,24 +227,19 @@ namespace Dune {
 			 * Diffusion sigma Flux (Pass 2)  *
 			 **********************************/
       JacobianRangeType diffmatrix(0.);
-			const bool useExterior=!determineDirection(normal);
-if(useExterior)
-{
-  model_.diffusion( inside, time, 
+    
+      model_.diffusion( inside, time, 
 												faceQuadInner.point( quadPoint ),
 												uLeft, sigmaLeft, diffmatrix);
-}
-else
-{
-			model_.diffusion( outside, time, 
+      diffmatrix.mv(normal, gLeft);
+			
+      model_.diffusion( outside, time, 
 												faceQuadOuter.point( quadPoint ),
 												uRight, sigmaRight, diffmatrix);
-}			
+  			
       diffmatrix.umv(normal,gLeft);
 
-   //   std::cout<<"LDGflux WB gLeft="<<gLeft<<"\n"; 
-#if 1 
-      // apply normal 
+      gLeft*=0.5; 
    
  
       //////////////////////////////////////////////////////////
@@ -325,23 +278,22 @@ else
 					// add penalty term ( enVolume() is available since we derive from
 					//    DiscreteModelDefaultWithInsideOutside)
           const double h=0.5*(discreteModel.enVolume()+discreteModel.nbVolume());
-          const double factor = penalty_/h   ;
+          const double factor = penalty_/sqrt(h)   ;
 
 					RangeType jump( uLeft );
 					jump -= uRight;
-					gLeft.axpy(factor, jump);
+//					gLeft.axpy(factor, jump);
 				}
-#endif
+  
       gRight = gLeft ;
-
       // gDiffLeft should be 0 in case of LDG
       gDiffLeft = 0;
       gDiffRight = 0;
 
       // timestep restict to diffusion timestep
       // WARNING: reconsider this
-//      double diffTimeStep=1.;
       return diffTimeStep * cflDiffinv_;
+     //return  cflDiffinv_;
     }
 
 
@@ -388,19 +340,20 @@ else
       // get local point 
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
       const DomainType normal = intersection.integrationOuterNormal(x);
+      
       const EntityType& inside  = discreteModel.inside();
 
       /****************************/
       /* Diffusion (Pass 2)       */
       /****************************/
-      JacobianRangeType diffmatrix;
+      JacobianRangeType diffmatrix(0.);
      
       //sigma+
       model_.boundarydiffusion(inside,time,faceQuadInner.point(quadPoint),
                        uLeft,sigmaLeft,diffmatrix);
    
       diffmatrix.mv(normal, gLeft);
-      
+//      gLeft=0; 
 
       //////////////////////////////////////////////////////////
       //
@@ -410,7 +363,7 @@ else
       const double faceVolumeEstimate = normal.two_norm2();
 
       const double diffTimeStep =
-        model_.diffusionTimeStep( intersection,
+       model_.diffusionTimeStep( intersection,
 																	discreteModel.enVolume(),
 																	faceVolumeEstimate,
 																	time, x, uLeft );
@@ -427,7 +380,7 @@ else
 
 					RangeType jump( uLeft );
 					jump -= uRight;
-					gLeft.axpy(factor, jump);
+			//		gLeft.axpy(factor, jump);
 				}
 
       // gDiffLeft should be 0 in case of LDG

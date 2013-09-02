@@ -242,7 +242,7 @@ public:
 
 	template <class QuadratureImp, class ArgumentTupleVector > 
 	void initializeIntersection(const Intersection& it,
-															const double time,
+                              const double time,
 															const QuadratureImp& quadInner, 
 															const QuadratureImp& quadOuter,
 															const ArgumentTupleVector& uLeftVec,
@@ -303,10 +303,9 @@ public:
 
 		if( advection ) 
 			{
-				// std::cout<<"discretemodelcommon advection\n";
 				double ldt = numflux_.numericalFlux(it, this->inside(), this->outside(),
                                             time, faceQuadInner, faceQuadOuter, quadPoint, 
-																						uLeft[ uVar ], uRight[ uVar ],/******** uLeft[sigmaVar],uRight[sigmaVar],*/gLeft, gRight);
+																						uLeft[ uVar ], uRight[ uVar ],gLeft, gRight);
 
 				return ldt ;
       }
@@ -339,20 +338,18 @@ public:
 																						faceQuadInner, quadPoint,
 																						uLeft );
       
-		typedef typename ArgumentTuple::template Get<passGradId>::Type SigmaType;
 		// make sure user sets specific boundary implementation
 		gLeft = std::numeric_limits< double >::quiet_NaN();
 		gDiffLeft = 0;
-#if 1  
-		SigmaType sigmaRight(0.); 
-		if (advection)
+		
+    if (advection)
       {
         if( hasBndValue )
 					{
 						RangeType gRight;
 						return numflux_.numericalFlux(it, this->inside(), this->inside(),
 																					time, faceQuadInner, faceQuadInner, quadPoint, 
-																					uLeft[ uVar ], uBnd_,/* uLeft[sigmaVar],sigmaRight,*/ gLeft, gRight);
+																					uLeft[ uVar ], uBnd_, gLeft, gRight);
 					}
         else 
 					{
@@ -364,7 +361,6 @@ public:
         gLeft = 0.;
         return 0.;
       }
-#endif
 		return 0.;
 	}
 	/*@LST0S@*/

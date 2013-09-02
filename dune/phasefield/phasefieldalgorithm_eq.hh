@@ -110,7 +110,7 @@ public:
 	// type of IOTuple 
 //	typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType* > IOTupleType; 
   //Pointers for (rho,rho v,rho phi),(v,p,phi),(totalenergy),(\theta)
-  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*,DiscreteThetaType* > IOTupleType; 
+  typedef Dune::tuple< DiscreteFunctionType*,DiscreteSigmaType*DiscreteThetaType* > IOTupleType; 
 	
   // type of data writer 
   typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
@@ -191,7 +191,7 @@ public:
 		additionalVariables_( Fem::Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
 													new DiscreteFunctionType("additional", space() ) : 0 ),
 		problem_( ProblemGeneratorType::problem() ),
-    model_( new ModelType( problem().thermodynamics() ) ),
+    model_( new ModelType( problem()) ),
     convectionFlux_( *model_ ),
     adaptationHandler_( 0 ),
     runfile_( grid.comm(), true ),
@@ -423,7 +423,6 @@ public:
 		//restoreFromCheckPoint( tp );
 		
 		// tuple with additionalVariables 
-		
     IOTupleType dataTuple( &U,   this->additionalVariables(),this->energy(),this->theta() );
     std::ofstream energyfile;
     std::ostringstream convert;
@@ -454,16 +453,9 @@ public:
 		
 		for( ;tp.time()<endTime; )   
 			{ 
-				tp.provideTimeStepEstimate(maxTimeStep);                                         
 				const double tnow  = tp.time();
 				const double ldt   = tp.deltaT();
-				
 				counter  = tp.timeStep();
-			
-        //calculate Residuum
-        dgOperator_(U,Uold);
-
-
 
 				Dune::FemTimer::start(timeStepTimer_);
 				// grid adaptation (including marking of elements)
@@ -471,11 +463,10 @@ public:
 					estimateMarkAdapt( adaptManager );
 		
 				//this is where the magic happens
-				step( tp );
-      
-        timeStepError = residuum( Uold);
 
-				// Check that no NAN have been generated
+        step( tp );
+				
+        // Check that no NAN have been generated
 #if 1 
         if (! U.dofsValid()) 
 					{
@@ -486,24 +477,22 @@ public:
             abort();
 					}
 #endif
-//        timeStepError = stepError(U, Uold);
+   //     timeStepError = stepError(U, Uold);
     
-   //     timeStepError/=ldt;
-        Uold.assign(U);
+        //Uold.assign(U);
         double timeStepEstimate=dgOperator_.timeStepEstimate();
         if( (printCount > 0) && (counter % printCount == 0))
 					{ 
 						size_t grSize = gridSize();
 						if( grid_.comm().rank() == 0 )
 							std::cout << "step: " << counter << "  timeStepEstimate = " << timeStepEstimate << ", dt = " << ldt
-												<<" grid size: " << grSize <<" ErrorBetweenSteps :"<< timeStepError << std::endl;
+												<<" grid size: " << grSize << std::endl;
 			      
           }
 
 
 				writeData( eocDataOutput, tp,energyfile, eocDataOutput.willWrite( tp ) );
 				writeCheckPoint( tp, adaptManager );
-						
   
 				// next time step is prescribed by fixedTimeStep
 				// it fixedTimeStep is not 0
@@ -518,8 +507,6 @@ public:
 		writeData( eocDataOutput, tp,energyfile, true );
 
     energyfile.close();
-	
-	
 		// 		writeData( eocDataOutput, tp, true );
 	
 		finalizeStep( tp );                                  
@@ -603,10 +590,10 @@ public:
   	DiscreteThetaType* theta1 = theta(); 
 	  DiscreteScalarType* totalenergy= energy(); 
   		DiscreteFunctionType* addVars = additionalVariables();
-   //   DiscreteSigmaType* sig= sigma();
+     DiscreteSigmaType* sig= sigma();
 		if( eocLoopData_ == 0 ) 
 			{
-			eocDataTup_ = IOTupleType( &U,addVars,totalenergy,theta1 ); 
+			eocDataTup_ = IOTupleType( &U,sig,theta1 ); 
   //				eocDataTup_ = IOTupleType( &U,sig ); 
         eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
 			}

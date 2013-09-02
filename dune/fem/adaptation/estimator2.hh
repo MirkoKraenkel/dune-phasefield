@@ -115,7 +115,7 @@ namespace Dune
     double estimate ( )
     {
       clear();
-    
+ 
       const IteratorType end = dfSpace_.end();
       
       for( IteratorType it = dfSpace_.begin(); it != end; ++it )
@@ -127,17 +127,19 @@ namespace Dune
         estimateLocal(entity, uLocal );
 
         IntersectionIteratorType end = gridPart_.iend( entity );
-        
+#if 0        
         for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
          {
         
            const IntersectionType &intersection = *inter;
-           
+            
            if( intersection.neighbor() )
              estimateIntersection( intersection, entity, uLocal );
            else
              estimateBoundary( intersection,entity,uLocal);
+
          }
+#endif
       }
       
       return computeIndicator();
@@ -180,15 +182,14 @@ namespace Dune
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
-	
-            const ElementType &entity = *it;
-          // check local error indicator 
-          if(std::abs(indicator_[indexSet_.index(entity)]-0.5) < tolerance*0.5 )
-	        { // std::cout<<std::abs(indicator_[indexSet_.index(entity)]-0.5)<<"\n";
+          const ElementType &entity = *it;
+          if(std::abs(indicator_[indexSet_.index(entity)]-0.5) < tolerance )
+	        {
 	          if(entity.level()<maxLevel_)
 		        {
-		          grid_.mark( 1, entity );
-		          
+              grid_.mark( 1, entity );
+		         
+
               IntersectionIteratorType end = gridPart_.iend( entity );
 		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		          {
@@ -209,7 +210,7 @@ namespace Dune
 	          ++marked;
 		       }
 	        }
-          else if(std::abs(indicator_[indexSet_.index(entity)]-0.5) > (coarsen_)*0.5 )
+          else if(std::abs(indicator_[indexSet_.index(entity)]-0.5) > 0.5 )
 	        { 
 	          if(entity.level()>minLevel_)
 		        grid_.mark(-1,entity);
@@ -258,13 +259,14 @@ namespace Dune
         
 	
 	      double y=range[dimension+1];
-	      y/=range[0];
+	  //    y/=range[0];
 
 	      const DomainType global = geometry.global(quad.point(qp));
 	
       	double weight = quad.weight(qp) * geometry.integrationElement( quad.point( qp )) ;
 	      weight/=volume;
-	      indicator_[ index ] += weight * y;
+	     
+        indicator_[ index ] += weight * y;
       }
      
     }
@@ -380,9 +382,10 @@ namespace Dune
                                 const int outsideIndex,
                                 const LocalFunctionType &uInside,
                                 const LocalFunctionType &uOutside, 
-				const double h, double volume,
+                        				const double h, double volume,
                                 double &errorInside, double &errorOutside)
     {
+      
       // use IntersectionQuadrature to create appropriate face quadratures 
       typedef Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType;
       typedef typename IntersectionQuadratureType :: FaceQuadratureType QuadratureImp;
@@ -401,8 +404,6 @@ namespace Dune
       uInside.evaluateQuadrature( quadInside, uValuesEn );
       uOutside.evaluateQuadrature( quadOutside, uValuesNb );
      
-      
-     
       errorInside = 0.0;
       errorOutside = 0.0;
       double faceVol= 0.; 
@@ -411,23 +412,22 @@ namespace Dune
       volume/=3*faceVol;
 
       for( int qp = 0; qp < numQuadraturePoints; ++qp )
-	{
-	  DomainType unitNormal
-	    = intersection.integrationOuterNormal( quadInside.localPoint( qp ) );
-	  const double integrationElement = unitNormal.two_norm();
-	  
-	  unitNormal/=integrationElement;
-	  
-	  
-	  RangeType jump;
-	  jump=uValuesEn[qp];
-	  jump-=uValuesNb[qp];
-	  
-	  errorInside  += quadInside.weight( qp ) *1./h* (jump * jump) *integrationElement;
-	  errorOutside += quadOutside.weight( qp ) *1./h* (jump * jump) *integrationElement;
+    	{
+	      DomainType unitNormal = intersection.integrationOuterNormal( quadInside.localPoint( qp ) );
 	      
-	}
-    }
+        const double integrationElement = unitNormal.two_norm();
+   
+        unitNormal/=integrationElement;
+	  
+	      RangeType jump;
+	      jump=uValuesEn[qp];
+	      jump-=uValuesNb[qp];
+	  
+	      errorInside  += quadInside.weight( qp ) *1./h* (jump * jump) *integrationElement;
+	      errorOutside += quadOutside.weight( qp ) *1./h* (jump * jump) *integrationElement;
+	      
+	    }
+    } 
      
   
   };

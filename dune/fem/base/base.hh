@@ -127,6 +127,7 @@ void compute(Algorithm& algorithm)
     if(eocloop < eocSteps-1)
     {
       Dune::Fem::GlobalRefine::apply(grid,Dune::DGFGridInfo<GridType>::refineStepsForHalf());
+//      Dune::Fem::GlobalRefine::apply(grid,1);
       grid.loadBalance();
     }
   } /***** END of EOC Loop *****/

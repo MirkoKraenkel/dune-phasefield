@@ -13,14 +13,9 @@
 // dune-fem-dg includes
 #include <dune/fem-dg/operator/limiter/limitpass.hh>
 
-// note to me: it doesn't make sense to include primaldiscretemodel.hh
-//             but it was design in that way. to be removed later!!!!!!
-// local includes
-//#include <dune/fem/operator/primaldiscretemodel.hh>
 
 #include "wellbalanceddiscretemodel.hh" 
 
-//#include <dune/fem-dg/operator/dg/operatorbase.hh>
 #include <dune/fem-dg/pass/dgpass.hh>
 
 
@@ -30,16 +25,14 @@
 
 namespace Dune {  
 	
-  template< class Model, class NumFlux, 
-						int polOrd, bool advection = true , bool diffusion = true >
+  template< class Model, class NumFlux,int polOrd, bool advection = true , bool diffusion = true >
   class  DGAdvectionDiffusionOperator : 
-    public Fem::SpaceOperatorInterface 
-    < typename MyPassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
+  public Fem::SpaceOperatorInterface< typename MyPassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
     // Id's for the three Passes (including StartPass)
     enum PassIdType { u, gradPass, acPass,navstkPass };    
  
- public:
+   public:
     enum { dimRange =  Model::dimRange };
     enum { dimDomain = Model::Traits::dimDomain };
     
@@ -51,8 +44,6 @@ namespace Dune {
     
 		typedef typename PassTraitsType::DiscreteScalarType DiscreteScalarType;
 		typedef DiscreteScalarType ScalarDFType;
-    
-
  
     typedef typename PassTraitsType::IndicatorType                   IndicatorType;
     typedef typename IndicatorType::DiscreteFunctionSpaceType        IndicatorSpaceType;
@@ -68,7 +59,6 @@ namespace Dune {
     // Pass 1 Model (gradient)
     typedef GradientModel<Model, DiffusionFluxType, polOrd, u >       DiscreteModel1Type;
     
-                                                                       /*@LST0E@*/
     typedef typename DiscreteModel1Type :: Traits                      Traits1;
     typedef typename DiscreteModel2Type :: Traits                      Traits2;
     typedef typename DiscreteModel3Type :: Traits                      Traits3;
@@ -123,26 +113,33 @@ namespace Dune {
       pass3_(discModel3_, pass2_, space3_)  
     { }
 
-    void setTime(const double time) {
+    void setTime(const double time) 
+    {
 	    pass3_.setTime( time );
     }
 
-    double timeStepEstimate() const {
-	    pass3_.timeStepEstimate();
+    double timeStepEstimate() const 
+    {
+      return pass3_.timeStepEstimate();
     }
 
-    void operator()( const DestinationType& arg, DestinationType& dest ) const {
+    void operator()( const DestinationType& arg, DestinationType& dest ) const 
+    {
 	    pass3_( arg, dest );
     }
     
-    void theta( const DestinationType& arg, Destination2Type& dest ) const {
+    void theta( const DestinationType& arg, Destination2Type& dest ) const 
+    {
       pass2_(arg,dest);
     }
-    void gradient( const DestinationType& arg, Destination1Type& dest ) const {
+    
+    void gradient( const DestinationType& arg, Destination1Type& dest ) const 
+    {
       pass1_(arg,dest);
     }
     
-    inline const SpaceType& space() const {
+    inline const SpaceType& space() const 
+    {
 	    return space3_;
     } 
 
@@ -176,10 +173,10 @@ namespace Dune {
     
     void printmyInfo(std::string filename) const {
 	    std::ostringstream filestream;
-            filestream << filename;
-            std::ofstream ofs(filestream.str().c_str(), std::ios::app);
-            ofs << "LDG Op., polynomial order: " << polOrd << "\\\\\n\n";
-            ofs.close();
+      filestream << filename;
+      std::ofstream ofs(filestream.str().c_str(), std::ios::app);
+      ofs << "LDG Op., polynomial order: " << polOrd << "\\\\\n\n";
+      ofs.close();
     }
 
     std::string description() const
@@ -220,55 +217,6 @@ namespace Dune {
     Pass3Type           pass3_;
   };
 
-
-  // LDGAdvectionTraits
-  //-------------------
-#if 0
-  template <class Mod, class NumFlux, 
-            int pOrd,
-            bool advection>
-  struct LDGAdvectionTraits
-  {
-    enum PassIdType { u, cdgpass };    /*@\label{ad:passids}@*/
-
-    typedef Mod  Model;
-    enum { dimRange = Model::dimRange };
-    typedef NumFlux   NumFluxType;
-    enum { polOrd = pOrd };
-    typedef AdvectionDiffusionDGPrimalModel
-      // put a method_none here to avoid diffusion 
-      < Model, NumFluxType, method_none, polOrd, u, advection, false> DiscreteModelType;
-  };
-
-  
-  // DGAdvectionOperator
-  //--------------------
-
-  template< class Model, class NumFlux, 
-            DGDiffusionFluxIdentifier diffFluxId, // dummy parameter 
-            int polOrd >
-  class DGAdvectionOperator : public
-    DGAdvectionDiffusionOperatorBase< LDGAdvectionTraits<Model, NumFlux, polOrd, true> >
-  {
-    typedef LDGAdvectionTraits<Model, NumFlux, polOrd, true> Traits;
-    typedef DGAdvectionDiffusionOperatorBase< Traits >  BaseType;
-    typedef typename BaseType :: GridType  GridType;
-    typedef typename BaseType :: NumFluxType  NumFluxType;
-  public:
-    DGAdvectionOperator( GridType& grid , const NumFluxType& numf )
-      : BaseType( grid, numf )
-    {}
-
-    std::string description() const
-    {
-      std::stringstream stream;
-      stream <<"{\\bf Adv. Op.}, flux formulation, order: " << polOrd+1
-             <<", {\\bf Adv. Flux:} ";
-      stream <<",\\\\\n";
-      return stream.str();
-    }
-  };
-#endif
 
   // DGDiffusionOperator
   //--------------------

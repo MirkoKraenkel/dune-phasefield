@@ -156,22 +156,20 @@ public:
   // Return value: maximum wavespeed*length of integrationOuterNormal
   // gLeft,gRight are fluxed * length of integrationOuterNormal
   template< class Intersection, class QuadratureImp >
-  inline double 
-  numericalFlux( const Intersection& intersection,
-                 const EntityType& inside,
-                 const EntityType& outside,
-                 const double time, 
-                 const QuadratureImp& faceQuadInner,
-                 const QuadratureImp& faceQuadOuter,
-                 const int quadPoint,
-                 const RangeType& uLeft, 
-                 const RangeType& uRight,
-								 const ThetaRangeType& thetaLeft,
-								 const ThetaRangeType& thetaRight,
-								 RangeType& gLeft,
-                 RangeType& gRight) const 
+  inline double numericalFlux(const Intersection& intersection,
+                              const EntityType& inside,
+                              const EntityType& outside,
+                              const double time, 
+                              const QuadratureImp& faceQuadInner,
+                              const QuadratureImp& faceQuadOuter,
+                              const int quadPoint,
+                              const RangeType& uLeft, 
+                              const RangeType& uRight,
+								              const ThetaRangeType& thetaLeft,
+								              const ThetaRangeType& thetaRight,
+								              RangeType& gLeft,
+                              RangeType& gRight) const 
   {
-   
     const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
     DomainType normal = intersection.integrationOuterNormal(x);  
     const double len = normal.two_norm();
@@ -200,7 +198,7 @@ public:
    
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
-     // if there's neighbor, update the value of anaflux
+    // if there's neighbor, update the value of anaflux
     //if ( intersection.neighbor() )
     model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
 											uRight, anaflux );
@@ -216,15 +214,15 @@ public:
     // set gLeft 
     anaflux.mv( normal, gLeft );
 
-  //add F(uleft) 
-   //   if ( intersection.neighbor() )
-     anaflux.umv( normal, gLeft );
+    //add F(uleft) 
+    //if ( intersection.neighbor() )
+    anaflux.umv( normal, gLeft );
 
     double maxspeedl, maxspeedr, maxspeed;
     double viscparal, viscparar, viscpara;
     
     const DomainType xGlobal = intersection.geometry().global(x);
-#if  0 
+#if  1 
     model_.maxSpeed( normal, time, xGlobal, 
                      uLeft, viscparal, maxspeedl );
     model_.maxSpeed( normal, time, xGlobal,
@@ -243,27 +241,26 @@ public:
     for(int i=1; i<dimDomain;i++)
  		{
 			gLeft[i] -= visc[i];
-     }
+    }
 
    if( intersection.neighbor() )
    {  
-      
      // \delta\mu  consider sign!!!!!!!!
-      newvisc=thetaFluxRight;
- 	    newvisc-=thetaFluxLeft;
+    newvisc=thetaFluxRight;
+    newvisc-=thetaFluxLeft;
       
-     // newvisc=.;
+    // newvisc=.;
      
-      gLeft[0]-=newvisc[0];
+    gLeft[0]-=newvisc[0];
    	
-	    for(int i=1; i<dimDomain;i++)
-	  		{
-			  	gLeft[i] -= (vLeft[i]+vRight[i])*0.5*newvisc[0];
-		  	
-        }
+    for(int i=1; i<dimDomain;i++)
+    {
+      gLeft[i] -= (vLeft[i]+vRight[i])*0.5*newvisc[0];
+    }
 
-     gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
-    }  
+    gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
+    
+   }  
 #endif   
    
    gLeft *= 0.5*len; 
@@ -305,7 +302,6 @@ public:
       averageRho*=0.5;
        //[[\mu]]
       double jumpMu=thetaLeft[0]-thetaRight[0];
-
     
 
 #if USEJACOBIAN
@@ -322,7 +318,7 @@ public:
       for(int i=0;i<dimDomain;i++)
       {  
         nonConProd[i+1]=normal[i];
-        nonConProd[i+1]*=averageRho*jumpMu;//+averageTau*jumpPhi;        
+        nonConProd[i+1]*=averageRho*jumpMu+averageTau*jumpPhi;        
       }   
  
       //factor comes from the meanvalue of the testfunctions

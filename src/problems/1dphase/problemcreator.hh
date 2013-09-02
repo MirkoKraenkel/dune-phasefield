@@ -45,7 +45,7 @@ struct ProblemGenerator
   {
     typedef ProblemType InitialDataType;
 
-    typedef Dune::PhaseModel< GridPart, InitialDataType::ThermodynamicsType > ModelType;
+    typedef Dune::PhaseModel< GridPart, InitialDataType > ModelType;
     // choice of diffusion flux (see diffusionflux.hh for methods)
     static const Dune :: DGDiffusionFluxIdentifier PrimalDiffusionFluxId 
            = Dune :: method_general ;
@@ -94,7 +94,7 @@ struct ProblemGenerator
   }
 
 };
-#include<dune/phasefield/phasefieldalgorithm_eq.hh>
+//#include<dune/phasefield/phasefieldalgorithm_eq.hh>
 
 
 #endif // PHASE_PROBLEMCREATOR_HH

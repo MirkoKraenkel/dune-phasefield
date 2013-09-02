@@ -175,7 +175,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		double rho=cons[0];
 		double phi=cons[phaseId];
 		phi/=rho;
-    //std::cout<<"phi="<<phi<<std::endl;
     
 	  assert( phi > -1e-8);
     assert( phi < 1.+(1e-8));
