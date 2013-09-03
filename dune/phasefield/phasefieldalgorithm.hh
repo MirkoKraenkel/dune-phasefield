@@ -129,7 +129,8 @@ public:
   //Pointers for (rho,rho v,rho phi),(v,p,phi),(totalenergy),(\theta)
   typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*,DiscreteThetaType* > IOTupleType; 
 	
-  // type of data writer 
+  // type of data 
+  // writer 
   typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
 
 	// type of ime provider organizing time for time loops 
@@ -186,6 +187,7 @@ private:
 #endif
   double tolerance_;
   bool interpolateInitialData_;
+  double timeStepTolerance_;
 public:
 	//Constructor
 	PhasefieldAlgorithm(GridType& grid):
@@ -222,7 +224,8 @@ public:
 		//     adaptationParameters_( ),
 		dgOperator_(grid,convectionFlux_),
     tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 0.49)),
-    interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) )
+    interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
+    timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance", std::numeric_limits<double>::min() ) )
     {
     }
 
@@ -365,24 +368,45 @@ public:
     estimator.estimateAndMark(tolerance_);
     am.adapt();
   }
-	//! write data, if pointer to additionalVariables is true, they are calculated first 
-	template<class Stream>
+  template<class Stream>
+  void writeEnergy( TimeProviderType& tp,
+                    Stream& str)
+  {
+    DiscreteSigmaType* gradient = sigma();
+    DiscreteScalarType* totalenergy = energy();
+
+    if(gradient != nullptr && gradient != nullptr)
+    { 
+      gradient->clear();
+     
+      dgOperator_.gradient(solution(),*gradient);
+   
+      double kineticEnergy;
+    
+      double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
+           
+      str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
+    
+    }
+  
+  }
+  
+  //! write data, if pointer to additionalVariables is true, they are calculated first 
   void writeData( DataWriterType& eocDataOutput,
 									TimeProviderType& tp,
-									Stream& str,
                   const bool reallyWrite )
 	{
     if( reallyWrite )
 		{
 				 
-  		DiscreteFunctionType* addVariables = additionalVariables();
-	    DiscreteSigmaType* gradient=sigma();
+      DiscreteFunctionType* addVariables = additionalVariables();
+      DiscreteSigmaType* gradient=sigma();
       DiscreteThetaType* theta1=theta();
   
       // calculate DG-projection of additional variables
 			if ( addVariables && gradient)
 			{
-  		  gradient->clear();
+        gradient->clear();
   
         dgOperator_.gradient(solution(),*gradient);
 
@@ -401,7 +425,7 @@ public:
 
             
       DiscreteScalarType*  totalenergy =energy();
-    	  
+#if 0   	  
       if(gradient && totalenergy)   
       {  
         double kineticEnergy;
@@ -410,7 +434,7 @@ public:
            
          str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
       }
-      
+#endif      
     }
 
 		// write the data 
@@ -479,12 +503,7 @@ public:
 		// set initial data (and create ode solver)
 		initializeStep( tp );
 	  
-    if(Uold==nullptr)
-    {std::cout<<"Seg Fault?\n";
-      Uold->assign(U);
-    std::cout<<"Nope!\n";}
-
-		// start first time step with prescribed fixed time step 
+ 		// start first time step with prescribed fixed time step 
 		// if it is not 0 otherwise use the internal estimate
 		
 		tp.provideTimeStepEstimate(maxTimeStep);
@@ -513,9 +532,8 @@ public:
         }
     }
 
-		writeData( eocDataOutput, tp,std::cout, eocDataOutput.willWrite( tp ) );
-		
-		for( ; tp.time() < endTime; )   
+		writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
+		for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps && timeStepError > timeStepTolerance_;  )   
 		{ 
 			tp.provideTimeStepEstimate(maxTimeStep);                                         
 			
@@ -551,19 +569,26 @@ public:
 			
       if( (printCount > 0) && (counter % printCount == 0))
 			{
-//  			size_t grSize = gridSize();
 	
         if( grid_.comm().rank() == 0 )
         {
-          std::cout << "step: " << counter << "  time = " << tnow << ", dt = " << ldt<<"timeStepEstimate " <<timeStepEstimate;
+          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<"timeStepEstimate " <<timeStepEstimate;
 			   if(Uold!=nullptr)
            std::cout<< " Error between timesteps="<< timeStepError;
          std::cout<<std::endl;
+               
+        }
+         writeEnergy( tp , energyfile);
+        
+        if(timeStepError<=1e-2)
+        { 
+          energyfile.close();
+          abort();
         }
       }
 
 
-			writeData( eocDataOutput, tp,energyfile, eocDataOutput.willWrite( tp ) );
+			writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
 			writeCheckPoint( tp, adaptManager );
 							 
 			// next time step is prescribed by fixedTimeStep
@@ -576,12 +601,12 @@ public:
 		}
 		/*end of timeloop*/
 		// write last time step  
-		writeData( eocDataOutput, tp,energyfile, true );
+		writeData( eocDataOutput, tp, true );
 
     energyfile.close();
 	
 	
-		// 		writeData( eocDataOutput, tp, true );
+	// 		writeData( eocDataOutput, tp, true );
 	
 		finalizeStep( tp );                                  
     
