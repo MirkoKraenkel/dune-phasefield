@@ -347,7 +347,7 @@ namespace Dune {
     template <class JacobianRangeImp>
 	  inline	void boundaryallenCahnDiffusion(const DomainType xgl,const RangeType& u, JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
-		 double deltaInv=phasefieldPhysics_.deltaInv();
+//		 double deltaInv=phasefieldPhysics_.deltaInv();
 //     du[3][0]=-0.5*(1-tanh(xgl[0]*deltaInv)*tanh(xgl[0]*deltaInv))*deltaInv;
   //   du[3][1]=0.;
      phasefieldPhysics_.boundaryallenCahn(u,du,dv);
@@ -380,19 +380,21 @@ namespace Dune {
 														 const RangeType& cons, 
 														 const GradientRangeType& grad, 
                              FieldVector<double,1>& kin, 
+                             FieldVector<double,1>& chemical,
 														 FieldVector<double,1>& total ) const
 		{
 			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( grad);
-		  totalEnergy(cons,jac, kin,total);
+		  totalEnergy(cons,jac, kin, chemical, total);
 		}
 
 	  template <class JacobianRangeImp>
 		inline void totalEnergy( const RangeType& cons, 
 														 const JacobianRangeImp& grad, 
                              FieldVector<double,1>& kin, 
-														 FieldVector<double,1>& total ) const
+														 FieldVector<double,1>& chemical,
+                             FieldVector<double,1>& total ) const
 		{
-		  phasefieldPhysics_.totalEnergy(cons,grad,kin[0],total[0] );
+		  phasefieldPhysics_.totalEnergy(cons,grad,kin[0],chemical[0],total[0] );
 		}
 
  inline double delta()const
