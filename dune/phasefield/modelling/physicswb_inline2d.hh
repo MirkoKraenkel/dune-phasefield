@@ -44,6 +44,7 @@ class PhasefieldPhysics<2,Thermodynamics>
   inline void totalEnergy( const RangeType& cons, 
                            const JacobianRangeImp& grad,
                            double& kin,
+                           double& free,
                            double& total ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
@@ -140,6 +141,7 @@ public:
   :: totalEnergy( const RangeType& cons, 
                   const JacobianRangeImp& grad , 
                   double& kin,
+                  double& therm,
                   double& total ) const
   {
     assert( cons[0] > 0. );
@@ -156,9 +158,12 @@ public:
     surfaceEnergy*=delta()*0.5;
 
  
-	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
+	  therm = thermoDynamics_.helmholtz( rho, phi );
+    therm+=surfaceEnergy;
+    
     kin = kineticEnergy;
-	  total = freeEnergy + surfaceEnergy + kineticEnergy;
+	  
+    total = therm  + kineticEnergy;
 
   }
 
@@ -289,8 +294,6 @@ public:
     const double lambdaLoc =mu2();
   
     // get dx_u, dz_u, dx_w, dz_w, dx_T, dz_T (in 2d case) for du
-    const double du00=du[0][0];
-    const double du01=du[0][1];
     const double du10=du[1][0];//dx U_1
     const double du11=du[1][1];//dy U_1
     const double du20=du[2][0];//dx U_2
@@ -369,7 +372,7 @@ public:
  inline double PhasefieldPhysics< 2, Thermodynamics >
  ::maxSpeed( const DomainType& n, const RangeType& u) const
  {
-#if 0   
+#if 1   
   assert( u[0] > 1e-10 );
   RangeFieldType u_normal = (u[1]*n[0]+u[2]*n[1]) / u[0];
   RangeFieldType p = thermoDynamics_.a(u[0],u[2]/u[0]);
