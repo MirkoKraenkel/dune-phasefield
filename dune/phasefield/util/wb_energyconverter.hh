@@ -18,6 +18,7 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
                         const GradientFunctionType& gradDF,
           	            const ModelType& model,
                         EnergyFunctionType& energyDF,
+                        double& thermodynamicEnergy,
                         double& kineticEnergy) 
 {
   typedef typename ConsDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
@@ -50,8 +51,9 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
   GradRangeType grad(0.0);
   EnergyRangeType total(0.0);  
   EnergyRangeType kin(0.0);
- 
+ EnergyRangeType therm(0.0); 
   kineticEnergy=0.;
+  thermodynamicEnergy=0;
   double integral=0.;
   
   Iterator it    = space.begin();
@@ -82,11 +84,12 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
 
-			model.totalEnergy(xgl, cons, grad,kin,total);
+			model.totalEnergy(xgl, cons, grad,kin,therm,total);
       total*=  quad.weight(qP);
 			kin*=quad.weight(qP);
       energyLF.axpy(quad[qP],total);
       kineticEnergy+=kin*volume;
+      thermodynamicEnergy+=therm*volume;
       integral+=total*volume;
        
     }
