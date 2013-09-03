@@ -382,10 +382,11 @@ public:
       dgOperator_.gradient(solution(),*gradient);
    
       double kineticEnergy;
-    
-      double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
-           
-      str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
+      
+      double chemicalEnergy; 
+      
+      double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy);
+      str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
     
     }
   
@@ -424,17 +425,6 @@ public:
 			}
 
             
-      DiscreteScalarType*  totalenergy =energy();
-#if 0   	  
-      if(gradient && totalenergy)   
-      {  
-        double kineticEnergy;
-    
-        double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
-           
-         str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
-      }
-#endif      
     }
 
 		// write the data 
@@ -572,9 +562,9 @@ public:
 	
         if( grid_.comm().rank() == 0 )
         {
-          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<"timeStepEstimate " <<timeStepEstimate;
+          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
 			   if(Uold!=nullptr)
-           std::cout<< " Error between timesteps="<< timeStepError;
+           std::cout<< " , Error between timesteps="<< timeStepError;
          std::cout<<std::endl;
                
         }
