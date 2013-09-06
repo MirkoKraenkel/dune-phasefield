@@ -12,8 +12,6 @@
 
 using namespace Dune;
 // Thermodynamics
-// see MininimizerSonntag.mv
-
 #include "thermodynamicsinterface.hh"
 //thermodynamics with balanced phases, see balancedthermo.mw
 class BalancedThermodynamics:
