@@ -433,10 +433,11 @@ public:
 	
 	
 	
-	virtual void operator()(int loopNumber)
+	virtual void operator()(int loopNumber,double& averagedt, double& mindt, double& maxdt,
+                          size_t& counter, int& total_newton_iterations, int& total_ils_iterations,
+                          int& max_newton_iterations, int& max_ils_iterations)
 	{	
 
-		int counter;
 		double timeStepError=std::numeric_limits<double>::max();
  
      //some setup stuff
@@ -459,7 +460,17 @@ public:
 		const double endTime   = Dune::Fem::Parameter::getValue<double>("phasefield.endTime",1.);	
     const int maximalTimeSteps =Dune::Fem::Parameter::getValue("phasefield.maximaltimesteps", std::numeric_limits<int>::max());
 
-		TimeProviderType tp(startTime, grid_ ); 
+		//statistics
+    maxdt = 0.;
+    mindt = std::numeric_limits<double>::max();
+    averagedt=0.;
+    total_newton_iterations = 0;
+    total_ils_iterations = 0;
+    max_newton_iterations = 0;
+    max_ils_iterations = 0;max_ils_iterations = 0;  
+    
+    //Initialize Tp
+    TimeProviderType tp(startTime, grid_ ); 
 
 		DiscreteFunctionType& U = solution();
     DiscreteFunctionType* Uold = oldsolution(); 
@@ -484,6 +495,7 @@ public:
     convert<<loopNumber;
     std::string filename=energyFilename_;
     filename.append(convert.str()); 
+    filename.append(".gnu");
     energyfile.open(filename.c_str());
 
 	
@@ -492,7 +504,11 @@ public:
 		
 		// set initial data (and create ode solver)
 		initializeStep( tp );
-	  
+	   if(Uold!=nullptr)
+      { 
+        Uold->assign(U);
+      }
+ 
  		// start first time step with prescribed fixed time step 
 		// if it is not 0 otherwise use the internal estimate
 		
@@ -529,7 +545,9 @@ public:
 			
 			const double tnow  = tp.time();
 			const double ldt   = tp.deltaT();
-			counter  = tp.timeStep();
+      int newton_iterations;
+      int ils_iterations; 
+      counter  = tp.timeStep();
 					
 			Dune::FemTimer::start(timeStepTimer_);
 			
@@ -537,9 +555,8 @@ public:
 			if( (adaptCount > 0) && (counter % adaptCount) == 0 )
 					estimateMarkAdapt( adaptManager );
 		
-			//this is where the magic happens
-			step( tp );
-				
+			step( tp, newton_iterations, ils_iterations, 
+            max_newton_iterations, max_ils_iterations);
 			// Check that no NAN have been generated
 			if (! U.dofsValid()) 
 			{
@@ -570,17 +587,18 @@ public:
         }
          writeEnergy( tp , energyfile);
         
-        if(timeStepError<=1e-2)
-        { 
-          energyfile.close();
-          abort();
-        }
-      }
+     }
 
 
 			writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
 			writeCheckPoint( tp, adaptManager );
-							 
+      //statistics
+      mindt = (ldt<mindt) ? ldt : mindt;
+      maxdt = (ldt>maxdt) ? ldt : maxdt;
+      averagedt += ldt;
+      total_newton_iterations+=newton_iterations;
+      total_ils_iterations+=ils_iterations;
+  
 			// next time step is prescribed by fixedTimeStep
 			// it fixedTimeStep is not 0
 			if ( fixedTimeStep_ > 1e-20 )
@@ -588,13 +606,13 @@ public:
 			else
 				tp.next();
 
-		}
-		/*end of timeloop*/
-		// write last time step  
+		}		/*end of timeloop*/
+		
+    // write last time step  
 		writeData( eocDataOutput, tp, true );
 
     energyfile.close();
-	
+	  averagedt /= double(tp.timeStep());
 	
 	// 		writeData( eocDataOutput, tp, true );
 	
