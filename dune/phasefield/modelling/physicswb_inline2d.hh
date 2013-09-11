@@ -181,7 +181,7 @@ public:
 		
 		mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-	}
+  }
 
   template<class Thermodynamics>
 	inline void PhasefieldPhysics< 2,Thermodynamics >
@@ -218,7 +218,6 @@ public:
   inline void PhasefieldPhysics< 2,Thermodynamics>
   ::jacobian( const RangeType & u, JacobianFluxRangeType& a) const
   {
-   // std::cout<<"RHHHHO "<<u[0]<<"\n";
     assert(u[0] > 1e-10);
     a = 0;  
     const double rho_inv=1./u[0];
