@@ -201,7 +201,9 @@ namespace Dune {
       }  
       else
       {
+      
         uRight=uLeft;
+
       }
     
       
@@ -357,10 +359,9 @@ namespace Dune {
       double dtEst = std::numeric_limits< double > :: max();
 
 			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar],jac[uVar], s );
-		  
+      
       dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
 			maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
-	
 			
 			// return the fastest wave from source terms
 			return dtEst;
@@ -401,7 +402,7 @@ namespace Dune {
       
 			// diffusion
 			double diffTimeStep = 0.0;
-			if( diffusion ) 
+			if( diffusion) 
 				{ 
 					RangeType dLeft(0.), dRight(0.);
 					diffTimeStep = diffFlux_.numericalFlux(it, *this,
@@ -416,8 +417,7 @@ namespace Dune {
 				}
 
  
-
-
+    
 			gDiffLeft  = 0;
 			gDiffRight = 0;
 
@@ -495,6 +495,7 @@ namespace Dune {
 												 const JacobianTuple& jac, 
 												 JacobianRangeType& f ) const
 		{
+      f=0;
       // advection
 			BaseType :: analyticalFlux( en, time, x, u, jac, f );
 			// diffusion
@@ -503,7 +504,7 @@ namespace Dune {
 					JacobianRangeType diffmatrix;
 					model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
 					// ldg case 
-					f = diffmatrix;
+					f += diffmatrix;
 				}
 		}
 	protected:
