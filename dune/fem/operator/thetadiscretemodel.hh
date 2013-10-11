@@ -118,6 +118,8 @@ namespace Dune {
       upwind_(upwindDefault())
       {}
 
+    void setTime(double time){}
+
     bool hasSource() const { return true; } 
 		
     bool hasFlux() const { return true; } 
@@ -137,9 +139,7 @@ namespace Dune {
 		{ 
       const DomainType  xgl=en.geometry().global(x);   
       
-      const double delta=model_.delta(); 
       
-      const double invdelta=1./delta; 
       
       s = 0;
 		
@@ -257,9 +257,8 @@ namespace Dune {
 		  	gDiffLeft = 0;
         gDiffRight = 0;     
 #if 1			
-      const double faceLengthSqr=normal.two_norm2();
-			
-      const double h=sqrt(faceLengthSqr);
+ //     const double faceLengthSqr=normal.two_norm2();
+//      const double h=sqrt(faceLengthSqr);
       
       // add penalty term ( enVolume() is available since we derive from
 			//    DiscreteModelDefaultWithInsideOutside)

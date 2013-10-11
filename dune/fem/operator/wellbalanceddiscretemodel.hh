@@ -97,12 +97,14 @@ namespace Dune {
       cflDiffinv_( 2.0 * ( polOrd + 1) )
     {
     }
+ 
+    void setTime (double time) {}
 
     bool hasSource() const { return false; }
     bool hasFlux() const { return true; } 
 
     template< class ArgumentTuple, class JacobianTuple > 
-    inline double source( const EntityType& en,
+    inline double source ( const EntityType& en,
                           const double time, 
                           const DomainType& x,
                           const ArgumentTuple& u, 
@@ -333,7 +335,14 @@ namespace Dune {
 				cflDiffinv_( 8.0 * ( polOrd + 1) )
 		{
     }
-		bool hasSource() const
+	
+  void setTime (double setTime){}
+    
+    
+    
+    
+    
+    bool hasSource() const
 		{                
 			return ( model_.hasNonStiffSource() || model_.hasStiffSource() );
 		} 

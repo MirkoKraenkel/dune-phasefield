@@ -10,14 +10,14 @@
 // Dune-Fem includes
 #include <dune/fem/space/finitevolume.hh>
 #include <dune/fem/space/discontinuousgalerkin.hh>
-#include <dune/fem/pass/localdg/discretemodel.hh>
+//#include <dune/fem/pass/localdg/discretemodel.hh>
 #include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/misc/boundaryidentifier.hh>
 #include <dune/fem/misc/fmatrixconverter.hh>
 
 // local includes
-#include <dune/fem-dg/operator/limiter/limiter.hh>
+//#include <dune/fem-dg/operator/limiter/limiter.hh>
 #if WELLBALANCED
 #include <dune/fem/fluxes/meanfluxwellbalanced.hh>
 #else
@@ -194,6 +194,7 @@ public:
   {
   }
 
+  void setTime( double time) {}
   //! dummy method 
   void switchUpwind() const 
   {
