@@ -13,7 +13,6 @@
 
 #include <dune/fem/misc/mpimanager.hh>
 //#include <dune/fem/misc/utility.hh>
-#include <dune/fem/misc/l2error.hh>
 #include <dune/fem/misc/femeoc.hh>
 #include <dune/fem/misc/femtimer.hh>
 #include <dune/fem/misc/gridwidth.hh>
@@ -48,14 +47,14 @@ Dune::GridPtr< HGridType > initialize( const std::string& problemDescription )
   // output of error and eoc information
   std::string eocOutPath = Dune::Fem::Parameter::getValue<std::string>("fem.prefix", std::string("."));
 
-  Dune::Fem::FemEoc::initialize(eocOutPath, "eoc", problemDescription); /*@\label{fv:femeocInit}@*/
+  Dune::Fem::FemEoc::initialize(eocOutPath, "eoc", problemDescription); 
 
   // and refine the grid until the startLevel is reached
   const int startLevel = Dune::Fem::Parameter::getValue<int>("phasefield.startLevel", 0);
   for(int level=0; level < startLevel ; ++level)
-    Dune::Fem::GlobalRefine::apply(*gridptr, 1 ); /*@\label{fv:globalRefine1}@*/
+    Dune::Fem::GlobalRefine::apply(*gridptr, 1 ); 
   return gridptr;
-} /*@LST0E@*/
+} 
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -94,7 +93,10 @@ void compute(Algorithm& algorithm)
     int max_newton_iterations = 0;
     int max_ils_iterations = 0;
 #if MYALGO
-		algorithm(eocloop);
+		algorithm(eocloop , avgTimeStep, minTimeStep, maxTimeStep,
+               counter, total_newton_iterations, total_ils_iterations,
+               max_newton_iterations, max_ils_iterations );
+
 
 #else
     algorithm( avgTimeStep, minTimeStep, maxTimeStep,
@@ -127,7 +129,6 @@ void compute(Algorithm& algorithm)
     if(eocloop < eocSteps-1)
     {
       Dune::Fem::GlobalRefine::apply(grid,Dune::DGFGridInfo<GridType>::refineStepsForHalf());
-//      Dune::Fem::GlobalRefine::apply(grid,1);
       grid.loadBalance();
     }
   } /***** END of EOC Loop *****/
