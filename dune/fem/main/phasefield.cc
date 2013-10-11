@@ -7,7 +7,6 @@
 
 // Dune includes
 #include <dune/fem/misc/threads/threadmanager.hh>
-#include <dune/fem/misc/l2error.hh>
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/solver/odesolver.hh>
