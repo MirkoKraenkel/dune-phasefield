@@ -1,6 +1,6 @@
 # install these headers
 allencahndir=$(includedir)/src/problems/allencahn
-allenCahn_HEADERS=  problemcreator.hh problemtype.hh
+allencahn_HEADERS=  acproblemcreator.hh problemtype.hh
 
 #USE_OMP=-fopenmp
 
@@ -13,12 +13,12 @@ SOURCES = $(BASEDIR)/phasefield.cc
 
 #GRIDTYPE = ALUGRID_CONFORM
 #GRIDTYPE = ALUGRID_SIMPLEX
-GRIDTYPE = SPGRID
+GRIDTYPE = ONEDGRID
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM =  1 
 POLORDER = 0 
 USEJACOBIAN = 0
-
+AC=1
 PROBLEM = 1 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
@@ -28,9 +28,8 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/allenCahn $(ALL_PKG_CPPFLAGS) -DGRIDDI
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
 check_PROGRAMS = allencahn
-allenCahn_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) 
-
+allencahn_SOURCES = $(SOURCES) 
+allencahn_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER)  -DAC=$(AC) -DMYALGO
 
 
 

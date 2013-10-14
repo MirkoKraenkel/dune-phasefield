@@ -1,7 +1,7 @@
-#ifndef PHASE_RPOBLEMCREATOR_HH
-#define PHASE_RPOBLEMCREATOR_HH
+#ifndef ACRPOBLEMCREATOR_HHC
+#define ACRPOBLEMCREATOR_HH
 #include <config.h>
-
+#warning "ACCREATING"
 // system includes
 #include <string>
 
@@ -19,20 +19,11 @@
 #include <dune/fem/fluxes/eulerfluxes.hh>
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
 
-#if NONCON
 #include <dune/fem/operator/discretemodelcommon.hh>
-#else
-#include <dune/fem/operator/projectiondiscretemodelcommon.hh>
-#endif
 
 #include "problemtype.hh"
 
-#if WELLBALANCED
-#include <dune/phasefield/modelling/wellbalancedmodel.hh>
-#else
-#include <dune/phasefield/modelling/standardmodel.hh>
-#endif
-
+#include <dune/phasefield/modelling/allencahnmodel.hh>
 
 
 template< class GridType > 
@@ -45,35 +36,18 @@ struct ProblemGenerator
   {
     typedef ProblemType InitialDataType;
 
-    typedef Dune::PhaseModel< GridPart, InitialDataType > ModelType;
+    typedef AllenCahnModel<GridPart,InitialDataType> ModelType;  
     // choice of diffusion flux (see diffusionflux.hh for methods)
     static const Dune :: DGDiffusionFluxIdentifier PrimalDiffusionFluxId 
            = Dune :: method_general ;
 
-// ******************************** NUMERICAL FLUX *****************************
-#if WELLBALANCED
-#warning "FLUX: WB"
-		typedef WBFlux< ModelType > FluxType;
-#else
-#if (FLUX==1)
-#warning "FLUX: LLF"
-    typedef LLFFlux< ModelType > FluxType;
-#elif (FLUX==2)
 
-#else
-#error "Set the flag FLUX! See Makefile.am for details!"
-#endif
-#endif    
-// ****************************** END NUMERICAL FLUX ***************************
-  };
+    typedef LLFFlux<ModelType> FluxType;
+ };
 
   static inline std::string advectionFluxName()
   {
-#if (FLUX==1)
-    return "LLF";
-#elif (FLUX==2)
-		return "WB";
-#endif
+		return "Non";
  }
 
   static inline std::string diffusionFluxName()
