@@ -365,8 +365,7 @@ namespace Dune {
 
       double dtEst = std::numeric_limits< double > :: max();
 
-		//	const double dtStiff = model_.stiffSource( en, time, x, u[uVar],u[sigmaVar],u[thetaVar],jac[thetaVar],jac[uVar], s );
-      const double dtStiff=1;
+			const double dtStiff = model_.stiffSource( en, time, x, u[uVar], s );
       dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
 			maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
 			
@@ -402,11 +401,16 @@ namespace Dune {
 		  const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
      
       const DomainType normal = it.integrationOuterNormal( x );
-  
+#if   0 
       double wave = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter,
 																										 quadPoint, uLeft, uRight, jacLeft, jacRight, 
-																										 gLeft, gRight, gDiffLeft, gDiffRight );
-      
+ 																								 gLeft, gRight, gDiffLeft, gDiffRight );
+#endif     
+             
+             
+      gLeft=0.;
+     gRight=0.;
+    
 			// diffusion
 			double diffTimeStep = 0.0;
 			if( diffusion) 
@@ -423,8 +427,13 @@ namespace Dune {
 					gRight += dRight;
 				}
 
- 
-    
+      #if 1 
+      double wave=model_.gamma();
+RangeType jump=uLeft[uVar]-uRight[uVar];
+      jump*=model_.gamma()*0.5;
+      gLeft-=jump;
+      gLeft-=jump;
+#endif
 			gDiffLeft  = 0;
 			gDiffRight = 0;
 
