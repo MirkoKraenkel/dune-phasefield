@@ -1,0 +1,21 @@
+g: 9.81 # gravitation force, m/(ss)
+p00: 100000. # surface pressure Pa=kg/(mss)
+T0: 273.15 # freezing point, K
+p0Star: 610.7 # saturation vapor pressure, Pa
+c: 17.2693882 # constants in saturation pressure of water vapor equation
+T_2: 35.86 # constants in saturation pressure of water vapor equation
+Lhs: 2834580. # latent heat of vaporization at 0 Celsius, J/kg
+L0: 2500000. # latent heat of vaporization at 0 Kelvin, J/kg
+c_p: 1004. # specific heat of dry air at constant pressure, J/(kgK)=mm/(Kss)
+c_v: 717. #specific heat of dry air at constant volume
+c_pv: 1885. # specific heat of water vapor at constant pressure
+c_vv: 1424. # specific heat of water vapor at constant volume
+c_pl: 4186. # specific heat of liquid water at constant pressure = c_pv
+z_tr: 12000. # height of the tropopause in m
+theta_tr: 343. # potential temperature an the tropopause, K
+theta00: 300. # pot. temp. at surface, K
+T_tr: 213. # absolute temp. at the tropopause, K
+relCloud: 1. # the coefficient in the source term S_c of components
+Tinf: 280. # Sutherland's law coefficient, K
+muTinf: 0.00001735 # Sutherland's law coefficient, kg/(ms)
+Ts: 110.4 # Sutherland's law coefficient, K
