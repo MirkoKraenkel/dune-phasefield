@@ -11,19 +11,42 @@
 #include <dune/fem/probleminterfaces.hh>
 
 namespace Dune {
+typedef GridSelector::GridType GridType;
+typedef typename Dune::Fem::FunctionSpace< double, double, GridType::dimension, 1> FunctionSpaceType;
+typedef typename Dune::Fem::FunctionSpace< double, double, GridType::dimension, 1> VelocityFunctionSpaceType;
 
-template <class GridType>
+
+
+struct Velocity
+: public Fem::Function<VelocityFunctionSpaceType,Velocity>
+{
+  typedef VelocityFunctionSpaceType::RangeType RangeType;
+  typedef VelocityFunctionSpaceType::RangeFieldType RangeFieldType;
+  typedef VelocityFunctionSpaceType::DomainType DomainType;
+
+  void evaluate(const DomainType& x, RangeType &ret) const
+  {
+    ret[0]=1.;
+  }
+
+  void evaluate(const DomainType& x, double time, RangeType& ret) const
+  { 
+    evaluate(x,ret);
+  }
+};
+
+//template <class GridType>
 class AllenCahnProblem : public EvolutionProblemInterface<
-                         Dune::Fem::FunctionSpace< double, double, GridType::dimension,1 >,
+                         FunctionSpaceType,
                          true >               
 {
  
   public:
-  typedef Fem::FunctionSpace<typename GridType::ctype,
-                        double, GridType::dimensionworld,
-                        1  > FunctionSpaceType ;
+  //typedef Fem::FunctionSpace<typename GridType::ctype,
+    //                    double, GridType::dimensionworld,
+      //                  1  > FunctionSpaceType ;
 
-  enum{ dimension = GridType::dimensionworld };
+  enum{ dimension = FunctionSpaceType::dimDomain };
   typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
   typedef typename FunctionSpaceType :: DomainType        DomainType;
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
@@ -33,7 +56,9 @@ class AllenCahnProblem : public EvolutionProblemInterface<
   AllenCahnProblem() : 
     myName_( "AllenCahnB Problem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
-    delta_(Fem::Parameter::getValue<double>( "phasefield.delta" ))
+    delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
+    smear_(Fem::Parameter::getValue<double>( "phasefield.smear" )),
+    gamma_(Fem::Parameter::getValue<double>( "phasefield.gamma" ))
     {
     }
 
@@ -52,7 +77,7 @@ class AllenCahnProblem : public EvolutionProblemInterface<
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
     evaluate( 0.,arg ,res);
- }
+  }
 
 
   // evaluate function 
@@ -61,8 +86,8 @@ class AllenCahnProblem : public EvolutionProblemInterface<
   // cloned method 
   inline void evaluate( const DomainType& arg, const double t, RangeType& res ) const
   {
-    res=arg[0];
-    //evaluate( t, arg, res );
+   // res=arg[0];
+   evaluate( t, arg, res );
   }
 
 
@@ -84,12 +109,12 @@ class AllenCahnProblem : public EvolutionProblemInterface<
   const double endTime_;
   const double delta_;
   double smear_;
-  
+  const double gamma_; 
 };
 
 
-template <class GridType>
-inline double AllenCahnProblem<GridType>
+//template <class GridType>
+inline double AllenCahnProblem//<GridType>
 :: init(const bool returnA ) const 
 {
   return 0;
@@ -97,23 +122,24 @@ inline double AllenCahnProblem<GridType>
 
 
 
-template <class GridType>
-inline void AllenCahnProblem<GridType>
+//template <class GridType>
+inline void AllenCahnProblem//<GridType>
 :: printInitInfo() const
 {}
 
-template <class GridType>
-inline void AllenCahnProblem<GridType>
+//template <class GridType>
+inline void AllenCahnProblem//<GridType>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-  res=arg[0];
+  double x=arg[0];
+  res=0.5*tanh((x-gamma_*t)/delta_)+0.5;
 }
 
 
 
 
-template <class GridType>
-inline std::string AllenCahnProblem<GridType>
+//template <class GridType>
+inline std::string AllenCahnProblem//<GridType>
 :: description() const
 {
   std::ostringstream stream;
