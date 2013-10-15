@@ -21,7 +21,7 @@
 
 #include <dune/fem/operator/discretemodelcommon.hh>
 
-#include "problemtype.hh"
+#include "allencahnproblem.hh"
 
 #include <dune/phasefield/modelling/allencahnmodel.hh>
 
@@ -29,7 +29,7 @@
 template< class GridType > 
 struct ProblemGenerator 
 {
-  typedef PhaseProblemType ProblemType;
+  typedef AllenCahnProblem ProblemType;
 
   template< class GridPart >
   struct Traits
