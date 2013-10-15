@@ -2,21 +2,19 @@
 #define DUNE_FEM_DG_DISCRETEMODELCOMMON_HH
 
 // Dune includes
-#include <dune/fem/gridpart/gridpart.hh>
+#include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
 // Dune-Fem includes
-#include <dune/fem/space/fvspace.hh>
+#include <dune/fem/space/finitevolume.hh>
 #include <dune/fem/space/discontinuousgalerkin.hh>
-#include <dune/fem/pass/dgdiscretemodel.hh>
 #include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/misc/boundaryidentifier.hh>
 #include <dune/fem/misc/fmatrixconverter.hh>
 
 // local includes
-#include <dune/fem-dg/operator/limiter/limiter.hh>
-#include <dune/fem/fluxes/ldgflux.hh>
+//#include <dune/fem-dg/operator/fluxes/ldgflux.hh>
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
 
 namespace Dune {
@@ -25,7 +23,7 @@ namespace Dune {
   //----------
 
   template <class Model,int dimRange,int polOrd>
-  class PassTraits
+  class MyPassTraits
   {
   public:
     typedef typename Model :: Traits                                 ModelTraits;
@@ -34,26 +32,22 @@ namespace Dune {
     typedef typename GridType :: ctype                               ctype;
     static const int dimDomain = Model :: Traits :: dimDomain;
 
-    //typedef ElementQuadrature< GridPartType, 0 >                     VolumeQuadratureType;
-    typedef CachingQuadrature< GridPartType, 0 >                     VolumeQuadratureType;
-    typedef CachingQuadrature< GridPartType, 1 >                     FaceQuadratureType;
-    //typedef ElementQuadrature< GridPartType, 1 >                     FaceQuadratureType;
+    typedef Fem::CachingQuadrature< GridPartType, 0 >                     VolumeQuadratureType;
+    typedef Fem::CachingQuadrature< GridPartType, 1 >                     FaceQuadratureType;
 
     // Allow generalization to systems
-    typedef FunctionSpace< ctype, double, dimDomain, dimRange >      FunctionSpaceType;
-		typedef FunctionSpace< ctype, double, dimDomain, 1 >      ScalarFunctionSpaceType;
-    
-		typedef DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,CachingStorage >       DiscreteFunctionSpaceType;
-		
-		typedef DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,CachingStorage > ScalarDiscreteFunctionSpaceType;
+    typedef Fem::FunctionSpace< ctype, double, dimDomain, dimRange >      FunctionSpaceType;
+		typedef Fem::FunctionSpace< ctype, double, dimDomain, 1 >      ScalarFunctionSpaceType;
+    typedef Fem::FunctionSpace< ctype, double, dimDomain, dimDomain> VelocityFunctionSpace;
+      
+		typedef Fem::DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >       DiscreteFunctionSpaceType;
+//    typedef Fem::DiscontinuousGalerkinSpace< VelocityFunctionSpace,GridPartType,polOrd,Fem::CachingStorage>     DiscreteVelocitySpaceType;		
+		typedef Fem::DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage > ScalarDiscreteFunctionSpaceType;
   
-		typedef AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >    DestinationType;
-		typedef AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >    ScalarDFType;
+		typedef Fem::AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >    DestinationType;
+    //typedef Fem::AdaptiveDiscreteFunction< DiscreteVelocitySpaceType >    DiscreteVelocityType;
+  //  typedef Fem::AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >    ScalarDFType;
 		
-		// Indicator for Limiter
-		typedef FunctionSpace< ctype, double, dimDomain, 3> FVFunctionSpaceType;
-		typedef FiniteVolumeSpace<FVFunctionSpaceType,GridPartType, 0, SimpleStorage> IndicatorSpaceType;
-		typedef AdaptiveDiscreteFunction<IndicatorSpaceType> IndicatorType;
 		
 		typedef AdaptationHandler< GridType, FunctionSpaceType >  AdaptationHandlerType ;
 };
@@ -81,7 +75,7 @@ struct AdvectionTraits
 	enum { dimRange = ModelTraits::dimRange };
 	enum { dimDomain = ModelTraits::dimDomain };
 
-	typedef PassTraits< Model, dimRange, polOrd >                    Traits;
+	typedef MyPassTraits< Model, dimRange, polOrd >                    Traits;
 	typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
 
 	typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
@@ -90,7 +84,7 @@ struct AdvectionTraits
 	typedef typename Traits :: DiscreteFunctionSpaceType             DiscreteFunctionSpaceType;
 	typedef typename Traits :: DestinationType                       DestinationType;
 	typedef DestinationType                                          DiscreteFunctionType;
-	typedef typename Traits :: IndicatorType                         IndicatorType;
+//	typedef typename Traits :: IndicatorType                         IndicatorType;
 
 	typedef typename DestinationType :: DomainType                   DomainType;
 	typedef typename DestinationType :: RangeType                    RangeType;
@@ -122,7 +116,7 @@ template< class Model,
 					int polOrd, int passUId, int passGradId,
 					bool returnAdvectionPart> 
 class AdvectionModel :
-	public DGDiscreteModelDefaultWithInsideOutside
+	public Fem::DGDiscreteModelDefaultWithInsideOutside
 	<AdvectionTraits<Model, NumFlux, polOrd, passUId, passGradId, returnAdvectionPart>,
 	 passUId, passGradId>
 {
@@ -133,7 +127,7 @@ public:
 	typedef Model   ModelType ;
 	typedef NumFlux NumFluxType ;
 
-	typedef DGDiscreteModelDefaultWithInsideOutside
+	typedef Fem::DGDiscreteModelDefaultWithInsideOutside
 	< Traits, passUId, passGradId >                          BaseType;
 
 	// These type definitions allow a convenient access to arguments of paesss.
@@ -162,7 +156,7 @@ public:
 	typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
 
 	// discrete function storing the adaptation indicator information 
-	typedef typename Traits :: IndicatorType          IndicatorTpye;
+	//typedef typename Traits :: IndicatorType          IndicatorTpye;
 
 	// discrete function storing the adaptation indicator information 
 	typedef typename Traits :: AdaptationHandlerType  AdaptationHandlerType ;
@@ -378,11 +372,11 @@ public:
       
 		if( advection ) 
 			{
-				model_.advection(en, time, x, u[ uVar ],/*u[sigmaVar],*/ f);
+				model_.advection(en, time, x, u[ uVar ], f);
 			}
 		else 
 			{
-				abort();
+			
 				f = 0;
 			}
 	}
@@ -484,7 +478,7 @@ public:
 	typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
 
 	// discrete function storing the adaptation indicator information 
-	typedef typename Traits :: IndicatorType          IndicatorTpye;
+//	typedef typename Traits :: IndicatorType          IndicatorTpye;
 
 	// discrete function storing the adaptation indicator information 
 	typedef typename Traits :: AdaptationHandlerType  AdaptationHandlerType ;
@@ -628,8 +622,8 @@ public:
           (0.5 * ( this->enVolume() + this->nbVolume() ) / normal.two_norm() );
 
         // add error to indicator 
-        adaptation_->addToEntityIndicator( error, weight );
-        adaptation_->addToNeighborIndicator( error, weight );
+ //       adaptation_->addToEntityIndicator( error, weight );
+   //.     adaptation_->addToNeighborIndicator( error, weight );
       }
 
 		return ldt ;
