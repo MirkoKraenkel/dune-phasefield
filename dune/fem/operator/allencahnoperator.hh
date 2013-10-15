@@ -26,7 +26,7 @@
 
 namespace Dune {  
 	
-  template< class Model, class NumFlux,int polOrd, bool advection = true , bool diffusion = true >
+  template< class Model, class NumFlux,class VelocityType ,int polOrd, bool advection = true , bool diffusion = true >
   class  DGAllenCahnOperator : 
   public Fem::SpaceOperatorInterface< typename MyPassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
@@ -41,10 +41,10 @@ namespace Dune {
 
     typedef MyPassTraits< Model, Model::Traits::dimRange, polOrd >     PassTraitsType ;
     
-    typedef typename PassTraitsType::DiscreteVelocitySpaceType DiscreteVelocitySpaceType;
+ //   typedef typename PassTraitsType::DiscreteVelocitySpaceType DiscreteVelocitySpaceType;
 
-    typedef typename PassTraitsType::DiscreteVelocityType DiscreteVelocityType;
-    
+   // typedef typename PassTraitsType::DiscreteVelocityType DiscreteVelocityType;
+    typedef VelocityType DiscreteVelocityType;
 // 
 //    typedef typename PassTraitsType::IndicatorType                   IndicatorType;
  //   typedef typename IndicatorType::DiscreteFunctionSpaceType        IndicatorSpaceType;
@@ -94,15 +94,15 @@ namespace Dune {
       numflux_( numf ),
       gridPart_( grid_ ),
       space1_(gridPart_),
-      veloSpace_(gridPart_),
+    //  veloSpace_(gridPart_),
       space3_(gridPart_),
-      velocity_("velocity",veloSpace()),   
+     // velocity_("velocity",veloSpace()),   
       diffFlux_( gridPart_, model_ ),
       discModel1_(model_, diffFlux_ ),
       discModel3_(model_, numflux_, diffFlux_),
       pass0_ (),
       pass1_(discModel1_, pass0_, space1_),    
-      pass2_( velocity_,pass1_ ),   
+      pass2_(pass1_ ),   
       pass3_(discModel3_, pass2_, space3_)  
     { }
 
@@ -121,7 +121,11 @@ namespace Dune {
 	    pass3_( arg, dest );
     }
     
-    
+    void setVelocity( const DiscreteVelocityType& v)
+    {
+       pass2_.setDestination(v);
+    }
+
     void gradient( const DestinationType& arg, Destination1Type& dest ) const 
     {
       pass1_(arg,dest);
@@ -132,10 +136,10 @@ namespace Dune {
 	    return space3_;
     } 
   
-    inline const DiscreteVelocitySpaceType& veloSpace() const
-    {
-      return veloSpace_;
-    }
+//    inline const DiscreteVelocitySpaceType& veloSpace() const
+  //  {
+    //  return veloSpace_;
+    //}
 
     inline void switchupwind() 
     { 
@@ -194,9 +198,7 @@ namespace Dune {
     const NumFluxType&  numflux_;
     GridPartType        gridPart_;
     Space1Type          space1_;
-    DiscreteVelocitySpaceType veloSpace_;
     Space3Type          space3_;
-    DiscreteVelocityType velocity_;  
 
 
   protected:
@@ -215,7 +217,7 @@ namespace Dune {
 
   // DGDiffusionOperator
   //--------------------
-#if 0
+#if 0 
   template< class Model, class NumFlux, 
             DGDiffusionFluxIdentifier diffFluxId, // dummy parameter 
             int polOrd >
