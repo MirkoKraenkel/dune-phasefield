@@ -92,7 +92,9 @@ public:
   typedef typename Traits::ProblemGeneratorType ProblemGeneratorType;
 	typedef typename Traits::GridPartType GridPartType;
 	typedef typename Traits::DiscreteOperatorType DiscreteOperatorType;
-	//for interpolation of initial Data 
+  typedef typename DiscreteOperatorType::DiscreteVelocityType DiscreteVelocitySpaceType;	
+  
+  //for interpolation of initial Data 
 	typedef typename Traits::LagrangeGridPartType LagrangeGridPartType;
 
 
@@ -166,7 +168,8 @@ private:
   DGIndicatorType         dgIndicator_;
 #endif
   double tolerance_;
-  bool interpolateInitialData_;
+  bool   interpolateData_;
+  bool   calcresidual_;
   double timeStepTolerance_;
 public:
 	//Constructor
@@ -194,8 +197,9 @@ public:
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
 		dgOperator_(grid,convectionFlux_),
-    tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
-    interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
+    tolerance_(Fem::Parameter :: getValue< double >( "phasefield.adaptTol", 100) ),
+    interpolateData_(Fem::Parameter::getValue<bool>( "phasefield.interpolinitial", false) ),
+    calcresidual_( Fem :: Parameter :: getValue< bool >(" phasefield.calcresidual" , false ) ),
     timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
     {
     }
@@ -257,8 +261,8 @@ public:
     if( odeSolver_ == 0 ) odeSolver_ = createOdeSolver( tp );    
 		assert( odeSolver_ );
    
-#if 0   
-    if( interpolateInitialData_ )
+   
+    if( interpolateData_ )
       {
         LagrangeGridPartType lagGridPart(grid_); 
         InterpolationSpaceType interpolSpace(lagGridPart); 
@@ -267,12 +271,10 @@ public:
         Dune::Fem::LagrangeInterpolation<InitialDataType,InterpolationFunctionType>::interpolateFunction( problem(),interpolSol);
         Dune::Fem::DGL2ProjectionImpl::project(interpolSol, U);
       }
-
     else 
-#endif
     {   
        Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), U);
-      }
+     }
        odeSolver_->initialize( U );  
 
  
@@ -399,7 +401,12 @@ public:
 		DiscreteFunctionType& U = solution();
     DiscreteFunctionType* Uold = oldsolution(); 
 
-  
+    Velocity velo;
+    typedef Fem::GridFunctionAdapter<Velocity,GridPartType> GridVeloType;
+    GridVeloType  gridvelo("grid velocity", velo,gridPart_,solution().space().order()+1);
+
+    dgOperator_.setVelocity(gridvelo);
+   
     RestrictionProlongationType rp( U );
     
 		rp.setFatherChildWeight( Dune::DGFGridInfo<GridType> :: refineWeight() );
@@ -468,8 +475,21 @@ public:
 
 
 		writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
-		for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps /* && timeStepError > timeStepTolerance_*/;  )   
-		{ 
+
+    if( calcresidual_)
+        {
+          std::cout<<"Residual\n";
+          Uold->clear();
+      dgOperator_(U,*Uold);
+      U.assign(*Uold);
+ 			writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
+	
+    }
+    else
+    {
+    for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps /* && timeStepError > timeStepTolerance_*/;  )   
+	  {	
+      abort();
 			tp.provideTimeStepEstimate(maxTimeStep);                                         
 			
 			const double tnow  = tp.time();
@@ -502,8 +522,8 @@ public:
         Uold->assign(U);
       }
       double timeStepEstimate=dgOperator_.timeStepEstimate();	
-      double diffTimeStep=dgOperator_.maxDiffusionTimeStep();
-      double advTimeStep=dgOperator_.maxAdvectionTimeStep();
+//      double diffTimeStep=dgOperator_.maxDiffusionTimeStep();
+  //    double advTimeStep=dgOperator_.maxAdvectionTimeStep();
      if( (printCount > 0) && (counter % printCount == 0))
 			{
 	
@@ -538,7 +558,7 @@ public:
 
 		}		/*end of timeloop*/
 		
-    // write last time step  
+    }    // write last time step  
 		writeData( eocDataOutput, tp, true );
 
     energyfile.close();

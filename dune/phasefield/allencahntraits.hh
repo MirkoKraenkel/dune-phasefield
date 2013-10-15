@@ -27,9 +27,11 @@ struct AlgorithmTraits
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: ModelType        ModelType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: FluxType         FluxType;
-	
+ 
+  
+  typedef Dune::Fem::GridFunctionAdapter<Velocity,GridPartType>     VelocityType;	
 	//typedef Dune :: WellBalancedPhasefieldOperator< ModelType, FluxType,DiffusionFluxId,  polynomialOrder >    DiscreteOperatorType;
-	typedef Dune :: DGAllenCahnOperator< ModelType, FluxType, polynomialOrder >    DiscreteOperatorType;
+	typedef Dune :: DGAllenCahnOperator< ModelType, FluxType, VelocityType,polynomialOrder >    DiscreteOperatorType;
 	
 	// Types of all Discretefuntions used in the simulation: Destinations of the passes, Scalarspace for energy calculation
   typedef typename DiscreteOperatorType :: DestinationType                         DiscreteFunctionType;
