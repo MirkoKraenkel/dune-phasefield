@@ -96,46 +96,31 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-check_PROGRAMS = phasefield$(EXEEXT) phasefield_nc$(EXEEXT) \
-	phasefield_nctr$(EXEEXT)
-DIST_COMMON = $(phase_HEADERS) $(srcdir)/Makefile.am \
+check_PROGRAMS = allencahn$(EXEEXT)
+DIST_COMMON = $(allencahn_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/am/checklog \
 	$(top_srcdir)/am/documentation $(top_srcdir)/am/global-rules \
 	$(top_srcdir)/am/headercheck $(top_srcdir)/am/sourcescheck
-subdir = src/problems/1dphase
+subdir = src/problems/allencahn
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/dependencies.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/dune-phasefield.m4 \
+	$(top_srcdir)/dependencies.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__objects_1 = phasefield-phasefield.$(OBJEXT)
-am_phasefield_OBJECTS = $(am__objects_1)
-phasefield_OBJECTS = $(am_phasefield_OBJECTS)
-phasefield_LDADD = $(LDADD)
+am__objects_1 = allencahn-phasefield.$(OBJEXT)
+am_allencahn_OBJECTS = $(am__objects_1)
+allencahn_OBJECTS = $(am_allencahn_OBJECTS)
+allencahn_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
-phasefield_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
+allencahn_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
-am__objects_2 = phasefield_nc-phasefield.$(OBJEXT)
-am_phasefield_nc_OBJECTS = $(am__objects_2)
-phasefield_nc_OBJECTS = $(am_phasefield_nc_OBJECTS)
-phasefield_nc_LDADD = $(LDADD)
-phasefield_nc_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
-am__objects_3 = phasefield_nctr-phasefield.$(OBJEXT)
-am_phasefield_nctr_OBJECTS = $(am__objects_3)
-phasefield_nctr_OBJECTS = $(am_phasefield_nctr_OBJECTS)
-phasefield_nctr_LDADD = $(LDADD)
-phasefield_nctr_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -162,8 +147,7 @@ am__v_CXXLD_0 = @echo "  CXXLD " $@;
 AM_V_GEN = $(am__v_GEN_@AM_V@)
 am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
 am__v_GEN_0 = @echo "  GEN   " $@;
-DIST_SOURCES = $(phasefield_SOURCES) $(phasefield_nc_SOURCES) \
-	$(phasefield_nctr_SOURCES)
+DIST_SOURCES = $(allencahn_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -196,8 +180,8 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(phasedir)"
-HEADERS = $(phase_HEADERS)
+am__installdirs = "$(DESTDIR)$(allencahndir)"
+HEADERS = $(allencahn_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -249,7 +233,7 @@ AMIRAMESH_CPPFLAGS = @AMIRAMESH_CPPFLAGS@
 AMIRAMESH_LDFLAGS = @AMIRAMESH_LDFLAGS@
 AMIRAMESH_LIBS = @AMIRAMESH_LIBS@
 AMTAR = @AMTAR@
-AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
+AM_CPPFLAGS = $(USE_OMP) -I../../problems/allenCahn $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
               -DPROBLEM=$(PROBLEM) -D$(GRIDTYPE) $(DUNEMPICPPFLAGS) -DFEMTIMER \
               -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
 
@@ -393,11 +377,10 @@ GREP = @GREP@
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM = 1 
 GRIDDIM_CPPFLAGS = @GRIDDIM_CPPFLAGS@
-#SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 
 #GRIDTYPE = ALUGRID_CONFORM
 #GRIDTYPE = ALUGRID_SIMPLEX
-GRIDTYPE = SPGRID
+GRIDTYPE = ONEDGRID
 INKSCAPE = @INKSCAPE@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -548,29 +531,24 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # install these headers
-phasedir = $(includedir)/src/problems/phase
-phase_HEADERS = phase_model.hh problemcreator.hh phasewaves.hh \
-phase_model_spec.hh problemtype.hh
-
+allencahndir = $(includedir)/src/problems/allencahn
+allencahn_HEADERS = acproblemcreator.hh problemtype.hh
 
 #USE_OMP=-fopenmp
 LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUNEMPILIBS) 
 BASEDIR = ../../../dune/fem/main
 SOURCES = $(BASEDIR)/phasefield.cc
-POLORDER = 0 
-USEJACOBIAN = 0
-PROBLEM = 4 # check ./problemtype.hh
+POLORDER = 2 
+USEJACOBIAN = 1 
+AC = 1
+PROBLEM = 1 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
-phasefield_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMYALGO -DMASTER -DPROJECT 
-phasefield_nc_SOURCES = $(SOURCES) 
-phasefield_nc_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=1 -DWELLBALANCED -DMYALGO -DMASTER 
-phasefield_nctr_SOURCES = $(SOURCES) 
-phasefield_nctr_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DUSEJACOBIAN=1 -DWELLBALANCED -DMYALGO -DMASTER -DNONCONTRANS 
+allencahn_SOURCES = $(SOURCES) 
+allencahn_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER)  -DAC=$(AC) -DMYALGO
 DISTCHECK_CONFIGURE_FLAGS = DOXYGEN="true"
 EXTRA_DIST = paramFiles/param*
 CLEANFILES = manager.*.log 
-PROG = phase
+PROG = allenCahn
 sourcescheck_IGNORE = aclocal.m4 dependencies.m4
 sourcescheck_LIST = $(SOURCES) $(DIST_SOURCES) $(HEADERS) $(DIST_HEADERS) \
 	$(sourcescheck_NOSOURCES) $(dist_noinst_DATA) $(EXTRA_DIST)
@@ -599,9 +577,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/am/global-rules $(to
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/problems/1dphase/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/problems/allencahn/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/problems/1dphase/Makefile
+	  $(AUTOMAKE) --foreign src/problems/allencahn/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -630,15 +608,9 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-phasefield$(EXEEXT): $(phasefield_OBJECTS) $(phasefield_DEPENDENCIES) $(EXTRA_phasefield_DEPENDENCIES) 
-	@rm -f phasefield$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(phasefield_OBJECTS) $(phasefield_LDADD) $(LIBS)
-phasefield_nc$(EXEEXT): $(phasefield_nc_OBJECTS) $(phasefield_nc_DEPENDENCIES) $(EXTRA_phasefield_nc_DEPENDENCIES) 
-	@rm -f phasefield_nc$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(phasefield_nc_OBJECTS) $(phasefield_nc_LDADD) $(LIBS)
-phasefield_nctr$(EXEEXT): $(phasefield_nctr_OBJECTS) $(phasefield_nctr_DEPENDENCIES) $(EXTRA_phasefield_nctr_DEPENDENCIES) 
-	@rm -f phasefield_nctr$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(phasefield_nctr_OBJECTS) $(phasefield_nctr_LDADD) $(LIBS)
+allencahn$(EXEEXT): $(allencahn_OBJECTS) $(allencahn_DEPENDENCIES) $(EXTRA_allencahn_DEPENDENCIES) 
+	@rm -f allencahn$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(allencahn_OBJECTS) $(allencahn_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -646,9 +618,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield-phasefield.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nc-phasefield.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phasefield_nctr-phasefield.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allencahn-phasefield.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -671,74 +641,46 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-phasefield-phasefield.o: $(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield-phasefield.o -MD -MP -MF $(DEPDIR)/phasefield-phasefield.Tpo -c -o phasefield-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield-phasefield.Tpo $(DEPDIR)/phasefield-phasefield.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield-phasefield.o' libtool=no @AMDEPBACKSLASH@
+allencahn-phasefield.o: $(BASEDIR)/phasefield.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(allencahn_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT allencahn-phasefield.o -MD -MP -MF $(DEPDIR)/allencahn-phasefield.Tpo -c -o allencahn-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/allencahn-phasefield.Tpo $(DEPDIR)/allencahn-phasefield.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='allencahn-phasefield.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(allencahn_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o allencahn-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
 
-phasefield-phasefield.obj: $(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield-phasefield.obj -MD -MP -MF $(DEPDIR)/phasefield-phasefield.Tpo -c -o phasefield-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield-phasefield.Tpo $(DEPDIR)/phasefield-phasefield.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield-phasefield.obj' libtool=no @AMDEPBACKSLASH@
+allencahn-phasefield.obj: $(BASEDIR)/phasefield.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(allencahn_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT allencahn-phasefield.obj -MD -MP -MF $(DEPDIR)/allencahn-phasefield.Tpo -c -o allencahn-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/allencahn-phasefield.Tpo $(DEPDIR)/allencahn-phasefield.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='allencahn-phasefield.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
-
-phasefield_nc-phasefield.o: $(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc-phasefield.o -MD -MP -MF $(DEPDIR)/phasefield_nc-phasefield.Tpo -c -o phasefield_nc-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc-phasefield.Tpo $(DEPDIR)/phasefield_nc-phasefield.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield_nc-phasefield.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
-
-phasefield_nc-phasefield.obj: $(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nc-phasefield.obj -MD -MP -MF $(DEPDIR)/phasefield_nc-phasefield.Tpo -c -o phasefield_nc-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nc-phasefield.Tpo $(DEPDIR)/phasefield_nc-phasefield.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield_nc-phasefield.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nc_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nc-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
-
-phasefield_nctr-phasefield.o: $(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nctr_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nctr-phasefield.o -MD -MP -MF $(DEPDIR)/phasefield_nctr-phasefield.Tpo -c -o phasefield_nctr-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nctr-phasefield.Tpo $(DEPDIR)/phasefield_nctr-phasefield.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield_nctr-phasefield.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nctr_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nctr-phasefield.o `test -f '$(BASEDIR)/phasefield.cc' || echo '$(srcdir)/'`$(BASEDIR)/phasefield.cc
-
-phasefield_nctr-phasefield.obj: $(BASEDIR)/phasefield.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nctr_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT phasefield_nctr-phasefield.obj -MD -MP -MF $(DEPDIR)/phasefield_nctr-phasefield.Tpo -c -o phasefield_nctr-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phasefield_nctr-phasefield.Tpo $(DEPDIR)/phasefield_nctr-phasefield.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(BASEDIR)/phasefield.cc' object='phasefield_nctr-phasefield.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(phasefield_nctr_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o phasefield_nctr-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(allencahn_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o allencahn-phasefield.obj `if test -f '$(BASEDIR)/phasefield.cc'; then $(CYGPATH_W) '$(BASEDIR)/phasefield.cc'; else $(CYGPATH_W) '$(srcdir)/$(BASEDIR)/phasefield.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-phaseHEADERS: $(phase_HEADERS)
+install-allencahnHEADERS: $(allencahn_HEADERS)
 	@$(NORMAL_INSTALL)
-	@list='$(phase_HEADERS)'; test -n "$(phasedir)" || list=; \
+	@list='$(allencahn_HEADERS)'; test -n "$(allencahndir)" || list=; \
 	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(phasedir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(phasedir)" || exit 1; \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(allencahndir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(allencahndir)" || exit 1; \
 	fi; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(phasedir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(phasedir)" || exit $$?; \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(allencahndir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(allencahndir)" || exit $$?; \
 	done
 
-uninstall-phaseHEADERS:
+uninstall-allencahnHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(phase_HEADERS)'; test -n "$(phasedir)" || list=; \
+	@list='$(allencahn_HEADERS)'; test -n "$(allencahndir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(phasedir)'; $(am__uninstall_files_from_dir)
+	dir='$(DESTDIR)$(allencahndir)'; $(am__uninstall_files_from_dir)
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -827,7 +769,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(phasedir)"; do \
+	for dir in "$(DESTDIR)$(allencahndir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -884,7 +826,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local install-phaseHEADERS
+install-data-am: install-allencahnHEADERS install-data-local
 
 install-dvi: install-dvi-am
 
@@ -931,7 +873,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-local uninstall-phaseHEADERS
+uninstall-am: uninstall-allencahnHEADERS uninstall-local
 
 .MAKE: check-am install-am install-strip
 
@@ -939,17 +881,17 @@ uninstall-am: uninstall-local uninstall-phaseHEADERS
 	clean-checkPROGRAMS clean-generic clean-libtool ctags \
 	distclean distclean-compile distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-data-local install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-phaseHEADERS install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic \
+	html-am info info-am install install-allencahnHEADERS \
+	install-am install-data install-data-am install-data-local \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
 	maintainer-clean-local mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-local \
-	uninstall-phaseHEADERS
+	tags uninstall uninstall-allencahnHEADERS uninstall-am \
+	uninstall-local
 
 
 sourcescheck: sourcescheck-recursive
