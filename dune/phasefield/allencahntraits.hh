@@ -27,21 +27,21 @@ struct AlgorithmTraits
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: ModelType        ModelType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: FluxType         FluxType;
- 
-  
-  typedef Dune::Fem::GridFunctionAdapter<Velocity,GridPartType>     VelocityType;	
+	
 	//typedef Dune :: WellBalancedPhasefieldOperator< ModelType, FluxType,DiffusionFluxId,  polynomialOrder >    DiscreteOperatorType;
-	typedef Dune :: DGAllenCahnOperator< ModelType, FluxType, VelocityType,polynomialOrder >    DiscreteOperatorType;
+	typedef Dune :: DGAllenCahnOperator< ModelType, FluxType, polynomialOrder >    DiscreteOperatorType;
 	
 	// Types of all Discretefuntions used in the simulation: Destinations of the passes, Scalarspace for energy calculation
   typedef typename DiscreteOperatorType :: DestinationType                         DiscreteFunctionType;
 	typedef typename DiscreteOperatorType :: Destination1Type                        DiscreteSigmaType;
-//	typedef typename DiscreteOperatorType :: DiscreteScalarType                      DiscreteScalarType;
+  typedef typename DiscreteOperatorType :: DiscreteVelocityType                        DiscreteVelocityType;
+  //	typedef typename DiscreteOperatorType :: DiscreteScalarType                      DiscreteScalarType;
 
 	// ... as well as the Space type
 	typedef typename  DiscreteOperatorType :: SpaceType                              DiscreteSpaceType;
   typedef typename  DiscreteOperatorType :: Space1Type                             SigmaDiscreteSpaceType;   
- // typedef typename  DiscreteOperatorType :: ScalarDiscreteFunctionSpaceType        ScalarDiscreteSpaceType;
+  typedef typename  DiscreteOperatorType :: DiscreteVelocitySpaceType              DiscreteVelocitySpaceType;
+  // typedef typename  DiscreteOperatorType :: ScalarDiscreteFunctionSpaceType        ScalarDiscreteSpaceType;
 	
 
 	// The ODE Solvers                                                         /*@LST1S@*/

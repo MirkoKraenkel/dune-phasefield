@@ -82,7 +82,7 @@ template <class GridImp,
 class AllenCahnAlgorithm
 {
 public:
-	//type of Grid
+  //type of Grid
 	typedef GridImp GridType;
 
   //traits class gathers types depending on the problem and the operator which is specified there 
@@ -92,17 +92,19 @@ public:
   typedef typename Traits::ProblemGeneratorType ProblemGeneratorType;
 	typedef typename Traits::GridPartType GridPartType;
 	typedef typename Traits::DiscreteOperatorType DiscreteOperatorType;
-  typedef typename DiscreteOperatorType::DiscreteVelocityType DiscreteVelocitySpaceType;	
-  
+ 
   //for interpolation of initial Data 
 	typedef typename Traits::LagrangeGridPartType LagrangeGridPartType;
 
 
   //discrete spaces
 	typedef typename Traits::DiscreteSpaceType       DiscreteSpaceType;
-	//discrete functions
+  typedef typename Traits::DiscreteVelocitySpaceType DiscreteVelocitySpaceType;	
+  //discrete functions
 	typedef typename Traits::DiscreteFunctionType DiscreteFunctionType;
-	//additional types
+  typedef typename Traits::DiscreteVelocityType DiscreteVelocityType;  
+  
+  //additional types
 	typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
 	typedef typename Traits :: InitialDataType             InitialDataType;
 	typedef typename Traits :: ModelType                   ModelType;
@@ -140,7 +142,8 @@ private:
 	GridType&               grid_;
 	GridPartType            gridPart_;
 	DiscreteSpaceType       space_;
-	Dune::Fem::IOInterface*       eocLoopData_;
+	DiscreteVelocitySpaceType    veloSpace_;
+  Dune::Fem::IOInterface* eocLoopData_;
 	IOTupleType             eocDataTup_; 
 	unsigned int            timeStepTimer_; 
 	unsigned int            loop_ ; 
@@ -148,7 +151,8 @@ private:
 	double                  fixedTimeStepEocLoopFactor_;       
   std::string             energyFilename_;
   DiscreteFunctionType    solution_;
-	DiscreteFunctionType*   oldsolution_; 
+	DiscreteVelocityType    velocity_;
+  DiscreteFunctionType*   oldsolution_; 
 	const InitialDataType*  problem_;
   ModelType*              model_;
   FluxType                convectionFlux_;
@@ -177,6 +181,7 @@ public:
 		grid_(grid)	,
 		gridPart_( grid_ ),
 		space_( gridPart_ ),
+    veloSpace_(gridPart_),
  		eocLoopData_( 0 ),
  		eocDataTup_(),
  		timeStepTimer_( Dune::FemTimer::addTo("max time/timestep") ),
@@ -185,7 +190,8 @@ public:
  		fixedTimeStepEocLoopFactor_( Dune::Fem::Parameter::getValue<double>("fixedTimeStepEocLoopFactor",1.) ), // algorithmbase
     energyFilename_(Dune::Fem::Parameter::getValue< std::string >("phasefield.energyfile","./energy.gnu")),
     solution_( "solution", space() ),
-		oldsolution_( Fem::Parameter :: getValue< bool >("phasefield.storelaststep", false) ? 
+		velocity_("velocity" , velospace()),
+    oldsolution_( Fem::Parameter :: getValue< bool >("phasefield.storelaststep", false) ? 
 													new DiscreteFunctionType("oldsolution", space() ) : nullptr ),
 		problem_( ProblemGeneratorType::problem() ),
     model_( new ModelType( problem() ) ),
@@ -225,7 +231,11 @@ public:
 	{
 		return space_;
 	}
-	
+
+  DiscreteVelocitySpaceType& velospace()
+  {
+    return veloSpace_;
+  } 
  
   size_t gridSize() const
 	{
@@ -401,11 +411,11 @@ public:
 		DiscreteFunctionType& U = solution();
     DiscreteFunctionType* Uold = oldsolution(); 
 
-    Velocity velo;
-    typedef Fem::GridFunctionAdapter<Velocity,GridPartType> GridVeloType;
-    GridVeloType  gridvelo("grid velocity", velo,gridPart_,solution().space().order()+1);
+//    Velocity velo;
+ //   typedef Fem::GridFunctionAdapter<Velocity,GridPartType> GridVeloType;
+   // GridVeloType  gridvelo("grid velocity", velo,gridPart_,solution().space().order()+1);
 
-    dgOperator_.setVelocity(gridvelo);
+ //   dgOperator_.setVelocity(gridvelo);
    
     RestrictionProlongationType rp( U );
     
