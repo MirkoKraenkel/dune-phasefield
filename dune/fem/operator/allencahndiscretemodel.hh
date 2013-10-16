@@ -425,9 +425,9 @@ namespace Dune {
       vRight=uRight[ veloVar ];
 
 #if 1 
-     /// wave=model_.gamma();
       RangeType jump=uLeft[uVar]-uRight[uVar];
-      jump*=(vLeft+vRight)*0.5;
+      jump*=(vLeft+vRight)*0.25;
+   //   jump*=model_.gamma()*0.5; 
       gLeft-=jump;
       gLeft-=jump;
 #endif
