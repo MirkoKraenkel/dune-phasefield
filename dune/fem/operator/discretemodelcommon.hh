@@ -41,11 +41,11 @@ namespace Dune {
     typedef Fem::FunctionSpace< ctype, double, dimDomain, dimDomain> VelocityFunctionSpace;
       
 		typedef Fem::DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >       DiscreteFunctionSpaceType;
-//    typedef Fem::DiscontinuousGalerkinSpace< VelocityFunctionSpace,GridPartType,polOrd,Fem::CachingStorage>     DiscreteVelocitySpaceType;		
+    typedef Fem::DiscontinuousGalerkinSpace< VelocityFunctionSpace,GridPartType,polOrd,Fem::CachingStorage>     DiscreteVelocitySpaceType;		
 		typedef Fem::DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage > ScalarDiscreteFunctionSpaceType;
   
 		typedef Fem::AdaptiveDiscreteFunction< DiscreteFunctionSpaceType >    DestinationType;
-    //typedef Fem::AdaptiveDiscreteFunction< DiscreteVelocitySpaceType >    DiscreteVelocityType;
+    typedef Fem::AdaptiveDiscreteFunction< DiscreteVelocitySpaceType >    DiscreteVelocityType;
   //  typedef Fem::AdaptiveDiscreteFunction< ScalarDiscreteFunctionSpaceType >    ScalarDFType;
 		
 		
@@ -57,7 +57,7 @@ namespace Dune {
 
 template< class Model, 
 					class NumFlux, 
-					int polOrd, int passUId, int passGradId,
+					int polOrd, int passUId, int passVId,  int passGradId,
 					bool returnAdvectionPart> 
 class AdvectionModel;
 
@@ -66,7 +66,7 @@ class AdvectionModel;
 //----------------
 
 template <class Model, class NumFlux,
-					int polOrd, int passUId, int passGradId, bool returnAdvectionPart>
+					int polOrd, int passUId, int passVId, int passGradId, bool returnAdvectionPart>
 struct AdvectionTraits
 {
 	typedef typename Model :: Traits                                 ModelTraits;
@@ -95,7 +95,7 @@ struct AdvectionTraits
 	typedef typename Traits :: AdaptationHandlerType  AdaptationHandlerType ;
 
 	typedef AdvectionModel
-	< Model, NumFlux, polOrd, passUId, passGradId, returnAdvectionPart >       DGDiscreteModelType;
+	< Model, NumFlux, polOrd, passUId, passVId,passGradId, returnAdvectionPart >       DGDiscreteModelType;
 };
 
 
@@ -113,16 +113,16 @@ struct AdvectionTraits
  */
 template< class Model, 
 					class NumFlux, 
-					int polOrd, int passUId, int passGradId,
+					int polOrd, int passUId, int passVId, int passGradId,
 					bool returnAdvectionPart> 
 class AdvectionModel :
 	public Fem::DGDiscreteModelDefaultWithInsideOutside
-	<AdvectionTraits<Model, NumFlux, polOrd, passUId, passGradId, returnAdvectionPart>,
-	 passUId, passGradId>
+	<AdvectionTraits<Model, NumFlux, polOrd, passUId,passVId,  passGradId, returnAdvectionPart>,
+	 passUId,passVId,passGradId>
 {
 public:
 	typedef AdvectionTraits 
-	<Model, NumFlux, polOrd, passUId, passGradId, returnAdvectionPart> Traits;
+	<Model, NumFlux, polOrd, passUId, passVId, passGradId, returnAdvectionPart> Traits;
 
 	typedef Model   ModelType ;
 	typedef NumFlux NumFluxType ;
@@ -132,7 +132,8 @@ public:
 
 	// These type definitions allow a convenient access to arguments of paesss.
 	integral_constant< int, passUId > uVar;
-	integral_constant< int, passGradId > sigmaVar;    
+	integral_constant< int, passVId > vVar;
+    integral_constant< int, passGradId > sigmaVar;    
 public:
 	enum { dimDomain = Traits :: dimDomain };
 	enum { dimRange  = Traits :: dimRange };
@@ -417,6 +418,7 @@ protected:
 // AdaptiveAdvectionModel
 //
 //////////////////////////////////////////////////////
+#if 0
 template< class Model, 
 					class NumFlux, 
 					int polOrd, int passUId, int passGradId,
@@ -656,7 +658,7 @@ protected:
 	AdaptationHandlerType* adaptation_;
 	double weight_ ;
 };                                             
-
+#endif
 } // end namespace Dune
 
 #endif

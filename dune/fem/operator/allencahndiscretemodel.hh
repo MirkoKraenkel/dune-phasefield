@@ -15,7 +15,9 @@
 
 // local includes
 #include "discretemodelcommon.hh"
-//#include <dune/fem/fluxes/ldgfluxwellbalanced.hh>
+//#include <dune/fem-dg/operator/dg/discretemodelcommon.hh>
+//#include <dune/fem-dg/operator/fluxes/ldgflux.hh>
+#include <dune/fem/fluxes/myldgflux.hh>
 //#include <dune/fem/fluxes/meanfluxwellbalanced.hh>
 //*************************************************************
 namespace Dune {
@@ -138,25 +140,26 @@ namespace Dune {
     template <class QuadratureImp,
               class ArgumentTuple, 
               class JacobianTuple >         
-    double numericalFlux(const Intersection& it,
-                         const double time,
-                         const QuadratureImp& faceQuadInner,
-                         const QuadratureImp& faceQuadOuter,
-                         const int quadPoint, 
-                         const ArgumentTuple& uLeft,
-                         const ArgumentTuple& uRight,
-                         const JacobianTuple& jacLeft,
-                         const JacobianTuple& jacRight,
-                         RangeType& gLeft,
-                         RangeType& gRight,
-                         JacobianRangeType& gDiffLeft,
-                         JacobianRangeType& gDiffRight ) const
-    {
-       return gradientFlux_.gradientNumericalFlux(it, inside(), outside(), time,
-																									faceQuadInner, faceQuadOuter, quadPoint,
-																									uLeft[ uVar ], uRight[ uVar ], 
-																									gLeft, gRight, gDiffLeft, gDiffRight);
-    }
+   double numericalFlux(const Intersection& it,
+                        const double time,
+                        const QuadratureImp& faceQuadInner,
+                        const QuadratureImp& faceQuadOuter,
+                        const int quadPoint, 
+                        const ArgumentTuple& uLeft,
+                        const ArgumentTuple& uRight,
+                        const JacobianTuple& jacLeft,
+                        const JacobianTuple& jacRight,
+                        RangeType& gLeft,
+                        RangeType& gRight,
+                        JacobianRangeType& gDiffLeft,
+                        JacobianRangeType& gDiffRight ) const
+  {
+    return gradientFlux_.gradientNumericalFlux(
+              it, inside(), outside(), time,
+              faceQuadInner, faceQuadOuter, quadPoint,
+              uLeft[ uVar ], uRight[ uVar ], 
+              gLeft, gRight, gDiffLeft, gDiffRight);
+  }
 
     template <class ArgumentTuple, class JacobianTuple> 
     void analyticalFlux(const EntityType& en,
@@ -194,7 +197,8 @@ namespace Dune {
                              RangeType& gLeft,
                              JacobianRangeType& gDiffLeft ) const
     {
-      const FaceDomainType& x=faceQuadInner.localPoint( quadPoint );
+      const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+      
       UType uRight(0.);
       
       if( model_.hasBoundaryValue( it , time , x) )
@@ -207,14 +211,14 @@ namespace Dune {
         uRight=uLeft;
 
       }
-    
+      
       
       return gradientFlux_.gradientBoundaryFlux(it, inside(),
-																								time, faceQuadInner, quadPoint,
-																								uLeft,
-																								uRight, 
-																								gLeft,
-																								gDiffLeft );
+                              time, faceQuadInner, quadPoint,
+                              uLeft,
+                              uRight, 
+                              gLeft,
+                              gDiffLeft );
     }
 
   private:
@@ -226,10 +230,10 @@ namespace Dune {
 	// AdvectionDiffusionLDGModel
 	//---------------------------
   // for the 3rd Pass
-	template< class Model, 
-						class NumFlux, 
-						int polOrd, int passUId,int passGradId,
-						bool advectionPartExists, bool diffusionPartExists >
+  template< class Model, 
+            class NumFlux, 
+            int polOrd, int passUId,int passVeloId,int passGradId,
+            bool advectionPartExists, bool diffusionPartExists >
 	class AdvectionDiffusionLDGModel;
 
 
@@ -237,14 +241,15 @@ namespace Dune {
 	//----------------------------
   
 	template <class Model, class NumFlux,
-						int polOrd, int passUId, int passGradId, 
-						bool advectionPartExists, bool diffusionPartExists >
+            int polOrd, int passUId,int passVeloId, int passGradId, 
+            bool advectionPartExists, bool diffusionPartExists >
 	struct AdvectionDiffusionLDGTraits 
-		: public AdvectionTraits< Model, NumFlux, polOrd, passUId, passGradId, advectionPartExists>
+  : public AdvectionTraits
+          < Model, NumFlux, polOrd, passUId, passVeloId, passGradId, advectionPartExists>
           
 	{
 		typedef AdvectionDiffusionLDGModel
-		< Model, NumFlux, polOrd, passUId, passGradId, 
+		< Model, NumFlux, polOrd, passUId,passVeloId, passGradId, 
 			advectionPartExists, diffusionPartExists >                   DGDiscreteModelType;
 	};
 
@@ -252,25 +257,22 @@ namespace Dune {
 	// AdvectionDiffusionLDGModel
 	//---------------------------
 	template< class Model, 
-						class NumFlux, 
-						int polOrd, int passUId,int passGradId,
-						bool advectionPartExists, bool diffusionPartExists >
+            class NumFlux, 
+            int polOrd, int passUId,int passVId ,int passGradId,
+            bool advectionPartExists, bool diffusionPartExists >
 	class AllenCahnLDGModel :
-		public AdvectionModel< Model, NumFlux, polOrd, passUId, passGradId, advectionPartExists > 
+		public AdvectionModel< Model, NumFlux, polOrd, passUId, passVId,passGradId, advectionPartExists > 
 	{
 	public:
-		typedef AdvectionDiffusionLDGTraits< Model, 
-																				 NumFlux, 
-																				 polOrd,
-																				 passUId, 
-																				 passGradId,
-																				 advectionPartExists, 
-																				 diffusionPartExists >  Traits; 
+		typedef AdvectionDiffusionLDGTraits
+      < Model, NumFlux, polOrd, passUId,passVId, passGradId,
+          advectionPartExists, diffusionPartExists >  Traits; 
 		
 		typedef AdvectionModel< Model, 
 														NumFlux, 
 														polOrd, 
 														passUId,
+                            passVId,
 														passGradId, 
 														advectionPartExists>    BaseType;
 		
@@ -287,8 +289,7 @@ namespace Dune {
 
 
 		integral_constant< int, passGradId> sigmaVar;
-
-//		integral_constant< int, passProjId> thetaVar;
+  	integral_constant< int, passVId> veloVar;
     
 	public:
 		enum { dimDomain = Traits :: dimDomain };
@@ -359,13 +360,10 @@ namespace Dune {
 		{
 			s = 0;
 
-      //we need \sigma_phi= u[sigmaVar][dimDomain+1]
-			//        \theta_1=u[thetaVar][1]
-			//        \nablan\theta_2 jac[thetatVar]
 
       double dtEst = std::numeric_limits< double > :: max();
 
-			const double dtStiff = model_.stiffSource( en, time, x, u[uVar], s );
+			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],jac[uVar], s );
       dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
 			maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
 			
@@ -380,56 +378,56 @@ namespace Dune {
 		}
 
 	public:
-		template< class QuadratureImp,
-							class ArgumentTuple, 
-							class JacobianTuple >          /*@LST0S@*/
-		double numericalFlux(const Intersection& it,
-												 const double time,
-												 const QuadratureImp& faceQuadInner,
-												 const QuadratureImp& faceQuadOuter,
-												 const int quadPoint, 
-												 const ArgumentTuple& uLeft,
-												 const ArgumentTuple& uRight,
-												 const JacobianTuple& jacLeft,
-												 const JacobianTuple& jacRight,
-												 RangeType& gLeft,
-												 RangeType& gRight,
-												 JacobianRangeType& gDiffLeft,
-												 JacobianRangeType& gDiffRight )
-		{
-			// advection
-		  const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+    template< class QuadratureImp,
+              class ArgumentTuple, 
+              class JacobianTuple >          /*@LST0S@*/
+    double numericalFlux(const Intersection& it,
+                          const double time,
+                          const QuadratureImp& faceQuadInner,
+                          const QuadratureImp& faceQuadOuter,
+                          const int quadPoint, 
+                          const ArgumentTuple& uLeft,
+                          const ArgumentTuple& uRight,
+                          const JacobianTuple& jacLeft,
+                          const JacobianTuple& jacRight,
+                          RangeType& gLeft,
+                          RangeType& gRight,
+                          JacobianRangeType& gDiffLeft,
+                          JacobianRangeType& gDiffRight )
+    {
+      // advection
+      const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
      
       const DomainType normal = it.integrationOuterNormal( x );
-#if   0 
-      double wave = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter,
-																										 quadPoint, uLeft, uRight, jacLeft, jacRight, 
- 																								 gLeft, gRight, gDiffLeft, gDiffRight );
-#endif     
+      const double wave = BaseType :: 
+        numericalFlux( it, time, faceQuadInner, faceQuadOuter,
+                        quadPoint, uLeft, uRight, jacLeft, jacRight, 
+                        gLeft, gRight, gDiffLeft, gDiffRight );
              
-             
-      gLeft=0.;
-     gRight=0.;
-    
-			// diffusion
-			double diffTimeStep = 0.0;
-			if( diffusion) 
-				{ 
-					RangeType dLeft(0.), dRight(0.);
-					diffTimeStep = diffFlux_.numericalFlux(it, *this,
-																								 time, faceQuadInner, faceQuadOuter, quadPoint,
-																								 uLeft[ uVar ], uRight[ uVar ], 
-																								 uLeft[ sigmaVar ], uRight[ sigmaVar ], 
-																								 dLeft, dRight,
-																								 gDiffLeft, gDiffRight);
+            
+  gLeft=0.;
+  gRight=0.;
+
+    // diffusion
+    double diffTimeStep = 0.0;
+    if( diffusion ) 
+    { 
+      RangeType dLeft(0.), dRight(0.);
+      diffTimeStep = 
+        diffFlux_.numericalFlux(it, *this,
+                                time, faceQuadInner, faceQuadOuter, quadPoint,
+                                uLeft[ uVar ], uRight[ uVar ], 
+                                uLeft[ sigmaVar ], uRight[ sigmaVar ], 
+                                dLeft, dRight,
+                                gDiffLeft, gDiffRight);
 
 					gLeft  += dLeft;
 					gRight += dRight;
 				}
 
       #if 1 
-      double wave=model_.gamma();
-RangeType jump=uLeft[uVar]-uRight[uVar];
+     /// wave=model_.gamma();
+      RangeType jump=uLeft[uVar]-uRight[uVar];
       jump*=model_.gamma()*0.5;
       gLeft-=jump;
       gLeft-=jump;
@@ -524,7 +522,7 @@ RangeType jump=uLeft[uVar]-uRight[uVar];
 				}
 		}
 	protected:
-		mutable DiffusionFluxType& diffFlux_;
+		DiffusionFluxType& diffFlux_;
 		const double penalty_;
     const double switch_; 
     const double cflDiffinv_;
