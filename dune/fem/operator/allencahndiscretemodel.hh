@@ -42,18 +42,22 @@ namespace Dune {
 
     typedef MyPassTraits< Model, dimRange, polOrd >                  Traits;
     typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
-
     typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
     typedef typename Traits :: FaceQuadratureType                    FaceQuadratureType;
     typedef typename Traits :: GridPartType                          GridPartType;
 
     typedef typename Traits :: DiscreteFunctionSpaceType             DiscreteFunctionSpaceType;
+    
+
+    
     typedef typename Traits :: DestinationType                       DestinationType;
     typedef DestinationType                                          DiscreteFunctionType;
 
     typedef typename ModelTraits :: DomainType                       DomainType;
     typedef typename DestinationType :: RangeType                    RangeType;
 		typedef typename DestinationType :: JacobianRangeType            JacobianRangeType;
+
+
 
     typedef GradientModel< Model, NumFlux, polOrd, passUId >         DGDiscreteModelType;
   };
@@ -207,11 +211,8 @@ namespace Dune {
       }  
       else
       {
-      
         uRight=uLeft;
-
       }
-      
       
       return gradientFlux_.gradientBoundaryFlux(it, inside(),
                               time, faceQuadInner, quadPoint,
@@ -249,8 +250,7 @@ namespace Dune {
           
 	{
 		typedef AdvectionDiffusionLDGModel
-		< Model, NumFlux, polOrd, passUId,passVeloId, passGradId, 
-			advectionPartExists, diffusionPartExists >                   DGDiscreteModelType;
+		< Model, NumFlux, polOrd, passUId,passVeloId, passGradId, advectionPartExists, diffusionPartExists > DGDiscreteModelType;
 	};
 
 
@@ -315,7 +315,10 @@ namespace Dune {
 		typedef typename Traits :: JacobianRangeType                       JacobianRangeType;
 
 	
-		typedef typename Traits :: DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
+		typedef typename Traits :: DiscreteFunctionSpaceType             DiscreteFunctionSpaceType;
+    typedef typename Traits :: VelocityFunctionSpace                 VelocityFunctionSpaceType;
+    typedef typename VelocityFunctionSpaceType::RangeType            VeloRangeType;
+    
 
 		typedef LDGDiffusionFlux< DiscreteFunctionSpaceType, Model> DiffusionFluxType;
 		enum { evaluateJacobian = true };
@@ -335,11 +338,7 @@ namespace Dune {
 		{
     }
 	
-  void setTime (double setTime){}
-    
-    
-    
-    
+    void setTime (double setTime){}
     
     bool hasSource() const
 		{                
@@ -347,10 +346,9 @@ namespace Dune {
 		} 
 
 		bool hasFlux() const { return advection || diffusion; };      
-		/**
-		 * @brief analytical flux function$
-		 */
-		template <class ArgumentTuple, class JacobianTuple >
+
+    
+    template <class ArgumentTuple, class JacobianTuple >
 		double source( const EntityType& en,
 									 const double time, 
 									 const DomainType& x,
@@ -360,9 +358,7 @@ namespace Dune {
 		{
 			s = 0;
 
-
       double dtEst = std::numeric_limits< double > :: max();
-
 			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],jac[uVar], s );
       dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
 			maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
@@ -380,7 +376,7 @@ namespace Dune {
 	public:
     template< class QuadratureImp,
               class ArgumentTuple, 
-              class JacobianTuple >          /*@LST0S@*/
+              class JacobianTuple > 
     double numericalFlux(const Intersection& it,
                           const double time,
                           const QuadratureImp& faceQuadInner,
@@ -399,21 +395,20 @@ namespace Dune {
       const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
      
       const DomainType normal = it.integrationOuterNormal( x );
-      const double wave = BaseType :: 
-        numericalFlux( it, time, faceQuadInner, faceQuadOuter,
-                        quadPoint, uLeft, uRight, jacLeft, jacRight, 
-                        gLeft, gRight, gDiffLeft, gDiffRight );
+      const double wave = BaseType :: numericalFlux( it, time, faceQuadInner, faceQuadOuter,
+                                                      quadPoint, uLeft, uRight, jacLeft, jacRight, 
+                                                      gLeft, gRight, gDiffLeft, gDiffRight );
              
             
-  gLeft=0.;
-  gRight=0.;
+      gLeft=0.;
+      gRight=0.;
 
-    // diffusion
-    double diffTimeStep = 0.0;
-    if( diffusion ) 
-    { 
-      RangeType dLeft(0.), dRight(0.);
-      diffTimeStep = 
+      // diffusion
+      double diffTimeStep = 0.0;
+      if( diffusion ) 
+      { 
+        RangeType dLeft(0.), dRight(0.);
+        diffTimeStep = 
         diffFlux_.numericalFlux(it, *this,
                                 time, faceQuadInner, faceQuadOuter, quadPoint,
                                 uLeft[ uVar ], uRight[ uVar ], 
@@ -421,14 +416,18 @@ namespace Dune {
                                 dLeft, dRight,
                                 gDiffLeft, gDiffRight);
 
-					gLeft  += dLeft;
-					gRight += dRight;
-				}
+        gLeft  += dLeft;
+        gRight += dRight;
+    }
 
-      #if 1 
+      VeloRangeType vLeft(0.),vRight(0.);
+      vLeft=uLeft[ veloVar ];
+      vRight=uRight[ veloVar ];
+
+#if 1 
      /// wave=model_.gamma();
       RangeType jump=uLeft[uVar]-uRight[uVar];
-      jump*=model_.gamma()*0.5;
+      jump*=(vLeft+vRight)*0.5;
       gLeft-=jump;
       gLeft-=jump;
 #endif
@@ -460,7 +459,7 @@ namespace Dune {
 			const double wave = BaseType ::boundaryFlux( it, time, faceQuadInner, quadPoint,
 											uLeft, jacLeft, gLeft, gDiffLeft );
                                  
-		// diffusion
+  		// diffusion
       
 			double diffTimeStep = 0.0;
 
@@ -497,11 +496,8 @@ namespace Dune {
 			return std::max( wave, diffTimeStep );
 
 		}
-		/*@LST0S@*/
-		/**
-		 * @brief analytical flux function$
-		 */
-		template <class ArgumentTuple, class JacobianTuple >
+		
+    template <class ArgumentTuple, class JacobianTuple >
 		void analyticalFlux( const EntityType& en,
 												 const double time, 
 												 const DomainType& x,
@@ -510,9 +506,11 @@ namespace Dune {
 												 JacobianRangeType& f ) const
 		{
       f=0;
+     
       // advection
 			BaseType :: analyticalFlux( en, time, x, u, jac, f );
-			// diffusion
+
+      // diffusion
 			if( diffusion ) 
 				{
 					JacobianRangeType diffmatrix;
@@ -521,7 +519,8 @@ namespace Dune {
 					f += diffmatrix;
 				}
 		}
-	protected:
+
+  protected:
 		DiffusionFluxType& diffFlux_;
 		const double penalty_;
     const double switch_; 

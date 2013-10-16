@@ -37,9 +37,9 @@ namespace Dune {
 
     // Allow generalization to systems
     typedef Fem::FunctionSpace< ctype, double, dimDomain, dimRange >      FunctionSpaceType;
-		typedef Fem::FunctionSpace< ctype, double, dimDomain, 1 >      ScalarFunctionSpaceType;
-    typedef Fem::FunctionSpace< ctype, double, dimDomain, dimDomain> VelocityFunctionSpace;
-      
+		typedef Fem::FunctionSpace< ctype, double, dimDomain, 1 >       ScalarFunctionSpaceType;
+    typedef Fem::FunctionSpace< ctype, double, dimDomain, dimDomain>  VelocityFunctionSpace;
+
 		typedef Fem::DiscontinuousGalerkinSpace< FunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage >       DiscreteFunctionSpaceType;
     typedef Fem::DiscontinuousGalerkinSpace< VelocityFunctionSpace,GridPartType,polOrd,Fem::CachingStorage>     DiscreteVelocitySpaceType;		
 		typedef Fem::DiscontinuousGalerkinSpace< ScalarFunctionSpaceType,GridPartType, polOrd,Fem::CachingStorage > ScalarDiscreteFunctionSpaceType;
@@ -77,7 +77,7 @@ struct AdvectionTraits
 
 	typedef MyPassTraits< Model, dimRange, polOrd >                    Traits;
 	typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
-
+  typedef typename Traits :: VelocityFunctionSpace                 VelocityFunctionSpace;
 	typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
 	typedef typename Traits :: FaceQuadratureType                    FaceQuadratureType;
 	typedef typename Traits :: GridPartType                          GridPartType;
@@ -133,7 +133,8 @@ public:
 	// These type definitions allow a convenient access to arguments of paesss.
 	integral_constant< int, passUId > uVar;
 	integral_constant< int, passVId > vVar;
-    integral_constant< int, passGradId > sigmaVar;    
+  integral_constant< int, passGradId > sigmaVar;    
+
 public:
 	enum { dimDomain = Traits :: dimDomain };
 	enum { dimRange  = Traits :: dimRange };
