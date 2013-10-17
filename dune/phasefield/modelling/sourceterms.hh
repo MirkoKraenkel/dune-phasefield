@@ -3,12 +3,12 @@
 
 #include <cmath>
 
-class SourceTerms
+struct SourceTerms
 {
 
 
   template<class DomainType,class RangeType>
-  static void nsktSource(const DomainType& x,
+  static void nstkSource(const DomainType& x,
                         const double t, 
                         const double delta,
                         const double c,
@@ -52,10 +52,10 @@ class SourceTerms
     t6 = t5*t5;
     t8 = sinh(t4);
     t12 = t6*t6;
-    for(int i=0;i<RangeType::Dimension;++i)
+    for(int i=0;i<RangeType::dimension;++i)
       res[i]=0.;
  
-    res[RangeType::Dimension-1]=(0.1875E-1*(-26.0*t6+1.0+30.0*t8*t5)/t12/t6);
+    res[RangeType::dimension-1]=(0.1875E-1*(-26.0*t6+1.0+30.0*t8*t5)/t12/t6);
                           
 //return  0.;
   }

@@ -100,7 +100,9 @@ class PhasefieldPhysics<1,Thermodynamics>
 	inline void boundaryallenCahn( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
-	
+	  inline double nstkSource(const DomainType xglobal, const double time) const ;  
+  inline double acSource(const DomainType xglobal, const double time) const ;
+ 
   
 public:
 
@@ -235,7 +237,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
-	::stiffSource(const DomainType& x,
+	::stiffSource(const DomainType& xglobal,
                 const double time,
                 const RangeType& u,
 								const GradientRangeType& du,
@@ -244,9 +246,23 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								const JacobianRangeType& jacU,
                 RangeType& f) const
 	{
+
+    RangeType nstksource,acsource;
+    SourceTerms::nstkSource(xglobal,
+                            time,
+                            thermoDynamics_.delta(),
+                            thermoDynamics_.velo(),
+                            nstksource);
+    
+      SourceTerms::acSource(xglobal,
+                            time,
+                            thermoDynamics_.delta(),
+                            thermoDynamics_.velo(),
+                            acsource);
+
 #if USEJACOBIAN
    double rho_inv=1./u[0];
-   double phi=u[2];
+//   double phi=u[2];
    double dphi=jacU[2][0];
    dphi*=-1;
 #else
@@ -254,10 +270,15 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 #endif  
     double v=u[1]*rho_inv;
   	f[0]=0;
-    f[1]=-dtheta[0]*u[0]-dphi*theta[1];
-    //nonconservative Discretization of transport term
+  //  f[1]=-dtheta[0]*u[0]+dphi*theta[1]+nstkSource(xglobal,time);
+    f[1]=-dtheta[0]*u[0]+dphi*theta[1];
+   //nonconservative Discretization of transport term
+ //  f[2]=-theta[1]*deltaInv()/*rho_inv*/+v*dphi+acSource(xglobal,time);
     f[2]=-theta[1]*deltaInv()+v*dphi;
-	  f[2]*=\rho_inv;
+    f+=nstksource;
+    f+=acsource;
+ //f[2]=v*dphi;	
+     
     return 0.4*deltaInv()*deltaInv(); 
   }
   template< class Thermodynamics >
@@ -302,7 +323,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   template<class Thermodynamics>
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1, Thermodynamics>
-  ::boundaryallenCahn( const RangeType& u,
+::boundaryallenCahn( const RangeType& u,
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
@@ -312,6 +333,59 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
   }
 
+ template< class Thermodynamics >
+  inline double PhasefieldPhysics< 1, Thermodynamics >
+  ::nstkSource(const DomainType xglobal,const double t) const
+  {
+		double x=xglobal;
+ 		double c=thermoDynamics_.velo();
+		double delta=thermoDynamics_.delta();
+	
+    double t1;
+    double t10;
+    double t11;
+    double t21;
+    double t4;
+    double t5;
+    double t6;
+    t1 = 1/delta;
+    t4 = (x+c*t)*t1;
+    t5 = sinh(t4);
+    t6 = cosh(t4);
+    t10 = t6*t6;
+    t11 = t10*t10;
+    t21 = t11*t11;
+    return(-0.125E-2*t1*(t5+15.0*t6)*
+          (8.0*t5*t11+4.0*t5*t10+18.0*t5-24.0*t11*t6-225.0*t6)/t21);
+                              
+  }
+
+
+
+
+	
+  template< class Thermodynamics >
+  inline double PhasefieldPhysics< 1, Thermodynamics >
+  ::acSource(const DomainType xglobal,const double t) const
+  {
+    double x=xglobal;
+		double delta=thermoDynamics_.delta();
+		double c=thermoDynamics_.velo();
+    double t12;
+	  double t4;
+		double t5;
+		double t6;
+    double t8;
+		
+    t4 = (x+c*t)/delta;
+    t5 = cosh(t4);
+    t6 = t5*t5;
+    t8 = sinh(t4);
+    t12 = t6*t6;
+    return(0.1875E-1*(-26.0*t6+1.0+30.0*t8*t5)/t12/t6);
+                          
+//return  0.;
+  }
 
  template< class Thermodynamics >
  inline double PhasefieldPhysics< 1, Thermodynamics>
@@ -321,7 +395,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   double u_normal=(u[1])/u[0];
   double c=thermoDynamics_.a(u[0],u[2]);
 //  std::cout<<"physics maxSpeed"<< std::abs(u_normal) <<std::endl;
-  return std::abs(u_normal)+sqrt(c);
+//  return std::abs(u_normal)+sqrt(c);
+    return std::abs(thermoDynamics_.velo());
 
  } 
 
