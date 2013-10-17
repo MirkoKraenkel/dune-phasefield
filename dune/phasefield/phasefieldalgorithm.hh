@@ -18,7 +18,6 @@
 #include <string>
 // fem includes
 
-#include <dune/fem/misc/l2error.hh>
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/util/phasefieldodesolver.hh>
@@ -29,7 +28,7 @@
 #else
 #include <dune/fem/operator/fluxprojoperator.hh>
 #endif
-#include <dune/fem-dg/misc/runfile.hh>
+//#include <dune/fem-dg/misc/runfile.hh>
 #include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 #if MASTER 
@@ -40,6 +39,7 @@
 #if WELLBALANCED
 #include <dune/phasefield/util/wb_energyconverter.hh>
 #else
+#warning "CONSERVATIVE!"
 #include <dune/phasefield/util/energyconverter.hh>
 #endif
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
@@ -139,7 +139,6 @@ public:
 
   typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
   typedef   Estimator1<DiscreteFunctionType> EstimatorType;
-  typedef Dune::RunFile< GridType >  RunFileType;
 	typedef typename Dune::Fem::LagrangeDiscreteFunctionSpace< FunctionSpaceType, LagrangeGridPartType, 2> InterpolationSpaceType;
   typedef typename Dune::Fem::AdaptiveDiscreteFunction< InterpolationSpaceType > InterpolationFunctionType;
 
@@ -170,7 +169,6 @@ private:
   ModelType*              model_;
   FluxType                convectionFlux_;
   AdaptationHandlerType*  adaptationHandler_;
-  mutable RunFileType     runfile_;
   Timer                   overallTimer_;
   double                  odeSolve_;
   const unsigned int      eocId_;
@@ -187,6 +185,7 @@ private:
 #endif
   double tolerance_;
   bool interpolateInitialData_;
+  bool calcresidual_;
   double timeStepTolerance_;
 public:
 	//Constructor
@@ -216,16 +215,16 @@ public:
     model_( new ModelType( problem() ) ),
     convectionFlux_( *model_ ),
     adaptationHandler_( 0 ),
-    runfile_( grid.comm(), true ),
     overallTimer_(),
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
     odeSolver_( 0 ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
 		dgOperator_(grid,convectionFlux_),
-    tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 0.49)),
+    tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
     interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
-    timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance", std::numeric_limits<double>::min() ) )
+    calcresidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
+    timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
     {
     }
 
@@ -326,11 +325,11 @@ public:
       }
      else 
       {   
-       Dune::Fem::DGL2ProjectionImpl::project(problem(), U);
+       Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), U);
       }
-    
-    odeSolver_->initialize( U );  
+       odeSolver_->initialize( U );  
 
+ 
   }
 
   void step(TimeProviderType& tp,
@@ -384,10 +383,14 @@ public:
       double kineticEnergy;
       
       double chemicalEnergy; 
-      
+#if WELLBALANCED    
       double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy);
       str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
-    
+#else
+      double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
+      str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
+#endif
+
     }
   
   }
@@ -512,14 +515,7 @@ public:
  		// start first time step with prescribed fixed time step 
 		// if it is not 0 otherwise use the internal estimate
 		
-		tp.provideTimeStepEstimate(maxTimeStep);
-		if ( fixedTimeStep_ > 1e-20 )
-			tp.init( fixedTimeStep_ );
-		else
-			tp.init();
-		
-
-
+	
 		// adapt the grid to the initial data
 		int startCount = 0;
 		if( adaptCount > 0 )
@@ -531,15 +527,35 @@ public:
 					initializeStep( tp );
 
 					if( verbose )
-						std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<< std::endl;
-					
+						std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<<std::endl;
           ++startCount;
 				
         }
     }
+    tp.provideTimeStepEstimate(maxTimeStep);
+		if ( fixedTimeStep_ > 1e-20 )
+			tp.init( fixedTimeStep_ );
+		else
+			tp.init();
+		
+
+
+    tp.provideTimeStepEstimate(maxTimeStep);                                         
+		
+    std::cout<<"deltaT "<<tp.deltaT()<<" estimate "<<dgOperator_.timeStepEstimate()<<std::endl;
 
 		writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
-		for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps && timeStepError > timeStepTolerance_;  )   
+
+    if(calcresidual_)
+    {
+      std::cout<<"Residual\n";
+      Uold->clear();
+      dgOperator_(U,*Uold);
+      U.assign(*Uold);
+      writeData(eocDataOutput ,tp , eocDataOutput.willWrite( tp ));
+    }
+    else
+    for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps /* && timeStepError > timeStepTolerance_*/;  )   
 		{ 
 			tp.provideTimeStepEstimate(maxTimeStep);                                         
 			
@@ -573,16 +589,17 @@ public:
         Uold->assign(U);
       }
       double timeStepEstimate=dgOperator_.timeStepEstimate();	
-			
-      if( (printCount > 0) && (counter % printCount == 0))
+      double diffTimeStep=dgOperator_.maxDiffusionTimeStep();
+      double advTimeStep=dgOperator_.maxAdvectionTimeStep();
+     if( (printCount > 0) && (counter % printCount == 0))
 			{
 	
         if( grid_.comm().rank() == 0 )
         {
           std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
-			   if(Uold!=nullptr)
-           std::cout<< " , Error between timesteps="<< timeStepError;
-         std::cout<<std::endl;
+          if(Uold!=nullptr)
+           std::cout<< " ,Error between timesteps="<< timeStepError;
+           std::cout<<std::endl;
                
         }
          writeEnergy( tp , energyfile);
@@ -630,11 +647,15 @@ public:
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 		Fem::L2Norm< GridPartType > l2norm(gridPart_);
     
-    typedef Fem::GridFunctionAdapter<InitialDataType,GridPartType> GridFunctionType;
-    GridFunctionType exactsolution("exact solution",problem(),gridPart_,space().order()+1);   
+    //typedef Fem::GridFunctionAdapter<InitialDataType,GridPartType> GridFunctionType;
+    //GridFunctionType exactsolution("exact solution",problem(),gridPart_,space().order()+1);   
 		// Compute L2 error of discretized solution ...
 		//RangeType error = L2err.norm(problem(), u, tp.time());
-    double error = l2norm.distance(exactsolution,u);  
+    //double error = l2norm.distance(exactsolution,u);  
+   // double error = l2norm.distance(problem(),u);  
+   double error = l2norm.distance(problem().fixedTimeFunction(tp.time()),u);
+
+    
     return error;
 	}
   //compute Error between old and NewTimeStep
@@ -711,7 +732,6 @@ public:
 
 		if( addVars ) 
 			{
-        std::cout<<"finalize addVars\n";
 				problem().finalizeSimulation( *addVars, eocloop );
 			}
 		else 
