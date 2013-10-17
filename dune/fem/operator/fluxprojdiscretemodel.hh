@@ -7,7 +7,7 @@
 
 // Dune-Fem includes
 #include <dune/fem/space/discontinuousgalerkin.hh>
-#include <dune/fem/pass/dgdiscretemodel.hh>
+#include <dune/fem/pass/localdg/discretemodel.hh>
 #include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/misc/boundaryidentifier.hh>
@@ -107,6 +107,9 @@ namespace Dune {
 
     bool hasSource() const { return false; }
     bool hasFlux() const { return true; }  /*@LST1E@*/
+
+    void setTime(double t) { }
+
 
     template< class ArgumentTuple, class JacobianTuple > 
     inline double source( const EntityType& en,
@@ -322,6 +325,8 @@ namespace Dune {
       model_.tension(en,time,x,u[uVar],u[sigmaVar],s);
       return 0.0;
     } 
+   void setTime(double t) { time_=t; }
+
 
     template <class QuadratureImp, class ArgumentTupleVector > 
     void initializeIntersection(const Intersection& it,
@@ -390,7 +395,8 @@ namespace Dune {
 
   private:
     const Model& model_;
-  };
+    double time_;
+    };
 
 
   // AdvectionDiffusionLDGModel
@@ -500,6 +506,8 @@ namespace Dune {
         penalty_( 1.0 ),
         cflDiffinv_( 8.0 * ( polOrd + 1) )
     {}
+   void setTime(double t) { time_=t;}
+
 
     bool hasSource() const
     {                 
@@ -721,6 +729,7 @@ namespace Dune {
     mutable DiffusionFluxType& diffFlux_;
     const double penalty_;
     const double cflDiffinv_;
+    double time_;
   };                                              /*@LST0E@*/
 
 }
