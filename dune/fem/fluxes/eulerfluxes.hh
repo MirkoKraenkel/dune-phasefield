@@ -146,7 +146,6 @@ public:
       visc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",1)),
 			alpha1_(Dune::Fem::Parameter::getValue<double>("phasefield.nonconvisc",0.))
   {
-    std::cout<<"Specify alpha="<<alpha1_<<" correctly!\n";
   }
 
   static std::string name () { return "WB"; }
@@ -179,9 +178,11 @@ public:
     double rhoRight = uRight[0];
     double phiLeft  = uLeft[dimDomain+1];
     double phiRight = uRight[dimDomain+1];
-    phiLeft/=rhoLeft;
+#if NONCONTRANS
+#else
+      phiLeft/=rhoLeft;
     phiRight/=rhoRight;
-
+#endif
     double vLeft[dimDomain],vRight[dimDomain];
 
     for(int i=0; i<dimDomain; i++)
@@ -195,14 +196,18 @@ public:
     RangeType visc;
 		ThetaRangeType newvisc,thetaFluxLeft,thetaFluxRight;
    	FluxRangeType anaflux;
-   
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
-    // if there's neighbor, update the value of anaflux
-    //if ( intersection.neighbor() )
-    model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
+     // set gLeft 
+     anaflux.mv( normal, gLeft );
+      
+     
+     model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
 											uRight, anaflux );
-    
+  //add F(uleft) 
+    anaflux.umv( normal, gLeft );
+
+  
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
@@ -211,18 +216,11 @@ public:
 
 
 
-    // set gLeft 
-    anaflux.mv( normal, gLeft );
-
-    //add F(uleft) 
-    //if ( intersection.neighbor() )
-    anaflux.umv( normal, gLeft );
-
     double maxspeedl, maxspeedr, maxspeed;
     double viscparal, viscparar, viscpara;
     
     const DomainType xGlobal = intersection.geometry().global(x);
-#if  1 
+    
     model_.maxSpeed( normal, time, xGlobal, 
                      uLeft, viscparal, maxspeedl );
     model_.maxSpeed( normal, time, xGlobal,
@@ -238,50 +236,50 @@ public:
 
     visc *= viscpara;
 
-    for(int i=1; i<dimDomain;i++)
+    for(int i=0; i<dimDomain+1;i++)
  		{
-			gLeft[i] -= visc[i];
+   		gLeft[i] -= visc[i];
     }
 
-   if( intersection.neighbor() )
    {  
      // \delta\mu  consider sign!!!!!!!!
     newvisc=thetaFluxRight;
     newvisc-=thetaFluxLeft;
       
-    // newvisc=.;
-     
+   
+#if 0 
     gLeft[0]-=newvisc[0];
    	
     for(int i=1; i<dimDomain;i++)
     {
       gLeft[i] -= (vLeft[i]+vRight[i])*0.5*newvisc[0];
     }
-
-    gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
-    
+#if NONCONTRANS
+#else     
+gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
+#endif
+#endif
    }  
-#endif   
-   
+
    gLeft *= 0.5*len; 
    gRight = gLeft;
  
    RangeType nonConProd(0);
-
+#if 1 
    nonConFlux( normal,
                len,        
                rhoLeft,
                rhoRight, 
+               vLeft,
+               vRight,
                thetaLeft, 
                thetaRight,
                phiLeft,
                phiRight,
                nonConProd);
-#if 1          
-   gLeft -=nonConProd;
-   gRight+=nonConProd;
-#endif   
-   
+  gLeft -=nonConProd;
+  gRight+=nonConProd;
+#endif 
    //   std::cout<<"NUmflux out "<<maxspeed << std::endl;
    return maxspeed * len;
   }
@@ -290,37 +288,51 @@ public:
   inline void nonConFlux( const DomainType& normal,
                           const double length,  
                           const double rhoLeft,
-                           const double rhoRight,
-                           const ThetaRangeType& thetaLeft,
-                           const ThetaRangeType& thetaRight,
-                           const double phiLeft,
-                           const double phiRight,
-                           RangeType& nonConProd) const
+                          const double rhoRight,
+                          const double* vLeft,
+                          const double* vRight,
+                          const ThetaRangeType& thetaLeft,
+                          const ThetaRangeType& thetaRight,
+                          const double phiLeft,
+                          const double phiRight,
+                          RangeType& nonConProd) const
   {
       // {{rho}}
       double averageRho=rhoLeft+rhoRight;
       averageRho*=0.5;
        //[[\mu]]
       double jumpMu=thetaLeft[0]-thetaRight[0];
-    
 
 #if USEJACOBIAN
       //{{\tau}}
-      double averageTau=thetaLeft[1]-thetaRight[1];
+      double averageTau=thetaLeft[1]+thetaRight[1];
+      averageTau*=0.5;
       //[\phi]
       double jumpPhi=phiLeft-phiRight;
+      //{{v}} 
+      double averageV[dimDomain];
+      for(int i=0;i<dimDomain;i++)
+      {
+        averageV[i]=0.5*(vLeft[i]+vRight[i]);
+      }
 #else
       double averageTau=0.;
       double jumpPhi=0.;
-
+      abort();
 #endif
-      
+      nonConProd=0.;
       for(int i=0;i<dimDomain;i++)
       {  
         nonConProd[i+1]=normal[i];
-        nonConProd[i+1]*=averageRho*jumpMu+averageTau*jumpPhi;        
+        nonConProd[i+1]*=averageRho*jumpMu-averageTau*jumpPhi;        
+    
+#if NONCONTRANS
+       nonConProd[dimDomain+2]+=normal[i]*averageV[i]; 
+#endif
       }   
- 
+#if NONCONTRANS      
+    nonConProd[dimDomain+2]*=jumpPhi;
+#endif
       //factor comes from the meanvalue of the testfunctions
       nonConProd*=0.5*length;
   }
