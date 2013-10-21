@@ -77,6 +77,13 @@ class PhasefieldPhysics<1,Thermodynamics>
 								            const ThetaJacobianRangeType& dtheta,
 								            RangeType& f) const;
  
+  inline double stiffSource(const DomainType& xglobal,
+                            const double time,
+                            const RangeType& u,
+                            const GradientRangeType& du,
+                            RangeType& f) const;
+	
+
   template< class JacobianRangeImp >
 	inline void diffusion( const RangeType& u,
 												 const JacobianRangeImp& du,
@@ -106,7 +113,7 @@ class PhasefieldPhysics<1,Thermodynamics>
 
 public:
 
-	inline double delta()const {return thermodynamic_.delta();}
+	inline double delta()const {return thermoDynamics_.delta();}
 	inline double deltaInv()const{return thermoDynamics_.deltaInv();}
 	inline double mu1()const {return thermoDynamics_.mu1();}
 	inline double mu2(){return 1;}
@@ -248,20 +255,37 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
-	::stiffSource(const RangeType& u,
+	::stiffSource(const DomainType& xglobal,
+                const double time,
+                const RangeType& u,
 							  const GradientRangeType& du,
-							  const ThetaRangeType& theta,
-							  const ThetaJacobianRangeType& dtheta,
 							  RangeType& f) const
 	{
+    RangeType nstksource,acsource;
+    SourceTerms::nstkSource(xglobal,
+                            time,
+                            thermoDynamics_.delta(),
+                            thermoDynamics_.velo(),
+                            nstksource);
+    
+    SourceTerms::acSource(xglobal,
+                          time,
+                          thermoDynamics_.delta(),
+                          thermoDynamics_.velo(),
+                          acsource);
+
+
     double rho=u[0];
     double phi=u[2];
     phi/=rho;
-    double reaction=thermoDynamics_.reaction(rho,phi);
+    double reaction=thermoDynamics_.reactionSource(rho,phi);
     f[0]=0;
     f[1]=0;
-    f[2]=-deltaInv*reaction;
-	  return delta();
+    f[2]=-reaction;
+	  
+    f+=nstksource;
+    f+=acsource;
+    return delta();
   }
 
   template< class Thermodynamics >
@@ -281,7 +305,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhou    = du[1][0]; //d(rho*v)/dx
     const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
-    thermoDynamics_.pressure( rho,phi);
+    //thermoDynamics_.pressure( rho,phi);
   
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
     double dxphi = (dxrhophi - phi*dxrho);
