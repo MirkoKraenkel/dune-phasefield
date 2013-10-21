@@ -99,7 +99,10 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                         const GradientRangeType& du,
                         RangeType & s) const
   {
-    return stiffSource( en, time, x, u, s );
+     DomainType xgl = en.geometry().global( x );
+     return phasefieldPhysics_.stiffSource(xgl,time,u,du,s);
+     
+ //   return stiffSource( en, time, x, u, s );
   }
 
 
@@ -111,21 +114,20 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
   {
 
     DomainType xgl = en.geometry().global( x );
- 
     double deltainv=phasefieldPhysics_.deltaInv();
     double reaction,pressure;
  
     //reaction=-dF/dphi
     phasefieldPhysics_.pressureAndReaction(u,pressure,reaction);
 
-
     s[0]=0.;
     for(int i=0;i<dimDomain;i++)
       s[i+1]=0;
   	
     s[dimDomain+1]=-reaction*deltainv;
+   
     return deltainv;
-  }
+    }
 
 
   inline double nonStiffSource( const EntityType& en,
