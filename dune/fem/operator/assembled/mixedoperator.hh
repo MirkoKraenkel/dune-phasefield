@@ -1,5 +1,5 @@
-#ifndef DUNE_PHASEFIELD_MIXEDOPERATOR.HH
-#define DUNE_PHASEFIELD_MIXEDOPERATOR.HH
+#ifndef DUNE_PHASEFIELD_MIXEDOPERATOR_HH
+#define DUNE_PHASEFIELD_MIXEDOPERATOR_HH
 
 //globlas includes
 
@@ -18,7 +18,7 @@
 #include <dune/fem/operator/common/differentiableoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 
-#include "phasefiledfilter.hh"
+#include "phasefieldfilter.hh"
 
 template<class DiscreteFunction, class Model, class Flux, class Params>
 class DGPhasefieldOperator
@@ -30,6 +30,7 @@ class DGPhasefieldOperator
   typedef Params           ParameterClassType;
 protected:
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
+  typedef typename DiscreteFunctionSpaceType::RangeFieldType RangeFieldType;
   typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
   typedef typename LocalFunctionType::RangeType RangeType;
   typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
@@ -54,7 +55,7 @@ protected:
   static const int dimDomain = LocalFunctionType::dimDomain;
   static const int dimRange = LocalFunctionType::dimRange;
 
-  typedef typename PhasefieldFilter<RangeType> U; 
+  typedef  PhasefieldFilter<RangeType> U; 
  public:
    //! constructor
    DGPhasefieldOperator(const ModelType &model,
@@ -64,7 +65,8 @@ protected:
    : model_(model),
      space_( space),
      flux_(flux),
-     parameters_(params)
+     parameters_(params),
+     uOld_("uOld" , space )
   {}
   // prepare the solution vector 
   template <class Function>
@@ -81,9 +83,9 @@ protected:
 
   void setTime(double &time){ time_=time;}
   
-  void setDeltaT( double &deltat}{ deltat_=deltat;}
+  void setDeltaT( double &deltat){ deltat_=deltat;}
   
-  void setPreviousStep( DiscreteFunctionType &uOld) { uOld_=uOLd} 
+  void setPreviousStep( DiscreteFunctionType &uOld) { uOld_=uOld;} 
   
   template< class ArgType, class LocalArgType,class LFDestType >
   void localOp( const EntityType& entity,
@@ -108,14 +110,17 @@ protected:
                         LFDestType& wlocal) const;
 
   const DiscreteFunctionSpaceType& space() const {return space_;}
-
+  
+  const ModelType& model() const{ return model_;}
   
   protected:
   ModelType model_;
-  const DiscreteFunctionSpace space_;
-  double time;
+  const DiscreteFunctionSpaceType space_;
+  const NumericalFluxType flux_;
+  const ParameterClassType parameters_;
+  double time_;
   double deltat_;
-  double uOld;
+  DiscreteFunctionType& uOld_;
 
 
 };
@@ -149,6 +154,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
 }
 
 template<class DiscreteFunction, class Model, class Flux, class Params>
+template< class ArgType, class LocalArgType,class LFDestType >
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
 ::localOp(const EntityType& entity,
           const ArgType& u, 
@@ -178,7 +184,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
 
         JacobianRangeType du,duOld,duMid;
         uLocal.jacobian( quadrature[ pt ], du );
-        uOldLocal.jacobian( quadrature[ pt ], duOld;
+        uOldLocal.jacobian( quadrature[ pt ], duOld);
         
         duMid=0.5*(du+duOld);
         
@@ -201,16 +207,16 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
         for(int i= 0;i<dimDomain;++i)
           {
             U::velocity(avu,i)=U::velocity(vu,i)-U::velocity(vuOld,i);
-            U::velocity(avu,i)/=delta_t;
-            U::velocity(avu,i)-=U::dmu(dvu,i);
+            U::velocity(avu,i)/=deltat_;
+            U::velocity(avu,i)-=U::dmu(du,i);
    
-            RangFieldType sgradv(0);
+            RangeFieldType sgradv(0);
             
             for(int j=0;j<dimDomain;++j)
               sgradv+=U::velocity(vuMid,j)*(U::dvelocity(duMid,i,j)-U::dvelcoity(duMid,j,i));
             
             U::velocity(avu,i)+=sgradv;
-            U::velocity(avu,i)*=U::rho(uMid);
+            U::velocity(avu,i)*=U::rho(vuMid);
             U::velocity(avu,i)-=U::tau(vuMid)*U::dphi(vuMid,i); 
           }
     
@@ -227,11 +233,11 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
         { 
           transport(0.)+=U::velocity(vuMid,i)*U::dphi(vuMid,i);
         }
-        U::phi(avu)+=tranport-U::tau(vuMid)/U::rho(vuMid);
+        U::phi(avu)+=transport-U::tau(vuMid)/U::rho(vuMid);
 //------------------------------------------------------------------        
        
 //tau---------------------------------------------------------------
-        U::tau(avu)=U::tau(uMid)-(model_.Psi(U::rho(vuOld),U::phi(vu))
+        U::tau(avu)=U::tau(vuMid)-(model_.Psi(U::rho(vuOld),U::phi(vu))
                                   -model_.Psi(U::rho(vuOld),U::phi(vuOld)))/(U::phi(vu)-U::phi(vuOld));
         RangeFieldType divsigma(0.);
 
@@ -245,21 +251,21 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
         U::mu(avu)+=U::mu(vuMid)-(model_.Psi(U::rho(vu),U::phi(vu))
                                   -model_.Psi(U::rho(vuOld),U::phi(vu)))/(U::rho(vu)-U::rho(vuOld));
 
-        RangeTypeFieldType   usqr(0.),Uoldspr(0.);
+        RangeFieldType   usqr(0.),uOldsqr(0.);
         for( int i=0; i<dimDomain;++i) 
         {
           usqr+=U::velocity(vu,i)*U::velocity(vu,i);
           uOldsqr+=U::velocity(vuOld,i)*U::velocity(vuOld,i);
         }
         
-        U::mu(avu)-=0.25*(usrq-uOldsqr);
+        U::mu(avu)-=0.25*(usqr-uOldsqr);
 //------------------------------------------------------------------
 
 //sigma--------------------------------------------------------------
          for( int i=0; i<dimDomain;++i) 
-         U::sigma(avu,i)=U::sigma(vu,i)-U::dphi(dvu,i);
+         U::sigma(avu,i)=U::sigma(vu,i)-U::dphi(du,i);
 //------------------------------------------------------------------        
-        wLocal.axpy( quadrature[ pt ], avu, adu );
+        wLocal.axpy( quadrature[ pt ], avu );
       }
     }
     if ( ! space().continuous() )
