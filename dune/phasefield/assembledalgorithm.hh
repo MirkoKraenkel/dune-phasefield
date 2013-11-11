@@ -8,9 +8,11 @@
 #include <dune/fem/io/file/datawriter.hh>
 #include <dune/fem/space/common/adaptmanager.hh>
 #include <dune/fem/base/base.hh>
-
+#include <dune/fem/operator/common/automaticdifferenceoperator.hh>
 //Note Problen should be independent of Operator/Scheme
-#include<dune/phasefield/algorithmtraits.hh>
+
+
+#include<dune/phasefield/assembledtraits.hh>
 
 
 // include std libs
@@ -20,25 +22,23 @@
 
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
-#include <dune/fem/util/phasefieldodesolver.hh>
 
-#if WELLBALANCED
-#include <dune/fem/operator/wellbalancedoperator.hh>
-//#include <dune/fem/operator/wbsplitoperator.hh>
-#else
-#include <dune/fem/operator/fluxprojoperator.hh>
-#endif
+#include <dune/fem/operator/assembled/mixedoperator.hh>
+
 //#include <dune/fem-dg/misc/runfile.hh>
 #include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
-#if WELLBALANCED
 #include <dune/phasefield/util/wb_energyconverter.hh>
-#else
-#warning "CONSERVATIVE!"
-#include <dune/phasefield/util/energyconverter.hh>
-#endif
+
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
+
+#include <dune/fem/solver/oemsolver.hh>
+#include <dune/fem/solver/newtoninverseoperator.hh>
+
+
+
+
 
 
 #include <dune/fem/adaptation/estimator2.hh>
@@ -122,8 +122,8 @@ public:
 
 	// type of IOTuple 
 	//typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType*,DiscreteThetaType* > IOTupleType; 
-  //Pointers for (rho,rho v,rho phi),(v,p,phi),(totalenergy),(\theta)
-  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*,DiscreteThetaType* > IOTupleType; 
+  //Pointers for (rho, v,phi),(totalenergy)
+  typedef Dune::tuple< DiscreteFunctionType*,DiscreteScalarType* > IOTupleType; 
 	
   // type of data 
   // writer 
@@ -138,6 +138,11 @@ public:
 	typedef typename Dune::Fem::LagrangeDiscreteFunctionSpace< FunctionSpaceType, LagrangeGridPartType, 2> InterpolationSpaceType;
   typedef typename Dune::Fem::AdaptiveDiscreteFunction< InterpolationSpaceType > InterpolationFunctionType;
 
+  //solver related
+  
+  typedef Dune::Fem::AutomaticDifferenceLinearOperator< DiscreteFunctionType> JacobianType;
+  typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType, JacobianType> LinearInverseOperatorType;
+  typedef Dune::Fem::NewtonInverseOperator< JacobianType,LinearInverseOperatorType> NewtonSolverType; 
 
 	//MemberVaribles
 	
@@ -148,7 +153,7 @@ private:
 	ThetaDiscreteSpaceType  thetaSpace_;
 	SigmaDiscreteSpaceType  sigmaSpace_;
 	ScalarDiscreteSpaceType energySpace_;
-	Dune::Fem::IOInterface*       eocLoopData_;
+	Dune::Fem::IOInterface* eocLoopData_;
 	IOTupleType             eocDataTup_; 
 	unsigned int            timeStepTimer_; 
 	unsigned int            loop_ ; 
@@ -156,21 +161,16 @@ private:
 	double                  fixedTimeStepEocLoopFactor_;       
   std::string             energyFilename_;
   DiscreteFunctionType    solution_;
-	DiscreteFunctionType*   oldsolution_; 
-  DiscreteSigmaType*      sigma_;
-	DiscreteThetaType*      theta_;
-	DiscreteScalarType*     energy_;
-	DiscreteFunctionType*   additionalVariables_;
+	DiscreteFunctionType    oldsolution_; 
+	DiscreteFunctionType    zero_;
+  DiscreteScalarType*     energy_;
 	const InitialDataType*  problem_;
   ModelType*              model_;
-  FluxType                convectionFlux_;
+  FluxType                numericalFlux_;
   AdaptationHandlerType*  adaptationHandler_;
   Timer                   overallTimer_;
   double                  odeSolve_;
   const unsigned int      eocId_;
-  OdeSolverType*          odeSolver_;
-  OdeSolverMonitorType    odeSolverMonitor_;
-  int                     odeSolverType_;
   const bool              adaptive_;
 #if PF_USE_ADAPTATION
   AdaptationParameters    adaptationParameters_;
@@ -200,51 +200,37 @@ public:
  		fixedTimeStepEocLoopFactor_( Dune::Fem::Parameter::getValue<double>("fixedTimeStepEocLoopFactor",1.) ), // algorithmbase
     energyFilename_(Dune::Fem::Parameter::getValue< std::string >("phasefield.energyfile","./energy.gnu")),
     solution_( "solution", space() ),
-		oldsolution_( Fem::Parameter :: getValue< bool >("phasefield.storelaststep", false) ? 
-													new DiscreteFunctionType("oldsolution", space() ) : nullptr ),
-    sigma_( Fem :: Parameter :: getValue< bool >("phasefield.sigma", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : 0),
-		theta_( Fem :: Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : 0 ),
-		energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
-		additionalVariables_( Fem::Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
-													new DiscreteFunctionType("additional", space() ) : 0 ),
+		oldsolution_( "oldsolution", space() ),
+	  zero_("zero",space()),
+    energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
 		problem_( ProblemGeneratorType::problem() ),
     model_( new ModelType( problem() ) ),
-    convectionFlux_( *model_ ),
+    numericalFlux_( *model_ ),
     adaptationHandler_( 0 ),
     overallTimer_(),
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
-    odeSolver_( 0 ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
-		dgOperator_(grid,convectionFlux_),
+		dgOperator_(model_,space_,numericalFlux_),
     tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
     interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
     calcresidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
     timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
     {
+      zero_.clear();
     }
 
   //! destructor 
   virtual ~PhasefieldAlgorithm()
   {
-		delete oldsolution_;
-    oldsolution_= nullptr;
-    delete sigma_;
-		sigma_=0;
-    delete theta_;
-		theta_=0;
 		delete energy_;
 		energy_=0;
-		delete odeSolver_;
-		odeSolver_ = 0;
 		delete problem_ ;
 		problem_ = 0;
 		delete model_;
     model_=0;
     delete adaptationHandler_ ;
 		adaptationHandler_ = 0;
-		delete additionalVariables_; 
-		additionalVariables_ = 0;
   }
 
 	//some acces methods
@@ -254,16 +240,8 @@ public:
 		return space_;
 	}
 	
-  SigmaDiscreteSpaceType& sigmaspace()
-	{
-		return sigmaSpace_;
-	}
 
 	
-	ThetaDiscreteSpaceType& thetaspace()
-	{
-		return thetaSpace_;
-	}
 
 	ScalarDiscreteSpaceType& energyspace()
 	{
@@ -276,13 +254,9 @@ public:
 		return grid_.comm().sum(grSize);
 	}
 
-  DiscreteFunctionType* oldsolution() {return oldsolution_;}
-	DiscreteSigmaType*  sigma() {return sigma_;}
-	DiscreteThetaType*  theta() { return theta_; }
+  DiscreteFunctionType oldsolution() {return oldsolution_;}
 	DiscreteScalarType* energy(){ return energy_;}
 
-  // return pointer to additional variables, can be zero 
-  virtual DiscreteFunctionType* additionalVariables() { return additionalVariables_; }	
  
 	std::string dataPrefix()
 	{
@@ -304,10 +278,8 @@ public:
 
 	virtual void initializeStep(TimeProviderType& tp)
 	{
-		DiscreteFunctionType& U = solution();
+		DiscreteFunctionType& U = oldsolution();
 		//Create OdeSolver if necessary
-    if( odeSolver_ == 0 ) odeSolver_ = createOdeSolver( tp );    
-		assert( odeSolver_ );
    
    
     if( interpolateInitialData_ )
@@ -323,7 +295,6 @@ public:
       {   
        Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), U);
       }
-       odeSolver_->initialize( U );  
 
  
   }
@@ -334,28 +305,25 @@ public:
 						int& max_newton_iterations,
 						int& max_ils_iterations)
 	{
-		DiscreteFunctionType& U = solution();
-		// reset overall timer
+//		DiscreteFunctionType& U = oldsolution();
+		
+    dgOperator_.setPreviousTimeStep(solution());
+    dgOperator_.setTime(tp.time());
+    dgOperator_.setdeltat(tp.deltaT());
+   
+    NewtonSolverType solver(dgOperator_); 
+    solver(zero_,solution());
+    // reset overall timer
     overallTimer_.reset(); 
-		assert(odeSolver_);
-
-    odeSolver_->solve( U, odeSolverMonitor_ );
+     
+#if 0   
 		newton_iterations     = odeSolverMonitor_.newtonIterations_;
     ils_iterations        = odeSolverMonitor_.linearSolverIterations_;
     max_newton_iterations = odeSolverMonitor_.maxNewtonIterations_ ;
     max_ils_iterations    = odeSolverMonitor_.maxLinearSolverIterations_;
-
+#endif
 	}
 	
-  void step(TimeProviderType& p)
-	{
-		DiscreteFunctionType& U = solution();
-		// reset overall timer
-    overallTimer_.reset(); 
-		assert(odeSolver_);
-    odeSolver_->solve( U, odeSolverMonitor_ );
-	}
-
 	//! estimate and mark solution 
   virtual void estimateMarkAdapt( AdaptationManagerType& am )
   {
@@ -367,25 +335,15 @@ public:
   void writeEnergy( TimeProviderType& tp,
                     Stream& str)
   {
-    DiscreteSigmaType* gradient = sigma();
+    //DiscreteSigmaType* gradient = sigma();
     DiscreteScalarType* totalenergy = energy();
 
-    if(gradient != nullptr && gradient != nullptr)
     { 
-      gradient->clear();
-     
-      dgOperator_.gradient(solution(),*gradient);
-   
       double kineticEnergy;
-      
       double chemicalEnergy; 
-#if WELLBALANCED    
-      double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy);
+      
+      double energyIntegral =energyconverter(solution(),*totalenergy,kineticEnergy,chemicalEnergy);
       str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
-#else
-      double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
-      str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
-#endif
 
     }
   
@@ -399,16 +357,15 @@ public:
     if( reallyWrite )
 		{
 				 
-      DiscreteFunctionType* addVariables = additionalVariables();
-      DiscreteSigmaType* gradient=sigma();
-      DiscreteThetaType* theta1=theta();
-  
+     // DiscreteSigmaType* gradient=sigma();
+//      DiscreteThetaType* theta1=theta();
+#if 0 
       // calculate DG-projection of additional variables
 			if ( addVariables && gradient)
 			{
         gradient->clear();
   
-        dgOperator_.gradient(solution(),*gradient);
+       // dgOperator_.gradient(solution(),*gradient);
 
         if(theta1)
         { 
@@ -421,8 +378,8 @@ public:
         // calculate additional variables from the current num. solution
 		  
         setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
-			}
-
+		}
+#endif
             
     }
 
@@ -472,7 +429,7 @@ public:
     TimeProviderType tp(startTime, grid_ ); 
 
 		DiscreteFunctionType& U = solution();
-    DiscreteFunctionType* Uold = oldsolution(); 
+    DiscreteFunctionType Uold = oldsolution(); 
 
   
     RestrictionProlongationType rp( U );
@@ -486,9 +443,8 @@ public:
 		//restoreFromCheckPoint( tp );
 		
 		// tuple with additionalVariables 
-	  IOTupleType dataTuple( Uold, this->additionalVariables(),this->energy(),this->theta() );
+	  IOTupleType dataTuple( Uold,this->energy());
 	
-   // IOTupleType dataTuple( &U, this->sigma(),this->theta() );
     std::ofstream energyfile;
     std::ostringstream convert;
     convert<<loopNumber;
@@ -682,8 +638,6 @@ public:
 		if( doFemEoc )
 			Fem::FemEoc::setErrors(eocId_, error(tp, u));
 	
-		delete odeSolver_;
-		odeSolver_ = 0;
 		delete adaptationHandler_;
 		adaptationHandler_ = 0;
 	}
@@ -698,7 +652,7 @@ public:
 	virtual DiscreteFunctionType& solution() { return solution_; }
 
 
-
+#if 0
 	virtual OdeSolverType* createOdeSolver(TimeProviderType& tp) 
 	{
 
@@ -716,29 +670,22 @@ public:
 		typedef PhaseFieldOdeSolver< DiscreteOperatorType > OdeSolverImpl;
 		return new OdeSolverImpl( tp, dgOperator_ );
 	}
-
+#endif
 	virtual void finalize( const int eocloop ) 
 	{
 		DiscreteFunctionType& U = solution(); 
-  	DiscreteThetaType* theta1 = theta(); 
 	  DiscreteScalarType* totalenergy= energy(); 
- 		DiscreteFunctionType* addVars = additionalVariables();
     // DiscreteSigmaType* sig= sigma();
 	
     if( eocLoopData_ == 0 ) 
 			{
 			
-        eocDataTup_ = IOTupleType( &U,addVars,totalenergy,theta1 ); 
+        eocDataTup_ = IOTupleType( &U,totalenergy ); 
         //eocDataTup_ = IOTupleType( &U,sig ); 
         eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
 			
       }
 
-		if( addVars ) 
-			{
-				problem().finalizeSimulation( *addVars, eocloop );
-			}
-		else 
 			{
 				problem().finalizeSimulation( U,  eocloop );
 			}
