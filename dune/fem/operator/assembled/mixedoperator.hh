@@ -20,14 +20,13 @@
 
 #include "phasefieldfilter.hh"
 
-template<class DiscreteFunction, class Model, class Flux, class Params>
+template<class DiscreteFunction, class Model, class Flux>
 class DGPhasefieldOperator
 : public virtual Dune::Fem::Operator<DiscreteFunction>
 {
   typedef DiscreteFunction DiscreteFunctionType;
   typedef Model            ModelType;
   typedef Flux             NumericalFluxType;
-  typedef Params           ParameterClassType;
 protected:
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
   typedef typename DiscreteFunctionSpaceType::RangeFieldType RangeFieldType;
@@ -38,6 +37,7 @@ protected:
   typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
   typedef typename IteratorType::Entity       EntityType;
   typedef typename EntityType::EntityPointer  EntityPointerType;
+
   typedef typename EntityType::Geometry       GeometryType;
 
   typedef typename DiscreteFunctionSpaceType::DomainType DomainType; 
@@ -60,12 +60,10 @@ protected:
    //! constructor
    DGPhasefieldOperator(const ModelType &model,
                         const DiscreteFunctionSpaceType &space,
-                        const NumericalFluxType &flux,
-                        const ParameterClassType &params)
+                        const NumericalFluxType &flux)
    : model_(model),
      space_( space),
      flux_(flux),
-     parameters_(params),
      uOld_("uOld" , space )
   {}
   // prepare the solution vector 
@@ -112,12 +110,14 @@ protected:
   const DiscreteFunctionSpaceType& space() const {return space_;}
   
   const ModelType& model() const{ return model_;}
+  double penalty() const { return model_.penalty();}
   
+
+
   protected:
   ModelType model_;
   const DiscreteFunctionSpaceType space_;
   const NumericalFluxType flux_;
-  const ParameterClassType parameters_;
   double time_;
   double deltat_;
   DiscreteFunctionType& uOld_;
@@ -125,8 +125,8 @@ protected:
 
 };
 
-template<class DiscreteFunction, class Model, class Flux, class Params>
-void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
+template<class DiscreteFunction, class Model, class Flux>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
 {
   // clear destination 
@@ -153,9 +153,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
   w.communicate();
 }
 
-template<class DiscreteFunction, class Model, class Flux, class Params>
+template<class DiscreteFunction, class Model, class Flux >
 template< class ArgType, class LocalArgType,class LFDestType >
-void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::localOp(const EntityType& entity,
           const ArgType& u, 
           const LocalArgType& uLocal,
@@ -294,7 +294,85 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Params>
   } 
 
 
+template<class DiscreteFunction, class Model, class Flux>
+template<class LocalArgType, class NeighborArgType, class LFDestType>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
+::computeIntersection( const IntersectionType& intersection,
+                            const EntityType& entity,
+                            const EntityType& neighbor,
+                            const double area,
+                            const LocalArgType& uEn, 
+                            const NeighborArgType& uNb, 
+                            LFDestType& wLocal) const
+{
+  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+  const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
+  LocalFunctionType uOldEn=uOld_.localFunction(entity); 
+  LocalFunctionType uOldNb=uOld_.localFunction(neighbor); 
+ 
+
+
+
+
+
+
+  // compute penalty factor
+  const double intersectionArea = intersectionGeometry.volume();
+  const double beta = penalty() * intersectionArea / std::min( area, neighbor.geometry().volume() ); 
+  const int quadOrderEn = uEn.order() + wLocal.order();
+
+  const int quadOrderNb = uNb.order() + wLocal.order();
+  
+
+  FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
+  FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
+
+  const size_t numQuadraturePoints = quadInside.nop();
+
+  for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+  {
+    const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+    const DomainType normal = intersection.integrationOuterNormal( x );
+    const double weight = quadInside.weight( pt );
+            
+    RangeType value;
+    JacobianRangeType dvalue,advalue;
+
+    RangeType vuEn,vuNb,vuEnOld,vuNbOld,jump,mean, midEn,midNb;
+    JacobianRangeType duEn,duEnOld,duNb,duNbOld;
+
+    uEn.evaluate( quadInside[ pt ], vuEn );
+    uEn.jacobian( quadInside[ pt ], duEn );
+    uOldEn.evaluate( quadInside[ pt ], vuEnOld );
+    uOldNb.jacobian( quadInside[ pt ], duEnOld );
+     
+  
+    uNb.evaluate( quadOutside[ pt ], vuNb );
+    uNb.jacobian( quadOutside[ pt ], duNb );
+    uOldNb.evaluate( quadOutside[ pt ], vuNbOld );
+    uOldNb.jacobian( quadOutside[ pt ], duNbOld );
+ 
+    midEn = 0.5*( vuEn + vuEnOld );
+    midNb = 0.5*( vuNb + vuNbOld );
+    
+    jump = midEn - midNb;
+    mean = midEn + midNb;
+    mean*=0.5;
+
+
+    
+  
+  
+  }//end quad loop
+
+
+
+
+
+
+
+}
 
 
 
