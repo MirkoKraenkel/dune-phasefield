@@ -359,7 +359,7 @@ namespace Dune {
 			s = 0;
 
       double dtEst = std::numeric_limits< double > :: max();
-			const double dtStiff = model_.stiffSource( en, time, x, u[uVar],jac[uVar], s );
+			const double dtStiff = model_.stiffSource( en, time, x, u[uVar], u[veloVar],jac[uVar], s );
       dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
 			maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
 			
@@ -423,11 +423,13 @@ namespace Dune {
       VeloRangeType vLeft(0.),vRight(0.);
       vLeft=uLeft[ veloVar ];
       vRight=uRight[ veloVar ];
-
+      vLeft+=vRight;
+      RangeType vnormal=vLeft*normal;
 #if 1 
       RangeType jump=uLeft[uVar]-uRight[uVar];
-      jump*=(vLeft+vRight)*0.25;
-   //   jump*=model_.gamma()*0.5; 
+      jump*=vnormal;
+      jump*=0.25;
+      //   jump*=model_.gamma()*0.5; 
       gLeft-=jump;
       gLeft-=jump;
 #endif
