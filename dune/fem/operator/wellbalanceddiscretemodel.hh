@@ -15,8 +15,6 @@
 
 // local includes
 #include "projectiondiscretemodelcommon.hh"
-//#include <dune/fem/fluxes/ldgfluxwellbalanced.hh>
-//#include <dune/fem/fluxes/meanfluxwellbalanced.hh>
 //*************************************************************
 namespace Dune {
 
@@ -517,7 +515,7 @@ namespace Dune {
 				}
 		}
 	protected:
-		mutable DiffusionFluxType& diffFlux_;
+	 DiffusionFluxType& diffFlux_;
 		const double penalty_;
     const double switch_; 
     const double cflDiffinv_;
