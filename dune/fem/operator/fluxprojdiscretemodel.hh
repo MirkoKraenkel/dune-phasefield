@@ -726,7 +726,7 @@ namespace Dune {
  
     }
   protected:
-    mutable DiffusionFluxType& diffFlux_;
+   DiffusionFluxType& diffFlux_;
     const double penalty_;
     const double cflDiffinv_;
     double time_;
