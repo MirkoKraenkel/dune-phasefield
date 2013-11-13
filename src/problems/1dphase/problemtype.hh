@@ -1,6 +1,5 @@
 #ifndef PHASEFIELD_PROBLEMTYPE_HH
 #define PHASEFIELD_PROBLEMTYPE_HH
-
 #include <dune/common/version.hh>
 #include <dune/fem/io/parameter.hh>
 
@@ -10,11 +9,32 @@
 #include <dune/grid/io/file/dgfparser/dgfgridtype.hh>
 #endif
 
+template< int dimension, bool mixed>
+struct RangeTypeProvider;
+
+template< int dimension>
+struct RangeTypeProvider<dimension,true>
+{
+  enum{ rangeDim=2*dimension+4};
+};
+
+
+template< int dimension>
+struct RangeTypeProvider<dimension,false>
+{
+  enum{ rangeDim=dimension+2};
+};
+
+
+
+
+
+
 ///////////////////////////////////////
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
 #if PROBLEM==1
-# include "tanhproblembalanced.hh"
+#include "tanhproblembalanced.hh"
 typedef TanhProblem< GridSelector:: GridType>  PhaseProblemType;
 #elif PROBLEM==2
 #include "perfectgas_problem.hh"
@@ -23,11 +43,19 @@ typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
 #include "constantproblem.hh"
 typedef ConstantProblem< GridSelector:: GridType> PhaseProblemType;
 #elif PROBLEM==4
-#include "problem1d.hh"
-typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
+#include "travellingwave.hh"
+#ifdef MIXED
+typedef TravelProblem< GridSelector :: GridType, 
+ RangeTypeProvider<GridSelector::GridType::dimensionworld,true> 
+ >  PhaseProblemType;
+#else
+typedef TravelProblem< GridSelector :: GridType, 
+ RangeTypeProvider<GridSelector::GridType::dimensionworld,false> 
+ >  PhaseProblemType;
+#endif
 #elif PROBLEM==5
-#include "tanhproblem.hh"
-typedef TanhProblem< GridSelector:: GridType>  PhaseProblemType;
+#include "bubbleproblem.hh"
+typedef BubbleProblem< GridSelector:: GridType>  PhaseProblemType;
 #else
 #error "No valid problem number specified"
 #endif
