@@ -22,19 +22,19 @@
 
 namespace Dune {
 
-template <class GridType>
-class TanhProblem : public EvolutionProblemInterface<
-                    Dune::Fem::FunctionSpace< double, double, GridType::dimension, GridType::dimension + 2 >,
-                    true >
-                  
+template <class GridType, class RangeProvider>
+class TravelProblem : public EvolutionProblemInterface<
+                      Dune::Fem::FunctionSpace< double, double, GridType::dimension,RangeProvider::rangeDim >,
+                      true >
 {
  
-  public:
+public:
+  enum{ dimRange=RangeProvider::rangeDim};
   typedef Fem::FunctionSpace<typename GridType::ctype,
                         double, GridType::dimensionworld,
-                        GridType::dimensionworld + 2 > FunctionSpaceType ;
-
+                        dimRange > FunctionSpaceType ;
   enum{ dimension = GridType::dimensionworld };
+  enum{ dimDomain = dimension };
   enum { energyId = dimension + 1 };
   typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
   typedef typename FunctionSpaceType :: DomainType        DomainType;
@@ -43,8 +43,8 @@ class TanhProblem : public EvolutionProblemInterface<
 
   typedef BalancedThermodynamics  ThermodynamicsType;
   
-  TanhProblem() : 
-    myName_( "TanhBalanced Problem" ),
+  TravelProblem() : 
+    myName_( "TravelBalanced Problem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
@@ -73,17 +73,7 @@ class TanhProblem : public EvolutionProblemInterface<
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
     
-    double delta=thermodyn_.delta();
-    double x=arg[0];
-   
-    for(int i=1;i<=dimension;i++)
-      res[i]=gamma_;
-
-   double tanx=0.5*tanh(x/delta))+0.5;
- 
-   res[0]=tanx+1;
-  
-   res[dimension+1]=tanx*res[0];
+    evaluate( 0.,arg ,res);
 
  }
 
@@ -97,7 +87,6 @@ class TanhProblem : public EvolutionProblemInterface<
     evaluate( t, x, res );
   }
 
-  inline double rhoval(const double phi) const;
 
   template< class DiscreteFunctionType >
   void finalizeSimulation( DiscreteFunctionType& variablesToOutput,
@@ -134,8 +123,8 @@ class TanhProblem : public EvolutionProblemInterface<
 };
 
 
-template <class GridType>
-inline double TanhProblem<GridType>
+template <class GridType,class RangeProvider>
+inline double TravelProblem<GridType,RangeProvider>
 :: init(const bool returnA ) const 
 {
 
@@ -144,45 +133,45 @@ inline double TanhProblem<GridType>
 
 
 
-template <class GridType>
-inline void TanhProblem<GridType>
+template <class GridType,class RangeProvider>
+inline void TravelProblem<GridType,RangeProvider>
 :: printInitInfo() const
 {}
 
-template <class GridType>
-inline void TanhProblem<GridType>
+template <class GridType,class RangeProvider>
+inline void TravelProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-   double x=arg[0];
- 
-  for(int i=1;i<=dimension;i++)
-      res[i]=gamma_;
-
-  double tanx=0.5*tanh(x-gamma_*t/(delta_))+0.5;
+  double x=arg[0];
+   double y=(x-gamma_*t);
+   
+   double tanx=0.1*tanh(y/delta_)+0.5;
  
    res[0]=tanx+1;
+   res[dimension+1]=0.5*tanh(y/delta_)+0.5;
+
 #if NONCONTRANS
-res[dimension+1]=tanx;
 #else
-  res[dimension+1]=res[0]*tanx;
+  res[dimension+1]*=res[0];
 #endif
   //res[dimension+1]=tanx;
- 
+   for(int i=1;i<=dimension;i++)
+   {
+#if NONCONTRANS
+     res[i]=gamma_;
+#else
+     res[i]=gamma_*res[0];
+#endif
+   }
+
 }
 
-template <class GridType>
-inline double TanhProblem<GridType>
-::rhoval( const double x ) const 
-{
- abort();
-  return exp((4.0-18.0*x*x*x*x*x+45.0*x*x*x*x-30.0*x*x*x)/(-0.9E1*x*x*x*x*x+0.225E2*x*x*x*x-0.15E2*x*x*x+3.0));
-
-}
 
 
 
-template <class GridType>
-inline std::string TanhProblem<GridType>
+
+template <class GridType,class RangeProvider>
+inline std::string TravelProblem<GridType,RangeProvider>
 :: description() const
 {
   std::ostringstream stream;
