@@ -112,19 +112,16 @@ protected:
   const DiscreteFunctionSpaceType& space() const {return space_;}
   
   const ModelType& model() const{ return model_;}
+
   double penalty() const { return model_.penalty();}
-  
 
-
-  protected:
+protected:
   ModelType model_;
   const DiscreteFunctionSpaceType &space_;
   const NumericalFluxType flux_;
   double time_;
   double deltaT_;
-   DiscreteFunctionType uOld_;
-
-
+  DiscreteFunctionType uOld_;
 };
 
 template<class DiscreteFunction, class Model, class Flux>
@@ -134,25 +131,24 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   // clear destination 
   w.clear();
 
-  // get discrete function space 
- // const DiscreteFunctionSpaceType &dfSpace = w.space();
-
   // iterate over grid 
   const IteratorType end = space().end();
   for( IteratorType it = space().begin(); it != end; ++it )
   {
     // get entity (here element) 
     const EntityType &entity = *it;
+   
     // get local representation of the discrete functions 
     const LocalFunctionType uLocal = u.localFunction( entity);
     LocalFunctionType wLocal = w.localFunction( entity );
 
-   localOp(entity,u, uLocal,wLocal);
+    localOp(entity,u, uLocal,wLocal);
     
   }
 
   // communicate data (in parallel runs)
   w.communicate();
+
 }
 
 template<class DiscreteFunction, class Model, class Flux >
@@ -163,10 +159,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
           const LocalArgType& uLocal,
           LFDestType& wLocal) const
   {
-//    const LocalFunctionType uLocal = u.localFunction( entity );
     // get elements geometry 
     const GeometryType &geometry = entity.geometry();
-        // obtain quadrature order 
+    
+    // obtain quadrature order 
     const int quadOrder = uLocal.order() + wLocal.order();
     LocalFunctionType uOldLocal=uOld_.localFunction(entity); 
     
@@ -186,7 +182,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         vuMid+=vuOld;
         vuMid*=0.5;
       
-        JacobianRangeType du,duOld,duMid;
+        JacobianRangeType du,duOld,duMid, diffusion;
         uLocal.jacobian( quadrature[ pt ], du );
         uOldLocal.jacobian( quadrature[ pt ], duOld);
         
@@ -213,18 +209,19 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
           {
             Filter::velocity(avu,i)=Filter::velocity(vu,i)-Filter::velocity(vuOld,i);
             Filter::velocity(avu,i)/=deltaT_;
-            Filter::velocity(avu,i)-=Filter::dmu(du,i);
+            Filter::velocity(avu,i)+=Filter::dmu(du,i);
    
             RangeFieldType sgradv(0);
             
             for(int j=0;j<dimDomain;++j)
-              sgradv+=Filter::velocity(vuMid,j)*(Filter::dvelocity(duMid,i,j)-Filter::dvelocity(duMid,j,i));
+              sgradv+=Filter::velocity(vuMid,j)*(Filter::dvelocity(duMid,j,i)-Filter::dvelocity(duMid,i,j  ));
             
             Filter::velocity(avu,i)+=sgradv;
             Filter::velocity(avu,i)*=Filter::rho(vuMid);
             Filter::velocity(avu,i)-=Filter::tau(vuMid)*Filter::dphi(duMid,i); 
           }
     
+          model_.diffusion(duMid,diffusion);
 
 //------------------------------------------------------------------
 
@@ -238,12 +235,17 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         { 
           transport+=Filter::velocity(vuMid,i)*Filter::dphi(duMid,i);
         }
+   
         Filter::phi(avu)+=transport-Filter::tau(vuMid)/Filter::rho(vuMid);
 //------------------------------------------------------------------        
        
 //tau---------------------------------------------------------------
-    //    Filter::tau(avu)=Filter::tau(vuMid)-(model_.Psi(Filter::rho(vuOld),Filter::phi(vu))
-      //                            -model_.Psi(Filter::rho(vuOld),Filter::phi(vuOld)))/(Filter::phi(vu)-Filter::phi(vuOld));
+        
+        // dF/dphi
+        double dFdphi;
+        model_.tauSource(Filter::phi(vuOld),Filter::phi(vu),Filter::rho(vuOld),dFdphi);
+        
+        Filter::tau(avu)=Filter::tau(vuMid)-dFdphi;
         RangeFieldType divsigma(0.);
 
         for( int i=0; i<dimDomain;++i) 
@@ -253,8 +255,12 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 //-------------------------------------------------------------------
 
 //mu-----------------------------------------------------------------
-     //   Filter::mu(avu)+=Filter::mu(vuMid)-(model_.Psi(Filter::rho(vu),Filter::phi(vu))
-       //                           -model_.Psi(Filter::rho(vuOld),Filter::phi(vu)))/(Filter::rho(vu)-Filter::rho(vuOld));
+        //dF/drho
+        double dFdrho;
+        model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
+
+        Filter::mu(avu)+=Filter::mu(vuMid)-dFdrho;
+
 
         RangeFieldType   usqr(0.),uOldsqr(0.);
         for( int i=0; i<dimDomain;++i) 
@@ -270,7 +276,12 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
          for( int i=0; i<dimDomain;++i) 
          Filter::sigma(avu,i)=Filter::sigma(vu,i)-Filter::dphi(du,i);
 //------------------------------------------------------------------        
-        wLocal.axpy( quadrature[ pt ], avu );
+
+         
+         
+         //add to result
+         //wlocal+=avu*phi+diffusion*dphi
+         wLocal.axpy( quadrature[ pt ], avu,diffusion );
       }
     }
     if ( ! space().continuous() )
@@ -290,9 +301,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         }  
         else if( intersection.boundary() )
         {
-//          if ( ! model().isDirichletIntersection( intersection ) )
-  //              continue;
-   //       computeBoundary(intersection, entity, area, uLocal, wLocal);
+          //   if ( ! model().isDirichletIntersection( intersection ) )
+          //     continue;
+          
+          computeBoundary(intersection, entity, area, uLocal, wLocal);
         }
       }
     }
@@ -309,61 +321,111 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                             const LocalArgType& uEn, 
                             const NeighborArgType& uNb, 
                             LFDestType& wLocal) const
-{
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-  const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
-
-  LocalFunctionType uOldEn=uOld_.localFunction(entity); 
-  LocalFunctionType uOldNb=uOld_.localFunction(neighbor); 
- 
-
-
-
-
-
-
-  // compute penalty factor
-  const double intersectionArea = intersectionGeometry.volume();
-  const double beta = penalty() * intersectionArea / std::min( area, neighbor.geometry().volume() ); 
-  const int quadOrderEn = uEn.order() + wLocal.order();
-
-  const int quadOrderNb = uNb.order() + wLocal.order();
-  
-
-  FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
-  FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
-
-  const size_t numQuadraturePoints = quadInside.nop();
-
-  for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
   {
-    const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
-    const DomainType normal = intersection.integrationOuterNormal( x );
-    const double weight = quadInside.weight( pt );
-            
-    RangeType valueEn, valuNb;
-    JacobianRangeType dvalue,advalue;
+    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
-    RangeType vuEn,vuNb,vuEnOld,vuNbOld,gLeft,gRight;
-    JacobianRangeType duEn,duEnOld,duNb,duNbOld;
+    LocalFunctionType uOldEn=uOld_.localFunction(entity); 
+    LocalFunctionType uOldNb=uOld_.localFunction(neighbor); 
 
-    uEn.evaluate( quadInside[ pt ], vuEn );
-    //uEn.jacobian( quadInside[ pt ], duEn );
-    uOldEn.evaluate( quadInside[ pt ], vuEnOld );
-  //  uOldNb.jacobian( quadInside[ pt ], duEnOld );
-     
+    // compute penalty factor
+    const double intersectionArea = intersectionGeometry.volume();
+    const double beta = penalty() * intersectionArea / std::min( area, neighbor.geometry().volume() ); 
+   
+    const int quadOrderEn = uEn.order() + wLocal.order();
+    const int quadOrderNb = uNb.order() + wLocal.order();
     
-    uNb.evaluate( quadOutside[ pt ], vuNb );
-//    uNb.jacobian( quadOutside[ pt ], duNb );
-    uOldNb.evaluate( quadOutside[ pt ], vuNbOld );
-//    uOldNb.jacobian( quadOutside[ pt ], duNbOld );
+    FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
+    FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
 
-    double fluxRet;
+    const size_t numQuadraturePoints = quadInside.nop();
 
-    fluxRet=flux_.numericalFlux(normal,vuEn,vuNb,vuEnOld,vuNbOld,gLeft,gRight); 
+    for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+      {
+        const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+        const DomainType normal = intersection.integrationOuterNormal( x );
+        const double weight = quadInside.weight( pt );
+            
+        RangeType valueEn, valuNb;
+        JacobianRangeType dvalue,advalue;
 
+        RangeType vuEn,vuNb,vuEnOld,vuNbOld,gLeft,gRight;
+        JacobianRangeType duEn,duEnOld,duNb,duNbOld; 
+
+        uEn.evaluate( quadInside[ pt ], vuEn );
+        //uEn.jacobian( quadInside[ pt ], duEn );
+        uOldEn.evaluate( quadInside[ pt ], vuEnOld );
+        //uOldNb.jacobian( quadInside[ pt ], duEnOld );
+     
+        uNb.evaluate( quadOutside[ pt ], vuNb );
+        //uNb.jacobian( quadOutside[ pt ], duNb );
+        uOldNb.evaluate( quadOutside[ pt ], vuNbOld );
+        //uOldNb.jacobian( quadOutside[ pt ], duNbOld );
+
+        double fluxRet;
+
+        fluxRet=flux_.numericalFlux(normal,vuEn,vuNb,vuEnOld,vuNbOld,gLeft,gRight); 
+    
+        RangeType jump;
+        JacobianRangeType jumpNormal(0.), diffusion(0.);
+        jump=vuEn;
+        jump-=vuNb;
+        
+        for(int i=0; i<dimRange; ++i)
+          {
+            for(int j=0; j<dimDomain; ++j)
+              {
+                jumpNormal[i][j]=jump[i]*normal[j];
+              }
+          }
+        
+        model_.diffusion(jumpNormal,diffusion);
+
+        wLocal.axpy(quadOutside[pt],gLeft,diffusion);
+    }//end quad loop
+  }
+
+template< class DiscreteFunction,class Model, class Flux>
+template< class LocalArgType, class LFDestType>
+void DGPhasefieldOperator<DiscreteFunction, Model, Flux>
+::computeBoundary( const IntersectionType& intersection,
+                    const EntityType& entity,
+                    const double area,
+                    const LocalArgType& uEn,
+                    LFDestType& wLocal) const
+  {
+    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+
+    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+    LocalFunctionType uOldEn=uOld_.localFunction(entity); 
+
+    // compute penalty factor
+    const double intersectionArea = intersectionGeometry.volume();
+    const double beta = penalty() * intersectionArea / area;
+    const int quadOrder = uEn.order() + wLocal.order();
+
+    FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrder, FaceQuadratureType::INSIDE );
+    const size_t numQuadraturePoints = quadInside.nop();
+
+    for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+      {
+        const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+        const DomainType normal = intersection.integrationOuterNormal( x );
+        const double weight = quadInside.weight( pt );
       
-  }//end quad loop
+        RangeType value;
+        JacobianRangeType dvalue,advalue;
+
+        RangeType vuIn,jump, vuOld, vuMid,gLeft;
+        JacobianRangeType duIn, aduIn;
+        uEn.evaluate( quadInside[ pt ], vuIn );
+        uEn.jacobian( quadInside[ pt ], duIn );
+        
+        uOldEn.evaluate( quadInside[ pt ], vuOld);
+        
+        flux_.boundaryFlux(normal,vuIn, vuOld,gLeft);
+      }
+  }
 
 
 
@@ -371,7 +433,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
 
-}
 
 
 
