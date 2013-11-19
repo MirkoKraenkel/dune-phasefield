@@ -180,7 +180,7 @@ public:
     double phiRight = uRight[dimDomain+1];
 #if NONCONTRANS
 #else
-      phiLeft/=rhoLeft;
+    phiLeft/=rhoLeft;
     phiRight/=rhoRight;
 #endif
     double vLeft[dimDomain],vRight[dimDomain];
@@ -229,7 +229,7 @@ public:
 
     maxspeed = (maxspeedl > maxspeedr) ? maxspeedl : maxspeedr;
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
-    viscpara*=visc_;
+    viscpara=visc_;
     visc = uRight;
    
     visc -= uLeft;
@@ -245,9 +245,9 @@ public:
      // \delta\mu  consider sign!!!!!!!!
     newvisc=thetaFluxRight;
     newvisc-=thetaFluxLeft;
-      
+    newvisc*=alpha1_; 
    
-#if 0 
+#if 1 
     gLeft[0]-=newvisc[0];
    	
     for(int i=1; i<dimDomain;i++)
@@ -302,15 +302,17 @@ gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
       averageRho*=0.5;
        //[[\mu]]
       double jumpMu=thetaLeft[0]-thetaRight[0];
-
+     
 #if USEJACOBIAN
       //{{\tau}}
       double averageTau=thetaLeft[1]+thetaRight[1];
       averageTau*=0.5;
+ 
       //[\phi]
       double jumpPhi=phiLeft-phiRight;
       //{{v}} 
       double averageV[dimDomain];
+      
       for(int i=0;i<dimDomain;i++)
       {
         averageV[i]=0.5*(vLeft[i]+vRight[i]);
@@ -318,7 +320,6 @@ gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
 #else
       double averageTau=0.;
       double jumpPhi=0.;
-      abort();
 #endif
       nonConProd=0.;
       for(int i=0;i<dimDomain;i++)
@@ -327,13 +328,13 @@ gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
         nonConProd[i+1]*=averageRho*jumpMu-averageTau*jumpPhi;        
     
 #if NONCONTRANS
-       nonConProd[dimDomain+2]+=normal[i]*averageV[i]; 
+        nonConProd[dimDomain+2]+=normal[i]*averageV[i]; 
 #endif
       }   
 #if NONCONTRANS      
-    nonConProd[dimDomain+2]*=jumpPhi;
+      nonConProd[dimDomain+2]*=jumpPhi;
 #endif
-      //factor comes from the meanvalue of the testfunctions
+//      factor comes from the meanvalue of the testfunctions
       nonConProd*=0.5*length;
   }
                            
