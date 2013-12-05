@@ -60,14 +60,20 @@ protected:
    //! constructor
    DGPhasefieldOperator(const ModelType &model,
                         const DiscreteFunctionSpaceType &space,
-                        const NumericalFluxType &flux)
+                        const NumericalFluxType &flux,
+                        double theta=0.5)
    : model_(model),
      space_(space),
      flux_(flux),
+     theta_(theta),
      time_(0.),
      deltaT_(0.),
      uOld_("uOld" , space )
-  {}
+    {
+      factorImp_=(1+theta_)*0.5;
+      factorExp_=(1-theta_)*0.5;
+    }
+
   // prepare the solution vector 
   template <class Function>
   void prepare( const Function &func, DiscreteFunctionType &u ) 
@@ -84,7 +90,9 @@ protected:
   void setDeltaT( const double deltat) { deltaT_=deltat;}
   
   void setPreviousTimeStep( DiscreteFunctionType uOld)  { uOld_.assign(uOld);} 
-  protected:
+  DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
+ 
+ protected:
 
  
   template< class ArgType, class LocalArgType,class LFDestType >
@@ -115,12 +123,17 @@ protected:
 
   double penalty() const { return model_.penalty();}
 
+
+  
 protected:
   ModelType model_;
   const DiscreteFunctionSpaceType &space_;
   const NumericalFluxType flux_;
   double time_;
   double deltaT_;
+  const double theta_;
+  double factorImp_;
+  double factorExp_;
   DiscreteFunctionType uOld_;
 };
 
@@ -174,21 +187,19 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
         const double weight = quadrature.weight( pt ) * geometry.integrationElement( x );
 
-        RangeType vu,vuOld, vuMid;
+        RangeType vu,vuOld, vuMid{0};
         uLocal.evaluate( quadrature[ pt ], vu );
         uOldLocal.evaluate( quadrature[ pt ], vuOld); 
        
-        vuMid=vu;
-        vuMid+=vuOld;
-        vuMid*=0.5;
+        vuMid.axpy(factorImp_,vu);
+        vuMid.axpy(factorExp_,vuOld);
       
         JacobianRangeType du,duOld,duMid, diffusion;
         uLocal.jacobian( quadrature[ pt ], du );
         uOldLocal.jacobian( quadrature[ pt ], duOld);
         
-        duMid=du;
-        duMid+=duOld;
-        duMid*=0.5;
+        duMid.axpy(factorExp_,du);
+        duMid.axpy(factorExp_,duOld);
         RangeType avu(0.);
 //rho------------------------------------------------------------- 
         Filter::rho(avu)+=Filter::rho(vu);
@@ -330,7 +341,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
     // compute penalty factor
     const double intersectionArea = intersectionGeometry.volume();
-    const double beta = penalty() * intersectionArea / std::min( area, neighbor.geometry().volume() ); 
+    const double penaltyFactor =  intersectionArea / std::min( area, neighbor.geometry().volume() ); 
    
     const int quadOrderEn = uEn.order() + wLocal.order();
     const int quadOrderNb = uNb.order() + wLocal.order();
@@ -353,35 +364,55 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         JacobianRangeType duEn,duEnOld,duNb,duNbOld; 
 
         uEn.evaluate( quadInside[ pt ], vuEn );
-        //uEn.jacobian( quadInside[ pt ], duEn );
+        uEn.jacobian( quadInside[ pt ], duEn );
         uOldEn.evaluate( quadInside[ pt ], vuEnOld );
-        //uOldNb.jacobian( quadInside[ pt ], duEnOld );
-     
+        uOldNb.jacobian( quadInside[ pt ], duEnOld );
+        
         uNb.evaluate( quadOutside[ pt ], vuNb );
-        //uNb.jacobian( quadOutside[ pt ], duNb );
+        uNb.jacobian( quadOutside[ pt ], duNb );
         uOldNb.evaluate( quadOutside[ pt ], vuNbOld );
-        //uOldNb.jacobian( quadOutside[ pt ], duNbOld );
+        uOldNb.jacobian( quadOutside[ pt ], duNbOld );
+
+        RangeType uMidEn{0.},uMidNb{0.};
+        JacobianRangeType duMidEn{0.},duMidNb{0.};
+        
+        uMidEn.axpy(factorImp_,vuEn);
+        uMidEn.axpy(factorExp_,vuEnOld);
+        uMidNb.axpy(factorImp_,vuNb);
+        uMidNb.axpy(factorExp_,vuNbOld);
+
+        duMidEn.axpy(factorImp_,duEn);
+        duMidEn.axpy(factorExp_,duEnOld);
+
+        duMidNb.axpy(factorImp_,duNb);
+        duMidNb.axpy(factorExp_,duNbOld);
+
 
         double fluxRet;
 
         fluxRet=flux_.numericalFlux(normal,vuEn,vuNb,vuEnOld,vuNbOld,gLeft,gRight); 
     
-        RangeType jump;
-        JacobianRangeType jumpNormal(0.), diffusion(0.);
-        jump=vuEn;
-        jump-=vuNb;
+        RangeType value{0.},dvalue{0.};
+      
         
-        for(int i=0; i<dimRange; ++i)
-          {
-            for(int j=0; j<dimDomain; ++j)
-              {
-                jumpNormal[i][j]=jump[i]*normal[j];
-              }
-          }
         
-        model_.diffusion(jumpNormal,diffusion);
+        flux_.diffusionFlux(normal,penaltyFactor,uMidEn,uMidNb,duMidEn,duMidNb,value,dvalue);
+        
+        
+        // penalty term : beta [u] [phi] = beta (u+ - u-)(phi+ - phi-)=beta (u+ - u-)phi+ 
+  
+        gLeft+=jump*beta*intersectionGeometry.intersectionGeometry( x );    
+       // {A grad u}.[phi] = {A grad u}.phi+ n_+ = 0.5*(grad u+ + grad u-).n_+ phi+
+        //  [ u ] * { grad phi_en } = -normal(u+ - u-) * 0.5 grad phi_en
 
-        wLocal.axpy(quadOutside[pt],gLeft,diffusion);
+        duMidEn+=duMidNb; 
+        duMidEn*=-0.5;
+        model_.diffusion(duMidEn,diffusionU);
+        diffusionU.umv(normal,gLeft);
+         
+        model_.diffusion(jumpNormal,diffusionW);
+        diffusionW*=switchIP_;
+        wLocal.axpy(quadOutside[pt],gLeft,diffusionW);
     }//end quad loop
   }
 

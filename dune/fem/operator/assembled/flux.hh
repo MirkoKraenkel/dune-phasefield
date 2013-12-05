@@ -17,25 +17,34 @@ class MixedFlux
  
   typedef typename Dune::FieldVector<double,dimRange> RangeType;
   typedef typename Dune::FieldVector<double,dimDomain> DomainType;
-  typedef  PhasefieldFilter<RangeType> Filter; 
+  typedef typename Dune::FieldMatrix<double,dimRange,dimDomain> JacobianRangeType;
+   typedef  PhasefieldFilter<RangeType> Filter; 
 
   
 public:
-  MixedFlux(const ModelType& model,double penalty):
+  MixedFlux(const ModelType& model,double penalty,int switchIP=1):
     model_(model),
-    penalty_(penalty)
+    beta_(penalty),
+    switchIP_(switchIP)
     {}
 
 
   double numericalFlux( const DomainType& normal, 
                         const RangeType& vuEn,
-                        const RangeType& vuNb,
+                        const RangeType& vuN,
                         const RangeType& vuEnOld,
                         const RangeType& vuNbOld,
                         RangeType gLeft,
                         RangeType gRight) const;
 
-
+  double diffusionflux( const DomainType& normal,
+                        const double penaltyFactor,
+                        const RangeType& uEn,
+                        const RangeType& uNb,
+                        const JacobianRangeType& duEn,
+                        const JacobianRangeType& duNb,
+                        RangeType& value,
+                        JacobianRangeType& dvalue) const;
 
   double boundaryFlux( const DomainType& normal, 
                         const RangeType& vuEn,
@@ -45,7 +54,8 @@ public:
 
 private:
   const ModelType& model_;
-  double penalty_;
+  double beta_;
+  const char switchIP_; 
 
 };
 
@@ -200,6 +210,49 @@ double MixedFlux<Model>
 
       return 0.;
   }
+
+template< class Model >
+double MixedFlux<Model>
+:: diffusionflux( const DomainType& normal,
+                      const double penaltyFactor,
+                      const RangeType& uEn,
+                      const RangeType& uNb,
+                      const JacobianRangeType& duEn,
+                      const JacobianRangeType& duNb,
+                      RangeType& value,
+                      JacobianRangeType& dvalue) const
+{
+  RangeType jump{0};
+  jump=uEn;
+  jump-=uNb;
+  jump*=beta_*penaltyFactor;
+  for( int i=0; i<dimDomain;++i)
+    Filter::velocity(value,i)=Filter::velocity(jump,i);
+  
+  JacobianRangeType jumpNormal{0.};
+    // [u]\otimes n
+  for(int i=0; i<dimDomain; ++i)
+    {
+      for(int j=0; j<dimDomain; ++j)
+        {
+          jumpNormal[i+1][j]=0.5*jump[i+1]*normal[j];
+          
+        }
+    }
+     
+ 
+   jumpNormal*=switchIP_;
+   model_.diffusion(jumpNormal,dvalue);
+   
+   JacobianRangeType mean{0.}, Amean{0.};
+
+   mean+=duNb;
+   mean*=-0.5;
+   model_.diffusion(mean,Amean);
+   Amean.umv(normal,value);
+
+
+}
 
 #endif
 
