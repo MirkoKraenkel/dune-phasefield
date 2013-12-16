@@ -26,19 +26,26 @@ public:
     model_(model),
     beta_(penalty),
     switchIP_(switchIP)
-    {}
+    {
+      std::cout<<"Penalty "<<penalty<<"\n";
+    }
 
 
   double numericalFlux( const DomainType& normal, 
+                        const double penaltyFactor,
+                        const double implFactor,
+                        const double explFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
                         const RangeType& vuEnOld,
                         const RangeType& vuNbOld,
-                        RangeType gLeft,
-                        RangeType gRight) const;
+                        RangeType& gLeft,
+                        RangeType& gRight) const;
 
-  double diffusionflux( const DomainType& normal,
+  double diffusionFlux( const DomainType& normal,
                         const double penaltyFactor,
+                        const double implFactor,
+                        const double explFactor,
                         const RangeType& uEn,
                         const RangeType& uNb,
                         const JacobianRangeType& duEn,
@@ -47,9 +54,9 @@ public:
                         JacobianRangeType& dvalue) const;
 
   double boundaryFlux( const DomainType& normal, 
-                        const RangeType& vuEn,
-                        const RangeType& vuEnOld,
-                        RangeType gLeft) const;
+                       const RangeType& vuEn,
+                       const RangeType& vuEnOld,
+                       RangeType& gLeft) const;
 
 
 private:
@@ -65,7 +72,7 @@ double MixedFlux<Model>
 ::boundaryFlux(const DomainType& normal,
                const RangeType& vuEn,
                const RangeType& vuOld,
-               RangeType gLeft) const
+               RangeType& gLeft) const
   {
     RangeType valEn,midEn ;
     valEn=vuEn;
@@ -126,23 +133,26 @@ double MixedFlux<Model>
 template< class Model >
 double MixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
-                      const RangeType& vuEn,
-                      const RangeType& vuNb,
-                      const RangeType& vuEnOld,
-                      const RangeType& vuNbOld,
-                      RangeType gLeft,
-                      RangeType gRight) const
+                const double penaltyFactor,              
+                const double implFactor,
+                const double explFactor,
+                const RangeType& vuEn,
+                const RangeType& vuNb,
+                const RangeType& vuEnOld,
+                const RangeType& vuNbOld,
+                RangeType& gLeft,
+                RangeType& gRight) const
   {
       RangeType valEn,valNb,midEn, midNb,jump,mean;
       valEn=vuEn;
       valNb=vuNb;
 
-      midEn =  vuEn;
-      midEn+= vuEnOld ;
+      midEn = implFactor*vuEn;
+      midEn+= explFactor*vuEnOld ;
       midEn*=0.5;
 
-      midNb = vuNb ;
-      midNb+= vuNbOld ;
+      midNb = implFactor*vuNb ;
+      midNb = explFactor*vuNbOld ;
       midNb*=0.5;
     
       jump = midEn;
@@ -166,6 +176,7 @@ double MixedFlux<Model>
       //F_1=( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)*-0.5  
       Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
       Filter::rho(gLeft)*=-0.5;
+      Filter::rho(gLeft)=0.;
     
       //----------------------------------------------------------------
     
@@ -178,6 +189,7 @@ double MixedFlux<Model>
           Filter::velocity(gLeft,i)=-1*Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
+          Filter::velocity(gLeft,i)=0.;
         } 
     
       //----------------------------------------------------------------
@@ -187,16 +199,16 @@ double MixedFlux<Model>
         {
           //F_{3.1}
           //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
-          Filter::phi(gLeft)+=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
+          //Filter::phi(gLeft)+=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
           //tau
           //F_{3.2}
           //(\sigma^+-\sigma^-)\cdot n * 0.5
-          laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
+          
+          laplaceFlux-=Filter::sigma(jump,i)*normal[i]*0.5;
         }  
       //----------------------------------------------------------------
-
       //tau-------------------------------------------------------------
-      Filter::tau(gLeft)+=model_.delta()*laplaceFlux;
+      Filter::tau(gLeft)+=laplaceFlux;
       //----------------------------------------------------------------
 
       //sigma-----------------------------------------------------------
@@ -207,50 +219,46 @@ double MixedFlux<Model>
           Filter::sigma(gLeft,i)=(Filter::phi(valEn)-Filter::phi(valNb))*normal[i]*0.5;
         } 
       //----------------------------------------------------------------
-
       return 0.;
   }
 
 template< class Model >
 double MixedFlux<Model>
-:: diffusionflux( const DomainType& normal,
-                      const double penaltyFactor,
-                      const RangeType& uEn,
-                      const RangeType& uNb,
-                      const JacobianRangeType& duEn,
-                      const JacobianRangeType& duNb,
-                      RangeType& value,
-                      JacobianRangeType& dvalue) const
+:: diffusionFlux( const DomainType& normal,
+                  const double penaltyFactor,
+                  const double implFactor,
+                  const double explFactor,
+                  const RangeType& uEn,
+                  const RangeType& uNb,
+                  const JacobianRangeType& duEn,
+                  const JacobianRangeType& duNb,
+                  RangeType& value,
+                  JacobianRangeType& dvalue) const
 {
   RangeType jump{0};
   jump=uEn;
-  jump-=uNb;
-  jump*=beta_*penaltyFactor;
+  jump-=uNb;  
+  
   for( int i=0; i<dimDomain;++i)
-    Filter::velocity(value,i)=Filter::velocity(jump,i);
+    Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i);
   
   JacobianRangeType jumpNormal{0.};
-    // [u]\otimes n
-  for(int i=0; i<dimDomain; ++i)
-    {
-      for(int j=0; j<dimDomain; ++j)
-        {
-          jumpNormal[i+1][j]=0.5*jump[i+1]*normal[j];
-          
-        }
-    }
-     
  
-   jumpNormal*=switchIP_;
-   model_.diffusion(jumpNormal,dvalue);
+  // [u]\otimes n
+  for(int i=0; i<dimDomain; ++i)
+    for(int j=0; j<dimDomain; ++j)
+      jumpNormal[i+1][j]=-0.5*jump[i+1]*normal[j];
+ 
+
+  jumpNormal*=switchIP_;
+  model_.diffusion(jumpNormal,dvalue);
    
-   JacobianRangeType mean{0.}, Amean{0.};
-
-   mean+=duNb;
-   mean*=-0.5;
-   model_.diffusion(mean,Amean);
-   Amean.umv(normal,value);
-
+  JacobianRangeType mean{0.}, Amean{0.};
+  mean=duEn;
+  mean+=duNb;
+  mean*=-0.5;
+  model_.diffusion(mean,Amean);
+  Amean.umv(normal,value);
 
 }
 
