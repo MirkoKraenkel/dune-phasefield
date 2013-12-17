@@ -508,7 +508,7 @@ namespace Dune {
 			// diffusion
 			if( diffusion ) 
 				{
-					JacobianRangeType diffmatrix;
+					JacobianRangeType diffmatrix(0.);
 					model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
 					// ldg case 
 					f += diffmatrix;
