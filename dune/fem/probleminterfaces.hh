@@ -2,17 +2,10 @@
 #define DUNE_PROBLEMINTERFACE_HH
 
 #include <dune/common/version.hh>
-#include <dune/fem/function/common/function.hh>
+#include <dune/fem/function/common/timedependentfunction.hh>
 #include <dune/fem/misc/gridsolution.hh>
 
 namespace Dune {
-
-#if DUNE_VERSION_NEWER_REV(DUNE_FEM,1,1,0)
-#define FEMSPACE Fem::
-#else 
-#define FEMSPACE 
-#endif
-
 
 /**
  * @brief describes the interface for
@@ -20,12 +13,9 @@ namespace Dune {
  */
 template< class FunctionSpaceImp, bool constantVelocity >
 class EvolutionProblemInterface
-: public FEMSPACE  Function< FunctionSpaceImp,
-                   EvolutionProblemInterface< FunctionSpaceImp, constantVelocity> >
 {
   typedef EvolutionProblemInterface< FunctionSpaceImp,
                                      constantVelocity >              ThisType;
-  typedef FEMSPACE Function< FunctionSpaceImp, ThisType >            BaseType;
 
 public:
   typedef FunctionSpaceImp                                           FunctionSpaceType;
@@ -40,25 +30,29 @@ public:
   typedef typename FunctionSpaceType :: RangeFieldType               RangeFieldType;
   typedef typename FunctionSpaceType :: JacobianRangeType            JacobianRangeType;
 
+  typedef Fem :: Parameter ParameterType ;
+
   /**
    * @brief define problem parameters
    */
 protected:
   EvolutionProblemInterface()
-#if DUNE_VERSION_NEWER_REV(DUNE_FEM,1,1,0)
-  : BaseType( ),
-#else 
-  : BaseType( space_ ),
-#endif
-    space_(),
-    writeGridSolution_( Fem::Parameter::getValue<bool>("gridsol.writesolution", false) ),
-    saveStep_( Fem::Parameter :: getValue< double >("gridsol.firstwrite") ),
-    saveInterval_( Fem::Parameter :: getValue< double >("gridsol.savestep") ),
+  : writeGridSolution_( ParameterType::getValue<bool>("gridsol.writesolution", false) ),
+    saveStep_( ParameterType :: getValue< double >("gridsol.firstwrite") ),
+    saveInterval_( ParameterType :: getValue< double >("gridsol.savestep") ),
     writeCounter_( 0 )
   {
   }
 
 public:
+  typedef Fem :: TimeDependentFunction< ThisType > TimeDependentFunctionType;
+
+  //! turn timedependent function into function by fixing time 
+  TimeDependentFunctionType fixedTimeFunction( const double time ) const 
+  {
+    return TimeDependentFunctionType( *this, time );
+  }
+
   // return prefix for data loops 
   virtual std::string dataPrefix() const 
   {
@@ -78,6 +72,7 @@ public:
                               const RangeType& u, 
                               RangeType& res) const 
   {
+    abort();
     res = 0;
     return 0.0;
   }
@@ -88,9 +83,54 @@ public:
                                  const RangeType& u, 
                                  RangeType& res) const 
   {
+    abort();
     res = 0;
     return 0.0;
   }
+
+  /** \brief decide if the refinement/coarsening should be allowed in certain regions of the
+   *    computational domain
+   *  \param[in] x Global coordinates
+   *  \return whether or not the refinement is allowed
+   */
+  bool allowsRefinement( const DomainType& x ) const
+  {
+    // by default refinement is allowed in the whole computational domain
+    return true;
+  }
+
+  //! use both indicator for a grid adaptation
+  inline bool twoIndicators() const
+  {
+    return false;
+  }
+
+  /** \brief return a first indicator for an adaptation of the grid
+   *  \param[in] u Value of the numerical solution in a point
+   *
+   *  \note NaN does no adaptation
+   *
+   *  \return scalar indicator of importance for a grid adaptation
+   *    like pot. temperature, density etc
+   */
+  inline double indicator1( const DomainType& x, const RangeType& u ) const
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  /** \brief return a second indicator for an adaptation of the grid
+   *  \param[in] u Value of the numerical solution in a point
+   *
+   *  \note NaN does no adaptation
+   *
+   *  \return scalar indicator of importance for a grid adaptation
+   *    like pot. temperature, density etc
+   */
+  inline double indicator2( const DomainType& x, const RangeType& u ) const
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
 
   //! return diffusion coefficient (default returns epsilon)
   virtual inline double diffusion ( const RangeType& u, const JacobianRangeType& gradU ) const 
@@ -110,40 +150,22 @@ public:
   virtual void velocity(const DomainType& x, DomainType& v) const {}
 
   /**
-   * @brief evaluates \f$ u_0(x) \f$
-   */
-  virtual void evaluate(const DomainType& arg, RangeType& res) const {
-    evaluate(arg, startTime(), res);
-  }
-
-  /**
    * @brief old version of the exact solution
    *
    * old version of evaluate(const DomainType& arg, double t, RangeType& res),
    * which is still needed by the DataWriter
    */
   virtual inline void evaluate(const double t,
-                               const DomainType& arg, RangeType& res) const {
+                               const DomainType& arg, RangeType& res) const 
+  {
     evaluate(arg, t, res);
   }
 
   /**
-   * @brief evaluate exact solution
+   * @brief evaluate exact solution, to be implemented in derived classes
    */
   virtual void evaluate(const DomainType& arg,
-                        const double t, RangeType& res) const {};
-
-  /** \brief calculate a background solution
-   *  \param[in] xgl Point in global coordinates
-   *  \param[out] res Background solution (default to 0)
-   *
-   *  \note This method is need only for the test cases in 
-   *    atmospheric simulations
-   */
-  virtual inline void bg( const DomainType& xgl, RangeType& res ) const
-  {
-    res = 0.;
-  }
+                        const double t, RangeType& res) const = 0 ;
 
   /**
    * @brief latex output for EocOutput, default is empty
@@ -199,7 +221,6 @@ public:
 
 
 protected:
-  FunctionSpaceType space_;
   const bool writeGridSolution_;
   mutable double saveStep_ ;
   const double saveInterval_ ;
@@ -302,10 +323,10 @@ protected:
 
   //! the exact solution to the problem for EOC calculation
   class ExactSolution
-  : public FEMSPACE  Function< FunctionSpaceType, ExactSolution >
+  : public Fem:: Function< FunctionSpaceType, ExactSolution >
   {
   private:
-    typedef FEMSPACE  Function< FunctionSpaceType, ExactSolution >      BaseType;
+    typedef Fem:: Function< FunctionSpaceType, ExactSolution >      BaseType;
 
     typedef ProblemInterface< FunctionSpaceType>   DataType;
   protected:
