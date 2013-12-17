@@ -78,9 +78,12 @@ class AllenCahnModel : public DefaultModel < AllenCahnModelTraits< GridPartType 
  public:
   AllenCahnModel( const ProblemType& problem ) 
     : problem_( problem ),
-      delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")) 
+      delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")), 
+      gamma_(Dune::Fem::Parameter::getValue<double>("phasefield.gamma"))
   {
   }
+  
+  inline double gamma() const {return gamma_;}
 
   inline bool hasStiffSource() const { return true; }
   
@@ -92,10 +95,22 @@ class AllenCahnModel : public DefaultModel < AllenCahnModelTraits< GridPartType 
                         const double time,
                         const DomainType& x,
                         const RangeType& u,
-                        const GradientRangeType& du,
+                        const DomainType& velo,
+                        const JacobianRangeType& du,
                         RangeType & s) const
   {
-    return stiffSource( en, time, x, u, s );
+//    DomainType xgl = en.geometry().global( x );
+ 
+    double deltainv=1/delta_;
+
+    s[0]=2*u[0]*u[0]*u[0]-3*u[0]*u[0]+u[0];
+
+  	s[0]*=-4*deltainv;
+    
+    s[0]-=du[0][0]*velo[0];
+    
+    return deltainv;
+ //  return stiffSource( en, time, x, u,du, s );
   }
 
 
@@ -110,10 +125,11 @@ class AllenCahnModel : public DefaultModel < AllenCahnModelTraits< GridPartType 
  
     double deltainv=1/delta_;
  
+    
 
+    s[0]=2*u[0]*u[0]*u[0]-3*u[0]*u[0]+u[0];
 
-    s[0]=u[0]*u[0]*u[0]-u[0];
-  	
+  	s[0]*=-4*deltainv;
     return deltainv;
   }
 
@@ -150,7 +166,9 @@ class AllenCahnModel : public DefaultModel < AllenCahnModelTraits< GridPartType 
                          const RangeType& u,
 	                  		 JacobianRangeType& f ) const 
   {
-     abort(); 
+//    for(int i = 0; i<dimDomain; ++i)
+  //   f[0][i]=gamma_*u[0];
+  
   }
 
   inline double diffusionTimeStep( const IntersectionType& it,
@@ -233,7 +251,7 @@ class AllenCahnModel : public DefaultModel < AllenCahnModelTraits< GridPartType 
                         double& advspeed,
                         double& totalspeed ) const 
   {
-    abort();
+    advspeed=std::abs(gamma_); 
     totalspeed=advspeed;
   }
 
@@ -333,7 +351,7 @@ class AllenCahnModel : public DefaultModel < AllenCahnModelTraits< GridPartType 
  protected:
   const ProblemType problem_;
   const double delta_;
-
+  const double gamma_;
 };
 
 /////////////////////////////////////////
