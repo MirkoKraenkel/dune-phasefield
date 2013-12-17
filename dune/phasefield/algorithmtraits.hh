@@ -3,11 +3,7 @@
 
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 
-#ifdef MASTER 
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
-#else
-#include <dune/fem/space/dgspace/localrestrictprolong.hh>
-#endif
 
 #include <dune/fem/solver/odesolver.hh>
 #if WELLBALANCED
