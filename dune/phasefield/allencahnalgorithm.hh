@@ -50,7 +50,6 @@ namespace Dune{
 //  EOC output parameter class 
 //
 /////////////////////////////////////////////////////////////////////////////
-
 struct EocDataOutputParameters :   /*@LST1S@*/
   public Dune::Fem::LocalParameter<Dune::Fem::DataWriterParameters,EocDataOutputParameters>
 {
@@ -90,7 +89,8 @@ public:
 	//problem depending types
 	
   typedef typename Traits::ProblemGeneratorType ProblemGeneratorType;
-	typedef typename Traits::GridPartType GridPartType;
+  typedef typename ProblemGeneratorType::VelocityType VelocityType;
+  typedef typename Traits::GridPartType GridPartType;
 	typedef typename Traits::DiscreteOperatorType DiscreteOperatorType;
  
   //for interpolation of initial Data 
@@ -205,7 +205,7 @@ public:
 		dgOperator_(grid,convectionFlux_),
     tolerance_(Fem::Parameter :: getValue< double >( "phasefield.adaptTol", 100) ),
     interpolateData_(Fem::Parameter::getValue<bool>( "phasefield.interpolinitial", false) ),
-    calcresidual_( Fem :: Parameter :: getValue< bool >(" phasefield.calcresidual" , false ) ),
+    calcresidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual"  ) ),
     timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
     {
     }
@@ -411,11 +411,13 @@ public:
 		DiscreteFunctionType& U = solution();
     DiscreteFunctionType* Uold = oldsolution(); 
 
-//    Velocity velo;
+    VelocityType velo;
+    Dune::Fem::DGL2ProjectionImpl::project(velo, velocity_);
+
  //   typedef Fem::GridFunctionAdapter<Velocity,GridPartType> GridVeloType;
    // GridVeloType  gridvelo("grid velocity", velo,gridPart_,solution().space().order()+1);
 
- //   dgOperator_.setVelocity(gridvelo);
+    dgOperator_.setVelocity(velocity_);
    
     RestrictionProlongationType rp( U );
     
@@ -499,7 +501,6 @@ public:
     {
     for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps /* && timeStepError > timeStepTolerance_*/;  )   
 	  {	
-      abort();
 			tp.provideTimeStepEstimate(maxTimeStep);                                         
 			
 			const double tnow  = tp.time();
