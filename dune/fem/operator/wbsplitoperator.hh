@@ -13,7 +13,10 @@
 #include <dune/fem-dg/operator/limiter/limitpass.hh>
 
 
-#include "wellbalanceddiscretemodel.hh" 
+
+#include "implicitwbdiscretemodel.hh" 
+#include "explicitwbdiscretemodel.hh" 
+
 
 //#include <dune/fem-dg/operator/dg/operatorbase.hh>
 #include <dune/fem-dg/pass/dgpass.hh>
@@ -21,8 +24,6 @@
 
 
 //PassTraits are defined  in <dune-phasefield/dune/fem/opeartor/projdiscretemodelcommon.hh>
-
-
 namespace Dune {  
 	
 template< class Model, class NumFlux, 
