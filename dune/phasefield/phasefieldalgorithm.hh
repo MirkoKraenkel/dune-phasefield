@@ -202,9 +202,9 @@ public:
     solution_( "solution", space() ),
 		oldsolution_( Fem::Parameter :: getValue< bool >("phasefield.storelaststep", false) ? 
 													new DiscreteFunctionType("oldsolution", space() ) : nullptr ),
-    sigma_( Fem :: Parameter :: getValue< bool >("phasefield.sigma", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : 0),
-		theta_( Fem :: Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : 0 ),
-		energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
+    sigma_( Fem :: Parameter :: getValue< bool >("phasefield.sigma", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : nullptr),
+		theta_( Fem :: Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : nullptr),
+		energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : nullptr),
 		additionalVariables_( Fem::Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
 													new DiscreteFunctionType("additional", space() ) : 0 ),
 		problem_( ProblemGeneratorType::problem() ),
@@ -248,7 +248,7 @@ public:
   }
 
 	//some acces methods
-	//spacs
+	//space
 	DiscreteSpaceType& space()
 	{
 		return space_;
@@ -258,7 +258,6 @@ public:
 	{
 		return sigmaSpace_;
 	}
-
 	
 	ThetaDiscreteSpaceType& thetaspace()
 	{
@@ -369,22 +368,24 @@ public:
   {
     DiscreteSigmaType* gradient = sigma();
     DiscreteScalarType* totalenergy = energy();
-
-    if(gradient != nullptr && gradient != nullptr)
+ 
+    if(gradient != nullptr  && totalenergy != nullptr)
     { 
       gradient->clear();
-     
+      
       dgOperator_.gradient(solution(),*gradient);
-   
+  
+      totalenergy->clear();
+
       double kineticEnergy;
       
       double chemicalEnergy; 
 #if WELLBALANCED    
       double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy);
-      str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
+      str<<std::setprecision(20)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
 #else
       double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
-      str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
+      str<<std::setprecision(20)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
 #endif
 
     }
@@ -419,7 +420,7 @@ public:
         }
 
         // calculate additional variables from the current num. solution
-		  
+		 
         setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
 			}
 
@@ -486,7 +487,9 @@ public:
 		//restoreFromCheckPoint( tp );
 		
 		// tuple with additionalVariables 
-	  IOTupleType dataTuple( Uold, this->additionalVariables(),this->energy(),this->theta() );
+	  
+  
+    IOTupleType dataTuple(&U, Uold,this->energy(),this->theta() );
 	
    // IOTupleType dataTuple( &U, this->sigma(),this->theta() );
     std::ofstream energyfile;
@@ -528,7 +531,8 @@ public:
 				
         }
     }
-    tp.provideTimeStepEstimate(maxTimeStep);
+    tp.provideTimeStepEstimate(1e-4);
+
 		if ( fixedTimeStep_ > 1e-20 )
 			tp.init( fixedTimeStep_ );
 		else
@@ -536,13 +540,12 @@ public:
 		
 
 
-    tp.provideTimeStepEstimate(maxTimeStep);                                         
-		
+//    tp.provideTimeStepEstimate(1e-4);                                         
     std::cout<<"deltaT "<<tp.deltaT()<<" estimate "<<dgOperator_.timeStepEstimate()<<std::endl;
-
+ 
+   writeEnergy(tp ,std::cout);    
 		writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
-
-    if(calcresidual_)
+   if(calcresidual_)
     {
       std::cout<<"Residual\n";
       Uold->clear();
@@ -554,7 +557,6 @@ public:
     for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps /* && timeStepError > timeStepTolerance_*/;  )   
 		{ 
 			tp.provideTimeStepEstimate(maxTimeStep);                                         
-//		 DiscreteFunctionType tmp)	
 			const double tnow  = tp.time();
 			const double ldt   = tp.deltaT();
       int newton_iterations;
@@ -566,7 +568,11 @@ public:
       // grid adaptation (including marking of elements)
 			if( (adaptCount > 0) && (counter % adaptCount) == 0 )
 					estimateMarkAdapt( adaptManager );
-		
+      if(Uold!=nullptr)
+      {
+        Uold->clear();
+        dgOperator_(U,*Uold);
+      }
 			step( tp, newton_iterations, ils_iterations, 
             max_newton_iterations, max_ils_iterations);
 			// Check that no NAN have been generated
@@ -579,39 +585,42 @@ public:
 			}
 
 
-      if(Uold!=nullptr)
+      if(false)
       { 
-        
-        
         Uold->clear();
         dgOperator_(U,*Uold);
- //       U.assign(*Uold);
-      
-        
-//        timeStepError = stepError(U,*Uold);
-  //      timeStepError/=ldt;
-    //    Uold->assign(U);
+       //Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), *Uold);
+   
+        if(false)
+        {
+          U.assign(*Uold);
+          timeStepError = stepError(U,*Uold);
+          timeStepError/=ldt;
+          Uold->assign(U);
+        }
       }
+ 
       double timeStepEstimate=dgOperator_.timeStepEstimate();	
       double diffTimeStep=dgOperator_.maxDiffusionTimeStep();
       double advTimeStep=dgOperator_.maxAdvectionTimeStep();
-     if( (printCount > 0) && (counter % printCount == 0))
-			{
-	
-        if( grid_.comm().rank() == 0 )
+     
+      if( (printCount > 0) && (counter % printCount == 0))
         {
-          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
-     ////     if(Uold!=nullptr)
-       ////    std::cout<< " ,Error between timesteps="<< timeStepError;
-         ////  std::cout<<std::endl;
-               
+          if( grid_.comm().rank() == 0 )
+          {
+    
+            std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
+          if(false)
+            {
+              if(Uold!=nullptr)
+              std::cout<< " ,Error between timesteps="<< timeStepError;
+              std::cout<<std::endl;
+              }    
+            }
+       
         }
-         writeEnergy( tp , energyfile);
-        
-     }
 
-
-			writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
+ 			writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
 			writeCheckPoint( tp, adaptManager );
       //statistics
       mindt = (ldt<mindt) ? ldt : mindt;
@@ -619,7 +628,11 @@ public:
       averagedt += ldt;
       total_newton_iterations+=newton_iterations;
       total_ils_iterations+=ils_iterations;
+      
+      if(eocDataOutput.willWrite( tp ) )    
+        writeEnergy( tp , energyfile);
   
+ 
 			// next time step is prescribed by fixedTimeStep
 			// it fixedTimeStep is not 0
 			if ( fixedTimeStep_ > 1e-20 )
@@ -635,7 +648,6 @@ public:
     energyfile.close();
 	  averagedt /= double(tp.timeStep());
 	
-	// 		writeData( eocDataOutput, tp, true );
 	
 		finalizeStep( tp );                                  
     
@@ -701,7 +713,7 @@ public:
 
 	virtual OdeSolverType* createOdeSolver(TimeProviderType& tp) 
 	{
-
+   //   return nullptr;
 #if 0
 		if( adaptive_ )
 			{
