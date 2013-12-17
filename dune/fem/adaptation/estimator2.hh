@@ -11,7 +11,7 @@
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/spaceoperatorif.hh> 
 #include <dune/fem/operator/matrix/blockmatrix.hh>
-#include <dune/fem/space/dgspace.hh>
+#include <dune/fem/space/discontinuousgalerkin.hh>
 #include <dune/fem/space/combinedspace.hh>
 #include <dune/fem/quadrature/intersectionquadrature.hh>
 #include <dune/fem/misc/h1norm.hh>
@@ -85,7 +85,7 @@ namespace Dune
 	    minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
 	    coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1))
       {
-	      clear();
+        clear();
       }  
     
     // make this class behave as required for a LocalFunctionAdapter
@@ -177,7 +177,7 @@ namespace Dune
       {
         // get local tolerance (note: remove sqrt from error)
         // const double localTol2 = tolerance*tolerance / (double)indexSet_.size( 0 );
-      	const double localTol2=tolerance;
+      	//const double localTol2=tolerance;
       	// loop over all elements 
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
@@ -185,11 +185,13 @@ namespace Dune
           const ElementType &entity = *it;
           if(std::abs(indicator_[indexSet_.index(entity)]-0.5) < tolerance )
 	        {
+          
 	          if(entity.level()<maxLevel_)
 		        {
+                
               grid_.mark( 1, entity );
 		         
-
+             
               IntersectionIteratorType end = gridPart_.iend( entity );
 		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		          {
@@ -210,7 +212,7 @@ namespace Dune
 	          ++marked;
 		       }
 	        }
-          else if(std::abs(indicator_[indexSet_.index(entity)]-0.5) > 0.5 )
+          else if(std::abs(indicator_[indexSet_.index(entity)]-0.5) > tolerance )
 	        { 
 	          if(entity.level()>minLevel_)
 		        grid_.mark(-1,entity);
@@ -231,7 +233,6 @@ namespace Dune
     bool estimateAndMark(double tolerance)
     {
       double esti=estimate();
-      //  std::cout<<"EstimateValue="<<esti<<std::endl;
       return mark(tolerance);
     }
     
@@ -259,7 +260,7 @@ namespace Dune
         
 	
 	      double y=range[dimension+1];
-	  //    y/=range[0];
+	      y/=range[0];
 
 	      const DomainType global = geometry.global(quad.point(qp));
 	
@@ -268,7 +269,6 @@ namespace Dune
 	     
         indicator_[ index ] += weight * y;
       }
-     
     }
 
     
