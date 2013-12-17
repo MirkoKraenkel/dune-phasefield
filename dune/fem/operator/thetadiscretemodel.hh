@@ -1,6 +1,6 @@
 #ifndef DUNE_PHASEFIELD_THETADISCREMODEL_HH
 #define DUNE_PHASEFIELD_THETADISCREMODEL_HH
-
+#define SWITCH_LDG 0
 
 // Dune includes
 #include <dune/fem/gridpart/common/gridpart.hh>
@@ -139,14 +139,12 @@ namespace Dune {
 		{ 
       const DomainType  xgl=en.geometry().global(x);   
       
-      
-      
       s = 0;
 		
       //s[0]=dF/drho  s[1]=-dF/dphi
       
       const double dtStiff = model_.thetaSource( en, time, x, u[uVar], u[sigmaVar], s );
-     
+	   
       return dtStiff;
 		} 
 
@@ -224,11 +222,11 @@ namespace Dune {
 												 JacobianRangeType& gDiffLeft,
 												 JacobianRangeType& gDiffRight )
 		{
-			const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+      const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 			
       const DomainType normal = it.integrationOuterNormal(x);
 
-#if 0			
+#if SWITCH_LDG 			
 			JacobianRangeType diffmatL(0.),diffmatR(0.);
       if(!determineDirection(normal))
       {
@@ -241,24 +239,24 @@ namespace Dune {
         diffmatR.mv(normal, gLeft);
       }	
 #else
-  			JacobianRangeType diffmatL(0.),diffmatR(0.);
+ 			JacobianRangeType diffmatL(0.),diffmatR(0.);
 
-        model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
-        //model_.allenCahnDiffusion(uLeft[uVar],jacLeft[uVar] , diffmatL);
-        diffmatL.mv(normal, gLeft);
-       
-        model_.allenCahnDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
-        // model_.allenCahnDiffusion(uRight[uVar],jacRight[uVar], diffmatR);
-        diffmatR.umv(normal, gLeft);
+      model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+      //model_.allenCahnDiffusion(uLeft[uVar],jacLeft[uVar] , diffmatL);
+      diffmatL.mv(normal, gLeft);
+      
+      model_.allenCahnDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
+      // model_.allenCahnDiffusion(uRight[uVar],jacRight[uVar], diffmatR);
+      diffmatR.umv(normal, gLeft);
      
-        gLeft*=0.5;
+      gLeft*=0.5;
 #endif     
-        gRight=gLeft;
-		  	gDiffLeft = 0;
-        gDiffRight = 0;     
+      gRight=gLeft;
+      gDiffLeft = 0;
+      gDiffRight = 0;     
 #if 1			
- //     const double faceLengthSqr=normal.two_norm2();
-//      const double h=sqrt(faceLengthSqr);
+//    const double faceLengthSqr=normal.two_norm2();
+//    const double h=sqrt(faceLengthSqr);
       
       // add penalty term ( enVolume() is available since we derive from
 			//    DiscreteModelDefaultWithInsideOutside)
