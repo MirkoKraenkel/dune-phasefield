@@ -102,7 +102,7 @@ namespace Dune {
       cflDiffinv_( 2.0 * ( polOrd + 1) )
     {
     }
-
+    void setTime(double time) {}
     bool hasSource() const { return false; }
     bool hasFlux() const { return true; }  /*@LST1E@*/
 
