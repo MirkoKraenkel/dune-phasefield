@@ -6,7 +6,7 @@
 //DUNE includes
 #include <dune/common/fmatrix.hh>
 
-#define TIMEDER 0
+#define OPCHECK 1
 
 //DUNE-FEM include
 #include <dune/fem/quadrature/cachingquadrature.hh>
@@ -75,14 +75,19 @@ protected:
      model_(model),
      space_(space),
      flux_(flux),
-     theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta"),
+     theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
      time_(0.),
      deltaT_(0.),
      uOld_("uOld" , space )
     {
- 
+      assert(theta_>=0 && theta<=1);
+#if OPCHECK 
       factorImp_=(1-theta_);
       factorExp_=(theta_);
+#else
+      factorImp_=0.5*(1+theta_);
+      factorExp_=0.5*(1-theta_);
+#endif
     }
 
   // prepare the solution vector 
