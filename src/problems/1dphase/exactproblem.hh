@@ -12,7 +12,7 @@
 // #include "idealthermodynamics2interpol.hh"
 //#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
 
-#include <dune/phasefield/modelling/thermodynamicsexactequi2.hh>
+#include <dune/phasefield/modelling/thermodynamicsexactequi.hh>
 
 
 #include <dune/fem/probleminterfaces.hh>
@@ -75,16 +75,16 @@ class TanhProblem : public EvolutionProblemInterface<
     
   double delta=thermodyn_.delta();
   double x=arg[0];
-   double y=x;//std::abs(x)-0.8;
+   double y=std::abs(x)-0.8;
 
    for(int i=1;i<=dimension;i++)
       res[i]=0;
 
-   double tanx=0.5*tanh(y/(smear_*delta))+0.5;
- 
+   double tanx=0.48*tanh(y/(smear_*delta))+0.5;
+   
    res[0]=rhoval(tanx);
   
-   res[dimension+1]=tanx*res[0];
+   res[dimension+1]=res[0]*tanx;
 
  }
 
@@ -162,12 +162,9 @@ inline void TanhProblem<GridType>
   double tanx=0.5*tanh(x/(delta_))+0.5;
  
    res[0]=rhoval(tanx);
-#if NONCONTRANS
-res[dimension+1]=tanx;
-#else
-  res[dimension+1]=res[0]*tanx;
-#endif
-  //res[dimension+1]=tanx;
+  
+   res[dimension+1]=res[0]*tanx;
+   //res[dimension+1]=res[0];
  
 }
 
@@ -177,7 +174,6 @@ inline double TanhProblem<GridType>
 {
 
   return exp((4.0-18.0*x*x*x*x*x+45.0*x*x*x*x-30.0*x*x*x)/(-0.9E1*x*x*x*x*x+0.225E2*x*x*x*x-0.15E2*x*x*x+3.0));
-
 }
 
 

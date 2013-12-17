@@ -122,7 +122,6 @@ template <class GridType>
 inline double TanhProblem<GridType>
 :: init(const bool returnA ) const 
 {
-
   return 0;
 }
 
