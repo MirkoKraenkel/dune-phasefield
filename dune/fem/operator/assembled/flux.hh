@@ -261,7 +261,8 @@ double MixedFlux<Model>
   mean*=-0.5;
   model_.diffusion(mean,Amean);
   Amean.umv(normal,value);
-
+  
+  return beta_;
 }
 
 #endif
