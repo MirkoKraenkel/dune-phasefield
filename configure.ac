@@ -33,8 +33,10 @@ AC_CONFIG_FILES([
   dune/fem/main/Makefile
   dune/fem/fluxes/Makefile
   dune/fem/operator/Makefile
+  dune/fem/operator/assembled/Makefile
   src/problems/1dphase/Makefile
   src/problems/allencahn/Makefile
+  src/problems/mixedscheme/Makefile
   src/problems/Makefile
   m4/Makefile
   dune-phasefield.pc
