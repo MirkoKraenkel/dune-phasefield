@@ -26,7 +26,7 @@
 
 namespace Dune {  
 	
-  template< class Model, class NumFlux,class VelocityType ,int polOrd, bool advection = true , bool diffusion = true >
+  template< class Model, class NumFlux,int polOrd, bool advection = true , bool diffusion = true >
   class  DGAllenCahnOperator : 
   public Fem::SpaceOperatorInterface< typename MyPassTraits< Model, Model::Traits::dimRange, polOrd > :: DestinationType >
   {
@@ -41,16 +41,16 @@ namespace Dune {
 
     typedef MyPassTraits< Model, Model::Traits::dimRange, polOrd >     PassTraitsType ;
     
- //   typedef typename PassTraitsType::DiscreteVelocitySpaceType DiscreteVelocitySpaceType;
+    typedef typename PassTraitsType::DiscreteVelocitySpaceType DiscreteVelocitySpaceType;
 
-   // typedef typename PassTraitsType::DiscreteVelocityType DiscreteVelocityType;
-    typedef VelocityType DiscreteVelocityType;
+    typedef typename PassTraitsType::DiscreteVelocityType DiscreteVelocityType;
+   // typedef VelocityType DiscreteVelocityType;
 // 
 //    typedef typename PassTraitsType::IndicatorType                   IndicatorType;
  //   typedef typename IndicatorType::DiscreteFunctionSpaceType        IndicatorSpaceType;
 
     // Pass 3 Mode
-    typedef AllenCahnLDGModel< Model, NumFluxType, polOrd, u, gradPass, advection, diffusion >    DiscreteModel3Type;
+    typedef AllenCahnLDGModel< Model, NumFluxType, polOrd, u,veloPass, gradPass, advection, diffusion >    DiscreteModel3Type;
 		typedef typename DiscreteModel3Type :: DiffusionFluxType  DiffusionFluxType;
      
     
@@ -180,15 +180,8 @@ namespace Dune {
     std::string description() const
     {
       std::stringstream stream;
-      stream <<" {\\bf LDG Diff. Op.}, flux formulation, order: " << polOrd+1
-             <<", $\\eta = ";
-      diffFlux_.diffusionFluxPenalty( stream );
-      stream <<"$, {\\bf Adv. Flux:} ";
-      if (FLUX==1)
-        stream <<"LLF";
-      else if (FLUX==2)
-        stream <<"HLL";
-      stream <<",\\\\\n";
+      stream <<" {AllenCahn}, flux formulation, order: " << polOrd+1;
+     stream <<",\\\\\n";
       return stream.str();
     }
 
