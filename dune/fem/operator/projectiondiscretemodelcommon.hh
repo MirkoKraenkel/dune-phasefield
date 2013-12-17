@@ -121,9 +121,9 @@ struct AdvectionProjTraits
  *  \tparam returnAdvectionPart Switch on/off the advection
  */
 template< class Model, 
-	  class NumFlux, 
-	  int polOrd, int passUId, int passProjId,int passGradId,
-	  bool returnAdvectionPart> 
+          class NumFlux, 
+          int polOrd, int passUId, int passProjId,int passGradId,
+          bool returnAdvectionPart> 
 class AdvectionProjModel :
 		public Fem::DGDiscreteModelDefaultWithInsideOutside
   <AdvectionProjTraits<Model, NumFlux, polOrd, passUId, passProjId, passGradId, returnAdvectionPart>,
