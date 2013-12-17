@@ -9,21 +9,22 @@ struct PhasefieldFilter
 {
 public:
   enum {dimDomain = (Range::dimension-4)/2};
-  typedef Dune::FieldMatrix<double,Range::Dimension,dimDomain> JacobianRangeType;
+  typedef Dune::FieldMatrix<double,Range::dimension,dimDomain> JacobianRangeType;
   typedef typename Range::field_type RangeFieldType;
   typedef Range RangeType;
   typedef Dune::FieldVector<double, 1> ScalarRangeType;
   typedef Dune::FieldVector<double, dimDomain> VeloRangeType;
 
+  static RangeFieldType& rho( RangeType& u)
+  {
+    return u[0];
+  }
+ 
 
   static RangeFieldType& velocity( RangeType &u,int i)
   {
     assert( i<dimDomain);
     return u[i+1];
-  }
-  static RangeFieldType& rho( RangeType& u)
-  {
-    return u[0];
   }
   static RangeFieldType& phi(RangeType& u)
   {
@@ -63,22 +64,22 @@ public:
      return du[dimDomain+1][j];
   }
   
-   static RangeFieldType& mu( JacobianRangeType& du, int j)
+   static RangeFieldType& dmu( JacobianRangeType& du, int j)
   {
      assert(j <dimDomain);
      return du[dimDomain+2][j];
   }
   
-  static RangeFieldType& tau( JacobianRangeType& du,int j)
+  static RangeFieldType& dtau( JacobianRangeType& du,int j)
   {   
     assert(j <dimDomain);
     return du[dimDomain+3][j];
   }
   
-  static RangeFieldType& sigma( JacobianRangeType& du, int i, int j)
+  static RangeFieldType& dsigma( JacobianRangeType& du, int i, int j)
   {
    
-   assert(i<dimDomain);
+   assert(i<dimDomain && j<dimDomain );
    return du[dimDomain+4+i][j];
   }
 
