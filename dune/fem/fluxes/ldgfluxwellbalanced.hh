@@ -136,7 +136,7 @@ namespace Dune {
 										 uRight,        /* { u_(x^+) } */
 										 diffmatrix     /* return diffusion tensor */
 										);
-      //We want to add it for mean value
+     
     }
   	diffmatrix.mv(normal, gLeft);
 

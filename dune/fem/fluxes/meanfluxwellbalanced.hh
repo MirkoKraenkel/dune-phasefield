@@ -66,7 +66,7 @@ namespace Dune {
     LDGDiffusionFlux(GridPartType& gridPart,
                      const Model& model ) :
       BaseType( model, true ),
-      penalty_(Dune::Fem::Parameter::getValue<double>("dgdiffusionflux.penalty")),
+      penalty_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty")),
       // Set CFL number for penalty term (compare diffusion in first pass)
       penaltyTerm_( std::abs(  penalty_ ) > 0 )
     {
@@ -102,7 +102,6 @@ namespace Dune {
 		{
 			const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
 			const DomainType normal = intersection.integrationOuterNormal( x );
-      double length=normal.two_norm();  		//	const bool useInterior = determineDirection(false,0.,0.,intersection );
       gLeft=0.;	  
     
       GradientJacobianType diffmatrix(0.); 
@@ -273,8 +272,10 @@ namespace Dune {
 
       // take minimum to proceed 
       const double diffTimeStep = std::max( diffTimeLeft, diffTimeRight );
+#if 0
+#warning "RECONSIDER PENALTY TERM: {Du}[u]"
       if( penaltyTerm_ )
-				{
+				{ 
 					// add penalty term ( enVolume() is available since we derive from
 					//    DiscreteModelDefaultWithInsideOutside)
           const double h=0.5*(discreteModel.enVolume()+discreteModel.nbVolume());
@@ -282,9 +283,9 @@ namespace Dune {
 
 					RangeType jump( uLeft );
 					jump -= uRight;
-//					gLeft.axpy(factor, jump);
+					gLeft.axpy(factor, jump);
 				}
-  
+#endif
       gRight = gLeft ;
       // gDiffLeft should be 0 in case of LDG
       gDiffLeft = 0;
@@ -373,16 +374,22 @@ namespace Dune {
       //  --Penalty Term
       //
       //////////////////////////////////////////////////////////
+#if 0
+#warning RECONSINDER PENALTY {D(u)}[u[]!!!!!!!!! 
       if( penaltyTerm_ ) 
-				{
+				{ 
 					// add penalty term
 					const double factor = penalty_ * diffTimeStep;
 
 					RangeType jump( uLeft );
-					jump -= uRight;
-			//		gLeft.axpy(factor, jump);
+		      
+                 
+          jump -= uRight[i];
+            			
+        
+         gLeft.axpy(factor, jump);
 				}
-
+#endif
       // gDiffLeft should be 0 in case of LDG
       gDiffLeft = 0;
 
