@@ -216,52 +216,6 @@ namespace Dune {
 					gLeft  = dLeft;
 					gRight = dRight;
 				}
-//should the noncon part be here?
-#if 0
-			RangeType nonCons(0.);
- 
-      RangeType average(0.);
-      double phiLeft,phiRight;
-      double rhoLeft,rhoRight;
-      rhoLeft  = uLeft[uVar][0];
-      rhoRight = uRight[uVar][0];
-      phiLeft  = uLeft[uVar][dimDomain+1];
-      phiRight = uRight[uVar][dimDomain+1];
-      phiLeft/=rhoLeft;
-      phiRight/=rhoRight;
-
-      
-      // {{rho}}
-      average[1]=uLeft[uVar][0]+uRight[uVar][0];
-      average*=0.5;
-   
-      //[[\mu]]
-      for(int i=0;i<dimDomain;i++)
-      {  
-        nonCons[i+1]=normal[i];
-        nonCons[i+1]*=uLeft[thetaVar][0]-uRight[thetaVar][0];
-        nonCons[i+1]*=average[1];
-      }   
- 
-      average[1]=0.5*(uLeft[thetaVar][1]+uRight[thetaVar][1])*(phiLeft-phiRight);
- //     average[1]=(phiLeft-phiRight);
-   
-      //nonCon
-#if USEJACOBIAN
-      nonCons[1]=average[1];
-#else
-      nonCons[1]=0;
-#endif
-
-    
-      //factor comes from the meanvalue of the testfunctions
-      nonCons*=0.5;
-          
-      //{{\theta}}[[phi]]
-      gLeft +=nonCons;
-      gRight-=nonCons;
-#endif
-
 			gDiffLeft  = 0;
 			gDiffRight = 0;
 
