@@ -17,7 +17,7 @@ fem.ode.cflStart: 1e-6
 fem.ode.cflMax: 1000 
 fem.timeprovider.factor: 0.9 
 fem.timeprovider.updatestep: 2
-fixedTimeStep: 1e-5 #when 0 then use dynamic time stepi
+fixedTimeStep: 1e-4 #when 0 then use dynamic time stepi
 fixedTimeStepEocLoopFactor: 4   # fixed time step is scaled with the inverse of this in each eoc loop
 
 dgdiffusionflux.method: CDG2 # diffusion flux: CDG2, CDG, BR2, IP, NIPG, BO

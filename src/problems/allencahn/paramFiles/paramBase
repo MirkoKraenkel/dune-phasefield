@@ -39,7 +39,7 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-phasefield.eocSteps: 2 
+phasefield.eocSteps: 4 
 phasefield.printCount: 0
 phasefield.verbose: 1 
 
