@@ -28,10 +28,10 @@
 
 // problem dependent
 #include <problemcreator.hh>
-#if MYALGO
-#include <dune/phasefield/phasefieldalgorithm.hh> 
+#if MIXED
+#include <dune/phasefield/assembledalgorithm.hh>
 #else
-#include "stepper.hh"
+#include <dune/phasefield/phasefieldalgorithm.hh> 
 #endif
 #include <dune/fem/space/common/allgeomtypes.hh>
 
@@ -46,17 +46,7 @@ namespace simulation{
     typedef Dune::GridSelector :: GridType GridType;
     typedef ProblemGenerator< GridType > ProblemGeneratorType;
 
-    // ProblemType is a Dune::Function that evaluates to $u_0$ and also has a
-    // method that gives you the exact solution.
-    //typedef NSProblemType< GridType > ProblemType;
-    //ProblemType problem;
 
-    // Note to me: problem description is for FemEOC
-#if MYALGO
-#else
-    const std::string advFlux  = ProblemGeneratorType :: advectionFluxName();
-    const std::string diffFlux = ProblemGeneratorType :: diffusionFluxName();
-#endif
     // use problem specific initialize method since some problems do different things
     // there, e.g. poisson 
 		const std::string Flux="Phasefieldflux";
@@ -65,15 +55,10 @@ namespace simulation{
     // get grid reference 
     GridType & grid = *gridptr;
 
-#if MYALGO
 		typedef AlgorithmTraits<GridType,ProblemGeneratorType,POLORDER> AlgoTraits;
 		PhasefieldAlgorithm<GridType,AlgoTraits,POLORDER> stepper(grid);
-#else
-    Stepper<GridType, 
-            ProblemTraits, 
-            POLORDER> stepper( grid );
-
-#endif
+   
+    //defined in base.hh
     compute( stepper );
   } 
 
