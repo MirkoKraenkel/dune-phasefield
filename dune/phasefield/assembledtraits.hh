@@ -7,6 +7,7 @@
 #include <dune/fem/space/discontinuousgalerkin.hh>
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
 #include <dune/fem/function/adaptivefunction.hh>
+#include <dune/fem/util/oemwrapper.hh>
 
 #include <dune/fem/operator/assembled/mixedoperator.hh>
 template <class GridImp,
@@ -41,15 +42,22 @@ struct AlgorithmTraits
   // FunctionSpaces
   typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,dimRange> FunctionSpaceType;
   typedef typename Dune::Fem::DiscontinuousGalerkinSpace<FunctionSpaceType,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteSpaceType;
+
   typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,1>  EnergySpaceType;
-  typedef typename Dune::Fem::DiscontinuousGalerkinSpace<EnergySpaceType,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteEnergySpaceType;
+  typedef typename Dune::Fem::DiscontinuousGalerkinSpace<EnergySpaceType  ,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteEnergySpaceType;
 
 
   // DiscreteFunctions
   typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
+  
+  typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
 
+//  typedef Dune::Fem::AutomaticDifferenceLinearOperator< DiscreteFunctionType,DiscreteFunctionType> JacobianType;
+  
+  typedef OEMWrapper<DiscreteFunctionType> JacobianType;
+  
 
-  typedef DGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType> DiscreteOperatorType;
+  typedef DGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType,JacobianType> DiscreteOperatorType;
 
 
 	
