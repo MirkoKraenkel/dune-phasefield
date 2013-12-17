@@ -16,10 +16,10 @@ fem.parallel.runfile: 1
 
 # toggle verbosity of on process 
 # (-1: off, p: process p is verbose, in general 0 is a good choice)
-fem.verboserank: 0
+fem.verboserank: 0 
 
 #fem.io.outputformat: gnuplot # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-ce
-fem.io.outputformat: vtk-cell # vtk-vertex, gnuplot, sub-vtk-ce
+fem.io.outputformat:  vtk-cell #, gnuplot, sub-vtk-ce
 fem.io.subsamplinglevel: 3 
 fem.io.grapedisplay: 0 
 
@@ -39,7 +39,7 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-phasefield.eocSteps: 1 
+phasefield.eocSteps: 2 
 phasefield.printCount: 0 
 phasefield.verbose: 1 
 
@@ -50,7 +50,7 @@ linesegmentsamplerresolution: 100.
 # GRID ADAPTATION
 #----------------
 
-fem.adaptation.method: none # none | generic | callback
+fem.adaptation.method: none  # none | generic | callback
 # specify refinement tolerance 
 fem.adaptation.refineTolerance: 0.001
 # percent of refinement tol used for coarsening 
@@ -59,8 +59,8 @@ fem.adaptation.coarsenPercent: 0.95
 # coarsest level that should be present 
 # finest level that should be present
 fem.adaptation.coarsestLevel:4 
-fem.adaptation.finestLevel: 4 
-phasefield.adaptTol: 0.49
+fem.adaptation.finestLevel: 8 
+phasefield.adaptTol: 2
 # marking strategy 
 # shockind = shock indicator, 
 # apost    = aposteriori based indicator, 
@@ -72,9 +72,8 @@ fem.adaptation.adaptcount: 10 # after this many time step, 0 disables adaptation
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 2 
+phasefield.startLevel: 0 
 
 
-
-phasefield.endTime: 5e-1
- 
+phasefield.startTime: 0 
+phasefield.endTime: 1. 
