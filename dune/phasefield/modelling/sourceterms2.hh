@@ -14,28 +14,26 @@ struct SourceTerms
                         const double c,
                         RangeType& res) 
   {
-    double t1;
-    double t10;
-    double t11;
-    double t21;
+                                                 
+    double t22;
+    double t3;
     double t4;
     double t5;
     double t6;
-    t1 = 1/delta;
-    t4 = (x+c*t)*t1;
+    double t7;
+    double t8;
+    
+    t3 = 1/delta;
+    t4 = (x+c*t)*t3;
     t5 = sinh(t4);
     t6 = cosh(t4);
-    t10 = t6*t6;
-    t11 = t10*t10;
-    t21 = t11*t11;
-    res[1]=(0.125E-2*t1*(t5+15.0*t6)*(24.0*t11*t6+225.0*t6-8.0*t5*t11-4.0*t5*t10-18.0*t5)/t21);
-                                                  
+    t7 = t6*t6;
+    t8 = t7*t7;
+    t22 = t8*t8;
+    res[1]=(-0.625E-3*(192.0*t5*t8*t6+540.0*t5*t6-704.0*t8*t7-8.0*t8-7112.0*t7-21.0+120.0*t5*t7*t6)/t22*t3);
 
-
-
-
-   res[0]=0;
-   for(int i=2;i<RangeType::dimension;++i)
+    res[0]=0;
+    for(int i=2;i<RangeType::dimension;++i)
       res[i]=0;
   }   
 
@@ -46,34 +44,23 @@ struct SourceTerms
                         const double c,
                         RangeType& res) 
   {
-   
-    double t10;
-    double t3;
-    double t5;
-    double t7;
-  
-    t3 = 1/delta;
-    t5 = tanh((x+c*t)*t3);
-    t7 = t5*t5;
-    t10 = t7*t7;
-    res[RangeType::dimension-1]=(-0.625E-2*(t5+1.0)*(-160.0*t7+160.0*t5+3.0*delta*t10*t5-93.0*delta*t10+162.0*delta*t7*t5+18.0*delta*t7-165.0*delta*t5+75.0*delta)*t3);
-                                      
-
     
-    for(int i=0;i<RangeType::dimension;++i)
+    double t12;
+    double t4;
+    double t5;
+    double t6;
+    double t8;
+              
+    t4 = (x+c*t)/delta;
+    t5 = cosh(t4);
+    t6 = t5*t5;
+    t8 = sinh(t4);
+    t12 = t6*t6;
+    res[RangeType::dimension-1]=(0.1875E-1*(-26.0*t6+1.0+30.0*t8*t5)/t12/t6);
+    
+    for(int i=0;i<RangeType::dimension-1;++i)
       res[i]=0.;
- 
-                          
-//return  0.;
   }
-
-
-
-
-
-
-
-
 
 };
 #endif
