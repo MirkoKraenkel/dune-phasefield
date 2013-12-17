@@ -29,7 +29,11 @@
 template< class GridType > 
 struct ProblemGenerator 
 {
-  typedef AllenCahnProblem ProblemType;
+ 
+  typedef Velocity<Dune::Fem::FunctionSpace<typename GridType::ctype,
+          double, GridType::dimension,GridType::dimension>> VelocityType;
+  
+  typedef AllenCahnProblem<GridType> ProblemType;
 
   template< class GridPart >
   struct Traits

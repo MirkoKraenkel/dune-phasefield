@@ -1,5 +1,5 @@
 fem.resolvevariables: 1
-scheme: testnc
+scheme: testp2
 #order: 0
 # DATA WRITER
 #------------
@@ -25,6 +25,9 @@ paramfile: ./paramFiles/paramBase
 
 # PROBLEM SETUP
 #--------------
+phasefield.calcresidual: true 
+
+phasefield.interpolinitial: false
 phasefield.diffusionTimeStep:1 
 phasefield.addvisc: 0.1 
 phasefield.nonconvisc: -1 
@@ -32,7 +35,7 @@ phasefield.thetaswitch: -1.
 phasefield.delta: 0.2
 phasefield.acpenalty: 0 
 phasefield.smear: 1.
-phasefield.gamma: 1 
+phasefield.gamma: 0 
 
 
 # DOMAIN
