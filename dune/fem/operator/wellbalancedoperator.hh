@@ -10,8 +10,6 @@
 #include <dune/fem/space/discontinuousgalerkin.hh>
 #include <dune/fem/operator/common/spaceoperatorif.hh>
 
-// dune-fem-dg includes
-#include <dune/fem-dg/operator/limiter/limitpass.hh>
 
 
 #include "wellbalanceddiscretemodel.hh" 
