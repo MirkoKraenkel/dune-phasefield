@@ -5,8 +5,9 @@ echo $MAXORD
 while [ $x -le $MAXORD ]
 do
 make clean
-make POLORDER=$x phasefield_nc ; mv phasefield_nc nc$x
-#make POLORDER=$x phasefield ; mv phasefield con$x
+#make POLORDER=$x phasefield_nc ; mv phasefield_nc nc$x
+make POLORDER=$x phasefield_nctr ; mv phasefield_nctr nctr$x
+#make POLORDER=$x phasefield ; mv phasefield old$x
 x=$(( $x + 1))
 done
 

@@ -3,12 +3,12 @@ fem.resolvevariables: 1
 #order: 0
 # DATA WRITER
 #------------
-fem.prefix: ./data$(scheme) # specify directory for data output (is created if not exists)
+fem.prefix: Data0612/data$(scheme) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-2 #save data every time interval 
-fem.io.savecount: 1   # save every i-th ste
+fem.io.savestep: 0.01 #save data every time interval 
+fem.io.savecount: 0    # save every i-th ste
 phasefield.eocOutputPath: $(fem.prefix)
-phasefield.energyfile: $(fem.prefix)/energy.gnu
+phasefield.energyfile: $(fem.prefix)/energy
 # GRID SOLUTION
 #--------------
 
@@ -25,26 +25,27 @@ paramfile: ../parameter/paramBase
 
 # PROBLEM SETUP
 #--------------
-
+phasefield.calcresidual: false 
+phasefield.interpolinitial: false 
 phasefield.diffusionTimeStep:1 
 phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.reactionrate: 1. 
-phasefield.addvisc: 1  
-phasefield.nonconvisc: -1 
+phasefield.addvisc: 1 
+phasefield.nonconvisc: 0 
 phasefield.thetaswitch: -1.
-phasefield.delta: 0.1 
-phasefield.mu1: 1.5 
+phasefield.delta: 0.1
+phasefield.mu1: 0.
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
 phasefield.penalty: 0. 
-phasefield.acpenalty: 0 
+phasefield.acpenalty: 0
 c1:1
 c2:2
-phasefield.smear: 1.1
+phasefield.smear: 1.
 phiscale: 0.99
 pressure: 1
-gamma: 0.3
+gamma: 0.1 
 
 
 
@@ -53,9 +54,9 @@ gamma: 0.3
 
 fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
 #fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
-fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 ##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
-#fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
+fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 
@@ -74,12 +75,13 @@ dgiffusionflux.upwind: -1 -3.141
 paramfile: ../parameter/paramSolver
 phasefield.maxTimeStep: 0.5
 fem.ode.tolerance: 1e-8
-phasefield.maximalTimeSteps: 1  
-phasefield.timeStepTolerance: -1.
+#phasefield.maximaltimesteps: 5
+#phasefield.timesteptolerance: 
+
 # Output
 #------------
-phasefield.storelaststep: true
+phasefield.storelaststep: true 
 phasefield.additionalvariables: false 
-phasefield.energy: true
-phasefield.sigma: true
-phasefield.theta: true 
+phasefield.energy: true 
+phasefield.sigma: true 
+phasefield.theta: false 
