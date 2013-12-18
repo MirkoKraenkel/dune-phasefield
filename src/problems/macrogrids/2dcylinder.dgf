@@ -3,12 +3,12 @@ DGF
 INTERVAL
 -2 -1             % lower left corner
 2 1             % upper right corner
-20 20               % number of cells in each direction
+8 2               % number of cells in each direction
 #
 
 PERIODICFACETRANSFORMATION
-1 0, 0 1 + 4 0  % make periodic in x-direction
 1 0, 0 1 + 0 2  % make periodic in y-direction
+#1 0, 0 1 + 4 0  % make periodic in x-direction
 #
 
 BOUNDARYDOMAIN
