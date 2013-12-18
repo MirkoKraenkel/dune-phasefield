@@ -18,8 +18,8 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
                         const GradientFunctionType& gradDF,
           	            const ModelType& model,
                         EnergyFunctionType& energyDF,
-                        double& thermodynamicEnergy,
-                        double& kineticEnergy) 
+                        double& kineticEnergy,
+                        double& thermodynamicEnergy )
 {
   typedef typename ConsDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
     ConsDiscreteFunctionSpaceType;
@@ -51,7 +51,7 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
   GradRangeType grad(0.0);
   EnergyRangeType total(0.0);  
   EnergyRangeType kin(0.0);
- EnergyRangeType therm(0.0); 
+   EnergyRangeType therm(0.0); 
   kineticEnergy=0.;
   thermodynamicEnergy=0;
   double integral=0.;

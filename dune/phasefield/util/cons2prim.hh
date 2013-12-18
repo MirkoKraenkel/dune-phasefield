@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <time.h>
 
+#include <dune/fem/misc/fmatrixconverter.hh>
 
 /** \brief converts a discrete function of conservative variables to
  *    a discrete function of primitive variables
@@ -77,7 +78,7 @@ typedef typename ModelType::JacobianRangeType JacobianRangeType;
       // evaluate conservative variables
       consLF.evaluate( quad[qP], cons );
 	    gradLF.evaluate( quad[qP], grad );
-      Fem::FieldMatrixConverter< GradRangeType, JacobianRangeType> jac( grad); 
+      Dune::Fem::FieldMatrixConverter< GradRangeType, JacobianRangeType> jac( grad); 
       
       
       double rho = cons[0];
