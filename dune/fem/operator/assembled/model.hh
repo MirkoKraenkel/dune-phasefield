@@ -33,6 +33,13 @@ class MixedModel
    penalty_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty"))
   {}
 
+
+  inline void totalEnergy(const DomainType& xgl,
+                          const RangeType& vu,
+                          double& kin,
+                          double& therm,
+                          double& total) const;
+                        
   
   inline void  muSource(const RangeFieldType rho1,
                         const RangeFieldType rho2,
@@ -63,6 +70,33 @@ class MixedModel
     double penalty_; 
 
 };
+
+template< class Grid, class Problem>
+inline void MixedModel< Grid,Problem>
+::totalEnergy(const DomainType& xgl,
+              const RangeType& vu,
+              double& kin,
+              double& therm,
+              double& total) const
+  {
+    double rho=Filter::rho(vu);
+    double phi=Filter::phi(vu);
+    double kineticEnergy{0.},surfaceEnergy{0.};
+    for(int i=0; i<dimDomain; i++)
+    {
+      kineticEnergy+=Filter::velocity(vu,i)*Filter::velocity(vu,i);
+      surfaceEnergy+=Filter::sigma(vu,i)*Filter::sigma(vu,i);
+    }
+  
+    kin=rho*0.5*kineticEnergy;
+    surfaceEnergy*=0.5;
+    surfaceEnergy*=thermodynamics.delta();
+  
+    therm=thermoDynamics_.helmholtz(rho,phi);
+    therm+=surfaceEnergy;
+   
+    total=therm+kin;
+  }
 
 template<class Grid, class Problem > 
 inline void MixedModel< Grid, Problem >

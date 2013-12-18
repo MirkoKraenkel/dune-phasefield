@@ -1,5 +1,5 @@
-#ifndef WBENERGY_HH
-#define WBENERGY_HH
+#ifndef MIXEDSCHEME_ENEREGYCONVERTER_HH
+#define MIXEDSCHEME_ENEREGYCONVERTER_HH
 
 // system include
 #include <sstream>
@@ -77,7 +77,7 @@ double energyconverter( const DiscreteFunctionType& dF,
       // evaluate conservative variables and gradients
       localU.evaluate( quad[qP], vu );
 #warning "EnergyConversion for assembled version missin!"
-//			model.totalEnergy(xgl, cons, grad,kin,therm,total);
+			model.totalEnergy(xgl, vu,kin,therm,total);
       total*=  quad.weight(qP);
 			kin*=quad.weight(qP);
       energyLF.axpy(quad[qP],total);
