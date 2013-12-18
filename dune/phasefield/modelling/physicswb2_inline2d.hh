@@ -125,8 +125,8 @@ public:
     phi=cons[phaseId];
     
     //velocity
-    prim[0] = cons[1]*rho_inv;
-    prim[1] = cons[2]*rho_inv;
+    for(int i=0;int<dimDomain;++i)
+      prim[i] = cons[i+1]*rho_inv;
     //pressure
   	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
   	//phasefield
@@ -148,10 +148,15 @@ public:
 	  double rho_inv = 1. /rho;
 	  double phi = cons[phaseId];
     FieldVector<RangeFieldType, dimDomain> v;
-    double kineticEnergy,surfaceEnergy;
+    double kineticEnergy=0.;
+    double surfaceEnergy=0.;
     
-    kineticEnergy=cons[1]*cons[1]+cons[2]*cons[2];
-    surfaceEnergy=grad[phaseId][0]*grad[phaseId][0]+grad[phaseId][1]*grad[phaseId][1];
+    for(int i=0;i<dimDomain;++i)
+      kineticEnergy+=cons[i]*cons[i];
+
+   
+    for(int i=0;i<dimDomain;++i)
+      surfaceEnergy+=grad[phaseId][i]*grad[phaseId][i];
   
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
@@ -201,14 +206,15 @@ public:
 		const double vx = u[1]*rho_inv;
 		const double vy = u[2]*rho_inv;
     const double phi= u[3];
-		f[0][0] = u[1];  // \rho*vx
+		
+    f[0][0] = u[1];  // \rho*vx
 	  f[0][1] = u[2];  // \rho*vy
     f[1][0] = vx*u[1];  // \rho*vx*vx
 	  f[1][1] = vx*u[2];  // \rho*vx*vy
     f[2][0] = vy*u[1];  // \rho*vy*vx
     f[2][1] = vy*u[2];  // \rho*vy*vy
-    f[3][0] = phi*u[1]; // \phi*\rho*vx
-    f[3][1] = phi*u[2]; // \phi*\rho*vy
+    f[3][0] = 0; // \phi*\rho*vx
+    f[3][1] = 0; // \phi*\rho*vy
   
   }
 
@@ -347,8 +353,6 @@ public:
     diff[0][1]=0.;
     diff[1][0]=-delta()*du[3][0];
     diff[1][1]=-delta()*du[3][1];
-   // diff[1][0]=0.;
-   //diff[1][1]=0.;
   }
 
   template< class Thermodynamics >
