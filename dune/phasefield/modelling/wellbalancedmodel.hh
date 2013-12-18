@@ -13,9 +13,6 @@
 
 namespace Dune {
 
-	// forward declaration of PhaseFlux
-	template< int >
-	struct PhaseFlux;
 
 	//////////////////////////////////////////////////////
 	//
@@ -152,14 +149,9 @@ namespace Dune {
       //stheta[0]=dF/drho stheta[1]=dF/dphi
 
       s[0]=mu;
-#if 0 
-      //s[1]= M_PI*(4*dimDomain*M_PI*std::cos( M_PI*time)-sin(M_PI*time));
-      s[1]= M_PI*M_PI*dimDomain;
-      for(int i=0;i<dimDomain; i++)
-        s[1]*=sin(M_PI*xgl[i]);
-      s*=-1.; 
-#endif
       s[1]=reaction;
+    
+    
       double deltaInv=phasefieldPhysics_.deltaInv();
 			return deltaInv*deltaInv*0.4;
 		}
@@ -202,7 +194,7 @@ namespace Dune {
 																	, const double time
 																	, const FaceDomainType& x ) const 
 		{ 
-			return false;
+			return true;
 		}
  
 
@@ -347,9 +339,6 @@ namespace Dune {
     template <class JacobianRangeImp>
 	  inline	void boundaryallenCahnDiffusion(const DomainType xgl,const RangeType& u, JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
-//		 double deltaInv=phasefieldPhysics_.deltaInv();
-//     du[3][0]=-0.5*(1-tanh(xgl[0]*deltaInv)*tanh(xgl[0]*deltaInv))*deltaInv;
-  //   du[3][1]=0.;
      phasefieldPhysics_.boundaryallenCahn(u,du,dv);
     }
 
@@ -361,7 +350,6 @@ namespace Dune {
 																, const RangeType& uLeft
 																, RangeType& gLeft ) const  
 		{
- // abort();
       gLeft = uLeft;
       gLeft=0;
       return 0.;
@@ -454,15 +442,14 @@ inline double PhaseModel< GridPartType, ProblemImp >
 	{
  
 		DomainType xgl = it.geometry().global( x );
-//		 uRight[0]=uLeft[0];     
- //   RangeType uBnd;
+		uRight[0]=uLeft[0];     
+    RangeType uBnd;
     problem_.evaluate(xgl,time, uRight);
-//    uRight=-1;
-    //v=0 
 #if 0 
-    for(int i=1;i<dimDomain+1;i++)
-			uRight[i]=uLeft[0];      
-	abort();	
+  for(int i=1;i<dimDomain+1;i++)
+			uRight[i]=problem_.thermodynamics().velo();
+        
+	
 		//Neumann Boundary for \phi and \rho
 		uRight[0]=uLeft[0];
 		uRight[dimDomain+1]=uLeft[dimDomain+1];
