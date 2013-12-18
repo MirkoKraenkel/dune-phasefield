@@ -121,7 +121,7 @@ template< class Thermodynamics >
 inline void PhasefieldPhysics< 1, Thermodynamics >
 ::conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
  {
-  	assert( cons[0] > 0. );
+  	//assert( cons[0] > 0. );
   
   	double rho,rho_inv,phi;
   	rho=cons[0];
@@ -162,8 +162,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	  therm = thermoDynamics_.helmholtz( rho, phi );
 	  therm +=surfaceEnergy;
     kin  = kineticEnergy;
-    total = therm+kineticEnergy; 
-    
+    total = therm+kin; 
   }
 
   template< class Thermodynamics >
@@ -177,8 +176,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		double rho=cons[0];
 		double phi=cons[phaseId];
     
-	  assert( phi > -1e-8);
-    assert( phi < 1.+(1e-8));
+	  //assert( phi > -1e-8);
+//    assert( phi < 1.+(1e-8));
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
@@ -206,11 +205,11 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   inline void  PhasefieldPhysics< 1, Thermodynamics>
   ::analyticalFlux( const RangeType& u, JacobianRangeType& f ) const
   {
-		assert( u[0] > 1e-10 );
+		assert( u[0] > 1e-20 );
 		double rho_inv = 1. / u[0];
 		const double v = u[1]*rho_inv;
  		f[0][0] = u[1];
-		f[1][0] = v*u[1];
+		f[1][0] =v*u[1];
 		f[2][0] = 0;
   }
 
@@ -232,7 +231,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 									const ThetaRangeType& thetaL,
 									const ThetaRangeType& thetaR,
 									RangeType& ret) const
-	{ abort();
+	{
+    std::cout<<"Dont call nonConPruct\n";
+    abort();
   }
 	
 	template< class Thermodynamics >
@@ -247,37 +248,41 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                 RangeType& f) const
 	{
 
-    RangeType nstksource,acsource;
+    RangeType nstksource{0.},acsource{0.};
     SourceTerms::nstkSource(xglobal,
                             time,
                             thermoDynamics_.delta(),
                             thermoDynamics_.velo(),
                             nstksource);
     
-      SourceTerms::acSource(xglobal,
-                            time,
-                            thermoDynamics_.delta(),
-                            thermoDynamics_.velo(),
-                            acsource);
+    SourceTerms::acSource(xglobal,
+                          time,
+                          thermoDynamics_.delta(),
+                          thermoDynamics_.velo(),
+                          acsource);
+
+  double rho_inv=1./u[0];
 
 #if USEJACOBIAN
-   double rho_inv=1./u[0];
-//   double phi=u[2];
+   //   double phi=u[2];
    double dphi=jacU[2][0];
    dphi*=-1;
 #else
-   double dphi=du[2];
+abort();  double dphi=du[2];
 #endif  
     double v=u[1]*rho_inv;
-  	f[0]=0;
-  //  f[1]=-dtheta[0]*u[0]+dphi*theta[1]+nstkSource(xglobal,time);
-    f[1]=-dtheta[0]*u[0]+dphi*theta[1];
-   //nonconservative Discretization of transport term
- //  f[2]=-theta[1]*deltaInv()/*rho_inv*/+v*dphi+acSource(xglobal,time);
-    f[2]=-theta[1]*deltaInv()+v*dphi;
-    f+=nstksource;
-    f+=acsource;
- //f[2]=v*dphi;	
+
+    f[0]=0;
+  //f[1]=-dtheta[0]*u[0]+dphi*theta[1]+nstkSource(xglobal,time);
+  f[1]=-dtheta[0]*u[0]-dphi*theta[1];
+ 
+//    f[1]=0;
+    //nonconservative Discretization of transport term
+    f[2]=-theta[1]+v*dphi;
+   // f[2]=v*dphi;
+    //   f+=nstksource;
+   // acsource*=deltaInv();
+//    f+=acsource;
      
     return 0.4*deltaInv()*deltaInv(); 
   }
@@ -294,7 +299,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		diff[0][0]=0.;
 		diff[1][0]=muLoc*dxv;
   	diff[2][0]=0.;
- 
   }
   template<class Thermodynamics>
   template< class JacobianRangeImp >
@@ -305,7 +309,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   {
 	
 	 diff[0][0]=0.;
-	 //diff[1][0]=0.;
    diff[1][0]=-delta()*du[2][0];
 
 
@@ -333,70 +336,17 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
   }
 
- template< class Thermodynamics >
-  inline double PhasefieldPhysics< 1, Thermodynamics >
-  ::nstkSource(const DomainType xglobal,const double t) const
-  {
-		double x=xglobal;
- 		double c=thermoDynamics_.velo();
-		double delta=thermoDynamics_.delta();
-	
-    double t1;
-    double t10;
-    double t11;
-    double t21;
-    double t4;
-    double t5;
-    double t6;
-    t1 = 1/delta;
-    t4 = (x+c*t)*t1;
-    t5 = sinh(t4);
-    t6 = cosh(t4);
-    t10 = t6*t6;
-    t11 = t10*t10;
-    t21 = t11*t11;
-    return(-0.125E-2*t1*(t5+15.0*t6)*
-          (8.0*t5*t11+4.0*t5*t10+18.0*t5-24.0*t11*t6-225.0*t6)/t21);
-                              
-  }
-
-
-
-
-	
-  template< class Thermodynamics >
-  inline double PhasefieldPhysics< 1, Thermodynamics >
-  ::acSource(const DomainType xglobal,const double t) const
-  {
-    double x=xglobal;
-		double delta=thermoDynamics_.delta();
-		double c=thermoDynamics_.velo();
-    double t12;
-	  double t4;
-		double t5;
-		double t6;
-    double t8;
-		
-    t4 = (x+c*t)/delta;
-    t5 = cosh(t4);
-    t6 = t5*t5;
-    t8 = sinh(t4);
-    t12 = t6*t6;
-    return(0.1875E-1*(-26.0*t6+1.0+30.0*t8*t5)/t12/t6);
-                          
-//return  0.;
-  }
 
  template< class Thermodynamics >
  inline double PhasefieldPhysics< 1, Thermodynamics>
  ::maxSpeed( const DomainType& n, const RangeType& u) const
  {
-  assert(u[0] > 1e-8);
+  assert(u[0] > 1e-20);
   double u_normal=(u[1])/u[0];
   double c=thermoDynamics_.a(u[0],u[2]);
 //  std::cout<<"physics maxSpeed"<< std::abs(u_normal) <<std::endl;
-//  return std::abs(u_normal)+sqrt(c);
-    return std::abs(thermoDynamics_.velo());
+  return std::abs(u_normal)+sqrt(c);
+//    return std::abs(thermoDynamics_.velo());
 
  } 
 
