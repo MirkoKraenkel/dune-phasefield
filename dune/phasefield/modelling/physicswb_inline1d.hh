@@ -3,7 +3,6 @@
 namespace Dune{
 //================================================
 //
-//for dim=1
 //
 //================================================
 
@@ -102,8 +101,10 @@ class PhasefieldPhysics<1,Thermodynamics>
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
 	
+  inline double nstkSource(const DomainType xglobal, const double time) const ;  
+  inline double acSource(const DomainType xglobal, const double time) const ;
   
-public:
+  public:
 
 	inline double delta()const  { return thermoDynamics_.delta(); }
 	inline double deltaInv()const{ return thermoDynamics_.deltaInv(); }
@@ -179,11 +180,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		double phi=cons[phaseId];
 		phi/=rho;
     
-	  assert( phi > -1e-8);
-    assert( phi < 1.+(1e-8));
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-	}
+  }
 
   template< class Thermodynamics >
 	inline void PhasefieldPhysics<1,Thermodynamics >
@@ -211,10 +210,12 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   {
 		assert( u[0] > 1e-10 );
 		double rho_inv = 1. / u[0];
-		const double v = u[1]*rho_inv;
- 		f[0][0] = u[1];
-		f[1][0] = v*u[1];
-		f[2][0] = u[2]*v;
+  	const double v = u[1]*rho_inv;
+// 		const double v = thermoDynamics_.velo();
+
+   f[0][0] = u[1];
+   f[1][0] = v*u[1];
+   f[2][0] = u[2]*v;
   }
 
   template< class Thermodynamics > 
@@ -226,6 +227,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     a[0][0] = u[0]; //rho
     a[1][0] = u[1]/u[0];//(rho v)/rho
     a[2][0] = u[2]/u[0];//(rho phi)/rho
+
   }
 
 	template< class Thermodynamics >
@@ -240,7 +242,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
-	::stiffSource(const DomainType& x,
+	::stiffSource(const DomainType& xglobal, //model already gives globla coordinate
                 const double time,
                 const RangeType& u,
 								const GradientRangeType& du,
@@ -249,19 +251,38 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								const JacobianRangeType& jacU,
                 RangeType& f) const
 	{
+
+    RangeType nstksource,acsource;
+    SourceTerms::nstkSource(xglobal,
+                            time,
+                            thermoDynamics_.delta(),
+                            thermoDynamics_.velo(),
+                            nstksource);
+    
+    SourceTerms::acSource(xglobal,
+                          time,
+                          thermoDynamics_.delta(),
+                          thermoDynamics_.velo(),
+                          acsource);
+
 #if USEJACOBIAN
+    //dphi=1/rho*(d(rho*phi)-phi*drho)   
    double rho_inv=1./u[0];
    double phi=u[2]*rho_inv;
    double dphi=jacU[2][0]-phi*jacU[0][0];
    dphi*=-rho_inv;
 #else
-   double dphi=du[2];
+abort();   double dphi=du[2];
 #endif  
-
   	f[0]=0;
     f[1]=-dtheta[0]*u[0]-dphi*theta[1];
-    f[2]=-theta[1]*deltaInv();
-	  return 0.4*deltaInv()*deltaInv(); 
+    f[2]=-theta[1]/*deltaInv()*/;
+    
+    f+=nstksource;
+    f+=acsource;
+    
+    
+    return 0.4*deltaInv()*deltaInv(); 
   }
   template< class Thermodynamics >
   template< class JacobianRangeImp >
@@ -287,7 +308,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   {
 	
 	 diff[0][0]=0.;
-	 diff[1][0]=-delta()*du[2][0];
+   diff[1][0]=-delta()*du[2][0];
+
 
 
   }
@@ -312,6 +334,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	 diff[1][0]=0.;
 
   }
+     
 
 
  template< class Thermodynamics >
@@ -322,8 +345,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   double u_normal=(u[1])/u[0];
   double c=thermoDynamics_.a(u[0],u[2]);
 //  std::cout<<"physics maxSpeed"<< std::abs(u_normal) <<std::endl;
-  return std::abs(u_normal)+sqrt(c);
-
+//  return std::abs(u_normal)+sqrt(c);
+    return std::abs(thermoDynamics_.velo());
  } 
 
 

@@ -266,7 +266,7 @@ public:
     dphiy*=-rho_inv;
 #else
     double dphix=du[6];
-    double dphix=du[7];
+    double dphiy=du[7];
 #endif
 
     f[0]=0;
