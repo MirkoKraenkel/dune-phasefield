@@ -16,7 +16,7 @@
 @SET_MAKE@
 
 # -*- Makefile -*-
-# $Id: global-rules 5784 2009-12-14 19:51:06Z christi $
+# $Id$
 
 #
 # this file should be included into any Makefile.am so that we can
@@ -24,13 +24,13 @@
 #
 
 # -*- Makefile -*-
-# $Id: sourcescheck 6115 2010-09-01 19:17:42Z christi $
+# $Id$
 
 # -*- Makefile -*-
 # $Id: sourcescheck 5183 2008-04-27 17:37:08Z christi $
 
 # -*- Makefile -*-
-# $Id: checklog 6488 2011-08-12 17:28:43Z sander $
+# $Id$
 
 #
 # check-log
@@ -96,11 +96,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-DIST_COMMON = $(phasefieldinclude_HEADERS) $(srcdir)/Makefile.am \
+DIST_COMMON = $(modeling_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/am/checklog \
 	$(top_srcdir)/am/documentation $(top_srcdir)/am/global-rules \
 	$(top_srcdir)/am/headercheck $(top_srcdir)/am/sourcescheck
-subdir = dune/phasefield
+subdir = dune/phasefield/modelling
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/dependencies.m4 \
 	$(top_srcdir)/configure.ac
@@ -150,8 +150,8 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(phasefieldincludedir)"
-HEADERS = $(phasefieldinclude_HEADERS)
+am__installdirs = "$(DESTDIR)$(modelingdir)"
+HEADERS = $(modeling_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -211,6 +211,9 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+BGQ_L1PREFETCH_CPPFLAGS = @BGQ_L1PREFETCH_CPPFLAGS@
+BGQ_L1PREFETCH_LDFLAGS = @BGQ_L1PREFETCH_LDFLAGS@
+BGQ_L1PREFETCH_LIBS = @BGQ_L1PREFETCH_LIBS@
 BIBTEX = @BIBTEX@
 BLAS_LIBS = @BLAS_LIBS@
 BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
@@ -382,9 +385,9 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
-PARDG_CPPFLAGS = @PARDG_CPPFLAGS@
-PARDG_LDFLAGS = @PARDG_LDFLAGS@
-PARDG_LIBS = @PARDG_LIBS@
+PAPI_CPPFLAGS = @PAPI_CPPFLAGS@
+PAPI_LDFLAGS = @PAPI_LDFLAGS@
+PAPI_LIBS = @PAPI_LIBS@
 PARDISO_LIBS = @PARDISO_LIBS@
 PARMETIS = @PARMETIS@
 PARMETIS_CPPFLAGS = @PARMETIS_CPPFLAGS@
@@ -492,8 +495,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-phasefieldincludedir = $(includedir)/dune/phasefield
-phasefieldinclude_HEADERS = phasefield.hh algorithmtraits.hh phasefieldalgorithm.hh
+modelingdir = $(includedir)/dune/phasefield/modeling
+modeling_HEADERS = physics.hh physics_inline.hh thermodynamics.hh wellbalancedmodel.hh physicswb_inline1d.hh physicswb2_inline1d.hh hysicswb_inline2d.hh
 sourcescheck_IGNORE = aclocal.m4 dependencies.m4
 sourcescheck_LIST = $(SOURCES) $(DIST_SOURCES) $(HEADERS) $(DIST_HEADERS) \
 	$(sourcescheck_NOSOURCES) $(dist_noinst_DATA) $(EXTRA_DIST)
@@ -521,9 +524,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/am/global-rules $(to
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign dune/phasefield/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign dune/phasefield/modelling/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign dune/phasefield/Makefile
+	  $(AUTOMAKE) --foreign dune/phasefield/modelling/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -549,27 +552,27 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-phasefieldincludeHEADERS: $(phasefieldinclude_HEADERS)
+install-modelingHEADERS: $(modeling_HEADERS)
 	@$(NORMAL_INSTALL)
-	@list='$(phasefieldinclude_HEADERS)'; test -n "$(phasefieldincludedir)" || list=; \
+	@list='$(modeling_HEADERS)'; test -n "$(modelingdir)" || list=; \
 	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(phasefieldincludedir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(phasefieldincludedir)" || exit 1; \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(modelingdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(modelingdir)" || exit 1; \
 	fi; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(phasefieldincludedir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(phasefieldincludedir)" || exit $$?; \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(modelingdir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(modelingdir)" || exit $$?; \
 	done
 
-uninstall-phasefieldincludeHEADERS:
+uninstall-modelingHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(phasefieldinclude_HEADERS)'; test -n "$(phasefieldincludedir)" || list=; \
+	@list='$(modeling_HEADERS)'; test -n "$(modelingdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(phasefieldincludedir)'; $(am__uninstall_files_from_dir)
+	dir='$(DESTDIR)$(modelingdir)'; $(am__uninstall_files_from_dir)
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -657,7 +660,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(phasefieldincludedir)"; do \
+	for dir in "$(DESTDIR)$(modelingdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -710,7 +713,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local install-phasefieldincludeHEADERS
+install-data-am: install-data-local install-modelingHEADERS
 
 install-dvi: install-dvi-am
 
@@ -755,7 +758,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-local uninstall-phasefieldincludeHEADERS
+uninstall-am: uninstall-local uninstall-modelingHEADERS
 
 .MAKE: install-am install-strip
 
@@ -765,14 +768,13 @@ uninstall-am: uninstall-local uninstall-phasefieldincludeHEADERS
 	html-am info info-am install install-am install-data \
 	install-data-am install-data-local install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-phasefieldincludeHEADERS install-ps \
+	install-info install-info-am install-man \
+	install-modelingHEADERS install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	maintainer-clean-local mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-local \
-	uninstall-phasefieldincludeHEADERS
+	uninstall-am uninstall-local uninstall-modelingHEADERS
 
 
 sourcescheck: sourcescheck-recursive
