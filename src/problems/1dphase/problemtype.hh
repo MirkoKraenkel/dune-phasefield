@@ -56,6 +56,11 @@ typedef TravelProblem< GridSelector :: GridType,
 #elif PROBLEM==5
 #include "bubbleproblem.hh"
 typedef BubbleProblem< GridSelector:: GridType>  PhaseProblemType;
+#elif PROBLEM==7
+#include "../mixedscheme/testproblem.hh"
+typedef MixedTestProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        >PhaseProblemType;
 #else
 #error "No valid problem number specified"
 #endif

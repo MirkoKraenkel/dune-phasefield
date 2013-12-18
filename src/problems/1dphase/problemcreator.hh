@@ -16,7 +16,11 @@
 #endif
 
 // local includes
+#if  NONCONTRANS
+#include <dune/fem/fluxes/newfluxes.hh>
+#else
 #include <dune/fem/fluxes/eulerfluxes.hh>
+#endif
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
 
 #if NONCON
@@ -43,7 +47,7 @@ struct ProblemGenerator
   template< class GridPart >
   struct Traits
   {
-    typedef ProblemType InitialDataType;
+    typedef PhaseProblemType  InitialDataType;
 
     typedef Dune::PhaseModel< GridPart, InitialDataType > ModelType;
     // choice of diffusion flux (see diffusionflux.hh for methods)
