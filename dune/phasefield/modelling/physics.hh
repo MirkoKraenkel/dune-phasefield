@@ -85,6 +85,12 @@ class PhasefieldPhysics
 								            const JacobianRangeType& jacU,
                             RangeType& f) const;
  
+  inline double stiffSource(const DomainType& x,
+                            const double time,
+                            const RangeType& u,
+								            const GradientRangeType& du,
+                            RangeType& f) const;
+ 
   template< class JacobianRangeImp >
 	inline void diffusion( const RangeType& u,
 												 const JacobianRangeImp& du,
@@ -124,10 +130,14 @@ class PhasefieldPhysics
 }
 
 #if WELLBALANCED
+#if NONCONTRANS
+#include "physicswb2_inline1d.hh"
+#else
 #include "physicswb_inline1d.hh"
+#endif
 #include "physicswb_inline2d.hh"
 #else
-#include "physicstest1d.hh"
+#include "physics_inline1d.hh"
 #include "physicsAC2d.hh"
 #endif
 	//end namspace DUNE
