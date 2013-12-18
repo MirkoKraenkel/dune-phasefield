@@ -77,7 +77,7 @@ double energyconverter( const DiscreteFunctionType& dF,
       // evaluate conservative variables and gradients
       localU.evaluate( quad[qP], vu );
 #warning "EnergyConversion for assembled version missin!"
-			model.totalEnergy(xgl, vu,kin,therm,total);
+			model.totalEnergy(xgl,vu,kin[0],therm[0],total[0]);
       total*=  quad.weight(qP);
 			kin*=quad.weight(qP);
       energyLF.axpy(quad[qP],total);

@@ -80,7 +80,7 @@ protected:
      deltaT_(0.),
      uOld_("uOld" , space )
     {
-      assert(theta_>=0 && theta<=1);
+      assert(theta_>=0 && theta_<=1);
 #if OPCHECK 
       factorImp_=(1-theta_);
       factorExp_=(theta_);
@@ -251,7 +251,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
         for(int i= 0;i<dimDomain;++i)
           {
 #if OPCHECK
-            Filter::velocity(avu,i)=Filter::velocity(vu);
+            Filter::velocity(avu,i)=Filter::velocity(vu,i);
 #else 
             Filter::velocity(avu,i)=Filter::velocity(vu,i);
             Filter::velocity(avu,i)-=Filter::velocity(vuOld,i);
@@ -264,7 +264,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
               sgradv+=Filter::velocity(vuMid,j)*(Filter::dvelocity(duMid,i,j)-Filter::dvelocity(duMid,j,i));
             
             Filter::velocity(avu,i)+=sgradv;
-            Filter::velocity(avu,i)+=Filter::dmu(vuMid,i);
+            Filter::velocity(avu,i)+=Filter::dmu(duMid,i);
             //rho*(d_t v+S(dv)v+dmu) 
             Filter::velocity(avu,i)*=Filter::rho(vuMid);
             // -tau\nabla phi 
@@ -277,7 +277,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
 
 //phi---------------------------------------------------------------
 #if OPCHECK
-        Filter::phu(avu)=Filter::phi(vu);
+        Filter::phi(avu)=Filter::phi(vu);
 #else
         Filter::phi(avu)=Filter::phi(vu)-Filter::phi(vuOld);
         Filter::phi(avu)/=deltaT_;

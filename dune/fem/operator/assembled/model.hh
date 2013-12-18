@@ -21,6 +21,7 @@ class MixedModel
   typedef typename ProblemType::ThermodynamicsType ThermodynamicsType;
   typedef double RangeFieldType; 
   typedef typename Dune::FieldVector<RangeFieldType,dimRange> RangeType;
+  typedef typename Dune::FieldVector<RangeFieldType,dimDomain> DomainType; 
   typedef typename Dune::FieldMatrix<RangeFieldType,dimRange,dimDomain> JacobianRangeType;
 
   typedef PhasefieldFilter<RangeType> Filter;
@@ -35,7 +36,7 @@ class MixedModel
 
 
   inline void totalEnergy(const DomainType& xgl,
-                          const RangeType& vu,
+                          RangeType& vu,
                           double& kin,
                           double& therm,
                           double& total) const;
@@ -74,7 +75,7 @@ class MixedModel
 template< class Grid, class Problem>
 inline void MixedModel< Grid,Problem>
 ::totalEnergy(const DomainType& xgl,
-              const RangeType& vu,
+              RangeType& vu,
               double& kin,
               double& therm,
               double& total) const
@@ -90,9 +91,9 @@ inline void MixedModel< Grid,Problem>
   
     kin=rho*0.5*kineticEnergy;
     surfaceEnergy*=0.5;
-    surfaceEnergy*=thermodynamics.delta();
+    surfaceEnergy*=problem_.thermodynamics().delta();
   
-    therm=thermoDynamics_.helmholtz(rho,phi);
+    therm=problem_.thermodynamics().helmholtz(rho,phi);
     therm+=surfaceEnergy;
    
     total=therm+kin;
