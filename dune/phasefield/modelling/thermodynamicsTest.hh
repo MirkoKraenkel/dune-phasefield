@@ -13,23 +13,25 @@
 using namespace Dune;
 // Thermodynamics
 // see simplehelmholtz.mv
-
+#include "sourcetermszero.hh"
 #include "thermodynamicsinterface.hh"
 
-class PGThermodynamics:
-	public Thermodynamics<PGThermodynamics>
+
+class TestThermodynamics:
+	public Thermodynamics<TestThermodynamics>
 {
-	typedef Thermodynamics<PGThermodynamics> BaseType;
+	typedef Thermodynamics<TestThermodynamics> BaseType;
 
 public:
-  PGThermodynamics():
+  TestThermodynamics():
     BaseType(),
     delta_( Dune::Fem::Parameter::getValue<double>( "phasefield.delta" ) ),
     deltaInv_( 1./delta_ ),
     epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
     mu1_( epsilon_ ),
-    mu2_( epsilon_ )
-    {
+    mu2_( epsilon_ ),
+    gamma_(Dune::Fem::Parameter::getValue<double>( "gamma" ))
+  {
     }
 
   inline void init() const 
@@ -55,7 +57,7 @@ public:
 
 	inline double chemicalPotential(double& rho,double& phi) const
 	{
-    return rho;
+    return 0;
   }
 
 	
@@ -79,12 +81,13 @@ public:
 		inline double deltaInv() const { return deltaInv_; }
     inline double mu1() const { return mu1_; }
 	 	inline double mu2() const { return mu2_; }
-   
+    inline double velo() const {return gamma_;} 
 	private:
 		mutable double  delta_;
     mutable double  deltaInv_;
 		mutable  double epsilon_;
     mutable double mu1_, mu2_;
+    mutable double gamma_;
 		};
 
 

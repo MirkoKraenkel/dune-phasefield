@@ -38,7 +38,7 @@ public:
   
   inline double helmholtz(double& rho,double& phi) const
   {
-		double delta=delta_;
+//		double delta=delta_;
 		return 0.;
 	}
 
