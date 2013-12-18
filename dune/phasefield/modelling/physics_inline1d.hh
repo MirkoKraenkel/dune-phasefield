@@ -305,15 +305,14 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhou    = du[1][0]; //d(rho*v)/dx
     const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
-    //thermoDynamics_.pressure( rho,phi);
   
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
-    double dxphi = (dxrhophi - phi*dxrho);
-    dxphi/=rho;    
+    const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
+  
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
-    diff[2][0]=dxphi;
+    diff[2][0]=delta()*dxphi;
     
   }
    template< class Thermodynamics >
