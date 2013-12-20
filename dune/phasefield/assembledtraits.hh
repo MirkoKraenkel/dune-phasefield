@@ -57,7 +57,7 @@ struct AlgorithmTraits
   typedef OEMWrapper<DiscreteFunctionType> JacobianType;
   
 
-  typedef DGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType,JacobianType> DiscreteOperatorType;
+  typedef FDJacobianDGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType,JacobianType> DiscreteOperatorType;
 
 
 	

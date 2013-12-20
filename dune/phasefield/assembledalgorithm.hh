@@ -307,9 +307,10 @@ public:
     dgOperator_.setPreviousTimeStep(solution());
   
     dgOperator_.setTime(time);
-    
+    std::cout<<"DeltaT="<<deltaT<<"\n";
     dgOperator_.setDeltaT(deltaT);
    
+     
     NewtonSolverType invOp(dgOperator_); 
     zero_.clear(); 
     solution_.clear();
@@ -477,7 +478,7 @@ public:
 					initializeStep( tp );
 
 					if( verbose )
-						std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<<std::endl;
+						std::cout << "start: " << startCount << " grid size: " << space().size()<<std::endl;
           ++startCount;
 				
         }
