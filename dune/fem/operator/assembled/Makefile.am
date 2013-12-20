@@ -1,6 +1,6 @@
 # install these headers
 assembleddir=$(top_srcdir)/dune/fem/operator/assembled
-assembled_HEADERS=phasefieldfilter.hh mixedoperator.hh energyconverter.hh flux.hh model.hh
+assembled_HEADERS=phasefieldfilter.hh mixedoperator.hh localdfoperator.hh energyconverter.hh flux.hh model.hh
 
 
 
