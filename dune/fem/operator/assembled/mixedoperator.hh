@@ -8,7 +8,6 @@
 
 #define OPCHECK 1
 
-//DUNE-FEM include
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/operator.hh>
 
@@ -20,18 +19,19 @@
 
 #include "phasefieldfilter.hh"
 #include  "flux.hh"
-template<class DiscreteFunction, class Model, class Flux, class Jacobian>
+template<class DiscreteFunction, class Model, class Flux>
 class DGPhasefieldOperator
-: public virtual Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction, Jacobian>
+: public virtual Dune::Fem::Operator<DiscreteFunction,DiscreteFunction>
 {
-  
-  typedef Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction,Jacobian> BaseType;
-  
-  
+  typedef Dune::Fem::Operator<DiscreteFunction,DiscreteFunction> BaseType;
+ protected:
+ 
   typedef DiscreteFunction DiscreteFunctionType;
   typedef Model            ModelType;
   typedef Flux             NumericalFluxType;
-protected:
+  typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
+  typedef typename DiscreteFunctionSpaceType::RangeFieldType RangeFieldType;
+  #if 0
   typedef typename BaseType::RangeFunctionType RangeFunctionType;
   typedef typename BaseType::DomainFunctionType DomainFunctionType;
   typedef typename BaseType::RangeFieldType RangeFieldType;
@@ -39,7 +39,7 @@ protected:
   typedef typename BaseType::DomainSpaceType DomainSpaceType;
   typedef typename BaseType::RangeSpaceType RangeSpaceType;
   typedef DomainSpaceType DiscreteFunctionSpaceType;
-
+#endif
   typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
   typedef typename LocalFunctionType::RangeType RangeType;
   typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
@@ -66,7 +66,8 @@ protected:
   static const int dimRange = LocalFunctionType::dimRange;
 
   typedef  PhasefieldFilter<RangeType> Filter; 
- public:
+
+public:
    //! constructor
    DGPhasefieldOperator(const ModelType &model,
                         const DiscreteFunctionSpaceType &space,
@@ -108,8 +109,6 @@ protected:
   DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
  
  protected:
-
- 
   template< class ArgType, class LocalArgType,class LFDestType >
   void localOp( const EntityType& entity,
                 const ArgType& u, 
@@ -137,8 +136,6 @@ protected:
   const ModelType& model() const{ return model_;}
 
   double penalty() const { return model_.penalty();}
-
-
   
 protected:
   ModelType model_;
@@ -152,14 +149,104 @@ protected:
   DiscreteFunctionType uOld_;
 };
 
-template<class DiscreteFunction, class Model, class Flux,class Jacobian>
-void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
+
+
+
+
+template<class DiscreteFunction, class Model, class Flux, class Jacobian>
+class FDJacobianDGPhasefieldOperator
+: public DGPhasefieldOperator<DiscreteFunction,Model,Flux>,
+  public virtual Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction, Jacobian>
+  {
+  
+  typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
+  typedef Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction,Jacobian> BaseType;
+  
+  
+  typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
+  typedef typename MyOperatorType::ModelType ModelType;
+  typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
+protected:
+  typedef typename BaseType::RangeFunctionType RangeFunctionType;
+  typedef typename BaseType::DomainFunctionType DomainFunctionType;
+  typedef typename BaseType::RangeFieldType RangeFieldType;
+  typedef typename BaseType::DomainFieldType DomainFieldType;
+  typedef typename BaseType::DomainSpaceType DomainSpaceType;
+  typedef typename BaseType::RangeSpaceType RangeSpaceType;
+  typedef DomainSpaceType DiscreteFunctionSpaceType;
+
+  typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
+  typedef typename LocalFunctionType::RangeType RangeType;
+  typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
+
+  typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
+  typedef typename IteratorType::Entity       EntityType;
+  typedef typename EntityType::EntityPointer  EntityPointerType;
+
+  typedef typename EntityType::Geometry       GeometryType;
+
+  typedef typename DiscreteFunctionSpaceType::DomainType DomainType; 
+
+  typedef typename DiscreteFunctionSpaceType::GridPartType  GridPartType;
+  typedef typename GridPartType::IntersectionIteratorType IntersectionIteratorType;
+  typedef typename IntersectionIteratorType::Intersection IntersectionType;
+  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+
+  typedef Dune::Fem::ElementQuadrature< GridPartType, 1 > FaceQuadratureType;
+  typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
+
+  typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalType;
+
+  static const int dimDomain = LocalFunctionType::dimDomain;
+  static const int dimRange = LocalFunctionType::dimRange;
+
+  typedef  PhasefieldFilter<RangeType> Filter; 
+
+public:
+   //! constructor
+   FDJacobianDGPhasefieldOperator(const ModelType &model,
+                                  const DiscreteFunctionSpaceType &space,
+                                  const NumericalFluxType &flux)
+   :MyOperatorType(model,space,flux){} 
+  
+ using MyOperatorType::prepare;
+  //! application operator 
+  using MyOperatorType::operator();
+  using MyOperatorType::setTime;
+  using MyOperatorType::setDeltaT;
+  using MyOperatorType::setPreviousTimeStep;
+  using MyOperatorType::getPreviousTimeStep;
+ 
+ protected:
+
+  using MyOperatorType::localOp;
+  using MyOperatorType::computeBoundary;
+  using MyOperatorType::computeIntersection;
+  using MyOperatorType::space;
+  using MyOperatorType::model;
+  using MyOperatorType::penalty;
+  
+protected:
+  using MyOperatorType::model_;
+  using MyOperatorType::space_;
+  using MyOperatorType::flux_;
+  using MyOperatorType::time_;
+  using MyOperatorType::deltaT_;
+  using MyOperatorType::theta_;
+  using MyOperatorType::factorImp_;
+  using MyOperatorType::factorExp_;
+  using MyOperatorType::uOld_;
+};
+
+
+template<class DiscreteFunction, class Model, class Flux>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
 {
 
   // clear destination 
   w.clear();
-
+  assert(deltaT_>0);
   // iterate over grid 
   const IteratorType end = space().end();
   for( IteratorType it = space().begin(); it != end; ++it )
@@ -174,15 +261,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
     localOp(entity,u, uLocal,wLocal);
     
   }
-
   // communicate data (in parallel runs)
   w.communicate();
 
 }
 
-template<class DiscreteFunction, class Model, class Flux ,class Jacobian>
+template<class DiscreteFunction, class Model, class Flux >
 template< class ArgType, class LocalArgType,class LFDestType >
-void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::localOp(const EntityType& entity,
           const ArgType& u, 
           const LocalArgType& uLocal,
@@ -298,8 +384,11 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
         // dF/dphi
         double dFdphi;
         model_.tauSource(Filter::phi(vuOld),Filter::phi(vu),Filter::rho(vuOld),dFdphi);
-        
+#if OPCHECK         
+        Filter::tau(avu)=Filter::tau(vu);
+#else
         Filter::tau(avu)=Filter::tau(vuMid);
+#endif
         Filter::tau(avu)-=dFdphi;
         Filter::tau(avu)=Filter::tau(vu);
         RangeFieldType divsigma(0.);
@@ -316,13 +405,22 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
         model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
 
         //mu-d_rho F
-        Filter::mu(avu)=Filter::mu(vuMid)-dFdrho;
-
+#if OPCHECK
+        Filter::mu(avu)=Filter::mu(vu);
+#else
+        Filter::mu(avu)=Filter::mu(vuMid);
+#endif     
+        Filter::mu(avu)-=dFdrho;
         RangeFieldType   usqr(0.),uOldsqr(0.);
         for( int i=0; i<dimDomain;++i) 
         {
+#if OPCHECK
+          // |v^n|^2
+          usqr+=Filter::velocity(vuOld,i)*Filter::velocity(vuOld,i);
+#else
           // |v^n|^2
           usqr+=Filter::velocity(vu,i)*Filter::velocity(vu,i);
+#endif
           // |v^{n-1}|^2
           uOldsqr+=Filter::velocity(vuOld,i)*Filter::velocity(vuOld,i);
         }
@@ -333,8 +431,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
 //sigma--------------------------------------------------------------
         //\sigma-\nabla\phi
         for( int i=0; i<dimDomain;++i) 
-            Filter::sigma(avu,i)=Filter::sigma(vu,i)-Filter::dphi(duOld,i);
-        
+          {
+            Filter::sigma(avu,i)=Filter::sigma(vu,i);
+            Filter::sigma(avu,i)-=Filter::dphi(duOld,i);
+          }
           //------------------------------------------------------------------        
           for(int i=0;i<dimRange;i++)
           {
@@ -377,9 +477,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
   } 
 
 
-template<class DiscreteFunction, class Model, class Flux,class Jacobian>
+template<class DiscreteFunction, class Model, class Flux>
 template<class LocalArgType, class NeighborArgType, class LFDestType>
-void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::computeIntersection(  const IntersectionType& intersection,
                       const EntityType& entity,
                       const EntityType& neighbor,
@@ -480,16 +580,15 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux,Jacobian>
     }//end quad loop
   }
 
-template< class DiscreteFunction,class Model, class Flux,class Jacobian>
+template< class DiscreteFunction,class Model, class Flux>
 template< class LocalArgType, class LFDestType>
-void DGPhasefieldOperator<DiscreteFunction, Model, Flux,Jacobian>
+void DGPhasefieldOperator<DiscreteFunction, Model, Flux>
 ::computeBoundary( const IntersectionType& intersection,
                     const EntityType& entity,
                     const double area,
                     const LocalArgType& uEn,
                     LFDestType& wLocal) const
   {
-    std::cout<<"DGPhasefieldopertor computeboundary abort()\n";
     typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
     const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
