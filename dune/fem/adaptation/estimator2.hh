@@ -232,7 +232,7 @@ namespace Dune
     
     bool estimateAndMark(double tolerance)
     {
-      double esti=estimate();
+    //  double esti=estimate();
       return mark(tolerance);
     }
     
