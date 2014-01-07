@@ -4,7 +4,6 @@
 #include<dune/common/fvector.hh>
 #include<dune/common/fmatrix.hh>
 
-
 #include<dune/fem/io/parameter.hh>
 
 #include "phasefieldfilter.hh"
@@ -35,23 +34,27 @@ class MixedModel
   {}
 
 
-  inline void totalEnergy(const DomainType& xgl,
-                          RangeType& vu,
-                          double& kin,
-                          double& therm,
-                          double& total) const;
+  inline void totalEnergy( const DomainType& xgl,
+                           RangeType& vu,
+                           double& kin,
+                           double& therm,
+                           double& total) const;
                         
   
-  inline void  muSource(const RangeFieldType rho1,
-                        const RangeFieldType rho2,
-                        const RangeFieldType phi,
-                        RangeFieldType& mu) const;
+  inline void  muSource( const RangeFieldType rho1,
+                         const RangeFieldType rho2,
+                         const RangeFieldType phi,
+                         RangeFieldType& mu) const;
   
-  inline void tauSource(const RangeFieldType phi1,
-                        const RangeFieldType phi2,
-                        const RangeFieldType rho,
-                        RangeFieldType& tau) const;
+  inline void tauSource( const RangeFieldType phi1,
+                         const RangeFieldType phi2,
+                         const RangeFieldType rho,
+                         RangeFieldType& tau) const;
  
+  inline void dirichletValue( const double time,
+                              const DomainType& xglobal,
+                              RangeType& g) const;
+  
   inline  double penalty() const
     {
       return penalty_;
@@ -107,6 +110,7 @@ inline void MixedModel< Grid, Problem >
             RangeFieldType& mu) const
   {
     mu=problem_.thermodynamics().chemicalPotential(rho1,phi);
+    mu=0;
   }
 
 template< class Grid, class Problem > 
@@ -117,7 +121,15 @@ inline void MixedModel< Grid, Problem>
             RangeFieldType& tau) const
   {
     tau=problem_.thermodynamics().reactionSource(rho,phi1);
+    tau=0;
   }
+
+template< class Grid, class Problem>
+inline void MixedModel< Grid,Problem>
+::dirichletValue(const double time, const DomainType& xglobal, RangeType& g) const
+{
+  problem_.evaluate(time,xglobal,g);
+}
 
 template< class Grid, class Problem > 
 inline void MixedModel< Grid, Problem>
@@ -128,11 +140,11 @@ inline void MixedModel< Grid, Problem>
     double mu1=problem_.thermodynamics().mu1();
     double mu2=problem_.thermodynamics().mu2();
   
-    diffusion=dvu;
-    diffusion*=mu2;
+//    diffusion=dvu;
+   // diffusion*=mu2;
 
 
-#if 0 
+#if 1 
     for(int i=0; i<dimDomain ; ++i )
       {
         Filter::dvelocity(diffusion,i,i)=mu2*Filter::dvelocity(dvu,i,i);
