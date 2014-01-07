@@ -33,8 +33,6 @@ public:
 
   double numericalFlux( const DomainType& normal, 
                         const double penaltyFactor,
-                        const double implFactor,
-                        const double explFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
                         const RangeType& vuEnOld,
@@ -42,10 +40,9 @@ public:
                         RangeType& gLeft,
                         RangeType& gRight) const;
 
+
   double diffusionFlux( const DomainType& normal,
                         const double penaltyFactor,
-                        const double implFactor,
-                        const double explFactor,
                         const RangeType& uEn,
                         const RangeType& uNb,
                         const JacobianRangeType& duEn,
@@ -54,8 +51,8 @@ public:
                         JacobianRangeType& dvalue) const;
 
   double boundaryFlux( const DomainType& normal, 
-                       const RangeType& vuEn,
-                       const RangeType& vuEnOld,
+                       //const RangeType& vuEn,
+                       const RangeType& vuMidEn,
                        RangeType& gLeft) const;
 
 
@@ -70,16 +67,17 @@ private:
 template< class Model >
 double MixedFlux<Model>
 ::boundaryFlux(const DomainType& normal,
-               const RangeType& vuEn,
-               const RangeType& vuOld,
+               const RangeType& vuMidEn,
+             //  const RangeType& vuOld,
                RangeType& gLeft) const
   {
-    RangeType valEn,midEn ;
-    valEn=vuEn;
+    RangeType midEn ;
+//    valEn=vuEn;
 
-    midEn = vuEn;
-    midEn+= vuOld ;
-    midEn*= 0.5;
+ //   midEn = vuEn;
+ //   midEn+= vuOld ;
+  //  midEn*= 0.5;
+   midEn=vuMidEn;
     double vNormalEn(0.);
 
     //rho-------------------------------------------------------------
@@ -130,16 +128,21 @@ double MixedFlux<Model>
     return 0.;
   }
 
+
+
+
+
+
+
+
 template< class Model >
 double MixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double penaltyFactor,              
-                const double implFactor,
-                const double explFactor,
-                const RangeType& vuEn,
-                const RangeType& vuNb,
-                const RangeType& vuEnOld,
-                const RangeType& vuNbOld,
+                const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
+                const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
+                const RangeType& vuEnMid,
+                const RangeType& vuNbMid,
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
@@ -147,12 +150,15 @@ double MixedFlux<Model>
       valEn=vuEn;
       valNb=vuNb;
 
+      midEn=vuEnMid;
+      midNb=vuNbMid;
+#if 0
       midEn.axpy(implFactor,vuEn);
       midEn.axpy(explFactor,vuEnOld) ;
 
       midNb.axpy(implFactor,vuNb);
       midNb.axpy(explFactor,vuNbOld) ;
-    
+#endif    
       jump = midEn;
       jump-= midNb;
       mean = midEn ;
@@ -223,8 +229,6 @@ template< class Model >
 double MixedFlux<Model>
 :: diffusionFlux( const DomainType& normal,
                   const double penaltyFactor,
-                  const double implFactor,
-                  const double explFactor,
                   const RangeType& uEn,
                   const RangeType& uNb,
                   const JacobianRangeType& duEn,
