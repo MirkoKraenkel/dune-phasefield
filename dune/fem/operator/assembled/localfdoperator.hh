@@ -34,10 +34,10 @@ class LocalFDOperator
   typedef typename MyOperatorType::RangeFieldType RangeFieldType;
   typedef typename MyOperatorType::JacobianRangeType JacobianRangeType;
   typedef typename MyOperatorType::IteratorType IteratorType;
-typedef typename MyOperatorType::IntersectionIteratorType IntersectionIteratorType;
- typedef typename MyOperatorType::IntersectionType IntersectionType;
+  typedef typename MyOperatorType::IntersectionIteratorType IntersectionIteratorType;
+  typedef typename MyOperatorType::IntersectionType IntersectionType;
   typedef typename MyOperatorType::EntityType EntityType;
-   typedef typename MyOperatorType::EntityPointerType EntityPointerType;
+  typedef typename MyOperatorType::EntityPointerType EntityPointerType;
   typedef typename MyOperatorType::GeometryType GeometryType;
   typedef typename MyOperatorType::LocalFunctionType LocalFunctionType;
   typedef typename MyOperatorType::QuadratureType QuadratureType;
@@ -51,7 +51,7 @@ typedef typename MyOperatorType::IntersectionIteratorType IntersectionIteratorTy
                   const NumericalFluxType &flux)
   :MyOperatorType(model,space,flux),
     stencil_(space,space),
-    epsilon_(Dune::Fem::Parameter::getValue<double>("phasefield.fdjaconian.epsilon"))
+    epsilon_(Dune::Fem::Parameter::getValue<double>("phasefield.fdjacobian.epsilon"))
   {}
 
   using MyOperatorType::localOp;
