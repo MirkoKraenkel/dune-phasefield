@@ -534,18 +534,17 @@ public:
 			}
 
       double timeStepEstimate=0.;//dgOperator_.timeStepEstimate();	
-      double diffTimeStep=0.;//dgOperator_.maxDiffusionTimeStep();
-      double advTimeStep=0.;//dgOperator_.maxAdvectionTimeStep();
      if( (printCount > 0) && (counter % printCount == 0))
 			{
-	
-        if( grid_.comm().rank() == 0 )
+              if( grid_.comm().rank() == 0 )
         {
           std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
-     ////     if(Uold!=nullptr)
-       ////    std::cout<< " ,Error between timesteps="<< timeStepError;
-         ////  std::cout<<std::endl;
-               
+ 
+            {
+              timeStepError=stepError(U,Uold);	
+              std::cout<< " ,Error between timesteps="<< timeStepError;
+              std::cout<<std::endl;
+            }   
         }
          writeEnergy( tp , energyfile);
         
