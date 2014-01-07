@@ -404,7 +404,7 @@ inline double PhaseModel< GridPartType, ProblemImp >
                  , RangeType& gLeft ) const  
 {
 abort();
-  DomainType xgl=it.intersectionGlobal().global(x);
+  DomainType xgl=it.geometry().global(x);
   const typename Traits :: DomainType normal = it.integrationOuterNormal(x); 
   double p;
   double T;

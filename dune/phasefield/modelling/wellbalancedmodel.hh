@@ -1,7 +1,7 @@
 #ifndef WB_MODEL_HH
 #define WB_MODEL_HH
 
-
+#warning "WBMODEL"
 
 // DUNE includes
 #include <dune/common/version.hh>
@@ -414,9 +414,9 @@ inline double PhaseModel< GridPartType, ProblemImp >
 									 , RangeType& gLeft ) const  
 	{
     std::cout<<"Wb model boundary flux\n";
-    abort();
-		DomainType xgl=it.intersectionGlobal().global(x);
-		const typename Traits :: DomainType normal = it.integrationOuterNormal(x); 
+   	DomainType xgl=it.geometry().global(x);
+		 abort();
+	const typename Traits :: DomainType normal = it.integrationOuterNormal(x); 
 		double p;
 		double T;
 		pressAndTemp( uLeft, p, T );
