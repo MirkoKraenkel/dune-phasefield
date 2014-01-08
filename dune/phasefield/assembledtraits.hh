@@ -7,9 +7,17 @@
 #include <dune/fem/space/discontinuousgalerkin.hh>
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
 #include <dune/fem/function/adaptivefunction.hh>
+#include <dune/fem/operator/linear/spoperator.hh>
+#include <dune/fem/solver/oemsolver.hh>
+
+
+
+
 #include <dune/fem/util/oemwrapper.hh>
 
 #include <dune/fem/operator/assembled/mixedoperator.hh>
+#include <dune/fem/operator/assembled/localfdoperator.hh>
+
 template <class GridImp,
           class ProblemGeneratorImp, int polOrd>             
 struct AlgorithmTraits 
@@ -54,11 +62,12 @@ struct AlgorithmTraits
 
 //  typedef Dune::Fem::AutomaticDifferenceLinearOperator< DiscreteFunctionType,DiscreteFunctionType> JacobianType;
   
-  typedef OEMWrapper<DiscreteFunctionType> JacobianType;
+ // typedef OEMWrapper<DiscreteFunctionType> JacobianType;
+  typedef Dune::Fem::SparseRowLinearOperator< DiscreteFunctionType, DiscreteFunctionType> JacobianType; 
+
+//  typedef FDJacobianDGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType,JacobianType> DiscreteOperatorType;
   
-
-  typedef FDJacobianDGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType,JacobianType> DiscreteOperatorType;
-
+  typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianType>  DiscreteOperatorType;
 
 	
 
