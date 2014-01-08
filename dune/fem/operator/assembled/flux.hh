@@ -245,7 +245,7 @@ double MixedFlux<Model>
   jump-=uNb;  
   
   for( int i=0; i<dimDomain;++i)
-    Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i);
+    Filter::velocity(value,i)=0;//beta_*penaltyFactor*Filter::velocity(jump,i);
   
   JacobianRangeType jumpNormal{0.};
  

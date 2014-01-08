@@ -7,7 +7,9 @@
 #include <dune/common/fmatrix.hh>
 
 #define OPCHECK 1
-
+#if OPCHECK
+#warning "DEBUGGING VERSION"
+#endif
 #include <dune/fem/quadrature/cachingquadrature.hh>
 #include <dune/fem/operator/common/operator.hh>
 
@@ -91,7 +93,7 @@ public:
 #endif
     }
 
-  // prepare the solution vector 
+  // prepare the solution ve#endifctor 
   template <class Function>
   void prepare( const Function &func, DiscreteFunctionType &u ) 
   { 
@@ -350,7 +352,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
             //sum_j v_j( d_j v_i - d_i v_j)
             for(int j=0;j<dimDomain;++j)
               sgradv+=Filter::velocity(vuMid,j)*(Filter::dvelocity(duMid,i,j)-Filter::dvelocity(duMid,j,i));
-            
+          
             Filter::velocity(avu,i)+=sgradv;
             Filter::velocity(avu,i)+=Filter::dmu(duMid,i);
             //rho*(d_t v+S(dv)v+dmu) 
@@ -358,7 +360,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
             // -tau\nabla phi 
             // check me: dphiMid,dphiOld or dphi???
             Filter::velocity(avu,i)-=Filter::tau(vuMid)*Filter::dphi(duMid,i); 
-          
           }
           // A(dv) 
           model_.diffusion(duMid,diffusion);
@@ -428,15 +429,22 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
           uOldsqr+=Filter::velocity(vuOld,i)*Filter::velocity(vuOld,i);
         }
         // -\frac{1}{4}( |v^n|^2-|v^{n-1}|^2)
-        Filter::mu(avu)-=0.25*(usqr+uOldsqr);
+       // Filter::mu(avu)-=0.25*(usqr+uOldsqr);
 //------------------------------------------------------------------
 
 //sigma--------------------------------------------------------------
         //\sigma-\nabla\phi
         for( int i=0; i<dimDomain;++i) 
           {
+            //sigma^n
             Filter::sigma(avu,i)=Filter::sigma(vu,i);
+#if OPCHECK
+            //\nabla\phi^n-1
             Filter::sigma(avu,i)-=Filter::dphi(duOld,i);
+#else
+            //\nabla\phi^n
+            Filter::sigma(avu,i)-=Filter::dphi(du,i);
+#endif 
           }
           //------------------------------------------------------------------        
           for(int i=0;i<dimRange;i++)
@@ -530,9 +538,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     std::vector<JacobianRangeType> midJacobiansEn( numQuadraturePoints );
     std::vector<RangeType> midValuesNb( numQuadraturePoints );
     std::vector<JacobianRangeType> midJacobiansNb( numQuadraturePoints );
-  
+ 
+#if OPCHECK
+    uOldEn.evaluateQuadrature( quadInside, valuesEn );
+    uOldNb.evaluateQuadrature( quadOutside, valuesNb );
+#else
     uEn.evaluateQuadrature( quadInside, valuesEn );
     uNb.evaluateQuadrature( quadOutside, valuesNb );
+#endif    
     ufMidEn.evaluateQuadrature( quadInside,midValuesEn );
     ufMidNb.evaluateQuadrature( quadOutside,midValuesNb );
     ufMidEn.evaluateQuadrature( quadInside,midJacobiansEn );

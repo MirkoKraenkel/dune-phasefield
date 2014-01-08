@@ -142,16 +142,17 @@ inline void MixedModel< Grid, Problem>
   
 //    diffusion=dvu;
    // diffusion*=mu2;
-
+    
 
 #if 1 
     for(int i=0; i<dimDomain ; ++i )
       {
-        Filter::dvelocity(diffusion,i,i)=mu2*Filter::dvelocity(dvu,i,i);
-        for(int j=0; j<dimDomain ; ++j )
-          {
-            Filter::dvelocity(diffusion,i,j)+=mu1*0.5*(Filter::dvelocity(dvu,i,j)+Filter::dvelocity(dvu,j,i));
-          }
+      Filter::dvelocity(diffusion,i,i)=mu1*Filter::dvelocity(dvu,i,i);
+   
+        //for(int j=0; j<dimDomain ; ++j )
+        //  {
+        //    Filter::dvelocity(diffusion,i,j)+=mu1*0.5*(Filter::dvelocity(dvu,i,j)+Filter::dvelocity(dvu,j,i));
+        //  }
       }
 #endif
 

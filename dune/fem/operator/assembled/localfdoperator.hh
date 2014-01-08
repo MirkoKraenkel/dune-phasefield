@@ -29,7 +29,7 @@ class LocalFDOperator
   typedef typename MyOperatorType::ModelType ModelType;
   typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
   typedef typename MyOperatorType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
-  typedef typename MyOperatorType::BasisFunctionSetType BasisFunctionSetType;
+  //typedef typename MyOperatorType::BasisFunctionSetType BasisFunctionSetType;
   typedef typename MyOperatorType::RangeType RangeType;
   typedef typename MyOperatorType::RangeFieldType RangeFieldType;
   typedef typename MyOperatorType::JacobianRangeType JacobianRangeType;
@@ -43,7 +43,7 @@ class LocalFDOperator
   typedef typename MyOperatorType::QuadratureType QuadratureType;
   typedef typename MyOperatorType::FaceQuadratureType FaceQuadratureType;
   
-  typedef typename MyOperatorType::TemporaryLocalFunctionType TemporaryLocalFunctionType;
+  typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalFunctionType;
   typedef typename MyOperatorType::GridPartType GridPartType;
   public: 
   LocalFDOperator(const ModelType &model,
@@ -57,7 +57,14 @@ class LocalFDOperator
   using MyOperatorType::localOp;
   using MyOperatorType::computeIntersection;
   using MyOperatorType::operator();
+  using MyOperatorType::setTime;
+  using MyOperatorType::setDeltaT;
+  using MyOperatorType::setPreviousTimeStep;
+  using MyOperatorType::getPreviousTimeStep; 
   using MyOperatorType::space;
+
+
+
   void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
   
   private:
