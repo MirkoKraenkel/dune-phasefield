@@ -6,7 +6,7 @@
 //DUNE includes
 #include <dune/common/fmatrix.hh>
 
-#define OPCHECK 1
+#define OPCHECK 0 
 #if OPCHECK
 #warning "DEBUGGING VERSION"
 #endif
@@ -20,8 +20,7 @@
 #include <dune/fem/operator/common/stencil.hh>
 
 #include "phasefieldfilter.hh"
-#include  "flux.hh"
-template<class DiscreteFunction, class Model, class Flux>
+template<class DiscreteFunction, class Model>
 class FemPhasefieldOperator
 : public virtual Dune::Fem::Operator<DiscreteFunction,DiscreteFunction>
 {
@@ -30,18 +29,8 @@ class FemPhasefieldOperator
  
   typedef DiscreteFunction DiscreteFunctionType;
   typedef Model            ModelType;
-  typedef Flux             NumericalFluxType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
   typedef typename DiscreteFunctionSpaceType::RangeFieldType RangeFieldType;
-  #if 0
-  typedef typename BaseType::RangeFunctionType RangeFunctionType;
-  typedef typename BaseType::DomainFunctionType DomainFunctionType;
-  typedef typename BaseType::RangeFieldType RangeFieldType;
-  typedef typename BaseType::DomainFieldType DomainFieldType;
-  typedef typename BaseType::DomainSpaceType DomainSpaceType;
-  typedef typename BaseType::RangeSpaceType RangeSpaceType;
-  typedef DomainSpaceType DiscreteFunctionSpaceType;
-#endif
   typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
   typedef typename LocalFunctionType::RangeType RangeType;
   typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
@@ -75,14 +64,15 @@ class FemPhasefieldOperator
 public:
    //! constructor
    FemPhasefieldOperator(const ModelType &model,
-                        const DiscreteFunctionSpaceType &space,
-                        const NumericalFluxType &flux)
+                        const DiscreteFunctionSpaceType &space)
    : 
      model_(model),
      space_(space),
      theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
+     alpha_(1.),
+     gamma_(1.),
      time_(0.),
-     deltaT_(0.),
+     deltaT_(1.),
      uOld_("uOld" , space )
     {
       assert(theta_>=0 && theta_<=1);
@@ -107,7 +97,7 @@ public:
   
   void setTime(const double time)  { time_=time;}
   
-  void setDeltaT( const double deltat) { deltaT_=deltat;}
+  void setDeltaT( const double deltat) { deltaT_=1.;}
   
   void setPreviousTimeStep( DiscreteFunctionType uOld)  { uOld_.assign(uOld);} 
   DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
@@ -137,6 +127,8 @@ protected:
   ModelType model_;
   const DiscreteFunctionSpaceType &space_;
   const double  theta_;
+  double alpha_;
+  double gamma_;
   double time_;
   double deltaT_;
   double factorImp_;
@@ -148,19 +140,18 @@ protected:
 
 
 
-template<class DiscreteFunction, class Model, class Flux, class Jacobian>
+template<class DiscreteFunction, class Model, class Jacobian>
 class FDJacobianFemPhasefieldOperator
-: public FemPhasefieldOperator<DiscreteFunction,Model,Flux>,
+: public FemPhasefieldOperator<DiscreteFunction,Model>,
   public virtual Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction, Jacobian>
   {
   
-  typedef FemPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
+  typedef FemPhasefieldOperator<DiscreteFunction,Model> MyOperatorType;
   typedef Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction,Jacobian> BaseType;
   
   
   typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
   typedef typename MyOperatorType::ModelType ModelType;
-  typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
 protected:
   typedef typename BaseType::RangeFunctionType RangeFunctionType;
   typedef typename BaseType::DomainFunctionType DomainFunctionType;
@@ -215,7 +206,6 @@ public:
 
   using MyOperatorType::localOp;
   using MyOperatorType::computeBoundary;
-  using MyOperatorType::computeIntersection;
   using MyOperatorType::space;
   using MyOperatorType::model;
   using MyOperatorType::penalty;
@@ -223,18 +213,19 @@ public:
 protected:
   using MyOperatorType::model_;
   using MyOperatorType::space_;
-  using MyOperatorType::flux_;
   using MyOperatorType::time_;
   using MyOperatorType::deltaT_;
   using MyOperatorType::theta_;
+  using MyOperatorType::alpha_;
+  using MyOperatorType::gamma_;
   using MyOperatorType::factorImp_;
   using MyOperatorType::factorExp_;
   using MyOperatorType::uOld_;
 };
 
 
-template<class DiscreteFunction, class Model, class Flux>
-void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
+template<class DiscreteFunction, class Model>
+void FemPhasefieldOperator<DiscreteFunction, Model>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
 {
 
@@ -260,9 +251,9 @@ void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 }
 
-template<class DiscreteFunction, class Model, class Flux >
+template<class DiscreteFunction, class Model >
 template< class ArgType, class LocalArgType,class LFDestType >
-void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
+void FemPhasefieldOperator<DiscreteFunction, Model>
 ::localOp(const EntityType& entity,
           const ArgType& u, 
           const LocalArgType& uLocal,
@@ -280,32 +271,19 @@ void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
       const size_t numQuadraturePoints = quadrature.nop();
       for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
       {
+ 
         const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
         const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
 
-        RangeType vu,vuOld, vuMid{0};
+        RangeType vu,vuOld,avu{0.};
         uLocal.evaluate( quadrature[ pt ], vu );
         uOldLocal.evaluate( quadrature[ pt ], vuOld); 
-      
-        //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
-        // #if OPCHECK vuMid=vuOld;      
-        vuMid.axpy(factorImp_,vu);
-        vuMid.axpy(factorExp_,vuOld);
   
-        JacobianRangeType du,duOld,duMid, diffusion;
+        JacobianRangeType du,duOld,diffusion,advu{0.};
         uLocal.jacobian( quadrature[ pt ], du );
         uOldLocal.jacobian( quadrature[ pt ], duOld);
        
-        //(1+theta)/2*DU^n+(1-theta)/2*DU^(n-1)
-        // #if OPCHECK vuMid=vuOld
-        duMid.axpy(factorImp_,du);
-        duMid.axpy(factorExp_,duOld);
-       
-        
-        RangeType avu{0.};
-        JacobianRangeType advu{0.};
         //rho------------------------------------------------------------- 
-
 #if OPCHECK 
         Filter::rho(avu)=Filter::rho(vu);
 #else
@@ -316,13 +294,12 @@ void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
 #endif
         RangeFieldType div(0.),gradrhodotv(0.);
         
-        //div(rho v)=rho*div v+gradrho v
         for(int i= 0;i<dimDomain;++i)
           { 
             //  rho^n*v_i^n
-            Filter::drho(avu,i)=-Filter::rho(vu)*Filter::velocity(vu,i);
+            Filter::drho(advu,i)=Filter::rho(vu)*Filter::velocity(vu,i);
             // regularization Term alpha*(\nabla\rho, \nabla\psi);
-            Filter::drho(avu,i)+=alpha_*Filter::drho(vu,i);
+          //  Filter::drho(advu,i)+=Filter::drho(du,i);
           }
 //---------------------------------------------------------------
 
@@ -333,40 +310,42 @@ void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
 #if OPCHECK
             Filter::velocity(avu,i)=Filter::velocity(vu,i);
 #else 
-            //1/2*rho^(n-1)dt v^n+dt (rho v) = 1/delta*(v^n rho^(n-1)/2-3/2*rho^(n-1)v^(n-1)+rho^n v^n)
+            //1/2*rho^(n-1)dt v^n+dt (rho v) = 1/(2*delta)*(v^n rho^(n-1)-2*rho^(n-1)v^(n-1)+rho^n v^n)
             Filter::velocity(avu,i)=Filter::velocity(vu,i);
-            Filter::velocity(avu,i)-=3*Filter::velocity(vuOld,i);
-            Filter::velocity(avu,i)*=0.5*Filter::rho(vuOld);
+            Filter::velocity(avu,i)-=2*Filter::velocity(vuOld,i);
+            Filter::velocity(avu,i)*=Filter::rho(vuOld);
             Filter::velocity(avu,i)+=Filter::velocity(vu,i)*Filter::rho(vu); 
+            Filter::velocity(avu,i)*=0.5;
             Filter::velocity(avu,i)/=deltaT_;
-#endif            
-            VelocityRangeType tansportv{0.}; 
+#endif           
+
+            double transportv{0.}; 
             //sum_j v_j( d_j v_i - d_i v_j)
             for( int j=0; j<dimDomain ; ++j )
               {
                 //gamma(\nabla dt v^n,\ksi)
-                Filter::dvelocity(avu,i,j)=Filter::dvelocity(vu,i,j);
-                Filter::dvelocity(avu,i,j)-=Filter::dvelocity(vuOld,i,j);
-                Filter::dvelocity(avu,i,j)*=gamma_;
-                Filter::dvelocity(avu,i,j)/=deltaT_;
+                Filter::dvelocity(advu,i,j)=Filter::dvelocity(du,i,j);
+                Filter::dvelocity(advu,i,j)-=Filter::dvelocity(duOld,i,j);
+                Filter::dvelocity(advu,i,j)*=gamma_;
+                Filter::dvelocity(advu,i,j)/=deltaT_;
                 //(rho^(n-1) (v^(n-1)\cdot\nabla)\ksi,v^n)=(v^n\otimes\v^(n-1),\nabla v^n)
                 Filter::dvelocity(advu,i,j)-=Filter::velocity(vu,i)*Filter::velocity(vu,j)*Filter::rho(vuOld);
                 //rho^(n-1)*(v\cot\nabla) v
-                transportv=Filter::dvelocity(vu,i,j)*Filter::velocity(vuOld,j)*Filter::rho(vuOld);
+                double transportv=Filter::dvelocity(du,i,j)*Filter::velocity(vuOld,j)*Filter::rho(vuOld);
               }
             
             //add rho^(n-1)*(v\cot\nabla) v
             Filter::velocity(avu,i)+=transportv;
            
             //rho^n\nabla\mu^n 
-            Filter::velocity(avu,i)+=Filter::dmu(duMid,i)*Filter::rho(vu);
+            Filter::velocity(avu,i)+=Filter::dmu(du,i)*Filter::rho(vu);
             
             // -tau^n \nabla phi^n 
-            Filter::velocity(avu,i)-=Filter::tau(vuMid)*Filter::dphi(duMid,i); 
+            Filter::velocity(avu,i)-=Filter::tau(vu)*Filter::dphi(du,i); 
           }
           // A(dv) 
-          model_.diffusion(duMid,diffusion);
-          advu+=diffusion;
+        //  model_.diffusion(du,diffusion);
+         // advu+=diffusion;
 //------------------------------------------------------------------
 
 //phi---------------------------------------------------------------
@@ -384,7 +363,7 @@ void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
               transport+=Filter::velocity(vu,i)*Filter::dphi(du,i);
             }
         
-          Filter::phi(avu)+=transport+Filter::tau(vu)/Filter::rho(vu);
+          Filter::phi(avu)+=transport+Filter::tau(vu);///Filter::rho(vu);
      
 //------------------------------------------------------------------        
        
@@ -401,13 +380,14 @@ void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
         Filter::tau(avu)=Filter::tau(vu);
         RangeFieldType divsigma(0.);
 
-        for( int i=0; i<dimDomain;++i) 
-          Filter::tau(advu,i)-=model_.delta()*Filter::dphi(du,i);
+       for( int i=0; i<dimDomain;++i) 
+          Filter::dtau(advu,i)-=model_.delta()*Filter::dphi(du,i);
 //-------------------------------------------------------------------
 
 //mu-----------------------------------------------------------------
         //dF/drho
         double dFdrho;
+
         model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
 
         //mu-d_rho F
@@ -417,6 +397,7 @@ void FemPhasefieldOperator<DiscreteFunction, Model,Flux>
 
       for(int i=0;i<dimRange;i++)
           {
+            std::cout<<"VALUES="<<avu[i]<<"\n";
             assert( avu[i]==avu[i]) ;
           }
          

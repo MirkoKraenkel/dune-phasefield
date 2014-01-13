@@ -1,6 +1,8 @@
 #ifndef DUNE_PHASEFIELD_MIXEDOPERATOR_HH
 #define DUNE_PHASEFIELD_MIXEDOPERATOR_HH
 
+
+#warning  "MIXEDDGOPERATOR"
 //globlas includes
 
 //DUNE includes
@@ -20,28 +22,20 @@
 #include <dune/fem/operator/common/stencil.hh>
 
 #include "phasefieldfilter.hh"
-#include  "flux.hh"
+#include "flux.hh"
 template<class DiscreteFunction, class Model, class Flux>
 class DGPhasefieldOperator
 : public virtual Dune::Fem::Operator<DiscreteFunction,DiscreteFunction>
 {
   typedef Dune::Fem::Operator<DiscreteFunction,DiscreteFunction> BaseType;
- protected:
- 
+
+protected:
+
   typedef DiscreteFunction DiscreteFunctionType;
   typedef Model            ModelType;
   typedef Flux             NumericalFluxType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
   typedef typename DiscreteFunctionSpaceType::RangeFieldType RangeFieldType;
-  #if 0
-  typedef typename BaseType::RangeFunctionType RangeFunctionType;
-  typedef typename BaseType::DomainFunctionType DomainFunctionType;
-  typedef typename BaseType::RangeFieldType RangeFieldType;
-  typedef typename BaseType::DomainFieldType DomainFieldType;
-  typedef typename BaseType::DomainSpaceType DomainSpaceType;
-  typedef typename BaseType::RangeSpaceType RangeSpaceType;
-  typedef DomainSpaceType DiscreteFunctionSpaceType;
-#endif
   typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
   typedef typename LocalFunctionType::RangeType RangeType;
   typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
@@ -160,49 +154,48 @@ class FDJacobianDGPhasefieldOperator
 : public DGPhasefieldOperator<DiscreteFunction,Model,Flux>,
   public virtual Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction, Jacobian>
   {
+
+    typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
+    typedef Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction,Jacobian> BaseType;
   
-  typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
-  typedef Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction,Jacobian> BaseType;
-  
-  
-  typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
-  typedef typename MyOperatorType::ModelType ModelType;
-  typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
+    typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
+    typedef typename MyOperatorType::ModelType ModelType;
+    typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
 protected:
-  typedef typename BaseType::RangeFunctionType RangeFunctionType;
-  typedef typename BaseType::DomainFunctionType DomainFunctionType;
-  typedef typename BaseType::RangeFieldType RangeFieldType;
-  typedef typename BaseType::DomainFieldType DomainFieldType;
-  typedef typename BaseType::DomainSpaceType DomainSpaceType;
-  typedef typename BaseType::RangeSpaceType RangeSpaceType;
-  typedef DomainSpaceType DiscreteFunctionSpaceType;
+    typedef typename BaseType::RangeFunctionType RangeFunctionType;
+    typedef typename BaseType::DomainFunctionType DomainFunctionType;
+    typedef typename BaseType::RangeFieldType RangeFieldType;
+    typedef typename BaseType::DomainFieldType DomainFieldType;
+    typedef typename BaseType::DomainSpaceType DomainSpaceType;
+    typedef typename BaseType::RangeSpaceType RangeSpaceType;
+    typedef DomainSpaceType DiscreteFunctionSpaceType;
 
-  typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
-  typedef typename LocalFunctionType::RangeType RangeType;
-  typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
+    typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
+    typedef typename LocalFunctionType::RangeType RangeType;
+    typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
 
-  typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
-  typedef typename IteratorType::Entity       EntityType;
-  typedef typename EntityType::EntityPointer  EntityPointerType;
+    typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
+    typedef typename IteratorType::Entity       EntityType;
+    typedef typename EntityType::EntityPointer  EntityPointerType;
 
-  typedef typename EntityType::Geometry       GeometryType;
+    typedef typename EntityType::Geometry       GeometryType;
 
-  typedef typename DiscreteFunctionSpaceType::DomainType DomainType; 
+    typedef typename DiscreteFunctionSpaceType::DomainType DomainType; 
 
-  typedef typename DiscreteFunctionSpaceType::GridPartType  GridPartType;
-  typedef typename GridPartType::IntersectionIteratorType IntersectionIteratorType;
-  typedef typename IntersectionIteratorType::Intersection IntersectionType;
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+    typedef typename DiscreteFunctionSpaceType::GridPartType  GridPartType;
+    typedef typename GridPartType::IntersectionIteratorType IntersectionIteratorType;
+    typedef typename IntersectionIteratorType::Intersection IntersectionType;
+    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
-  typedef Dune::Fem::ElementQuadrature< GridPartType, 1 > FaceQuadratureType;
-  typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
+    typedef Dune::Fem::ElementQuadrature< GridPartType, 1 > FaceQuadratureType;
+    typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
 
-  typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalType;
+    typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalType;
 
-  static const int dimDomain = LocalFunctionType::dimDomain;
-  static const int dimRange = LocalFunctionType::dimRange;
+    static const int dimDomain = LocalFunctionType::dimDomain;
+    static const int dimRange = LocalFunctionType::dimRange;
 
-  typedef  PhasefieldFilter<RangeType> Filter; 
+    typedef  PhasefieldFilter<RangeType> Filter; 
 
 public:
    //! constructor
