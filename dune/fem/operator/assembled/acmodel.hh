@@ -9,7 +9,7 @@
 #include "phasefieldfilter.hh"
 
 template<class Grid, class Problem>
-class MixedModel
+class HeatModel
 {
   public:
   typedef Problem ProblemType;
@@ -28,8 +28,8 @@ class MixedModel
 
 
 //contructor
-  public:
- MixedModel( const ProblemType& problem):
+ public:
+ HeatModel( const ProblemType& problem):
    problem_(problem),
    penalty_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty"))
   {}
@@ -40,8 +40,15 @@ class MixedModel
                            double& kin,
                            double& therm,
                            double& total) const;
-                        
-  
+                       
+  // additional Source for the whole syten eg. for 
+  // generatring exact solutions
+  inline void systemSource( const double time,
+                            const DomainType& xgl,
+                            RangeType& s) const;
+
+
+
   inline void  muSource( const RangeFieldType rho1,
                          const RangeFieldType rho2,
                          const RangeFieldType phi,
@@ -77,7 +84,7 @@ class MixedModel
 };
 
 template< class Grid, class Problem>
-inline void MixedModel< Grid,Problem>
+inline void HeatModel< Grid,Problem>
 ::totalEnergy(const DomainType& xgl,
               RangeType& vu,
               double& kin,
@@ -106,9 +113,35 @@ inline void MixedModel< Grid,Problem>
    
     total=therm+kin;
   }
+  
+template< class Grid, class Problem>
+inline void HeatModel< Grid,Problem>
+::systemSource( const double time,
+                const DomainType& xgl,
+                RangeType& s) const
+  {
+    s=0.;
+    double cosx=std::cos(2*M_PI*xgl[0]);
+    double cost=std::cos(M_PI*time);
+    double f=M_PI*( 4*M_PI*std::cos( M_PI*time ) - std::sin( M_PI*time ) );
+    //double f=-M_PI*( std::sin( M_PI*time ) );
+    f*=cosx;
 
+    for( int ii = 0 ; ii < dimDomain ; ++ii)
+      Filter::velocity( s , ii )=f;  
+   
+    Filter::phi( s )=f*0.5;
+  
+    double dFdphi=cosx*cosx*cost*cost-1;
+    dFdphi*=cosx;
+    dFdphi*=cost;
+ //   dFdphi/=problem_.thermodynamics().delta();
+
+   Filter::phi(s)+=20*dFdphi;
+  }
+  
 template<class Grid, class Problem > 
-inline void MixedModel< Grid, Problem >
+inline void HeatModel< Grid, Problem >
 ::muSource( RangeFieldType rho1,
             RangeFieldType rho2,
             RangeFieldType phi,
@@ -119,47 +152,45 @@ inline void MixedModel< Grid, Problem >
   }
 
 template< class Grid, class Problem > 
-inline void MixedModel< Grid, Problem>
+inline void HeatModel< Grid, Problem>
 ::tauSource(RangeFieldType phi1,
             RangeFieldType phi2,
             RangeFieldType rho,
             RangeFieldType& tau) const
   {
-    tau=problem_.thermodynamics().reactionSource(rho,phi1);
-    tau=0;
+    tau=problem_.thermodynamics().reactionSource(rho,phi2);
+   // tau=0;
   }
 
 template< class Grid, class Problem>
-inline void MixedModel< Grid,Problem>
+inline void HeatModel< Grid,Problem>
 ::dirichletValue(const double time, const DomainType& xglobal, RangeType& g) const
 {
   problem_.evaluate(time,xglobal,g);
 }
 
 template< class Grid, class Problem > 
-inline void MixedModel< Grid, Problem>
+inline void HeatModel< Grid, Problem>
 ::diffusion( JacobianRangeType& dvu,
             JacobianRangeType& diffusion) const
   {
     diffusion=0;
     double mu1=problem_.thermodynamics().mu1();
-    double mu2=problem_.thermodynamics().mu2();
+ //   double mu2=problem_.thermodynamics().mu2();
   
-//    diffusion=dvu;
-   // diffusion*=mu2;
+  //  diffusion*=mu1;
     
 
-#if 1 
-    for(int i=0; i<dimDomain ; ++i )
-      {
-      Filter::dvelocity(diffusion,i,i)=mu1*Filter::dvelocity(dvu,i,i);
+    for(int ii = 0 ; ii < dimDomain ; ++ii )
+     {
+       for(int jj = 0; jj < dimDomain ; ++ jj)
+        Filter::dvelocity(diffusion,ii,jj )=mu1*Filter::dvelocity(dvu,ii,jj);
    
-        for(int j=0; j<dimDomain ; ++j )
-          {
-            Filter::dvelocity(diffusion,i,j)+=mu2*0.5*(Filter::dvelocity(dvu,i,j)+Filter::dvelocity(dvu,j,i));
-         }
+  //     for(int j=0; j<dimDomain ; ++j )
+    //      {
+      //      Filter::dvelocity(diffusion,i,j)+=mu2*0.5*(Filter::dvelocity(dvu,i,j)+Filter::dvelocity(dvu,j,i));
+        // }
       }
-#endif
 
 }
 

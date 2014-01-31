@@ -60,8 +60,8 @@ int main(int argc, char ** argv, char ** envp) {
     int numThreads = Dune::Fem::Parameter::getValue< int >("fem.parallel.numberofthreads", 1);
     Dune :: Fem :: ThreadManager :: setMaxNumberThreads( numThreads );
 
-    int polynomialOrder = 1;
-    polynomialOrder = Dune::Fem::Parameter :: getValue("phasefield.polynomialOrder", polynomialOrder );
+    //int polynomialOrder = 1;
+    //polynomialOrder = Dune::Fem::Parameter :: getValue("phasefield.polynomialOrder", polynomialOrder );
 
     simulation :: simulate();  
 	  

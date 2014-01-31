@@ -35,7 +35,7 @@
 #endif
 #include <dune/fem/space/common/allgeomtypes.hh>
 
-#include <dune/grid/io/visual/grapedatadisplay.hh>
+//#include <dune/grid/io/visual/grapedatadisplay.hh>
 
 namespace simulation{
 
@@ -46,20 +46,20 @@ namespace simulation{
     typedef Dune::GridSelector :: GridType GridType;
     typedef ProblemGenerator< GridType > ProblemGeneratorType;
 
-
     // use problem specific initialize method since some problems do different things
     // there, e.g. poisson 
 		const std::string Flux="Phasefieldflux";
     Dune::GridPtr<GridType> gridptr = ProblemGeneratorType :: initializeGrid( Flux );
 
     // get grid reference 
-    GridType & grid = *gridptr;
+    GridType& grid = *gridptr;
 
-		typedef AlgorithmTraits<GridType,ProblemGeneratorType,POLORDER> AlgoTraits;
+    typedef AlgorithmTraits<GridType,ProblemGeneratorType,POLORDER> AlgoTraits;
 		PhasefieldAlgorithm<GridType,AlgoTraits,POLORDER> stepper(grid);
    
     //defined in base.hh
     compute( stepper );
+    //  compute( grid );
   } 
 
 } // end namespace LOOPSPACE

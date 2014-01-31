@@ -1,5 +1,5 @@
-#ifndef ALGORITHM_TRAITS_HH
-#define ALGORITHM_TRAITS_HH
+#ifndef FEMSCHEME_TRAITS_HH
+#define FEMSCHEME_TRAITS_HH
 
 
 #include <dune/fem/space/common/functionspace.hh>
@@ -8,30 +8,59 @@
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
 #include <dune/fem/function/adaptivefunction.hh>
 #include <dune/fem/operator/linear/spoperator.hh>
+
+
+//include solvers
 #include <dune/fem/solver/oemsolver.hh>
-
-
-
-
 #include <dune/fem/util/oemwrapper.hh>
 
-#include <dune/fem/operator/assembled/mixedoperator.hh>
+#if HAVE_DUNE_ISTL
+#include <dune/fem/function/blockvectorfunction.hh>
+#include <dune/fem/operator/linear/istloperator.hh>
+#include <dune/fem/solver/istlsolver.hh>
+#endif
+
+#if HAVE_UMFPACK
+#include <dune/fem/solver/umfpacksolver.hh>
+#endif
+
+#if HAVE_PETSC
+#include <dune/fem/function/petscdiscretefunction/petscdiscretefunction.hh>
+#include <dune/fem/operator/linear/petscoperator.hh>
+#include <dune/fem/solver/petscsolver.hh>
+#endif
+
+
+
+
+
+//#include <dune/fem/operator/assembled/mixedoperator.hh>
+#if MATRIXFREE
+#if NEWOP
+#include <dune/fem/operator/assembled/newheatoperator.hh>
+#else
+#include <dune/fem/operator/assembled/heatoperator2.hh>
+#endif
+#else
+#if NEWOP
+#include <dune/fem/operator/assembled/newlocalfdoperator.hh>
+#else
 #include <dune/fem/operator/assembled/localfdoperator.hh>
+#endif
+#endif
+
 
 template <class GridImp,
-          class ProblemGeneratorImp, int polOrd>             
+          class ProblemGeneratorImp,int polOrd>             
 struct AlgorithmTraits 
 {
   enum { polynomialOrder = polOrd };
-
- 
 
   // type of Grid
   typedef GridImp                                  GridType;
 	typedef typename GridType::ctype                 ctype;
   
-  
-  
+  //Type for choosing the Problem 
   typedef ProblemGeneratorImp                      ProblemGeneratorType;
 
  // Choose a suitable GridView
@@ -39,9 +68,10 @@ struct AlgorithmTraits
   typedef Dune :: Fem::AdaptiveLeafGridPart< GridType >         LagrangeGridPartType;
   
   enum{ dimDomain = GridType::dimensionworld };
+  
+  //(rho,v_1...v_n,phi,mu,tau,sigma_1...sigma_n)
   enum{ dimRange = 2*dimDomain+4 };
 
- 
   // problem dependent types 
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: ModelType        ModelType;
@@ -56,21 +86,30 @@ struct AlgorithmTraits
 
 
   // DiscreteFunctions
+#if WANT_ISTL
+  typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
+  typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
+  typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
+  typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+  typedef typename Dune::Fem::ISTLGMResOp< DiscreteFunctionType, JacobianOperatorType > LinearSolverType; 
+#else  
   typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
-  
   typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
 
-//  typedef Dune::Fem::AutomaticDifferenceLinearOperator< DiscreteFunctionType,DiscreteFunctionType> JacobianType;
   
- // typedef OEMWrapper<DiscreteFunctionType> JacobianType;
-  typedef Dune::Fem::SparseRowLinearOperator< DiscreteFunctionType, DiscreteFunctionType> JacobianType; 
 
-//  typedef FDJacobianDGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType,JacobianType> DiscreteOperatorType;
-  
-  typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianType>  DiscreteOperatorType;
+#if MATRIXFREE 
+  typedef OEMWrapper<DiscreteFunctionType> JacobianOperatorType;
+  typedef FDJacobianDGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType> DiscreteOperatorType;
+  typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
+#else 
+  typedef Dune::Fem::SparseRowLinearOperator< DiscreteFunctionType, DiscreteFunctionType> JacobianOperatorType; 
+  typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+  typedef Dune::Fem::UMFPACKOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
+//  typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
 
-	
-
+#endif
+#endif
   // type of restriction/prolongation projection for adaptive simulations 
   typedef Dune :: Fem::RestrictProlongDefault< DiscreteFunctionType > RestrictionProlongationType;
 };

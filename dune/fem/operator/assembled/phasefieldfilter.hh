@@ -8,7 +8,13 @@ template<class Range>
 struct PhasefieldFilter
 {
 public:
-  enum {dimDomain = (Range::dimension-4)/2};
+#if DGSCHEME
+  enum { dimDomain = (Range::dimension-4)/2 };
+#elif FEMSCHEME
+  enum{ dimDomain = Range::dimension-4 };
+#else
+#error "WRONG SCHEME FLAG"
+#endif
   typedef Dune::FieldMatrix<double,Range::dimension,dimDomain> JacobianRangeType;
   typedef typename Range::field_type RangeFieldType;
   typedef Range RangeType;
@@ -19,19 +25,19 @@ public:
   {
     return u[0];
   }
- 
 
   static RangeFieldType& velocity( RangeType &u,int i)
   {
     assert( i<dimDomain);
     return u[i+1];
   }
+
   static RangeFieldType& phi(RangeType& u)
   {
     return u[dimDomain+1];
   }
   
-   static RangeFieldType& mu( RangeType& u)
+  static RangeFieldType& mu( RangeType& u)
   {
     return u[dimDomain+2];
   }
@@ -40,13 +46,14 @@ public:
   {
     return u[dimDomain+3];
   }
-  
+#if FEMSCHEME 
+#elif DGSCHEME
   static RangeFieldType& sigma( RangeType& u, int i)
   {
     assert(i<dimDomain);
     return u[dimDomain+4+i];
   }
-
+#endif
   static RangeFieldType& dvelocity( JacobianRangeType &du,int i,int j)
   {
     assert( i<dimDomain&& j<dimDomain);
@@ -58,13 +65,14 @@ public:
     assert(j <dimDomain);
     return du[0][j];
   }
+
   static RangeFieldType& dphi(JacobianRangeType& du,int j)
   {
      assert(j <dimDomain); 
      return du[dimDomain+1][j];
   }
   
-   static RangeFieldType& dmu( JacobianRangeType& du, int j)
+  static RangeFieldType& dmu( JacobianRangeType& du, int j)
   {
      assert(j <dimDomain);
      return du[dimDomain+2][j];
@@ -75,14 +83,15 @@ public:
     assert(j <dimDomain);
     return du[dimDomain+3][j];
   }
-  
+#if FEMSCHEME
+#elif DGSCHEME 
   static RangeFieldType& dsigma( JacobianRangeType& du, int i, int j)
   {
    
    assert(i<dimDomain && j<dimDomain );
    return du[dimDomain+4+i][j];
   }
-
+#endif
 
 };
 

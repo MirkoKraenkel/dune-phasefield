@@ -8,82 +8,76 @@
 #include <dune/fem/operator/common/differentiableoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 
-//#include "mixedoperator.hh"
-#include "heatoperator2.hh"
+//LocalFDOperator
+//------------------------------
+
+/** \class LocalFDOperator
+ *  \brief operator providing Jacobian throug elementwise finite differences
+ *  
+ *  \note The user needs to provide the methods localOp and computeIntersection
+ *        to calculate the local residuals
+ *
+ */
 
 
-template<class DiscreteFunction,class Model, class Flux, class Jacobian>
-class LocalFDOperator
- :public Dune::Fem::DifferentiableOperator<Jacobian>,
-  protected DGPhasefieldOperator<DiscreteFunction,Model,Flux>
+template<class DomainFunction,class RangeFunction=DomainFunction,
+        class JacobianOperator>
+class LocalFDOperatorInterface
+ :public Dune::Fem::DifferentiableOperator< JacobianOperator >
 {
- 
-  typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
   
-  typedef Dune::Fem::DifferentiableOperator<Jacobian> BaseType;
- 
+  typedef Dune::Fem::DifferentiableOperator< JacobianOperatorType > 
+
+public:
+  typedef typename BaseType::RangeFunctionType RangeFunctionType;
+  typedef typename BaseType::DomainFunctionType DomainFunctionType;
+  typedef typename BaseType::RangeFieldType RangeFieldType;
+  typedef typename BaseType::DomainFieldType DomainFieldType;
 
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
-
-  typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
-  typedef typename MyOperatorType::ModelType ModelType;
-  typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
-  typedef typename MyOperatorType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
-  //typedef typename MyOperatorType::BasisFunctionSetType BasisFunctionSetType;
-  typedef typename MyOperatorType::RangeType RangeType;
-  typedef typename MyOperatorType::RangeFieldType RangeFieldType;
-  typedef typename MyOperatorType::JacobianRangeType JacobianRangeType;
-  typedef typename MyOperatorType::IteratorType IteratorType;
-  typedef typename MyOperatorType::IntersectionIteratorType IntersectionIteratorType;
-  typedef typename MyOperatorType::IntersectionType IntersectionType;
-  typedef typename MyOperatorType::EntityType EntityType;
-  typedef typename MyOperatorType::EntityPointerType EntityPointerType;
-  typedef typename MyOperatorType::GeometryType GeometryType;
-  typedef typename MyOperatorType::LocalFunctionType LocalFunctionType;
-  typedef typename MyOperatorType::QuadratureType QuadratureType;
-  typedef typename MyOperatorType::FaceQuadratureType FaceQuadratureType;
+  typedef typename RangeFunctionType::DiscreteFunctionSpaceType RangeSpaceType;
+  typedef typename DomainFunctionType::DiscreteFunctionSpaceType DomainSpaceType;
   
+  
+
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalFunctionType;
+ 
   typedef typename MyOperatorType::GridPartType GridPartType;
   public: 
-  LocalFDOperator(const ModelType &model,
-                  const DiscreteFunctionSpaceType &space,
-                  const NumericalFluxType &flux)
-  :MyOperatorType(model,space,flux),
-    stencil_(space,space),
-    epsilon_(Dune::Fem::Parameter::getValue<double>("phasefield.fdjacobian.epsilon"))
+  LocalFDOperator()
+  : globalEpsilon_(Dune::Fem::Parameter::getValue<double>("phasefield.fdjacobian.epsilon"))
   {}
 
-  using MyOperatorType::localOp;
-  using MyOperatorType::computeIntersection;
-  using MyOperatorType::operator();
-  using MyOperatorType::setTime;
-  using MyOperatorType::setDeltaT;
-  using MyOperatorType::setPreviousTimeStep;
-  using MyOperatorType::getPreviousTimeStep; 
-  using MyOperatorType::space;
+  virtual void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
 
 
+  // note this shoudl call jOp.reserve(stencil_) as stencil_ 
+  // is only known to the implemetation class
+  virtual void reserve(JacobianOperatorType &jOp) const = 0;
 
-  void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
-  
   private:
-  Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil_;
-  double epsilon_;
+  //let the user choose how to get the fd epsilon(finalize in derived class)
+  template<class LocalArgumentType>
+  virtual double calculateEpsilon(const LocalArgumentType& u) const = 0;
+
+  private:
+  double globalEpsilon_;
 };
 
 
 // Implementation of LocalFDOperator
 // // ------------------------------------------------
 
-template<class DiscreteFunction,class Model, class Flux, class Jacobian> void
-LocalFDOperator<DiscreteFunction, Model, Flux,  Jacobian>
+template< class Jacobian> void
+LocalFDOperator<Jacobian>
   ::jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const
 {
   typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
   typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
+  
 
-  jOp.reserve(stencil_);
+
+  reserve(jOp);
   jOp.clear();
   TemporaryLocalFunctionType fu( space() );
   TemporaryLocalFunctionType fu_j( space() );
@@ -135,7 +129,7 @@ LocalFDOperator<DiscreteFunction, Model, Flux,  Jacobian>
     }
     
     localOp(entity,u,uLocal,fu);
-    RangeFieldType eps =epsilon_;//sqrt((1+sqrt(normU))*epsilon_);
+    RangeFieldType eps =calculateEpsilon(uLocal);//sqrt((1+sqrt(normU))*epsilon_);
      double epsinv=1./eps;
  
     for( unsigned int localCol = 0; localCol < numBasisFunctions; ++localCol )

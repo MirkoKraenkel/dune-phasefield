@@ -11,10 +11,11 @@
 #include <dune/fem/operator/common/automaticdifferenceoperator.hh>
 //Note Problen should be independent of Operator/Scheme
 
-
+#if DGSCHEME
 #include<dune/phasefield/assembledtraits.hh>
-
-
+#elif FEMSCHEME
+#include<dune/phasefield/femschemetraits.hh>
+#endif
 // include std libs
 #include <iostream>
 #include <string>
@@ -23,7 +24,12 @@
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
 
-#include <dune/fem/operator/assembled/mixedoperator.hh>
+#if DGSCHEME 
+//#include <dune/fem/operator/assembled/newheatoperator.hh>
+//#include <dune/fem/operator/assembled/mixedoperator.hh>
+#elif FEMSCHEME
+#include <dune/fem/operator/assembled/femoperator.hh>
+#endif
 #include <dune/fem/operator/assembled/energyconverter.hh>
 //#include <dune/fem-dg/misc/runfile.hh>
 #include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
@@ -34,12 +40,9 @@
 
 
 #include <dune/fem/solver/cginverseoperator.hh>
+
 #include <dune/fem/solver/oemsolver.hh>
 #include <dune/fem/solver/newtoninverseoperator.hh>
-
-
-
-
 
 
 #include <dune/fem/adaptation/estimator2.hh>
@@ -92,58 +95,55 @@ public:
 	
   typedef typename Traits::ProblemGeneratorType ProblemGeneratorType;
 	typedef typename Traits::GridPartType GridPartType;
-  typedef typename Traits::JacobianType JacobianType;
-  typedef typename Traits::DiscreteOperatorType DiscreteOperatorType;
-	//for interpolation of initial Data 
+  //for interpolation of initial Data 
 	typedef typename Traits::LagrangeGridPartType LagrangeGridPartType;
-
-
-  //discrete spaces
-	typedef typename Traits::DiscreteSpaceType       DiscreteSpaceType;
-  typedef typename Traits::DiscreteEnergySpaceType ScalarDiscreteSpaceType;
-	//discrete functions
-	typedef typename Traits::DiscreteFunctionType DiscreteFunctionType;
-	typedef typename Traits::DiscreteScalarType   DiscreteScalarType;
-	//additional types
-	typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
+	//Problem Dependent Type
 	typedef typename Traits :: InitialDataType             InitialDataType;
 	typedef typename Traits :: ModelType                   ModelType;
 	typedef typename Traits :: FluxType                    FluxType;
   
-  typedef typename DiscreteSpaceType::FunctionSpaceType FunctionSpaceType;
 
+  //discrete spaces
+  //discrete space of the solution
+  typedef typename Traits::DiscreteSpaceType       DiscreteSpaceType;
+  //discrete space for monitoring the discrete energy
+  typedef typename Traits::DiscreteEnergySpaceType ScalarDiscreteSpaceType;
+	//discrete functions
+	typedef typename Traits::DiscreteFunctionType DiscreteFunctionType;
+	typedef typename Traits::DiscreteScalarType   DiscreteScalarType;
+ 
+  
+  typedef typename Traits :: JacobianOperatorType JacobianOperatorType;
+  typedef typename Traits :: DiscreteOperatorType DiscreteOperatorType;
+	typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
+  typedef typename Traits :: LinearSolverType LinearSolverType;
+
+  typedef typename DiscreteSpaceType::FunctionSpaceType FunctionSpaceType;
 
 	// type of adaptation manager 
 	typedef Dune::Fem::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
 
-	// type of IOTuple 
+	//type of IOTuple 
 	//typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType*,DiscreteThetaType* > IOTupleType; 
   //Pointers for (rho, v,phi),(totalenergy)
-  typedef Dune::tuple< DiscreteFunctionType*,DiscreteScalarType*> IOTupleType; 
-
+  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*> IOTupleType; 
 	
   // type of data 
- // writer 
+  // writer 
   typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
 
 	// type of ime provider organizing time for time loops 
 	typedef Dune::Fem::GridTimeProvider< GridType >                 TimeProviderType;
-	
 
   typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
-  typedef  Estimator1<DiscreteFunctionType> EstimatorType;
+  typedef Estimator1<DiscreteFunctionType> EstimatorType;
 	typedef typename Dune::Fem::LagrangeDiscreteFunctionSpace< FunctionSpaceType, LagrangeGridPartType, 2> InterpolationSpaceType;
   typedef typename Dune::Fem::AdaptiveDiscreteFunction< InterpolationSpaceType > InterpolationFunctionType;
 
-  //solver related
- // typedef typename Dune::Fem::OEMBICGSTABOp<DiscreteFunctionType, JacobianType> LinearInverseOperatorType;
- typedef typename Dune::Fem::OEMGMRESOp<DiscreteFunctionType, JacobianType> LinearInverseOperatorType;
-
-
-  typedef typename Dune::Fem::NewtonInverseOperator<JacobianType,LinearInverseOperatorType> NewtonSolverType; 
+  // NewtonSolver
+  typedef typename Dune::Fem::NewtonInverseOperator< JacobianOperatorType, LinearSolverType > NewtonSolverType; 
 
 	//MemberVaribles
-	
 private:
 	GridType&               grid_;
 	GridPartType            gridPart_;
@@ -158,7 +158,7 @@ private:
   std::string             energyFilename_;
   DiscreteFunctionType    solution_;
 	DiscreteFunctionType    oldsolution_; 
-	DiscreteFunctionType    zero_;
+	DiscreteFunctionType    start_;
   DiscreteScalarType*     energy_;
 	const InitialDataType*  problem_;
   ModelType*              model_;
@@ -195,7 +195,7 @@ public:
     energyFilename_(Dune::Fem::Parameter::getValue< std::string >("phasefield.energyfile","./energy.gnu")),
     solution_( "solution", space() ),
 		oldsolution_( "oldsolution", space() ),
-	  zero_("zero",space()),
+	  start_("start",space()),
     energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
 		problem_( ProblemGeneratorType::problem() ),
     model_( new ModelType( problem() ) ),
@@ -205,13 +205,17 @@ public:
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
 		//     adaptationParameters_( ),
-		dgOperator_(*model_,space(),numericalFlux_),
+#if DGSCHEME
+   	dgOperator_(*model_,space(),numericalFlux_),
+#elif FEMSCHEME
+    dgOperator_(*model_,space()),
+#endif
     tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
     interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
     calcresidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
     timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
     {
-      zero_.clear();
+      start_.clear();
     }
 
   //! destructor 
@@ -228,19 +232,11 @@ public:
   }
 
 	//some acces methods
-	//spacs
-	DiscreteSpaceType& space()
-	{
-		return space_;
-	}
+	//spaecs
+	DiscreteSpaceType& space(){ return space_; }	
 	
 
-	
-
-	ScalarDiscreteSpaceType& energyspace()
-	{
-		return energySpace_;
-	}
+	ScalarDiscreteSpaceType& energyspace() { return energySpace_; }
 	
   size_t gridSize() const
 	{
@@ -248,7 +244,7 @@ public:
 		return grid_.comm().sum(grSize);
 	}
 
-  DiscreteFunctionType oldsolution() {return oldsolution_;}
+  DiscreteFunctionType& oldsolution() {return oldsolution_;}
 
   DiscreteScalarType* energy(){ return energy_;}
 
@@ -274,9 +270,9 @@ public:
 	virtual void initializeStep(TimeProviderType& tp)
 	{
 		DiscreteFunctionType& U = solution();
-		//Create OdeSolver if necessary
-   
-   
+		DiscreteFunctionType& Uold = oldsolution();
+    //Create OdeSolver if necessary
+#if SCHEME==DG   
     if( interpolateInitialData_ )
       {
         LagrangeGridPartType lagGridPart(grid_); 
@@ -290,8 +286,11 @@ public:
       {   
        Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), U);
       }
-
- 
+#else
+#warning "FEMSCHEME" 
+       Dune::Fem::LagrangeInterpolation<InitialDataType,DiscreteFunctionType>::interpolateFunction( problem(),U);
+#endif    
+     Uold.assign(U); 
   }
 
   void step(TimeProviderType& tp,
@@ -301,28 +300,30 @@ public:
 						int& max_ils_iterations)
 	{
     const double time=tp.time();
-    
     const double deltaT=tp.deltaT();
     
-    dgOperator_.setPreviousTimeStep(solution());
-  
+    DiscreteFunctionType& Uold=oldsolution();
+    DiscreteFunctionType& U=solution();
+    // to visualize exact solution
+    Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), Uold);
+
+    dgOperator_.setPreviousTimeStep(U);
     dgOperator_.setTime(time);
-    std::cout<<"DeltaT="<<deltaT<<"\n";
     dgOperator_.setDeltaT(deltaT);
-   
      
     NewtonSolverType invOp(dgOperator_); 
-    zero_.clear(); 
-    solution_.clear();
-    invOp(zero_,solution());
+    start_.clear();
+    
+    invOp(start_,U);
+    
     // reset overall timer
     overallTimer_.reset(); 
      
-#if 0   
-		newton_iterations     = odeSolverMonitor_.newtonIterations_;
-    ils_iterations        = odeSolverMonitor_.linearSolverIterations_;
-    max_newton_iterations = odeSolverMonitor_.maxNewtonIterations_ ;
-    max_ils_iterations    = odeSolverMonitor_.maxLinearSolverIterations_;
+#if 1   
+		newton_iterations     = invOp.iterations();
+    ils_iterations        = invOp.linearIterations();;
+    max_newton_iterations = std::max(max_newton_iterations,newton_iterations);
+    max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
 #endif
 	}
 	
@@ -358,31 +359,7 @@ public:
 	{
     if( reallyWrite )
 		{
-				 
-     // DiscreteSigmaType* gradient=sigma();
-//      DiscreteThetaType* theta1=theta();
-#if 0 
-      // calculate DG-projection of additional variables
-			if ( addVariables && gradient)
-			{
-        gradient->clear();
-  
-       // dgOperator_.gradient(solution(),*gradient);
-
-        if(theta1)
-        { 
-        
-          theta1->clear();
-          dgOperator_.theta(solution(),*theta1);
-
-        }
-
-        // calculate additional variables from the current num. solution
-		  
-        setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
-		}
-#endif
-            
+	   //setup additionals variables if needed			 
     }
 
 		// write the data 
@@ -398,7 +375,7 @@ public:
 
 		double timeStepError=std::numeric_limits<double>::max();
  
-     //some setup stuff
+    //some setup stuff
 		const bool verbose = Dune::Fem::Parameter :: verbose ();
 		int printCount = Dune::Fem::Parameter::getValue<int>("phasefield.printCount", -1);
 
@@ -431,7 +408,7 @@ public:
     TimeProviderType tp(startTime, grid_ ); 
 
 		DiscreteFunctionType& U = solution();
-    DiscreteFunctionType Uold = oldsolution(); 
+    DiscreteFunctionType& Uold = oldsolution(); 
 
   
     RestrictionProlongationType rp( U );
@@ -445,7 +422,7 @@ public:
 		//restoreFromCheckPoint( tp );
 		
 		// tuple with additionalVariables 
-	  IOTupleType dataTuple(&solution(), this->energy());
+	  IOTupleType dataTuple( &solution() , &oldsolution() , this->energy());
 	
     std::ofstream energyfile;
     std::ostringstream convert;
@@ -459,9 +436,8 @@ public:
 		// type of the data writer
 		DataWriterType eocDataOutput( grid_, dataTuple, tp, EocDataOutputParameters( loop_ , dataPrefix() ) );
 		
-		// set initial data (and create ode solver)
+  	// set initial data (and create ode solver)
 		initializeStep( tp );
-//    Uold.assign(U);
  
  		// start first time step with prescribed fixed time step 
 		// if it is not 0 otherwise use the internal estimate
@@ -490,26 +466,31 @@ public:
 			tp.init();
 		
 
-
     tp.provideTimeStepEstimate(maxTimeStep);                                         
 		
-//    std::cout<<"deltaT "<<tp.deltaT()<<" estimate "<<dgOperator_.timeStepEstimate()<<std::endl;
 
 		writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
 
     if(calcresidual_)
     {
+     
+      double scale=Dune::Fem::Parameter::getValue<double>("debug.scale",1);
       std::cout<<"Residual\n";
       Uold.clear();
+      dgOperator_.setTime(tp.time());
+      dgOperator_.setDeltaT(tp.deltaT());
+      dgOperator_.setPreviousTimeStep(U);
+      U*=scale;
       dgOperator_(U,Uold);
+      Uold.print(std::cout); 
       U.assign(Uold);
+      Uold.assign( dgOperator_.getPreviousTimeStep());
       writeData(eocDataOutput ,tp , eocDataOutput.willWrite( tp ));
     }
     else
     for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps /* && timeStepError > timeStepTolerance_*/;  )   
 		{ 
 			tp.provideTimeStepEstimate(maxTimeStep);                                         
-//		 DiscreteFunctionType tmp)	
 			const double tnow  = tp.time();
 			const double ldt   = tp.deltaT();
       int newton_iterations;
@@ -524,7 +505,9 @@ public:
 		
 			step( tp, newton_iterations, ils_iterations, 
             max_newton_iterations, max_ils_iterations);
-			// Check that no NAN have been generated
+		  
+      
+      // Check that no NAN have been generated
 			if (! U.dofsValid()) 
 			{
   			std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
@@ -553,6 +536,7 @@ public:
 
 			writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
 			writeCheckPoint( tp, adaptManager );
+ //     Uold.assign(U);
       //statistics
       mindt = (ldt<mindt) ? ldt : mindt;
       maxdt = (ldt>maxdt) ? ldt : maxdt;
@@ -565,21 +549,18 @@ public:
 			if ( fixedTimeStep_ > 1e-20 )
 				tp.next( fixedTimeStep_ );
 			else
-				tp.next();
-
-		}		/*end of timeloop*/
-		
+      {	tp.next(); abort();}
+		  }		/*end of timeloop*/
+	 //Uold.clear();	
     // write last time step  
 		writeData( eocDataOutput, tp, true );
 
     energyfile.close();
 	  averagedt /= double(tp.timeStep());
 	
-	// 		writeData( eocDataOutput, tp, true );
 	
 		finalizeStep( tp );                                  
     
-	
 		++loop_;
 	
 		// prepare the fixed time step for the next eoc loop
@@ -591,14 +572,7 @@ public:
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 		Fem::L2Norm< GridPartType > l2norm(gridPart_);
     
-    //typedef Fem::GridFunctionAdapter<InitialDataType,GridPartType> GridFunctionType;
-    //GridFunctionType exactsolution("exact solution",problem(),gridPart_,space().order()+1);   
-		// Compute L2 error of discretized solution ...
-		//RangeType error = L2err.norm(problem(), u, tp.time());
-    //double error = l2norm.distance(exactsolution,u);  
-   // double error = l2norm.distance(problem(),u);  
-   //double error = l2norm.distance(problem().fixedTimeFunction(tp.time()),u);
-double error=666.;
+   double error = l2norm.distance(problem().fixedTimeFunction(tp.time()),u);
     
     return error;
 	}
@@ -615,7 +589,7 @@ double error=666.;
 	virtual void finalizeStep(TimeProviderType& tp)
 	{ 
 		DiscreteFunctionType& u = solution();
-		
+	 std::cout<<"ERROR="<<error(tp, u)<<"\n";	
 		bool doFemEoc = problem().calculateEOC( tp, u, eocId_ );
 
 		// ... and print the statistics out to a file
@@ -645,8 +619,8 @@ double error=666.;
     if( eocLoopData_ == 0 ) 
 			{
 			
-       eocDataTup_ = IOTupleType( &U,totalenergy ); 
-        //eocDataTup_ = IOTupleType( &U,sig ); 
+       eocDataTup_ = IOTupleType( &U , &oldsolution() , totalenergy ); 
+        //eocDataTup_ = IOTupleType( & U,sig ); 
         eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
 			
       }

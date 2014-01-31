@@ -389,8 +389,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
           laplace+=Filter::dsigma( duMid, ii , ii );
         }
 #if HEATCHECK
-      //Filter::phi( avu )-=laplace;
-       Filter::phi( avu) -=Filter::tau( vuMid );
+       Filter::phi( avu )-=laplace;
 #else       
    //     Filter::phi( avu )+=transport+Filter::tau( vuMid )/Filter::rho( vuMid );
 #endif     
@@ -403,7 +402,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                           Filter::phi(vu),
                           Filter::rho(vuOld),
                           dFdphi);
-#if OPCHECK         
+#if 1         
        Filter::tau(avu)=Filter::tau(vu);
        Filter::tau(avu)-=Filter::tau(vuOld);
 #else
@@ -412,10 +411,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         // Filter::tau(avu)-=dFdphi;
         RangeFieldType divsigma(0.);
 
-        for( int ii = 0 ; ii < dimDomain ; ++ii) 
-          divsigma+=Filter::dsigma( duMid, ii , ii );
+//        for( int ii = 0 ; ii < dimDomain ; ++ii) 
+//         divsigma+=Filter::dsigma( duMid, ii , ii );
          
-        Filter::tau( avu )-=model_.delta()*divsigma;
+//        Filter::tau( avu )+=0;//model_.delta()*divsigma;
 //-------------------------------------------------------------------
 
 //mu-----------------------------------------------------------------

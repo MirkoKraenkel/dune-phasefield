@@ -74,9 +74,9 @@ double energyconverter( const DiscreteFunctionType& dF,
     for(int qP = 0; qP < quadNop; ++qP) 
     {
       const DomainType& xgl = geo.global( quad.point(qP) );
-      // evaluate conservative variables and gradients
+      // evaluate  variables 
       localU.evaluate( quad[qP], vu );
-#warning "EnergyConversion for assembled version missin!"
+
 			model.totalEnergy(xgl,vu,kin[0],therm[0],total[0]);
       total*=  quad.weight(qP);
 			kin*=quad.weight(qP);

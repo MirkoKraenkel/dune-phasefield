@@ -1,6 +1,5 @@
-#ifndef PROBLEM_HH
-#define PROBLEM_HH
-
+#ifndef HEATPROBLEM_HH
+#define HEATPROBLEM_HH
 #include <dune/common/version.hh>
 
 // dune-fem includes
@@ -20,7 +19,7 @@
 namespace Dune {
 
 template <class GridType, class RangeProvider>
-class MixedTestProblem : public EvolutionProblemInterface<
+class HeatProblem : public EvolutionProblemInterface<
                        Dune::Fem::FunctionSpace< double, double, GridType::dimension,RangeProvider::rangeDim >, true >
 {
  
@@ -38,8 +37,8 @@ public:
 
    typedef TestThermodynamics ThermodynamicsType;
 
-  MixedTestProblem() : 
-    myName_( "MixedTestBalanced Problem" ),
+  HeatProblem() : 
+    myName_( "Mixedtest Heatproblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
@@ -105,7 +104,7 @@ public:
 
 
 template <class GridType,class RangeProvider>
-inline double MixedTestProblem<GridType,RangeProvider>
+inline double HeatProblem<GridType,RangeProvider>
 :: init(const bool returnA ) const 
 {
   return 0;
@@ -114,40 +113,45 @@ inline double MixedTestProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline void MixedTestProblem<GridType,RangeProvider>
+inline void HeatProblem<GridType,RangeProvider>
 :: printInitInfo() const
 {}
 
 template <class GridType,class RangeProvider>
-inline void MixedTestProblem<GridType,RangeProvider>
+inline void HeatProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double x=arg[0];
-  //double y=(x-gamma_*t);
+  double cost=cos(M_PI*t);
+  double cosx=cos(2*M_PI*x);
+  double dFdphi=cosx*cosx*cost*cost-1;
+  dFdphi*=cosx;
+  dFdphi*=cost;
    
-   //double tanx=0.1*tanh(y/(delta_))+0.5;
 
    //rho
-   res[0]=1;//sin(2*M_PI*x);
+   res[0]= 1;
    //v
    for(int i=1;i<=dimension;i++)
    {
-     res[i]=sin(2*M_PI*x);
+     res[i]=cosx*cost;  
    }
   
    // phi
-   res[dimension+1]=sin(2*M_PI*x);
-
+ //  res[dimension+1]=u;
+   res[dimension+1]=0.5*cosx*cost+0.5;
    //res[dimension+1]=tanx;
 
-
     //mu
-    res[dimension+2]=0;
+    res[dimension+2]=1;
     //tau
-    res[dimension+3]=-4*M_PI*M_PI*sin(2*M_PI*x);
+    res[dimension+3]=4*M_PI*M_PI*cos(2*M_PI*x)*cost*0.5+20*dFdphi;
+
+
 #if SCHEME==DG
     //sigma
-    res[dimension+4]=2*M_PI*cos(2*M_PI*x);
+    res[dimension+4]=-2*M_PI*sin(2*M_PI*x)*cost*0.5;
+    res[dimension+5]=0; 
 #elif SCHEME==FEM
 #endif
 }
@@ -157,7 +161,7 @@ inline void MixedTestProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline std::string MixedTestProblem<GridType,RangeProvider>
+inline std::string HeatProblem<GridType,RangeProvider>
 :: description() const
 {
   std::ostringstream stream;

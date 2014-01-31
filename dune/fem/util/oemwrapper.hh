@@ -3,7 +3,12 @@
 
 #include<dune/fem/operator/common/operator.hh>
 #include<dune/fem/operator/common/automaticdifferenceoperator.hh>
-#include<dune/fem/operator/assembled/mixedoperator.hh>
+
+#if DGSCHEME
+//#include<dune/fem/operator/assembled/mixedoperator.hh>
+#elif FEMSCHEME
+#include<dune/fem/operator/assembled/femoperator.hh>
+#endif
 
 template<class DomainFunction,class RangeFunction=DomainFunction>
 class OEMWrapper

@@ -2,7 +2,7 @@
 #define DUNE_PHASEFIELD_MIXEDOPERATOR_HH
 
 
-#warning  "MIXEDDGOPERATOR"
+#warning  "HEATOP2"
 //globlas includes
 
 //DUNE includes
@@ -295,7 +295,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         vuMid.axpy(factorImp_,vu);
         vuMid.axpy(factorExp_,vuOld);
   
-        JacobianRangeType du,duOld,duMid, diffusion;
+        JacobianRangeType du,duOld,duMid, diffusion{0.};
         uLocal.jacobian( quadrature[ pt ], du );
         uOldLocal.jacobian( quadrature[ pt ], duOld);
        
@@ -315,28 +315,15 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         //d_t rho=(rho^n-rho^n-1)/delta t
         Filter::rho(avu)+=Filter::rho(vu);
         Filter::rho(avu)-=Filter::rho(vuOld);
-        Filter::rho(avu)/=deltaT_;
+        Filter::rho(avu)*=deltaInv;
 #endif
         RangeFieldType div(0.),gradrhodotv(0.);
         
-        //div(rho v)=rho*div v+gradrho v
-        for(int ii = 0; ii <dimDomain ; ++ii )
-          { 
-            //sum d_i v_i 
-            div+=Filter::dvelocity(duMid, ii , ii );
-            // sum d_i rho*v_i
-            gradrhodotv+=Filter::drho(duMid , ii )*Filter::velocity(vuMid, ii );
-          }
-#if HEATCHECK
-#else
-        Filter::rho(avu)+=Filter::rho(vuMid)*div+gradrhodotv;
-#endif
-
 //---------------------------------------------------------------
 
 //v--------------------------------------------------------------
 
-        for(int ii= 0;ii<dimDomain;++ii)
+        for( int ii = 0; ii < dimDomain ; ++ii )
           {
 #if  OPCHECK 
            Filter::velocity(avu,ii)=Filter::velocity(vu,ii);
@@ -349,24 +336,11 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 #endif            
             RangeFieldType sgradv(0);
             
-            //sum_j v_j( d_j v_i - d_i v_j)
-            for(int jj = 0;jj < dimDomain ; ++jj)
-              sgradv+=Filter::velocity( vuMid , jj )*(Filter::dvelocity(duMid, ii , jj )-Filter::dvelocity( duMid, jj , ii));
-          
-    //        Filter::velocity( avu, ii )+=sgradv;
-      //      Filter::velocity( avu, ii )+=Filter::dmu( duMid , ii );
-            //rho*(d_t v+S(dv)v+dmu) 
-        //    Filter::velocity( avu, ii )*=Filter::rho( vuMid );
-            // -tau\nabla phi 
-            // check me: dphiMid,dphiOld or dphi???
-#if HEATCHECK
-#else
-            Filter::velocity( avu , ii )+=Filter::tau( vuMid )*Filter::dphi( duMid , ii ); 
-#endif
-          }
+         
+         }
           // A(dv) 
-         // model_.diffusion( duMid , diffusion );
-//------------------------------------------------------------------
+          model_.diffusion( duMid , diffusion );
+          //------------------------------------------------------------------
 
 //phi---------------------------------------------------------------
 #if  OPCHECK
@@ -374,7 +348,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         Filter::phi( avu )-=Filter::phi( vuOld ); 
 #else
         Filter::phi( avu )=Filter::phi( vu )-Filter::phi( vuOld );
-        Filter::phi( avu )/=deltaT_;
+        Filter::phi( avu )*=deltaInv;
 #warning "TIMEDERIVATIVE"      
 #endif
         RangeFieldType transport(0.);
@@ -419,36 +393,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 //-------------------------------------------------------------------
 
 //mu-----------------------------------------------------------------
-        //dF/drho
-        double dFdrho;
-        model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
 
-        //mu-d_rho F
-#if 1 
-        Filter::mu(avu)=Filter::mu(vu);
-        Filter::mu(avu)-=Filter::mu(vuOld);
-#else
-        Filter::mu(avu)=Filter::mu(vu);
-#endif     
-#if HEATCHECK
-#else
-        Filter::mu(avu)-=dFdrho;
-#endif
-        RangeFieldType   usqr(0.),uOldsqr(0.);
-        for( int ii = 0; ii < dimDomain ; ++ii) 
-        {
-#if OPCHECK
-          // |v^n|^2
-          usqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
-#else
-          // |v^n|^2
-          usqr+=Filter::velocity( vu , ii )*Filter::velocity( vu , ii );
-#endif
-          // |v^{n-1}|^2
-          uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
-        }
-        // -\frac{1}{4}( |v^n|^2-|v^{n-1}|^2)
-       // Filter::mu(avu)-=0.25*(usqr+uOldsqr);
+        Filter::mu(avu)=Filter::mu(vu)-Filter::mu(vuOld);
 //------------------------------------------------------------------
 
 //sigma--------------------------------------------------------------
@@ -542,7 +488,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
     // compute penalty factor
     const double intersectionArea = intersectionGeometry.volume();
-    const double penaltyFactor =  intersectionArea / std::min( area, neighbor.geometry().volume() ); 
+    const double penaltyFactor = penalty()*intersectionArea / std::min( area, neighbor.geometry().volume() ); 
    
     const int quadOrderEn = uEn.order() + wLocal.order();
     const int quadOrderNb = uNb.order() + wLocal.order();
@@ -589,15 +535,13 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                     penaltyFactor,
                                     valuesEn[ pt ],
                                     valuesNb[ pt ],
-                                    // valuesEn[ pt ],
-                                  //  valuesNb[ pt ],
                                     midValuesEn[ pt ],  
-                                   midValuesNb[ pt ], 
+                                    midValuesNb[ pt ], 
                                     gLeft,
                                     gRight); 
    
         RangeType value{0.};
-        
+#if 1        
         fluxRet+=flux_.diffusionFlux(normal,
                                     penaltyFactor,
                                     midValuesEn[ pt ],
@@ -606,15 +550,15 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                     midJacobiansNb[ pt ],
                                     value,
                                     advalue);
-
-       
-     //   gLeft+=value;
-        gLeft*=weight;
+#endif
       
+       gLeft+=value;
+       gLeft*=weight;
+     
         advalue*=weight;
-      
+        
+     //   std::cout<<"DifffluxValue="<<value<<" DifffluxAValue="<<advalue<<"\n";
         wLocal.axpy(quadInside[pt],gLeft,advalue);
-           
       }//end quad loop
   }
 
@@ -647,7 +591,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model, Flux>
 
     // compute penalty factor
     const double intersectionArea = intersectionGeometry.volume();
-    const double penaltyFactor=intersectionArea / area;
+    const double penaltyFactor=penalty()*intersectionArea / area;
     const int quadOrder = uEn.order() + wLocal.order();
 
     FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrder, FaceQuadratureType::INSIDE );
@@ -660,9 +604,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model, Flux>
     uEn.evaluateQuadrature( quadInside, valuesEn );
     ufMidEn.evaluateQuadrature( quadInside,midValuesEn );
     ufMidEn.evaluateQuadrature( quadInside,midJacobiansEn );
-
-
-
  
     for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
       {

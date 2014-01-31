@@ -26,7 +26,7 @@ fem.io.grapedisplay: 0
 # add time stamp to eoc file name
 # to avoid overwriting the eoc files
 fem.io.eocFileTimeStamp: 1
-#@phasefield.eocOutputPath: ./data
+@phasefield.eocOutputPath: ./data
 
 
 # GRID SOLUTION 
@@ -39,7 +39,7 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-phasefield.eocSteps: 2 
+phasefield.eocSteps: 3 
 phasefield.printCount: 0 
 phasefield.verbose: 1 
 
@@ -72,8 +72,8 @@ fem.adaptation.adaptcount: 10 # after this many time step, 0 disables adaptation
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 0 
+phasefield.startLevel: 3   
 
 
 phasefield.startTime: 0 
-phasefield.endTime: 1. 
+phasefield.endTime: 0.2 

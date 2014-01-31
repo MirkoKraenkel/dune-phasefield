@@ -662,16 +662,7 @@ public:
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 		Fem::L2Norm< GridPartType > l2norm(gridPart_);
-    
-    //typedef Fem::GridFunctionAdapter<InitialDataType,GridPartType> GridFunctionType;
-    //GridFunctionType exactsolution("exact solution",problem(),gridPart_,space().order()+1);   
-		// Compute L2 error of discretized solution ...
-		//RangeType error = L2err.norm(problem(), u, tp.time());
-    //double error = l2norm.distance(exactsolution,u);  
-   // double error = l2norm.distance(problem(),u);  
-   double error = l2norm.distance(problem().fixedTimeFunction(tp.time()),u);
-
-    
+    double error = l2norm.distance(problem().fixedTimeFunction(tp.time()),u);
     return error;
 	}
   //compute Error between old and NewTimeStep

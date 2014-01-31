@@ -15,7 +15,13 @@ struct RangeTypeProvider;
 template< int dimension>
 struct RangeTypeProvider<dimension,true>
 {
-  enum{ rangeDim=2*dimension+4};
+#if DGSCHEME
+#warning "DGSCHEME"
+  enum{ rangeDim=2*dimension+4 };
+#elif FEMSCHEME
+  #warning "FEMSCHEME"
+  enum{ rangeDim=dimension+4 };
+#endif
 };
 
 
@@ -57,8 +63,8 @@ typedef TravelProblem< GridSelector :: GridType,
 #include "bubbleproblem.hh"
 typedef BubbleProblem< GridSelector:: GridType>  PhaseProblemType;
 #elif PROBLEM==7
-#include "../mixedscheme/testproblem.hh"
-typedef MixedTestProblem< GridSelector :: GridType,
+#include "../mixedscheme/heatproblem.hh"
+typedef HeatProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else

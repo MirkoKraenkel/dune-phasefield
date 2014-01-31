@@ -19,8 +19,8 @@
 
 #include "../1dphase/problemtype.hh"
 
-#include <dune/fem/operator/assembled/model.hh>
-
+//#include <dune/fem/operator/assembled/heatmodel.hh>
+#include <dune/fem/operator/assembled/acmodel.hh>
 #include <dune/fem/operator/assembled/flux.hh>
 
 template< class GridType > 
@@ -33,12 +33,12 @@ struct ProblemGenerator
   {
     typedef PhaseProblemType  InitialDataType;
 
-    typedef MixedModel< typename GridPart::GridType, InitialDataType > ModelType;
+    typedef HeatModel< typename GridPart::GridType, InitialDataType > ModelType;
     // choice of diffusion flux (see diffusionflux.hh for methods)
 
-// ******************************** NUMERICAL FLUX *****************************
+    // ******************************** NUMERICAL FLUX *****************************
 	  typedef MixedFlux<ModelType > FluxType;
-// ****************************** END NUMERICAL FLUX ***************************
+    // ****************************** END NUMERICAL FLUX ***************************
   };
 
   static inline std::string advectionFluxName()

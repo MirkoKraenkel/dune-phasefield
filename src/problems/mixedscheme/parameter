@@ -5,7 +5,7 @@ fem.resolvevariables: 1
 #------------
 fem.prefix: ./data$(scheme) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 5e-3 #save data every time interval 
+fem.io.savestep: 1e-2 #save data every time interval 
 fem.io.savecount: 0    # save every i-th ste
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
@@ -21,11 +21,11 @@ gridsol.filename: phasefield-checkpoint
 
 # GENERAL
 
-paramfile: ../parameter/paramBase
+paramfile: ./paramFiles/paramBase
 
 # PROBLEM SETUP
 #--------------
-phasefield.calcresidual: true 
+phasefield.calcresidual: false 
 phasefield.interpolinitial: false 
 phasefield.diffusionTimeStep:1 
 phasefield.energy: true
@@ -35,13 +35,12 @@ phasefield.addvisc: 0.
 phasefield.nonconvisc:  
 phasefield.thetaswitch: -1.
 phasefield.delta: 1
-phasefield.mu1: 1.
+phasefield.mu1:  1.
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
-phasefield.penalty: 0
+phasefield.penalty: 1 
 phasefield.acpenalty: 0 
-c1:1
-c2:2
+phasefield.ipswitch:0
 phasefield.smear: 1.
 phiscale: 0.99
 pressure: 1
@@ -54,10 +53,10 @@ gamma: 0
 
 #fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
 fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
-fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 ##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
-#fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
+fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
@@ -72,14 +71,21 @@ fem.io.macroGridFile_3d: ../macrogrids/unitcube3.dgf
 #-------
 dgiffusionflux.upwind: -1 -3.141
 #dgdiffusionflux.upwind: -1 
-paramfile: ../parameter/paramSolver
+paramfile: ./paramFiles/paramSolver
 phasefield.maxTimeStep: 0.5
-fem.ode.tolerance: 1e-4
-fem.solver.newton.tolerance: 1e-6 
-fem.solver.verbose: true
-fem.differenceoperator.eps:1e-9
-phasefield.maximaltimesteps: 1 
-oemsolver.gmres.restart:1000
+fem.ode.tolerance: 1e-54
+fem.solver.newton.tolerance: 1e-8
+fem.solver.tolerance: 1e-9
+fem.solver.verbose: false   
+fem.solver.newton.verbose: false 
+fem.solver.newton.maxiterations: 10 
+fem.differenceoperator.eps: 1e-8
+phasefield.fdjacobian.epsilon: 1e-8
+#phasefield.maximaltimesteps:1 
+phasefield.mixed.theta: 0. #0 if opcheck is used
+istl.preconditioning.method: ilu-0 
+istl.gmres.restart: 1000
+oemsolver.gmres.restart: 1000
 
 #phasefield.timesteptolerance: 
 
@@ -88,5 +94,8 @@ oemsolver.gmres.restart:1000
 phasefield.storelaststep: true
 phasefield.additionalvariables: false 
 phasefield.energy: false
-phasefield.sigma: false
-phasefield.theta: false 
+
+# Debug
+# --------------
+sigma.sign:1.
+debug.scale:1.
