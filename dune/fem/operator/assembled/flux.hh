@@ -181,11 +181,11 @@ double MixedFlux<Model>
         { 
           //F_2=F_{2.1}+F_{2.2}
           //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-          Filter::velocity(gLeft,i)=-1*Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
+//          Filter::velocity(gLeft,i)=-1*Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
           Filter::velocity(gLeft,i)=0.;
-        } 
+       } 
     
       //----------------------------------------------------------------
       double laplaceFlux(0.);
@@ -194,11 +194,11 @@ double MixedFlux<Model>
         {
           //F_{3.1}
           //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
-          //Filter::phi(gLeft)+=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
+          Filter::phi(gLeft)+=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
           //tau
           //F_{3.2}
-  //        //(\sigma^+-\sigma^-)\cdot n * 0.5
-        laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
+          //(\sigma^+-\sigma^-)\cdot n * 0.5
+          laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
        //    laplaceFlux+=Filter::sigma(jump,i)*0.5;
         
         } 
