@@ -123,21 +123,35 @@ inline void HeatModel< Grid,Problem>
     s=0.;
     double cosx=std::cos(2*M_PI*xgl[0]);
     double cost=std::cos(M_PI*time);
+    double sinx=std::sin(2*M_PI*xgl[0]);
+    double sint=std::sin(M_PI*time);
     double f=M_PI*( 4*M_PI*std::cos( M_PI*time ) - std::sin( M_PI*time ) );
     //double f=-M_PI*( std::sin( M_PI*time ) );
     f*=cosx;
+   
+//    double fv=-sinx*M_PI*(sint-2*cost*cost*cosx-4*M_PI*cost);
+    double lapv=M_PI*( 4*M_PI*std::cos( M_PI*time ) - std::sin( M_PI*time ) );
+    lapv*=sinx;
+    double fv=sinx*M_PI*cost*(cosx*cost*(cosx*cosx*cost*cost-1.)+2*cosx*M_PI*M_PI*cost);
 
     for( int ii = 0 ; ii < dimDomain ; ++ii)
-      Filter::velocity( s , ii )=f;  
-   
+      {
+#if COS 
+        Filter::velocity( s , ii )=f;  
+#else
+        Filter::velocity( s , ii )=lapv+fv;
+#endif
+      }   
     Filter::phi( s )=f*0.5;
   
+     double transportphi=-M_PI*sinx*sinx*cost*cost;
+    
     double dFdphi=cosx*cosx*cost*cost-1;
     dFdphi*=cosx;
     dFdphi*=cost;
  //   dFdphi/=problem_.thermodynamics().delta();
 
-   Filter::phi(s)+=20*dFdphi;
+    Filter::phi(s)+=dFdphi+transportphi;
   }
   
 template<class Grid, class Problem > 

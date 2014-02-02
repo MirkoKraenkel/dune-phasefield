@@ -180,7 +180,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
  
         RangeFieldType laplace(0.);
 
-       Filter::phi( avu) +=Filter::tau( vuMid );
+        Filter::phi( avu) +=Filter::tau( vuMid );
 //------------------------------------------------------------------        
        
 //tau---------------------------------------------------------------
@@ -191,15 +191,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                           Filter::rho(vuOld),
                           dFdphi);
           
-        Filter::tau(avu)=Filter::tau(vu);
-        // Filter::tau(avu)-=dFdphi;
+        Filter::tau(avu)=Filter::tau(vuMid);
+        Filter::tau(avu)-=dFdphi;
         RangeFieldType divsigma(0.);
 
         for( int ii = 0 ; ii < dimDomain ; ++ii) 
           divsigma+=Filter::dsigma( duMid, ii , ii );
          
         Filter::tau( avu )+=model_.delta()*divsigma;
-        Filter::tau( avu )-=20*dFdphi;
         //-------------------------------------------------------------------
 
 //mu-----------------------------------------------------------------

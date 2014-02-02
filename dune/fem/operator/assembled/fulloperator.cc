@@ -181,7 +181,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
          for(int jj = 0;jj < dimDomain ; ++jj)
            sgradv+=Filter::velocity( vuMid , jj )*(Filter::dvelocity(duMid, ii , jj )
                -Filter::dvelocity( duMid, jj , ii));
-        Filter::velocity( avu , ii )+=sgradv;
+    ///  Filter::velocity( avu , ii )+=sgradv;
         // Filter::velocity( avu, ii)+=Filter::dmu( duMid, ii);
         Filter::velocity( avu, ii )*=Filter::rho( vuMid);
         
@@ -206,6 +206,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
           transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
         }
         Filter::phi( avu )+=transport+Filter::tau( vuMid )/Filter::rho( vuMid );
+       // Filter::phi( avu )+=Filter::tau( vuMid );
 //------------------------------------------------------------------        
        
 //tau---------------------------------------------------------------
@@ -217,16 +218,15 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                           dFdphi);
 
         Filter::tau(avu)=Filter::tau( vuMid );
+        Filter::tau( avu )-=dFdphi;
 
-        // Filter::tau(avu)-=dFdphi;
         RangeFieldType divsigma(0.);
 
         for( int ii = 0 ; ii < dimDomain ; ++ii) 
           divsigma+=Filter::dsigma( duMid, ii , ii );
          
         Filter::tau( avu )+=model_.delta()*divsigma;
-        Filter::tau( avu )-=dFdphi;
-//-------------------------------------------------------------------
+     //-------------------------------------------------------------------
 
 //mu-----------------------------------------------------------------
 
