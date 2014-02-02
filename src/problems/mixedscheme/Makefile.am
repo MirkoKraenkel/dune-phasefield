@@ -27,7 +27,7 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefielddg phasefielddgoem phasefielddgistl phasefieldfem
+check_PROGRAMS = phasefielddg phasefielddgoem phasefielddgsin phasefielddgcos phasefieldfem
 
 
 phasefielddg_SOURCES = $(SOURCES) 
@@ -36,8 +36,11 @@ phasefielddg_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  -DDGSCHEM
 phasefielddgoem_SOURCES = $(SOURCES) 
 phasefielddgoem_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  -DDGSCHEME -DNEWOP 
 
-phasefielddgistl_SOURCES = $(SOURCES) 
-phasefielddgistl_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL 
+phasefielddgsin_SOURCES = $(SOURCES) 
+phasefielddgsin_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL 
+
+phasefielddgcos_SOURCES = $(SOURCES) 
+phasefielddgcos_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DCOS -DWANT_ISTL 
 
 
 

@@ -124,6 +124,8 @@ inline void HeatProblem<GridType,RangeProvider>
   double x=arg[0];
   double cost=cos(M_PI*t);
   double cosx=cos(2*M_PI*x);
+  double sinx=sin(2*M_PI*x);
+  double sint=sin(M_PI*t); 
   double dFdphi=cosx*cosx*cost*cost-1;
   dFdphi*=cosx;
   dFdphi*=cost;
@@ -134,18 +136,22 @@ inline void HeatProblem<GridType,RangeProvider>
    //v
    for(int i=1;i<=dimension;i++)
    {
-     res[i]=cosx*cost;  
+#if COS     
+     res[i]=cost*cosx;  
+#else
+     res[i]=cost*sinx;
+#endif
+   
    }
   
    // phi
- //  res[dimension+1]=u;
    res[dimension+1]=0.5*cosx*cost+0.5;
    //res[dimension+1]=tanx;
 
     //mu
     res[dimension+2]=1;
     //tau
-    res[dimension+3]=4*M_PI*M_PI*cos(2*M_PI*x)*cost*0.5+20*dFdphi;
+    res[dimension+3]=4*M_PI*M_PI*cos(2*M_PI*x)*cost*0.5+dFdphi;
 
 
 #if SCHEME==DG
