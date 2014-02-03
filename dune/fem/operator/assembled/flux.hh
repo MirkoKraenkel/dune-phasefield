@@ -184,7 +184,7 @@ double MixedFlux<Model>
 //          Filter::velocity(gLeft,i)=-1*Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
-         // Filter::velocity(gLeft,i)=0.;
+          Filter::velocity(gLeft,i)=0.;
        } 
     
       //----------------------------------------------------------------
@@ -193,6 +193,7 @@ double MixedFlux<Model>
       for(int i = 0; i<dimDomain;++i)
         {
           //F_{3.1}
+       
           //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
           Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
           //tau

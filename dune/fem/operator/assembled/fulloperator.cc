@@ -151,7 +151,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     model_.systemSource(time_, xgl, source);        
 //rho------------------------------------------------------------- 
     //d_t rho=(rho^n-rho^n-1)/delta t
-    Filter::rho(avu)+=Filter::rho(vu);
+    Filter::rho(avu)=Filter::rho(vu);
     Filter::rho(avu)-=Filter::rho(vuOld);
     Filter::rho(avu)*=deltaInv;
 #if 0 
@@ -183,7 +183,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                -Filter::dvelocity( duMid, jj , ii));
     ///  Filter::velocity( avu , ii )+=sgradv;
         // Filter::velocity( avu, ii)+=Filter::dmu( duMid, ii);
-        Filter::velocity( avu, ii )*=Filter::rho( vuMid);
+      //  Filter::velocity( avu, ii )*=Filter::rho( vuMid);
         
         //-tau\nabla phi
         Filter::velocity( avu , ii )-=Filter::tau( vuMid )*Filter::dphi( duMid , ii );
@@ -205,8 +205,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         { 
           transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
         }
-        Filter::phi( avu )+=transport+Filter::tau( vuMid )/Filter::rho( vuMid );
-       // Filter::phi( avu )+=Filter::tau( vuMid );
+       // Filter::phi( avu )+=transport+Filter::tau( vuMid )/Filter::rho( vuMid );
+        Filter::phi( avu )+=transport;
+        Filter::phi( avu )+=Filter::tau( vuMid );
 //------------------------------------------------------------------        
        
 //tau---------------------------------------------------------------
@@ -238,15 +239,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         for( int ii = 0 ; ii < dimDomain ; ++ii) 
           {
             //sigma^n
-            Filter::sigma( avu , ii )=Filter::sigma( vu , ii );
-      //      Filter::sigma( avu , ii )-=Filter::sigma( vuOld, ii);
-#if OPCHECK
-            //\nabla\phi^n-1
-           Filter::sigma( avu , ii )-=Filter::dphi( duOld , ii );
-#else
-            //\nabla\phi^n
+           Filter::sigma( avu , ii )=Filter::sigma( vu , ii );
+           //\nabla\phi^n
            Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
-#endif 
           }
           //------------------------------------------------------------------        
           for(int ii = 0; ii < dimRange ; ii++)
