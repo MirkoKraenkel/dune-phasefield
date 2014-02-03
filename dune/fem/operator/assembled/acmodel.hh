@@ -130,6 +130,10 @@ inline void HeatModel< Grid,Problem>
     double f=M_PI*( 4*M_PI*std::cos( M_PI*time ) - std::sin( M_PI*time ) );
     f*=cosx;
    
+    // rhof=div(rho v)
+    // rho=1 v=sinx*cost div(rhov)=\nabla v= 2*M_PI*cosx*sint
+    double rhof=2*M_PI*cosx*cost;
+    Filter::rho( s )= rhof;
 
     //lapv= d_t v-\Delta v
     double lapv=M_PI*( 4*M_PI*std::cos( M_PI*time ) - std::sin( M_PI*time ) );
@@ -141,7 +145,7 @@ inline void HeatModel< Grid,Problem>
     for( int ii = 0 ; ii < dimDomain ; ++ii)
       {
 #if COS 
-sdafsd        Filter::velocity( s , ii )=f;  
+       Filter::velocity( s , ii )=f;  
 #else
         Filter::velocity( s , ii )=lapv-tension;
 #endif

@@ -172,7 +172,7 @@ double MixedFlux<Model>
       //F_1=( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)*-0.5  
       Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
       Filter::rho(gLeft)*=-0.5;
-      Filter::rho(gLeft)=0; 
+      //Filter::rho(gLeft)=0; 
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------

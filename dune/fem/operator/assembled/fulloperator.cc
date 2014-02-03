@@ -154,7 +154,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     Filter::rho(avu)=Filter::rho(vu);
     Filter::rho(avu)-=Filter::rho(vuOld);
     Filter::rho(avu)*=deltaInv;
-#if 0 
+    RangeFieldType div{0.},gradrhodotv{0.};
+#if 1 
     //div(rho v)=rho*div v+gradrho v
     for(int ii = 0; ii <dimDomain ; ++ii )
       { 
