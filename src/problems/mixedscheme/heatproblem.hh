@@ -25,11 +25,14 @@ class HeatProblem : public EvolutionProblemInterface<
  
 public:
   enum{ dimension = GridType::dimensionworld };
+dune_static_assert(dimension==1, "not yet 2d ready" );
   enum{ dimDomain = dimension };
   enum{ energyId = dimension + 1 };
   enum{ dimRange=RangeProvider::rangeDim};
   typedef Fem::FunctionSpace<typename GridType::ctype, double, GridType::dimensionworld,dimRange > FunctionSpaceType ;
   
+
+
   typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
   typedef typename FunctionSpaceType :: DomainType        DomainType;
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
@@ -130,7 +133,7 @@ inline void HeatProblem<GridType,RangeProvider>
   dFdphi*=cosx;
   dFdphi*=cost;
  
-  
+     
    double rho=0.5*cosx*cost+1;
 
    double v=sinx*cost;
