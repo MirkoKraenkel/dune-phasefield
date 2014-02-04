@@ -142,24 +142,35 @@ inline void HeatModel< Grid,Problem>
     //tension= -\nabla\phi tau
     double tension=-sinx*M_PI*cost*(-1.*cosx*cost+cosx*cosx*cosx*cost*cost*cost+2*cosx*M_PI*M_PI*cost);   
 
+    // rhodmu=rho\nabla mu
+     double rhodmu=2*M_PI*cosx*sinx*cost*cost; 
+
     for( int ii = 0 ; ii < dimDomain ; ++ii)
       {
 #if COS 
        Filter::velocity( s , ii )=f;  
 #else
-        Filter::velocity( s , ii )=lapv-tension;
+        Filter::velocity( s , ii )=lapv-tension+rhodmu;
 #endif
       }   
+   
+    //f=2(d_t\phi-\Delta\phi)
     Filter::phi( s )=f*0.5;
   
+    // transportphi=v\cdot\nabla\phi
     double transportphi=-M_PI*sinx*sinx*cost*cost;
-    
+
+    // dFdphi=dF(rho,phi)/dphi
     double dFdphi=cosx*cosx*cost*cost-1;
     dFdphi*=cosx;
     dFdphi*=cost;
- //   dFdphi/=problem_.thermodynamics().delta();
-
     Filter::phi(s)+=dFdphi+transportphi;
+     
+    //velocorection=1/2|v|^2
+    double velocorection=0.5*sinx*sinx*cost*cost;
+   // Filter::mu(s)=velocorection;
+
+     
   }
   
 template<class Grid, class Problem > 

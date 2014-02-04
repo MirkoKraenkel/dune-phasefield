@@ -181,10 +181,10 @@ double MixedFlux<Model>
         { 
           //F_2=F_{2.1}+F_{2.2}
           //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-//          Filter::velocity(gLeft,i)=-1*Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
+          Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
-          Filter::velocity(gLeft,i)=0.;
+      //    Filter::velocity(gLeft,i)=0.;
        } 
     
       //----------------------------------------------------------------

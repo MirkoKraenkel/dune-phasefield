@@ -182,9 +182,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
          for(int jj = 0;jj < dimDomain ; ++jj)
            sgradv+=Filter::velocity( vuMid , jj )*(Filter::dvelocity(duMid, ii , jj )
                -Filter::dvelocity( duMid, jj , ii));
-    ///  Filter::velocity( avu , ii )+=sgradv;
-        // Filter::velocity( avu, ii)+=Filter::dmu( duMid, ii);
-      //  Filter::velocity( avu, ii )*=Filter::rho( vuMid);
+      
+        Filter::velocity( avu , ii )+=sgradv;
+        Filter::velocity( avu , ii )+=Filter::dmu( duMid, ii);
+        Filter::velocity( avu , ii )*=Filter::rho( vuMid);
         
         //-tau\nabla phi
         Filter::velocity( avu , ii )-=Filter::tau( vuMid )*Filter::dphi( duMid , ii );
@@ -232,8 +233,24 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 //mu-----------------------------------------------------------------
 
-        Filter::mu(avu)=Filter::mu(vu)-Filter::mu(vuOld);
-//------------------------------------------------------------------
+     //   Filter::mu(avu)=Filter::mu(vu)-Filter::mu(vuOld);
+        Filter::mu(avu)=Filter::mu( vuMid );
+        
+        RangeFieldType usqr{0.},uOldsqr{0.};
+       
+        for( int ii = 0; ii < dimDomain ; ++ii) 
+        {
+         // |v^n|^2
+          usqr+=Filter::velocity( vu , ii )*Filter::velocity( vu , ii );
+
+          // |v^{n-1}|^2
+          uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
+        }
+     
+        Filter::mu(avu)-=0.25*(usqr+uOldsqr);
+      
+        
+        //------------------------------------------------------------------
 
 //sigma--------------------------------------------------------------
         //\sigma-\nabla\phi
