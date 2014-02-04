@@ -143,18 +143,30 @@ inline void HeatModel< Grid,Problem>
 
     double v1=sinx*cost;
     double v2=siny*cost;
+ 
     double dtv1=-M_PI*sinx*sint;
     double dtv2=-M_PI*siny*sint;
+    
     double dxv1=2*M_PI*cosx*cost;
     double dyv2=2*M_PI*cosy*cost;
+    
     double laplacev1=4*M_PI*M_PI*cost*sinx;
     double laplacev2=4*M_PI*M_PI*cost*siny;
+    
     //f = 2*(d_t phi-\Delta phi)
-    double laplacephi=2*M_PI*M_PI*cost*cosx;
+    double laplacephi=4*M_PI*M_PI*cost*cosx*cosy;
+    
     double dFdphi{0.};
     tauSource(1,phi,phi,dFdphi);
+    // transportphi=v\cdot\nabla\phi
+    double transportphi=v1*dxphi+v2*dyphi;
+
+
     Filter::phi(s)+=dFdphi+transportphi;
+   //f=2(d_t\phi-\Delta\phi)
+    Filter::phi( s )=dtphi+laplacephi;
   
+   
     double tau=dFdphi-laplacephi;
     
     // rhof=d_trho+div(rho v)=d_t\rho+\nabla\rho\cdot v+ \rho\div(v);
@@ -168,17 +180,11 @@ inline void HeatModel< Grid,Problem>
     double dmu1=v1*dxv1;
     double dmu2=v2*dyv2;
 
-    Filter::velocity( s , 0 )=(dtv1+dmu1)*rho+laplacev1-dphix*tau;
-    Filter::velocity( s , 1 )=(dtv2+dmu2)*rho+laplacev2-dphiy*tau;  
+    Filter::velocity( s , 0 )=(dtv1+dmu1)*rho+laplacev1-dxphi*tau;
+    Filter::velocity( s , 1 )=(dtv2+dmu2)*rho+laplacev2-dxphi*tau;  
 
 
-    //f=2(d_t\phi-\Delta\phi)
-    Filter::phi( s )=dtphi+laplacephi;
-  
-    // transportphi=v\cdot\nabla\phi
-    double transportphi=v1*dxphi+v2*dyphi;
-
-
+   
 
      
   }
