@@ -125,6 +125,8 @@ inline void HeatModel< Grid,Problem>
     double cost=std::cos(M_PI*time);
     double sinx=std::sin(2*M_PI*xgl[0]);
     double sint=std::sin(M_PI*time);
+    double phi=0.5*cosx*cost+0.5;
+    
     //double rho=1.;
     //double dtrho=0.;
    // double drho=0.;
@@ -173,11 +175,13 @@ inline void HeatModel< Grid,Problem>
     double transportphi=-M_PI*sinx*sinx*cost*cost;
 
     // dFdphi=dF(rho,phi)/dphi
-    double dFdphi=cosx*cosx*cost*cost-1;
-    dFdphi*=cosx;
-    dFdphi*=cost;
+    
+    double dFdphi{0.};
+    tauSource(1,phi,phi,dFdphi);
     Filter::phi(s)+=dFdphi+transportphi;
-     
+      
+
+
     //velocorection=1/2|v|^2
     double velocorection=0.5*sinx*sinx*cost*cost;
    // Filter::mu(s)=velocorection;
