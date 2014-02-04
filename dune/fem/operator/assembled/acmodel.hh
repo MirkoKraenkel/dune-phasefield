@@ -125,15 +125,26 @@ inline void HeatModel< Grid,Problem>
     double cost=std::cos(M_PI*time);
     double sinx=std::sin(2*M_PI*xgl[0]);
     double sint=std::sin(M_PI*time);
+    //double rho=1.;
+    //double dtrho=0.;
+   // double drho=0.;
+    double rho=0.5*cosx*cost+1;
+    double drho=-M_PI*sinx*cost;
+    double dtrho=-0.5*M_PI*cosx*sint;
+    double v=sinx*cost;
+    double dtv=-M_PI*sinx*sint;
+    double dv=2*M_PI*cosx*cost;
+    double laplacev=4*M_PI*M_PI*cost*sinx;
 
     //f = 2*(d_t phi-\Delta phi)
     double f=M_PI*( 4*M_PI*std::cos( M_PI*time ) - std::sin( M_PI*time ) );
     f*=cosx;
-   
-    // rhof=div(rho v)
-    // rho=1 v=sinx*cost div(rhov)=\nabla v= 2*M_PI*cosx*sint
-    double rhof=2*M_PI*cosx*cost;
-    Filter::rho( s )= rhof;
+  
+
+    // rhof=d_trho+div(rho v)
+     double rhof=dtrho+drho*v+rho*dv;
+    //double rhof=
+    Filter::rho( s )=rhof;
 
     //lapv= d_t v-\Delta v
     double lapv=M_PI*( 4*M_PI*std::cos( M_PI*time ) - std::sin( M_PI*time ) );
@@ -142,18 +153,19 @@ inline void HeatModel< Grid,Problem>
     //tension= -\nabla\phi tau
     double tension=-sinx*M_PI*cost*(-1.*cosx*cost+cosx*cosx*cosx*cost*cost*cost+2*cosx*M_PI*M_PI*cost);   
 
-    // rhodmu=rho\nabla mu
-     double rhodmu=2*M_PI*cosx*sinx*cost*cost; 
+    // rhodmu=\nabla mu
+     double dmu=2*M_PI*cosx*sinx*cost*cost; 
 
     for( int ii = 0 ; ii < dimDomain ; ++ii)
       {
 #if COS 
        Filter::velocity( s , ii )=f;  
 #else
-        Filter::velocity( s , ii )=lapv-tension+rhodmu;
+        Filter::velocity( s , ii )=(dtv+dmu)*rho+laplacev-tension;
 #endif
       }   
-   
+     
+
     //f=2(d_t\phi-\Delta\phi)
     Filter::phi( s )=f*0.5;
   
