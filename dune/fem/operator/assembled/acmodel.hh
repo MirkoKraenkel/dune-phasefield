@@ -121,6 +121,7 @@ inline void HeatModel< Grid,Problem>
                 RangeType& s) const
   {
     s=0.;
+#if 1 
     double cosx=std::cos(2*M_PI*xgl[0]);
     double cost=std::cos(M_PI*time);
     double sinx=std::sin(2*M_PI*xgl[0]);
@@ -158,15 +159,11 @@ inline void HeatModel< Grid,Problem>
     // rhodmu=\nabla mu
      double dmu=2*M_PI*cosx*sinx*cost*cost; 
 
-    for( int ii = 0 ; ii < dimDomain ; ++ii)
-      {
-#if COS 
-       Filter::velocity( s , ii )=f;  
-#else
-        Filter::velocity( s , ii )=(dtv+dmu)*rho+laplacev-tension;
-#endif
-      }   
-     
+    
+     Filter::velocity( s , 0 )=(dtv+dmu)*rho+laplacev-tension;
+
+     if(dimDomain==2)
+       Filter::velocity(s, 1)=0.;
 
     //f=2(d_t\phi-\Delta\phi)
     Filter::phi( s )=f*0.5;
@@ -180,11 +177,8 @@ inline void HeatModel< Grid,Problem>
     tauSource(1,phi,phi,dFdphi);
     Filter::phi(s)+=dFdphi+transportphi;
       
+#endif
 
-
-    //velocorection=1/2|v|^2
-    double velocorection=0.5*sinx*sinx*cost*cost;
-   // Filter::mu(s)=velocorection;
 
      
   }
