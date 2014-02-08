@@ -25,8 +25,9 @@ public:
   MixedFlux(const ModelType& model,double penalty):
     model_(model),
     beta_(penalty),
-    switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1))
-    {
+    switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
+    numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
+  {
     }
 
 
@@ -59,6 +60,7 @@ private:
   const ModelType& model_;
   double beta_;
   const int switchIP_; 
+  const double numVisc_;
 };
 
 
@@ -137,7 +139,7 @@ double MixedFlux<Model>
 template< class Model >
 double MixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
-                const double penaltyFactor,              
+                const double area,              
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuEnMid,
@@ -169,9 +171,13 @@ double MixedFlux<Model>
           vNormalNb+=Filter::velocity(midNb,i)*normal[i];
         }
     
-      //F_1=( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)*-0.5  
+      //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
       Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
       Filter::rho(gLeft)*=-0.5;
+      double visc=Filter::rho(jump);
+       Filter::rho(gLeft)+=numVisc_*area*visc;
+
+      
       //Filter::rho(gLeft)=0; 
       //----------------------------------------------------------------
     
