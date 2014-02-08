@@ -248,7 +248,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                 RangeType& f) const
 	{
 
-    RangeType nstksource{0.},acsource{0.};
+    RangeType source{0.};
+    SourceTerms::systemSource(xglobal,time,source);
+#if 0
     SourceTerms::nstkSource(xglobal,
                             time,
                             thermoDynamics_.delta(),
@@ -260,7 +262,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                           thermoDynamics_.delta(),
                           thermoDynamics_.velo(),
                           acsource);
-
+#endif
   double rho_inv=1./u[0];
 
 #if USEJACOBIAN
@@ -272,18 +274,14 @@ abort();  double dphi=du[2];
 #endif  
     double v=u[1]*rho_inv;
 
-    f[0]=0;
-  //f[1]=-dtheta[0]*u[0]+dphi*theta[1]+nstkSource(xglobal,time);
-  f[1]=-dtheta[0]*u[0]-dphi*theta[1];
+  //  source*=-1.;
+
+    f[0]=source[0];
+    f[1]=-dtheta[0]*u[0]-dphi*theta[1]+source[1];
  
-//    f[1]=0;
     //nonconservative Discretization of transport term
-    f[2]=-theta[1]+v*dphi;
-   // f[2]=v*dphi;
-    //   f+=nstksource;
-   // acsource*=deltaInv();
-//    f+=acsource;
-     
+    f[2]=-theta[1]+v*dphi+source[2];
+
     return 0.4*deltaInv()*deltaInv(); 
   }
   template< class Thermodynamics >
