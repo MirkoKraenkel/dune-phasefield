@@ -101,13 +101,20 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         }
         else if ( intersection.boundary() )
         {
-          std::cerr<<"BoundaryIntegral not implemented yet\n";
-          abort();
+#if 0
+          boundaryIntegral( intersection,
+                            pt,
+                            quadInside,
+                            vuEn,
+                            duEn,
+                            avuLeft,
+                            aduLeft);
+
+#endif   
         }
       }
     }
       
-     // localOp(entity,u, uLocal,wLocal);
     
   }
   // communicate data (in parallel runs)
@@ -322,7 +329,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     // compute penalty factor
     const double intersectionArea = intersectionGeometry.volume();
     const double penaltyFactor = penalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
-   
+    const double area=std::min(areaEn_,areaNb_); 
     const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
     const DomainType normal = intersection.integrationOuterNormal( x );
 
@@ -333,7 +340,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
      double fluxRet;
      RangeType gLeft{0.},gRight{0.};
      fluxRet=flux_.numericalFlux(normal,
-                                 penaltyFactor,
+                                 area,
                                  vuEn,
                                  vuNb,
                                  vuMidEn,  
