@@ -67,7 +67,12 @@ typedef BubbleProblem< GridSelector:: GridType>  PhaseProblemType;
 typedef HeatProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
-#else
+#elif PROBLEM==8
+#include "../mixedscheme/heatproblem.hh"
+typedef HeatProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
+        >PhaseProblemType;
+#else      
 #error "No valid problem number specified"
 #endif
 
