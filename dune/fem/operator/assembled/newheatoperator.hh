@@ -137,6 +137,17 @@ public:
                               RangeType& avuLeft,
                                JacobianRangeType& aduLeft) const;
 
+  void boundaryIntegral( const IntersectionType& intersection,
+                        const size_t pt,  
+                        const FaceQuadratureType& quadInside,
+                        const RangeType& vuEn,
+                        const JacobianRangeType& duEn,
+                        RangeType& avuLeft,
+                        JacobianRangeType& aduLeft) const;
+
+
+
+
   
   template<class LocalArgType, class LFDestType>
   void computeBoundary( const IntersectionType& intersection,
