@@ -175,7 +175,9 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
       continue;
 
 
-    double area = geometry.volume();
+ //   doubetNeighbor( neighbor );
+ //           typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+ //                   //const IntersectionGeometryType &intersectionGeometry = interse area = geometry.volume();
     const IntersectionIteratorType endiit = gridPart.iend( entity );
     for ( IntersectionIteratorType iit = gridPart.ibegin( entity );
           iit != endiit ; ++ iit )
@@ -198,7 +200,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         const LocalFunctionType uLocalNb = u.localFunction(neighbor);
         // get neighbor's base function set 
         const BasisFunctionSetType &baseSetNb = jLocalNb.domainBasisFunctionSet();
-        const unsigned int numBasisFunctionsNb = baseSetNb.size();
+     //   const unsigned int numBasisFunctionsNb = baseSetNb.size();
           
         const int quadOrderEn = 2*uLocal.order() + 1;
         const int quadOrderNb = 2*uLocalNb.order() + 1;
