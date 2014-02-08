@@ -8,7 +8,7 @@ struct SourceTerms
 
 
   template< class DomainType , class RangeType >
-  static systemSource( const DomainType x,
+  static void systemSource( const DomainType x,
                        const double t,
                        RangeType& res )
   {
@@ -85,7 +85,7 @@ struct SourceTerms
   {
   }
 
-	void  tauSource(double rho,double phi,double phi, double& dFdphi ) const
+   static	void  tauSource(double rho,double phi,double phiOld, double& dFdphi ) 
 	{ 
     //    return phi*phi;
    dFdphi=4*(2*phi*phi*phi-3*phi*phi+phi);
