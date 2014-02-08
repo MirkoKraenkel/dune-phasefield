@@ -97,11 +97,11 @@ public:
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
      // set gLeft 
-     anaflux.mv( normal, gLeft );
+    anaflux.mv( normal, gLeft );
       
-     
-     model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
-											uRight, anaflux );
+    
+    model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
+                      uRight, anaflux );
     //add F(uleft) 
     anaflux.umv( normal, gLeft );
 
