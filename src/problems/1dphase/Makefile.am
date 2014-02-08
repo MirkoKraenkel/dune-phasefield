@@ -17,11 +17,11 @@ SOURCES = $(BASEDIR)/phasefield.cc
 #GRIDTYPE = ALUGRID_SIMPLEX
 GRIDTYPE = SPGRID 
 #GRIDTYPE = ALBERTAGRID
-GRIDDIM =  2 
-POLORDER = 0 
+GRIDDIM =  1 
+POLORDER = 1 
 USEJACOBIAN = 0
 
-PROBLEM = 4 # check ./problemtype.hh
+PROBLEM = 8 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
 AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
