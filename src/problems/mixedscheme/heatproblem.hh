@@ -25,9 +25,8 @@ class HeatProblem : public EvolutionProblemInterface<
  
 public:
   enum{ dimension = GridType::dimensionworld };
-dune_static_assert(dimension==1, "not yet 2d ready" );
   enum{ dimDomain = dimension };
-  enum{ energyId = dimension + 1 };
+  enum{ phasefieldId = dimension + 1 };
   enum{ dimRange=RangeProvider::rangeDim};
   typedef Fem::FunctionSpace<typename GridType::ctype, double, GridType::dimensionworld,dimRange > FunctionSpaceType ;
   
@@ -144,10 +143,13 @@ inline void HeatProblem<GridType,RangeProvider>
    {
      res[i]=v;
    }
+   if(dimension==2)
+     res[2]=0;
    // phi
    res[dimension+1]=0.5*cosx*cost+0.5;
    //res[dimension+1]=tanx;
-
+if( dimRange > dimDomain+2)
+{
     //mu
     res[dimension+2]=0.5*v*v;
     //tau
@@ -156,8 +158,20 @@ inline void HeatProblem<GridType,RangeProvider>
 
 #if SCHEME==DG
     //sigma
-    res[dimension+4]=-2*M_PI*sinx*cost*0.5;
-    res[dimension+5]=0; 
+  if(dimension==1)
+    {
+      res[dimension+4]=-2*M_PI*sinx*cost*0.5;
+    }
+  else
+    { 
+      res[dimension+4]=-2*M_PI*sinx*cost*0.5;
+      res[dimension+5]=0; 
+    }
+}
+else
+{
+  res[1]*=res[0];
+}
 #elif SCHEME==FEM
 #endif
 }
