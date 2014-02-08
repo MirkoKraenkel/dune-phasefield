@@ -420,7 +420,6 @@ public:
         }
 
         // calculate additional variables from the current num. solution
-		 
         setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
 			}
 
@@ -489,7 +488,8 @@ public:
 		// tuple with additionalVariables 
 	  
   
-    IOTupleType dataTuple(&U, Uold,this->energy(),this->theta() );
+    IOTupleType dataTuple(&U, this->additionalVariables
+        (),this->energy(),this->theta() );
 	
    // IOTupleType dataTuple( &U, this->sigma(),this->theta() );
     std::ofstream energyfile;
