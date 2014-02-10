@@ -128,7 +128,7 @@ inline void HeatModel< Grid,Problem>
      for( int ii = 0 ; ii < dimDomain ; ++ii)
        Filter::velocity( s , ii )=f;  
    
-     Filter::phi( s )=f;
+     Filter::phi( s )=0.5*f;
   }
   
 template<class Grid, class Problem > 

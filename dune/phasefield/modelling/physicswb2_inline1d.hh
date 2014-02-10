@@ -127,7 +127,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   	rho=cons[0];
     rho_inv=1./rho;
     phi=cons[phaseId];
- 
+    rho_inv=1; 
     //velocity 
     prim[0] = cons[1]*rho_inv;
     //pressure  
@@ -208,9 +208,10 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		assert( u[0] > 1e-20 );
 		double rho_inv = 1. / u[0];
 		const double v = u[1]*rho_inv;
- 		f[0][0] = u[1];
-		f[1][0] =v*u[1];
-		f[2][0] = 0;
+   f[0][0] = u[1];
+    f[1][0] =v*u[1];
+ //   f[1][0]= v*v;	
+    f[2][0] = 0;
   }
 
   template< class Thermodynamics > 
@@ -218,9 +219,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   ::jacobian( const RangeType & u, JacobianFluxRangeType& a) const
   {
     //assert(u[0] > 1e-10);
-
-    a[0][0] = u[0]; //rho
-    a[1][0] = u[1]/u[0];//(rho v)/rho
+    double rho=u[0];
+    a[0][0] = rho;//rho
+    a[1][0] = u[1]/rho;//(rho v)/rho
     a[2][0] = u[2];//(rho phi)/rho
   }
 
@@ -250,35 +251,18 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
     RangeType source{0.};
     SourceTerms::systemSource(xglobal,time,source);
-#if 0
-    SourceTerms::nstkSource(xglobal,
-                            time,
-                            thermoDynamics_.delta(),
-                            thermoDynamics_.velo(),
-                            nstksource);
-    
-    SourceTerms::acSource(xglobal,
-                          time,
-                          thermoDynamics_.delta(),
-                          thermoDynamics_.velo(),
-                          acsource);
-#endif
-  double rho_inv=1./u[0];
+    double rho_inv=1./u[0];
 
-#if USEJACOBIAN
-   //   double phi=u[2];
    double dphi=jacU[2][0];
    dphi*=-1;
-#else
-abort();  double dphi=du[2];
-#endif  
-    double v=u[1]*rho_inv;
+    
+   double v=u[1]*rho_inv;
 
-  //  source*=-1.;
+    //source*=-1.;
 
     f[0]=source[0];
-    f[1]=-dtheta[0]*u[0]-dphi*theta[1]+source[1];
- 
+    f[1]=-dphi*theta[1]+source[1];
+    //f[1]=source[1]; 
     //nonconservative Discretization of transport term
     f[2]=-theta[1]+v*dphi+source[2];
 
@@ -340,10 +324,10 @@ abort();  double dphi=du[2];
  ::maxSpeed( const DomainType& n, const RangeType& u) const
  {
   assert(u[0] > 1e-20);
-  double u_normal=(u[1])/u[0];
+  double u_normal=(u[1]*n[0])/u[0];
   double c=thermoDynamics_.a(u[0],u[2]);
 //  std::cout<<"physics maxSpeed"<< std::abs(u_normal) <<std::endl;
-  return std::abs(u_normal)+sqrt(c);
+  return std::abs(u_normal);
 //    return std::abs(thermoDynamics_.velo());
 
  } 

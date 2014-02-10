@@ -68,7 +68,7 @@ typedef HeatProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #elif PROBLEM==8
-#include "../mixedscheme/heatproblem.hh"
+#include "../mixedscheme/travelproblem.hh"
 typedef HeatProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;

@@ -13,7 +13,7 @@
 using namespace Dune;
 // Thermodynamics
 // see simplehelmholtz.mv
-#include "sourcetermszero.hh"
+#include "sourcetermsSinusSolution.hh"
 #include "thermodynamicsinterface.hh"
 
 

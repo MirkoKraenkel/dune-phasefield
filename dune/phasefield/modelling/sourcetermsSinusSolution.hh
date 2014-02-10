@@ -19,12 +19,12 @@ struct SourceTerms
     double sint=std::sin(M_PI*t);
     double phi=0.5*cosx*cost+0.5;
     
-    //double rho=1.;
-    //double dtrho=0.;
-   // double drho=0.;
-    double rho=0.5*cosx*cost+1;
-    double drho=-M_PI*sinx*cost;
-    double dtrho=-0.5*M_PI*cosx*sint;
+    double rho=1.;
+    double dtrho=0.;
+    double drho=0.;
+  //  double rho=0.5*cosx*cost+1;
+    //double drho=-M_PI*sinx*cost;
+   //double dtrho=-0.5*M_PI*cosx*sint;
     double v=sinx*cost;
     double dtv=-M_PI*sinx*sint;
     double dv=2*M_PI*cosx*cost;
@@ -36,25 +36,28 @@ struct SourceTerms
 
     // rhof=d_trho+div(rho v)
      double rhof=dtrho+drho*v+rho*dv;
-    res[0]=rhof;
-
+    res[0]=0;
+  //  res[0]=dtrho;
     //lapv= d_t v-\Delta v
     double lapv=M_PI*( 4*M_PI*std::cos( M_PI*t ) - std::sin( M_PI*t ) );
     lapv*=sinx;
-   
     //tension= -\nabla\phi tau
     double tension=-sinx*M_PI*cost*(-1.*cosx*cost+cosx*cosx*cosx*cost*cost*cost+2*cosx*M_PI*M_PI*cost);   
 
     // rhodmu=\nabla mu
      double dmu=2*M_PI*cosx*sinx*cost*cost; 
-
-     res[1]=(dtv+dmu)*rho+laplacev-tension;
+    
+    // res[1]=(dtv+v*dv)*rho+laplacev;//-tension;
+     res[1]=-tension;
      double dFdphi{0.};
      // transportphi=v\cdot\nabla\phi
-     double transportphi=-M_PI*sinx*sinx*cost*cost;
+    // double transportphi=-M_PI*sinx*sinx*cost*cost;
+     
+     double transportphi=-M_PI*sinx*cost;
+    
      tauSource(1,phi,phi,dFdphi);
      
-     double phiSource=f*0.5+dFdphi+transportphi;
+    double phiSource=f*0.5+dFdphi+0.1*transportphi;
 
      if(dimension==2)
      { 
