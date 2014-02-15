@@ -17,8 +17,8 @@ SOURCES = $(BASEDIR)/phasefield.cc
 #GRIDTYPE = ALUGRID_SIMPLEX
 GRIDTYPE = SPGRID
 #GRIDTYPE = ALBERTAGRID
-GRIDDIM = 1  
-POLORDER = 1 
+GRIDDIM = 1 
+POLORDER = 2  
 PROBLEM = 7 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
@@ -27,17 +27,21 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefielddg phasefielddgoem phasefielddgsin phasefielddgcos phasefieldfem
+check_PROGRAMS = phasefielddg phasefielddgoem phasefielddggmres phasefielddgbicg phasefielddgcos phasefieldfem
 
 
 phasefielddg_SOURCES = $(SOURCES) 
-phasefielddg_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  -DDGSCHEME -DMATRIXFREE 
+phasefielddg_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  -DDGSCHEME -DNEWOP -DMATRIXFREE 
 
 phasefielddgoem_SOURCES = $(SOURCES) 
 phasefielddgoem_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  -DDGSCHEME -DNEWOP 
 
-phasefielddgsin_SOURCES = $(SOURCES) 
-phasefielddgsin_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL 
+phasefielddggmres_SOURCES = $(SOURCES) 
+phasefielddggmres_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL 
+
+phasefielddgbicg_SOURCES = $(SOURCES) 
+phasefielddgbicg_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL -DBICG
+
 
 phasefielddgcos_SOURCES = $(SOURCES) 
 phasefielddgcos_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DCOS -DWANT_ISTL 
