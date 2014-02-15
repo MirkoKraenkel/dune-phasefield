@@ -13,7 +13,7 @@
 using namespace Dune;
 // Thermodynamics
 // see simplehelmholtz.mv
-#include "sourcetermsSinusSolution.hh"
+#include "sourcetermsSinusTravel.hh"
 #include "thermodynamicsinterface.hh"
 
 
@@ -41,7 +41,7 @@ public:
   
   inline double helmholtz(double& rho,double& phi) const
   {
-    return deltaInv_*2*phi*phi*(1-phi)*(1-phi);
+    return deltaInv_*2*phi*phi*(1-phi)*(1-phi)+phi*(rho-1)*(rho-1)+(1-phi)*(rho-2)*(rho-2);
   }
   
 	
@@ -49,7 +49,7 @@ public:
 	inline double reactionSource(double& rho,double& phi) const
 	{ 
     //    return phi*phi;
-    return deltaInv_*4*(2*phi*phi*phi-3*phi*phi+phi);
+    return deltaInv_*4*(2*phi*phi*phi-3*phi*phi+phi)+(rho-1)*(rho-1)-(rho-2)*(rho-2);
    // return 0;
   }
   
@@ -57,20 +57,19 @@ public:
 
 	inline double chemicalPotential(double& rho,double& phi) const
 	{
-    return 0;
+    return phi*(2*rho-2)+(1-phi)*(2*rho-4); 
   }
 
 	
 	inline double  pressure( double& rho, double& phi) const
 	{
-    //return -helmholtz(rho,phi);
     return -helmholtz(rho,phi);
-}
+  }
 		
 
 	inline double a(double rho,double phi) const
 	{
-    return 1.6;	
+    return gamma_;	
 	}
   
  

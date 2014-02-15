@@ -131,17 +131,17 @@ inline void HeatProblem<GridType,RangeProvider>
   double dFdphi=cosx*cosx*cost*cost-1;
   dFdphi*=cosx;
   dFdphi*=cost;
- 
+  double velo=thermodyn_.velo(); 
      
-   double rho=sin(2*M_PI*x-0.1*t);
+   double rho=0.5*sin(2*M_PI*(x-velo*t))+1;
 
-   double v=0.1;
+   double v=velo;
    //rho
    res[0]= rho;
    //v
    for(int i=1;i<=dimension;i++)
    {
-     res[i]=v;
+     res[i]=velo;
    }
    if(dimension==2)
      res[2]=0;

@@ -26,7 +26,7 @@ class DGPhasefieldOperator
 : public virtual Dune::Fem::Operator<DiscreteFunction,DiscreteFunction>
 {
   typedef Dune::Fem::Operator<DiscreteFunction,DiscreteFunction> BaseType;
-
+ static   const int order=POLORDER;
 protected:
 
   typedef DiscreteFunction DiscreteFunctionType;
@@ -58,7 +58,8 @@ protected:
 
   static const int dimDomain = LocalFunctionType::dimDomain;
   static const int dimRange = LocalFunctionType::dimRange;
-
+  typedef Dune::Fem::LagrangePointSet<GridPartType,order> LagrangePointSetType;
+   
   typedef  PhasefieldFilter<RangeType> Filter; 
 
 public:
