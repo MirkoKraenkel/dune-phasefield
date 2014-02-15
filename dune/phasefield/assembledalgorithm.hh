@@ -47,6 +47,7 @@
 
 #include <dune/fem/adaptation/estimator2.hh>
 #include <dune/phasefield/util/cons2prim.hh>
+#include <dune/fem/operator/assembled/boundary.hh>
 namespace Dune{
 
 /////////////////////////////////////////////////////////////////////////////
@@ -115,7 +116,8 @@ public:
   
   typedef typename Traits :: JacobianOperatorType JacobianOperatorType;
   typedef typename Traits :: DiscreteOperatorType DiscreteOperatorType;
-	typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
+	typedef PhasefieldBoundaryCorrection<DiscreteFunctionType, ModelType> BoundaryCorrectionType;
+  typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
   typedef typename Traits :: LinearSolverType LinearSolverType;
 
   typedef typename DiscreteSpaceType::FunctionSpaceType FunctionSpaceType;
@@ -172,6 +174,7 @@ private:
   AdaptationParameters    adaptationParameters_;
 #endif
 	DiscreteOperatorType    dgOperator_;
+  BoundaryCorrectionType  boundaryCorrection_;
 #if PF_USE_ADAPTATION
   DGIndicatorType         dgIndicator_;
 #endif
@@ -207,6 +210,7 @@ public:
 		//     adaptationParameters_( ),
 #if DGSCHEME
    	dgOperator_(*model_,space(),numericalFlux_),
+    boundaryCorrection_(*model_,space()),
 #elif FEMSCHEME
     dgOperator_(*model_,space()),
 #endif
@@ -290,6 +294,7 @@ public:
 #warning "FEMSCHEME" 
        Dune::Fem::LagrangeInterpolation<InitialDataType,DiscreteFunctionType>::interpolateFunction( problem(),U);
 #endif    
+//     boundaryCorrection_(U);
      Uold.assign(U); 
   }
 
@@ -305,7 +310,7 @@ public:
     DiscreteFunctionType& Uold=oldsolution();
     DiscreteFunctionType& U=solution();
     // to visualize exact solution
-    Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), Uold);
+//    Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), Uold);
 
     dgOperator_.setPreviousTimeStep(U);
     dgOperator_.setTime(time);
@@ -313,9 +318,9 @@ public:
      
     NewtonSolverType invOp(dgOperator_); 
     start_.clear();
-    
+   
     invOp(start_,U);
-    
+//    boundaryCorrection_(U);
     // reset overall timer
     overallTimer_.reset(); 
      
@@ -361,8 +366,7 @@ public:
 		{
 	   //setup additionals variables if needed			 
     }
-
-		// write the data 
+	// write the data 
 		eocDataOutput.write( tp );
 	}
 	
@@ -378,7 +382,7 @@ public:
     //some setup stuff
 		const bool verbose = Dune::Fem::Parameter :: verbose ();
 		int printCount = Dune::Fem::Parameter::getValue<int>("phasefield.printCount", -1);
-
+    printCount+=loopNumber*printCount; 
     // if adaptCount is 0 then no dynamics grid adaptation
 		int adaptCount = 0;
 		int maxAdaptationLevel = 0;
@@ -407,10 +411,10 @@ public:
     //Initialize Tp
     TimeProviderType tp(startTime, grid_ ); 
 
-		DiscreteFunctionType& U = solution();
+ 		DiscreteFunctionType& U = solution();
     DiscreteFunctionType& Uold = oldsolution(); 
 
-  
+ 
     RestrictionProlongationType rp( U );
     
 		rp.setFatherChildWeight( Dune::DGFGridInfo<GridType> :: refineWeight() );
@@ -475,7 +479,6 @@ public:
     {
      
       double scale=Dune::Fem::Parameter::getValue<double>("debug.scale",1);
-      std::cout<<"Residual\n";
       Uold.clear();
       dgOperator_.setTime(tp.time());
       dgOperator_.setDeltaT(tp.deltaT());
@@ -530,13 +533,14 @@ public:
             }   
         }
          writeEnergy( tp , energyfile);
-        
+
+
      }
 
 
-			writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
-			writeCheckPoint( tp, adaptManager );
- //     Uold.assign(U);
+		writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
+	writeCheckPoint( tp, adaptManager );
+     Uold.assign(U);
       //statistics
       mindt = (ldt<mindt) ? ldt : mindt;
       maxdt = (ldt>maxdt) ? ldt : maxdt;
@@ -570,9 +574,10 @@ public:
   inline double error(TimeProviderType& tp, DiscreteFunctionType& u)
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
-		Fem::L2Norm< GridPartType > l2norm(gridPart_);
+		int component=1;
+    Fem::L2Norm< GridPartType > l2norm(gridPart_, component);
     
-   double error = l2norm.distance(problem().fixedTimeFunction(tp.time()),u);
+    double error = l2norm.distance(problem().fixedTimeFunction(tp.time()),u);
     
     return error;
 	}
@@ -589,7 +594,6 @@ public:
 	virtual void finalizeStep(TimeProviderType& tp)
 	{ 
 		DiscreteFunctionType& u = solution();
-	 std::cout<<"ERROR="<<error(tp, u)<<"\n";	
 		bool doFemEoc = problem().calculateEOC( tp, u, eocId_ );
 
 		// ... and print the statistics out to a file

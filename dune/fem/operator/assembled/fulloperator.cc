@@ -3,7 +3,7 @@ template<class DiscreteFunction, class Model, class Flux>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
 {
-
+ 
   // clear destination 
   w.clear();
   assert(deltaT_>0);
@@ -11,6 +11,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   const IteratorType end = space().end();
   for( IteratorType it = space().begin(); it != end; ++it )
   {
+    
+    bool boundaryElement=false;
     // get entity (here element) 
     const EntityType &entity = *it;
     // get elements geometry
@@ -31,7 +33,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       {
         uLocal.evaluate( quadrature[ pt ], vu);
         uLocal.jacobian( quadrature[ pt ], du);
- 
+        
         localIntegral( pt , geometry, quadrature , vu , du , avu , adu );   
        
         //wlocal+=avu*phi+diffusion*dphi
@@ -99,9 +101,26 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         
             
         }
-        else if ( intersection.boundary() )
+        else if (  intersection.boundary())
         {
-#if 0
+          boundaryElement=true;
+          const int quadOrderEn = uLocal.order() + wLocal.order();
+    
+          FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
+
+          const size_t numQuadraturePoints = quadInside.nop();
+       
+
+          for( size_t pt=0; pt < numQuadraturePoints; ++pt )
+          {
+           RangeType vuEn{0.},avuLeft{0.};
+           JacobianRangeType duEn{0.},aduLeft{0.};
+           uLocal.evaluate( quadInside[ pt ], vuEn);
+           uLocal.jacobian( quadInside[ pt ], duEn);
+           const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
+           const double weight = quadInside.weight( pt );
+ 
+
           boundaryIntegral( intersection,
                             pt,
                             quadInside,
@@ -109,10 +128,55 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                             duEn,
                             avuLeft,
                             aduLeft);
-
-#endif   
+           avuLeft*=weight;
+           aduLeft*=weight;
+        
+           wLocal.axpy( quadInside[ pt ] , avuLeft , aduLeft );
+          }
         }
+      
       }
+#if 0     
+      if( boundaryElement )
+      { 
+        const int order=1; 
+        const LagrangePointSetType lagrangePointSet( geometry.type(), order );
+        
+         const IntersectionIteratorType iitend = space().gridPart().iend( entity ); 
+         for( IntersectionIteratorType iit = space().gridPart().ibegin( entity ); iit != iitend; ++iit ) // looping over intersections
+          {
+             const IntersectionType &intersection = *iit;
+
+            if ( intersection.boundary())
+            {
+              // get face number of boundary intersection 
+               const int face = intersection.indexInInside();
+
+
+              typedef typename LagrangePointSetType::template Codim< 1 >:: SubEntityIteratorType
+              FaceDofIteratorType;
+              // get dof iterators 
+              FaceDofIteratorType faceIt = lagrangePointSet.template beginSubEntity< 1 >( face );
+              const FaceDofIteratorType faceEndIt = lagrangePointSet.template endSubEntity< 1 >( face );
+              for( ; faceIt != faceEndIt; ++faceIt )
+              {
+                const int localBlock=*faceIt;
+                const int localBlockSize=DiscreteFunctionSpaceType::localBlockSize;
+                
+                
+                const int dofOffset=localBlock*dimRange;
+                wLocal[dofOffset]=0;
+                for( int ii=0 ; ii < dimDomain ; ++ii)
+                {
+                  wLocal[dofOffset+1+ii]=0;
+                }
+            
+              }
+
+            }
+        }
+      } 
+#endif
     }
       
     
@@ -157,10 +221,11 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     RangeType  source(0.);
     model_.systemSource(time_, xgl, source);        
 //rho------------------------------------------------------------- 
-    //d_t rho=(rho^n-rho^n-1)/delta t
+      //d_t rho=(rho^n-rho^n-1)/delta t
     Filter::rho(avu)=Filter::rho(vu);
     Filter::rho(avu)-=Filter::rho(vuOld);
     Filter::rho(avu)*=deltaInv;
+    
     RangeFieldType div{0.},gradrhodotv{0.};
 #if 1 
     //div(rho v)=rho*div v+gradrho v
@@ -172,7 +237,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         gradrhodotv+=Filter::drho(duMid , ii )*Filter::velocity(vuMid, ii );
       }
 
-    Filter::rho(avu)+=Filter::rho(vuMid)*div+gradrhodotv;
+    Filter::rho(avu)+=div*Filter::rho(vuMid)+gradrhodotv;
 #endif
 //---------------------------------------------------------------
 
@@ -214,9 +279,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         { 
           transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
         }
-       // Filter::phi( avu )+=transport+Filter::tau( vuMid )/Filter::rho( vuMid );
-        Filter::phi( avu )+=transport;
-        Filter::phi( avu )+=Filter::tau( vuMid );
+        Filter::phi( avu )+=transport+Filter::tau( vuMid )/Filter::rho(vuMid);
+       // Filter::phi( avu )+=transport;
+       // Filter::phi( avu )+=Filter::tau( vuMid );
 //------------------------------------------------------------------        
        
 //tau---------------------------------------------------------------
@@ -239,10 +304,13 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
      //-------------------------------------------------------------------
 
 //mu-----------------------------------------------------------------
+   double dFdrho;
+        model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
+
 
      //   Filter::mu(avu)=Filter::mu(vu)-Filter::mu(vuOld);
         Filter::mu(avu)=Filter::mu( vuMid );
-        
+         Filter::mu(avu)-=dFdrho;
         RangeFieldType usqr{0.},uOldsqr{0.};
        
         for( int ii = 0; ii < dimDomain ; ++ii) 
@@ -348,18 +416,86 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                  avuLeft,
                                  gRight); 
    
-        RangeType value{0.};
+      RangeType value{0.};
 #if 1        
-        fluxRet+=flux_.diffusionFlux(normal,
-                                    penaltyFactor,
-                                    vuMidEn,
-                                    vuMidNb,
-                                    duMidEn,
-                                    duMidNb,
-                                    value,
-                                    advalue);
+     fluxRet+=flux_.diffusionFlux(normal,
+                                  penaltyFactor,
+                                  vuMidEn,
+                                  vuMidNb,
+                                  duMidEn,
+                                  duMidNb,
+                                  value,
+                                  advalue);
 #endif
        avuLeft+=value;
+      
+        
+           
+  }
+
+//Boundary Intgral
+template<class DiscreteFunction, class Model, class Flux>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
+::boundaryIntegral( const IntersectionType& intersection,
+                    const size_t pt,  
+                    const FaceQuadratureType& quadInside,
+                    const RangeType& vuEn,
+                    const JacobianRangeType& duEn,
+                    RangeType& avuLeft,
+                    JacobianRangeType& aduLeft) const
+  {
+    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+  
+    
+    RangeType vuOldEn{0.},vuMidEn{0.};
+    JacobianRangeType duOldEn{0.},duMidEn{0.};
+
+
+    
+    //calc vuOldEn....
+    uOldLocal_.evaluate( quadInside[ pt ] , vuOldEn );
+    uOldLocal_.jacobian( quadInside[ pt ] , duOldEn );
+
+    vuMidEn.axpy( factorImp_ , vuEn );
+    vuMidEn.axpy( factorExp_ , vuOldEn );
+
+    
+    duMidEn.axpy( factorImp_ , duEn );
+    duMidEn.axpy( factorExp_ , duOldEn );
+  
+
+
+    // compute penalty factor
+    const double intersectionArea = intersectionGeometry.volume();
+    const double penaltyFactor = penalty()*intersectionArea /  areaEn_; 
+    const double area=std::min(areaEn_,areaNb_); 
+    const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+    const DomainType normal = intersection.integrationOuterNormal( x );
+
+    DomainType xgl=intersectionGeometry.global(x); 
+  //  const double weight = quadInside.weight( pt );
+             
+     JacobianRangeType dvalue{0.},advalue{0.};
+     double fluxRet;
+     RangeType gLeft{0.},gRight{0.};
+     fluxRet=flux_.boundaryFlux(normal,
+                                area,
+                                vuEn,
+                                vuMidEn,  
+                                avuLeft);
+                     
+   
+      RangeType value{0.};
+#if 1        
+     fluxRet+=flux_.diffusionBoundaryFlux(normal,
+                                          penaltyFactor,
+                                          vuMidEn,
+                                          duMidEn,    
+                                          value,
+                                           advalue);
+#endif
+      avuLeft+=value;
       
         
            
@@ -375,82 +511,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model, Flux>
                     LFDestType& wLocal) const
   {
     abort();
-    typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-
-    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
-    LocalFunctionType uOldEn=uOld_.localFunction(entity); 
-    
-    TemporaryLocalType ufMidEn(space());
-
-    ufMidEn.init( entity );
-    ufMidEn.clear();
-
-    ufMidEn.axpy( factorImp_, uEn );
-    ufMidEn.axpy( factorExp_, uOldEn );
-
-
-
-    DomainType xglobal{0};
-
-    // compute penalty factor
-    const double intersectionArea = intersectionGeometry.volume();
-    const double penaltyFactor=penalty()*intersectionArea / area;
-    const int quadOrder = uEn.order() + wLocal.order();
-
-    FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrder, FaceQuadratureType::INSIDE );
-    const size_t numQuadraturePoints = quadInside.nop();
-    double fluxRet=0.;
-    std::vector<RangeType> valuesEn( numQuadraturePoints );
-    std::vector<RangeType> midValuesEn( numQuadraturePoints );
-    std::vector<JacobianRangeType> midJacobiansEn( numQuadraturePoints );
-    
-    uEn.evaluateQuadrature( quadInside, valuesEn );
-    ufMidEn.evaluateQuadrature( quadInside,midValuesEn );
-    ufMidEn.evaluateQuadrature( quadInside,midJacobiansEn );
- 
-    for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
-      {
-        const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
-        xglobal = intersectionGeometry.global(x);
-      
-
-        const DomainType normal = intersection.integrationOuterNormal( x );
-        const double weight = quadInside.weight( pt );
-      
-        RangeType value, valueBnd,valueBndOld;
-        JacobianRangeType dvalue{0.},advalue{0.};
-
-        RangeType vuIn,jump, vuOld, vuMid,gLeft;
-        JacobianRangeType duIn, aduIn, duMidNb{0.};
-
-        model_.dirichletValue(time_,xglobal,valueBnd); 
-        model_.dirichletValue(time_-deltaT_, xglobal,valueBndOld);
-      
-        valueBnd*=factorImp_;
-        valueBnd.axpy( factorExp_,valueBndOld );
-
-
-        
-        flux_.boundaryFlux(normal,midValuesEn[ pt ],gLeft);
-
-#warning "DIFFUSIONFLUX MISSING AT BOUNDARY"
-
-#if 1     
-        fluxRet+=flux_.diffusionFlux( normal,
-                                      penaltyFactor,
-                                      midValuesEn[ pt ],
-                                      valueBnd,
-                                      midJacobiansEn[ pt ],
-                                      duMidNb,//=0.
-                                      value,
-                                      advalue);
-        gLeft+=value;
-        gLeft*=weight;
-
-        advalue*=weight;
-#endif 
-        wLocal.axpy(quadInside[pt],gLeft,advalue);
-     }
+     
   }
 
 

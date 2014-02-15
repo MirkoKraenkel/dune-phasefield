@@ -78,8 +78,9 @@ double energyconverter( const DiscreteFunctionType& dF,
       localU.evaluate( quad[qP], vu );
 
 			model.totalEnergy(xgl,vu,kin[0],therm[0],total[0]);
-      total*=  quad.weight(qP);
+      total*= quad.weight(qP);
 			kin*=quad.weight(qP);
+      therm*=quad.weight(qP); 
       energyLF.axpy(quad[qP],total);
       kineticEnergy+=kin*volume;
       thermodynamicEnergy+=therm*volume;
