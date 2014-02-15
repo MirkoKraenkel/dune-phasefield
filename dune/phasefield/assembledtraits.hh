@@ -79,10 +79,10 @@ struct AlgorithmTraits
 	
   // FunctionSpaces
   typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,dimRange> FunctionSpaceType;
-  typedef typename Dune::Fem::DiscontinuousGalerkinSpace<FunctionSpaceType,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteSpaceType;
+  typedef typename Dune::Fem::LagrangeDiscontinuousGalerkinSpace<FunctionSpaceType,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteSpaceType;
 
   typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,1>  EnergySpaceType;
-  typedef typename Dune::Fem::DiscontinuousGalerkinSpace<EnergySpaceType  ,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteEnergySpaceType;
+  typedef typename Dune::Fem::LagrangeDiscontinuousGalerkinSpace<EnergySpaceType  ,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteEnergySpaceType;
 
 
   // DiscreteFunctions
@@ -91,7 +91,11 @@ struct AlgorithmTraits
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
   typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-  typedef typename Dune::Fem::ISTLGMResOp< DiscreteFunctionType, JacobianOperatorType > LinearSolverType; 
+#if BICG
+  typedef typename Dune::Fem::ISTLBICGSTABOp< DiscreteFunctionType, JacobianOperatorType > LinearSolverType; 
+#else
+ typedef typename Dune::Fem::ISTLGMResOp< DiscreteFunctionType , JacobianOperatorType > LinearSolverType;
+#endif
 #else  
   typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
   typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
@@ -105,8 +109,8 @@ struct AlgorithmTraits
 #else 
   typedef Dune::Fem::SparseRowLinearOperator< DiscreteFunctionType, DiscreteFunctionType> JacobianOperatorType; 
   typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-//  typedef Dune::Fem::UMFPACKOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
-  typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
+  typedef Dune::Fem::UMFPACKOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
+//  typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
 
 #endif
 #endif

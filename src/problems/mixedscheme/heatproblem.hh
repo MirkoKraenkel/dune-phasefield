@@ -131,11 +131,12 @@ inline void HeatProblem<GridType,RangeProvider>
   double dFdphi=cosx*cosx*cost*cost-1;
   dFdphi*=cosx;
   dFdphi*=cost;
- 
+  dFdphi*=thermodyn_.deltaInv();
      
-   double rho=0.5*cosx*cost+1;
-
-   double v=sinx*cost;
+   //double rho=0.5*cosx*cost+1;
+   double rho=1.5;
+   //double v=sinx*cost;
+   double v=0;
    //rho
    res[0]= rho;
    //v
@@ -153,7 +154,7 @@ if( dimRange > dimDomain+2)
     //mu
     res[dimension+2]=0.5*v*v;
     //tau
-    res[dimension+3]=4*M_PI*M_PI*cosx*cost*0.5+dFdphi;
+    res[dimension+3]=thermodyn_.delta()*4*M_PI*M_PI*cosx*cost*0.5+dFdphi;
 
 
 #if SCHEME==DG
