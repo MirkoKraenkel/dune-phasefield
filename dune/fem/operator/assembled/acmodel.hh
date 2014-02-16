@@ -121,7 +121,7 @@ inline void HeatModel< Grid,Problem>
                 RangeType& s) const
   {
     s=0.;
-#if 1 
+#if 0 
     double cosx=std::cos(2*M_PI*xgl[0]);
     double cost=std::cos(M_PI*time);
     double sinx=std::sin(2*M_PI*xgl[0]);
@@ -191,7 +191,6 @@ inline void HeatModel< Grid, Problem >
             RangeFieldType& mu) const
   {
     mu=problem_.thermodynamics().chemicalPotential(rho1,phi);
-    mu=0;
   }
 
 template< class Grid, class Problem > 
