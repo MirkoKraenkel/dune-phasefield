@@ -6,7 +6,7 @@ fem.resolvevariables: 1
 fem.prefix: ./data$(scheme) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
 fem.io.savestep: 1e-2 #save data every time interval 
-fem.io.savecount: 0    # save every i-th ste
+fem.io.savecount:  0  # save every i-th ste
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
 # GRID SOLUTION
@@ -34,8 +34,8 @@ phasefield.reactionrate: 1.
 phasefield.addvisc: 0. 
 phasefield.nonconvisc:  
 phasefield.thetaswitch: -1.
-phasefield.delta: 1
-phasefield.mu1:  1.
+phasefield.delta: 0.025
+phasefield.mu1:  0.1
 phasefield.rho1: 3.
 phasefield.rho2: 0.3678794412
 phasefield.penalty: 1 
@@ -51,8 +51,8 @@ gamma: 0
 # DOMAIN
 #-------
 
-#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
-fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
+fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 ##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
@@ -74,7 +74,7 @@ dgiffusionflux.upwind: -1 -3.141
 paramfile: ./paramFiles/paramSolver
 phasefield.maxTimeStep: 0.5
 fem.ode.tolerance: 1e-54
-fem.solver.newton.tolerance: 1e-8
+fem.solver.newton.tolerance: 1e-10
 fem.solver.tolerance: 1e-9
 fem.solver.verbose: false   
 fem.solver.newton.verbose: false 
@@ -84,7 +84,7 @@ phasefield.fdjacobian.epsilon: 1e-8
 #phasefield.maximaltimesteps:1 
 phasefield.mixed.theta: 0. #0 if opcheck is used
 istl.preconditioning.method: ilu-0 
-istl.gmres.restart: 1000
+istl.gmres.restart: 100
 oemsolver.gmres.restart: 1000
 
 #phasefield.timesteptolerance: 

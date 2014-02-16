@@ -40,7 +40,7 @@ gridsol.usegridsolution: false
 #-----------------
 
 phasefield.eocSteps: 3 
-phasefield.printCount: 0 
+phasefield.printCount: 10
 phasefield.verbose: 1 
 
 # create a file with sampled values of the numerical solution
@@ -72,8 +72,8 @@ fem.adaptation.adaptcount: 10 # after this many time step, 0 disables adaptation
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 3   
+phasefield.startLevel: 4   
 
 
 phasefield.startTime: 0 
-phasefield.endTime: 0.2 
+phasefield.endTime: 5 
