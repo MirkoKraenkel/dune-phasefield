@@ -45,6 +45,7 @@ class LocalFDOperator
   
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalFunctionType;
   typedef typename MyOperatorType::GridPartType GridPartType;
+  typedef typename GridPartType::IndexSetType IndexSetType;
   public: 
   LocalFDOperator(const ModelType &model,
                   const DiscreteFunctionSpaceType &space,
@@ -74,7 +75,6 @@ class LocalFDOperator
   private:
   StencilType stencil_;
   double epsilon_;
-  
 };
 
 
@@ -94,7 +94,10 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
   RangeFieldType normU=std::sqrt(u.scalarProductDofs(u));
   jOp.clear();
-  
+//  visited_.resize( indexSet_.size(0));
+ // const size_t indSize = visited_.size();
+//  for( size_t ii = 0; i<indSize; ++i) visited_[i] = false;
+
   RangeFieldType eps =epsilon_;
   
   if( eps <= RangeFieldType( 0 ) )
@@ -132,11 +135,16 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
  
    
     double epsInv=1./eps;
-
-
     
     QuadratureType quadrature( entity, 2*dfSpace.order() );
     const size_t numQuadraturePoints = quadrature.nop();
+    
+    std::vector<RangeType> uValues(numQuadraturePoints);
+    std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
+
+    uLocal.evaluateQuadrature(quadrature, uValues);
+    uLocal.evaluateQuadrature(quadrature,uJacobians);
+    
     for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
       {
         baseSet.evaluateAll( quadrature[ pt ], phi);
@@ -145,23 +153,23 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         RangeType vu{0.} , fu{0.};
         JacobianRangeType dvu{0.} , fdu{0.};
         
-        uLocal.evaluate( quadrature[ pt ], vu);
-        uLocal.jacobian( quadrature[ pt ], dvu);
-        
-        localIntegral(pt,
-                      geometry,
-                      quadrature,
-                      vu,
-                      dvu,
-                      fu,
-                      fdu);
+      //  uLocal.evaluate( quadrature[ pt ], vu);
+     //   uLocal.jacobian( quadrature[ pt ], dvu);
+          
+         localIntegral(pt,
+                       geometry,
+                       quadrature,
+                       uValues[pt],
+                       uJacobians[pt],
+                       fu,
+                       fdu);
         for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
         {
           RangeType ueps{0.} , fueps{0.};
           JacobianRangeType dueps{0.} , fdueps{0.};
-          ueps=vu;
+          ueps=uValues[pt];
           ueps.axpy( eps , phi[ jj ] );
-          dueps=dvu;
+          dueps=uJacobians[pt];
           dueps.axpy( eps , dphi[ jj ] );
           
           localIntegral(pt,
@@ -179,8 +187,10 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         }
       } 
    
-
-
+      
+    if ( space().continuous() )
+      continue;
+    
     const IntersectionIteratorType endiit = gridPart.iend( entity );
     for ( IntersectionIteratorType iit = gridPart.ibegin( entity );
           iit != endiit ; ++ iit )
@@ -205,69 +215,81 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         const BasisFunctionSetType &baseSetNb = jLocalNb.domainBasisFunctionSet();
      //   const unsigned int numBasisFunctionsNb = baseSetNb.size();
           
-        const int quadOrderEn = 2*uLocal.order() + 1;
-        const int quadOrderNb = 2*uLocalNb.order() + 1;
+        const int quadOrderEn = 2*uLocal.order();
+        const int quadOrderNb = 2*uLocalNb.order();
     
         FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
         FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
         const size_t numQuadraturePoints = quadInside.nop();
 
+        std::vector<RangeType> vuEn(numQuadraturePoints);
+        std::vector<JacobianRangeType> duEn(numQuadraturePoints);
+        std::vector<RangeType> vuNb(numQuadraturePoints);
+        std::vector<JacobianRangeType> duNb(numQuadraturePoints);
+        
+        uLocal.evaluateQuadrature(quadInside,vuEn);
+        uLocal.evaluateQuadrature(quadInside,duEn);
+          
+        uLocalNb.evaluateQuadrature(quadOutside,vuNb);
+        uLocalNb.evaluateQuadrature(quadOutside,duNb);
+
+
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-           RangeType vuEn{0.},vuNb{0.},avuLeft{0.};
-           JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.};
-           uLocal.evaluate( quadInside[ pt ], vuEn);
-           uLocal.jacobian( quadInside[ pt ], duEn);
-           uLocalNb.evaluate( quadOutside[ pt ], vuNb);
-           uLocalNb.jacobian( quadOutside[ pt ], duNb);
+        //   RangeType vuEn{0.},vuNb{0.},
+        RangeType   avuLeft{0.};
+        //   JacobianRangeType duEn{0.},duNb{0.},
+        JacobianRangeType aduLeft{0.};
+    //       uLocal.evaluate( quadInside[ pt ], vuEn);
+    //      uLocal.jacobian( quadInside[ pt ], duEn);
+   //        uLocalNb.evaluate( quadOutside[ pt ], vuNb);
+   //        uLocalNb.jacobian( quadOutside[ pt ], duNb);
            
            baseSet.evaluateAll( quadInside[ pt ] , phi);
            baseSet.jacobianAll( quadInside[ pt ] , dphi);
               
            baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
            baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
- 
-
+          
            intersectionIntegral( intersection,                  
                                  pt, 
                                  quadInside,   
                                  quadOutside, 
-                                 vuEn,
-                                 vuNb, 
-                                 duEn, 
-                                 duNb,
+                                 vuEn[pt],
+                                 vuNb[pt], 
+                                 duEn[pt], 
+                                 duNb[pt],
                                  avuLeft,
                                  aduLeft );
-            
            for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
            {
              RangeType ueps{0.},fueps{0.}, uepsNb{0.} , fuepsNb{0.};
              JacobianRangeType dueps{0.} , fdueps{0.} , duepsNb{0.} , fduepsNb{0.};
-             ueps=vuEn;
+             ueps=vuEn[pt];
              ueps.axpy( eps , phi[ jj ] );
-             dueps=duEn;
+             dueps=duEn[pt];
              dueps.axpy( eps, dphi[ jj ] );
-             uepsNb=vuNb;
+             uepsNb=vuNb[pt];
              uepsNb.axpy( eps , phiNb[ jj ] );
-             duepsNb=duNb;
+             duepsNb=duNb[pt];
              duepsNb.axpy( eps, dphiNb[ jj ] );
              intersectionIntegral( intersection,
                                   pt,
                                   quadInside,
                                   quadOutside,
                                   ueps,
-                                  vuNb,
+                                  vuNb[pt],
                                   dueps,
-                                  duNb,
+                                  duNb[pt],
                                   fueps,
                                   fdueps);
              intersectionIntegral( intersection,
                                   pt,
                                   quadInside,
                                   quadOutside,
-                                  vuEn,
+                                  vuEn[pt],
                                   uepsNb,
-                                  duEn,
+                                  duEn[pt],
                                   duepsNb,
                                   fuepsNb,
                                   fduepsNb);
@@ -290,7 +312,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
       } 
       else if ( intersection.boundary() )
       {
-        const int quadOrderEn = 2*uLocal.order() + 1;
+        const int quadOrderEn = 2*uLocal.order();
     
         FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
         const size_t numQuadraturePoints = quadInside.nop();
