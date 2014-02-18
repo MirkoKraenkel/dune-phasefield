@@ -236,20 +236,21 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-        //   RangeType vuEn{0.},vuNb{0.},
-        RangeType   avuLeft{0.};
+       //  RangeType vuEn{0.},vuNb{0.},
+        RangeType   avuLeft{0.},avuRight{0.};
         //   JacobianRangeType duEn{0.},duNb{0.},
-        JacobianRangeType aduLeft{0.};
+        JacobianRangeType aduLeft{0.},aduRight{0.};
     //       uLocal.evaluate( quadInside[ pt ], vuEn);
     //      uLocal.jacobian( quadInside[ pt ], duEn);
    //        uLocalNb.evaluate( quadOutside[ pt ], vuNb);
    //        uLocalNb.jacobian( quadOutside[ pt ], duNb);
-           
-           baseSet.evaluateAll( quadInside[ pt ] , phi);
-           baseSet.jacobianAll( quadInside[ pt ] , dphi);
+          const double weight=quadInside.weight( pt ); 
+          
+          baseSet.evaluateAll( quadInside[ pt ] , phi);
+          baseSet.jacobianAll( quadInside[ pt ] , dphi);
               
-           baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
-           baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
+          baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
+          baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
           
            intersectionIntegral( intersection,                  
                                  pt, 
@@ -260,11 +261,13 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                  duEn[pt], 
                                  duNb[pt],
                                  avuLeft,
-                                 aduLeft );
+                                 avuRight,
+                                 aduLeft,
+                                 aduRight);
            for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
            {
-             RangeType ueps{0.},fueps{0.}, uepsNb{0.} , fuepsNb{0.};
-             JacobianRangeType dueps{0.} , fdueps{0.} , duepsNb{0.} , fduepsNb{0.};
+             RangeType ueps{0.},fueps{0.},fuepsRight{0.}, uepsNb{0.} , fuepsNb{0.},fuepsNbRight{0.};
+             JacobianRangeType dueps{0.} , fdueps{0.} ,fduepsRight{0.}, duepsNb{0.} , fduepsNb{0.},fduepsNbRight{0.};
              ueps=vuEn[pt];
              ueps.axpy( eps , phi[ jj ] );
              dueps=duEn[pt];
@@ -282,7 +285,9 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                   dueps,
                                   duNb[pt],
                                   fueps,
-                                  fdueps);
+                                  fuepsRight,
+                                  fdueps,
+                                  fduepsRight);
              intersectionIntegral( intersection,
                                   pt,
                                   quadInside,
@@ -292,7 +297,9 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                   duEn[pt],
                                   duepsNb,
                                   fuepsNb,
-                                  fduepsNb);
+                                  fuepsNbRight,
+                                  fduepsNb,
+                                  fduepsNbRight);
           
             fueps-=avuLeft;
             fueps*=epsInv;
@@ -304,8 +311,8 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             fduepsNb-=aduLeft;
             fduepsNb*=epsInv;
 
-            jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps );
-            jLocalNb.column( jj ).axpy( phi, dphi, fuepsNb,fduepsNb); 
+            jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps, weight );
+            jLocalNb.column( jj ).axpy( phi, dphi, fuepsNb,fduepsNb,weight); 
            
            }
         }

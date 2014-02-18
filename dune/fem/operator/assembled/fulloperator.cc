@@ -71,8 +71,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
           for( size_t pt=0; pt < numQuadraturePoints; ++pt )
           {
-           RangeType vuEn{0.},vuNb{0.},avuLeft{0.};
-           JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.};
+           RangeType vuEn{0.},vuNb{0.},avuLeft{0.},avuRight{0.};
+           JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.}, aduRight{0.};
            uLocal.evaluate( quadInside[ pt ], vuEn);
            uLocal.jacobian( quadInside[ pt ], duEn);
            uNeighbor.evaluate( quadOutside[ pt ], vuNb);
@@ -91,7 +91,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                  duEn, 
                                  duNb,
                                  avuLeft,
-                                 aduLeft );
+                                 avuRight,
+                                 aduLeft,
+                                 aduRight);
  
             avuLeft*=weight;
             aduLeft*=weight;
@@ -361,7 +363,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                         const JacobianRangeType& duEn,
                         const JacobianRangeType& duNb,
                         RangeType& avuLeft,
-                        JacobianRangeType& aduLeft) const
+                        RangeType& avuRight,
+                        JacobianRangeType& aduLeft,
+                        JacobianRangeType& aduRight) const
   {
     typedef typename IntersectionType::Geometry  IntersectionGeometryType;
     const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
@@ -414,7 +418,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                  vuMidEn,  
                                  vuMidNb, 
                                  avuLeft,
-                                 gRight); 
+                                 avuRight); 
    
       RangeType value{0.};
 #if 1        
@@ -425,10 +429,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                   duMidEn,
                                   duMidNb,
                                   value,
-                                  advalue);
+                                  aduLeft);
 #endif
        avuLeft+=value;
-      
+     
         
            
   }
@@ -493,7 +497,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                           vuMidEn,
                                           duMidEn,    
                                           value,
-                                           advalue);
+                                          advalue);
 #endif
       avuLeft+=value;
       

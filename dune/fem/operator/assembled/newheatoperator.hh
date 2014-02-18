@@ -136,7 +136,9 @@ public:
                               const JacobianRangeType& duEn,
                               const JacobianRangeType& duNb,
                               RangeType& avuLeft,
-                               JacobianRangeType& aduLeft) const;
+                              RangeType& avuRight,
+                              JacobianRangeType& aduLeft,
+                              JacobianRangeType& aduRight) const;
 
   void boundaryIntegral( const IntersectionType& intersection,
                         const size_t pt,  
