@@ -294,7 +294,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                           Filter::rho(vuOld),
                           dFdphi);
 
-        Filter::tau(avu)=Filter::tau( vuMid );
+        Filter::tau( avu )=Filter::tau( vuMid );
         Filter::tau( avu )-=dFdphi;
 
         RangeFieldType divsigma(0.);
@@ -306,13 +306,13 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
      //-------------------------------------------------------------------
 
 //mu-----------------------------------------------------------------
-   double dFdrho;
+      double dFdrho;
         model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
 
 
      //   Filter::mu(avu)=Filter::mu(vu)-Filter::mu(vuOld);
         Filter::mu(avu)=Filter::mu( vuMid );
-         Filter::mu(avu)-=dFdrho;
+        Filter::mu(avu)-=dFdrho;
         RangeFieldType usqr{0.},uOldsqr{0.};
        
         for( int ii = 0; ii < dimDomain ; ++ii) 
@@ -344,7 +344,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
             assert( avu[ii]==avu[ii]) ;
           }
           
-          avu-=source;
+          //avu-=source;
           avu*=weight;
           adu*=weight;
        
