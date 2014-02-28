@@ -3,7 +3,6 @@
 
 #include <sstream>
 
-#include <dune/common/misc.hh>
 #include <dune/common/fvector.hh>
 #include <dune/common/version.hh>
 

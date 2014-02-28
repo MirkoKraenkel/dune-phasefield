@@ -312,7 +312,7 @@ public:
     // to visualize exact solution
 //    Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), Uold);
 
-    dgOperator_.setPreviousTimeStep(U);
+    dgOperator_.setPreviousTimeStep(Uold);
     dgOperator_.setTime(time);
     dgOperator_.setDeltaT(deltaT);
      
@@ -539,8 +539,8 @@ public:
 
 
 		writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
-	writeCheckPoint( tp, adaptManager );
-     Uold.assign(U);
+  	writeCheckPoint( tp, adaptManager );
+    Uold.assign(U);
       //statistics
       mindt = (ldt<mindt) ? ldt : mindt;
       maxdt = (ldt>maxdt) ? ldt : maxdt;

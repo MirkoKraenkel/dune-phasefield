@@ -152,7 +152,7 @@ double MixedFlux<Model>
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn{0.}, midNb{0.},jump,mean;
+      RangeType valEn,valNb,midEn{0.}, midNb{0.},jump,mean,jumpOld;
       valEn=vuEn;
       valNb=vuNb;
 
@@ -163,7 +163,8 @@ double MixedFlux<Model>
       mean = midEn ;
       mean+= midNb;
       mean*=0.5;
-
+      jumpOld=valEn;
+      jumpOld-=valNb;
       //rho-------------------------------------------------------------
  
       double vNormalEn(0.),vNormalNb(0.);
