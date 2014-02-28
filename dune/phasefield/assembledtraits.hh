@@ -36,17 +36,9 @@
 
 //#include <dune/fem/operator/assembled/mixedoperator.hh>
 #if MATRIXFREE
-#if NEWOP
 #include <dune/fem/operator/assembled/newheatoperator.hh>
 #else
-#include <dune/fem/operator/assembled/heatoperator2.hh>
-#endif
-#else
-#if NEWOP
-#include <dune/fem/operator/assembled/newlocalfdoperator.hh>
-#else
 #include <dune/fem/operator/assembled/localfdoperator.hh>
-#endif
 #endif
 
 
