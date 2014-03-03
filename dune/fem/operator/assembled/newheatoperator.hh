@@ -280,8 +280,11 @@ protected:
 
 //#include "newheatoperator.cc"
 
+#if VISIT
+#include "fulloperator2.cc"
+#else
 #include "fulloperator.cc"
-
+#endif
 
 
 

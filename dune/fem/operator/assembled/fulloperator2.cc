@@ -72,7 +72,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
           for( size_t pt=0; pt < numQuadraturePoints; ++pt )
           {
            RangeType vuEn{0.},vuNb{0.},avuLeft{0.},avuRight{0.};
-           JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.}, aduRight{0.};
+           JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.},aduRight{0.};
            uLocal.evaluate( quadInside[ pt ], vuEn);
            uLocal.jacobian( quadInside[ pt ], duEn);
            uNeighbor.evaluate( quadOutside[ pt ], vuNb);
@@ -94,6 +94,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                  avuRight,
                                  aduLeft,
                                  aduRight);
+ 
+
  
             avuLeft*=weight;
             aduLeft*=weight;
@@ -222,131 +224,65 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
        
     RangeType  source(0.);
     model_.systemSource(time_, xgl, source);        
-//rho------------------------------------------------------------- 
-      //d_t rho=(rho^n-rho^n-1)/delta t
-    Filter::rho(avu)=Filter::rho(vu);
-    Filter::rho(avu)-=Filter::rho(vuOld);
-    Filter::rho(avu)*=deltaInv;
-    
-    RangeFieldType div{0.},gradrhodotv{0.};
-#if 1 
+  
+    avu=vu;
+    avu-=vuOld;
+    avu*=deltaInv;
+    //mu 
+    avu[dimDomain + 2 ] = vuMid[dimDomain + 2 ];
+    //tau
+    avu[dimDomain + 3 ] = vuMid[dimDomain + 3 ];
+    //A(dv) 
+    model_.diffusion( duMid , adu );
+
+    for( int ii = 0 ; ii < dimDomain; ++ii)
+      {
+        avu[dimDomain+4+ii]=vu[dimDomain+4+ii];
+      }
     //div(rho v)=rho*div v+gradrho v
     for(int ii = 0; ii <dimDomain ; ++ii )
       { 
-        //sum d_i v_i 
-        div+=Filter::dvelocity(duMid, ii , ii );
-        // sum d_i rho*v_i
-        gradrhodotv+=Filter::drho(duMid , ii )*Filter::velocity(vuMid, ii );
+        //rho
+        avu[0]+=duMid[0][ii]*vuMid[1+ii]+vuMid[0]*duMid[1+ii][ii];
+        //phi
+        avu[dimDomain+1]+=duMid[dimDomain+1][ii]*vuMid[1+ii];
+       //mu
+        avu[dimDomain+2]+=-0.25*(vu[1+ii]*vu[1+ii]+vuOld[1+ii]*vuOld[1+ii]);
+        //tau
+        avu[dimDomain+3]+=model_.delta()*duMid[dimDomain+4+ii][ii];
+        //v and sigma
+        for( int jj = 0; jj < dimDomain ; ++jj)
+          {
+            avu[1+ii]+=vuMid[1+jj]*(duMid[1+ii][jj]-duMid[1+jj][ii]);
+         }  
+        avu[1+ii]+=duMid[dimDomain+2][ii];
+       
+        avu[dimDomain+4+ii]-=du[dimDomain+1][ii];
+      
+      }
+   
+      //phi
+      avu[dimDomain+1]+=vuMid[dimDomain+3]/vuMid[0];
+      //tau
+      // dF/dphi
+      double dFdphi;
+      model_.tauSource( vuOld[dimDomain+1] , vu[dimDomain+1] , vuOld[0] , dFdphi );
+      avu[dimDomain+3]-=dFdphi;
+  
+      //mu
+      double dFdrho;
+      model_.muSource(vuOld[0] , vu[0] , vu[dimDomain+1] , dFdrho );
+      avu[dimDomain+2]-=dFdrho;
+      //v and sigma
+      for( int jj = 0; jj < dimDomain ; ++jj)
+      {
+          avu[1+jj]*=vuMid[0];
+          avu[1+jj]-=vuMid[dimDomain+3]*duMid[dimDomain+1][jj];
       }
 
-    Filter::rho(avu)+=div*Filter::rho(vuMid)+gradrhodotv;
-#endif
-//---------------------------------------------------------------
 
-//v--------------------------------------------------------------
-
-    for( int ii = 0; ii < dimDomain ; ++ii )
-      {
-        Filter::velocity(avu,ii)=Filter::velocity(vu,ii);
-        Filter::velocity(avu,ii)-=Filter::velocity(vuOld,ii);
-        Filter::velocity(avu,ii)*=deltaInv;
-        RangeFieldType sgradv(0);
-      
-        //sum_j v_j( d_j v_i - d_i v_j)
-         for(int jj = 0;jj < dimDomain ; ++jj)
-           sgradv+=Filter::velocity( vuMid , jj )*(Filter::dvelocity(duMid, ii , jj )
-               -Filter::dvelocity( duMid, jj , ii));
-      
-        Filter::velocity( avu , ii )+=sgradv;
-        Filter::velocity( avu , ii )+=Filter::dmu( duMid, ii);
-        Filter::velocity( avu , ii )*=Filter::rho( vuMid);
-        
-        //-tau\nabla phi
-        Filter::velocity( avu , ii )-=Filter::tau( vuMid )*Filter::dphi( duMid , ii );
-        
-       }
-// A(dv) 
-     model_.diffusion( duMid , adu );
-//------------------------------------------------------------------
-
-//phi---------------------------------------------------------------
-
-        Filter::phi( avu )=Filter::phi( vu )-Filter::phi( vuOld );
-        Filter::phi( avu )*=deltaInv;
-
-        RangeFieldType transport(0.);
-
-        // \nabla phi\cdot v
-        for( int ii = 0; ii < dimDomain ; ++ii ) 
-        { 
-          transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
-        }
-        Filter::phi( avu )+=transport+Filter::tau( vuMid )/Filter::rho(vuMid);
-       // Filter::phi( avu )+=transport;
-       // Filter::phi( avu )+=Filter::tau( vuMid );
-//------------------------------------------------------------------        
-       
-//tau---------------------------------------------------------------
-        // dF/dphi
-        double dFdphi;
-        model_.tauSource( Filter::phi(vuOld),
-                          Filter::phi(vu),
-                          Filter::rho(vuOld),
-                          dFdphi);
-
-        Filter::tau( avu )=Filter::tau( vuMid );
-        Filter::tau( avu )-=dFdphi;
-
-        RangeFieldType divsigma(0.);
-
-        for( int ii = 0 ; ii < dimDomain ; ++ii) 
-          divsigma+=Filter::dsigma( duMid, ii , ii );
          
-        Filter::tau( avu )+=model_.delta()*divsigma;
-      //  Filter::tau( avu)*=deltaInv;         
-    //-------------------------------------------------------------------
-
-//mu-----------------------------------------------------------------
-      double dFdrho;
-        model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
-
-
-     //   Filter::mu(avu)=Filter::mu(vu)-Filter::mu(vuOld);
-        Filter::mu(avu)=Filter::mu( vuMid );
-        Filter::mu(avu)-=dFdrho;
-        RangeFieldType usqr{0.},uOldsqr{0.};
-       
-        for( int ii = 0; ii < dimDomain ; ++ii) 
-        {
-         // |v^n|^2
-          usqr+=Filter::velocity( vu , ii )*Filter::velocity( vu , ii );
-
-          // |v^{n-1}|^2
-          uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
-        }
-     
-        Filter::mu(avu)-=0.25*(usqr+uOldsqr);
-       // Filter::mu(avu)*=deltaInv;
-        
-        //------------------------------------------------------------------
-
-//sigma--------------------------------------------------------------
-        //\sigma-\nabla\phi
-        for( int ii = 0 ; ii < dimDomain ; ++ii) 
-          {
-            //sigma^n
-           Filter::sigma( avu , ii )=Filter::sigma( vu , ii );
-           //\nabla\phi^n
-           Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
-       //   Filter::sigma( avu, ii )*=deltaInv;
-          }
-          //------------------------------------------------------------------        
-          for(int ii = 0; ii < dimRange ; ii++)
-          {
-            assert( avu[ii]==avu[ii]) ;
-          }
-          
-          //avu-=source;
+          avu-=source;
           avu*=weight;
           adu*=weight;
        
@@ -369,10 +305,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                         JacobianRangeType& aduLeft,
                         JacobianRangeType& aduRight) const
   {
-       double deltaInv=1./deltaT_;
- 
     typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-//    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
   
     
     
@@ -402,16 +336,15 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     duMidNb.axpy( factorExp_ , duOldNb );
 
 
-  const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
- 
-    const DomainType normal = intersection.integrationOuterNormal( x );
     // compute penalty factor
-    const double intersectionArea = normal.two_norm();
+    const double intersectionArea = intersectionGeometry.volume();
     const double penaltyFactor = penalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
     const double area=std::min(areaEn_,areaNb_); 
-   // const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
-   //   DomainType xgl=intersectionGeometry.global(x); 
-    //  const double weight = quadInside.weight( pt );
+    const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+    const DomainType normal = intersection.integrationOuterNormal( x );
+
+    DomainType xgl=intersectionGeometry.global(x); 
+  //  const double weight = quadInside.weight( pt );
              
      JacobianRangeType dvalue{0.},advalue{0.};
      double fluxRet;
@@ -424,7 +357,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                  vuMidNb, 
                                  avuLeft,
                                  avuRight); 
-   
       RangeType value{0.};
 #if 1        
      fluxRet+=flux_.diffusionFlux(normal,
@@ -436,21 +368,13 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                   value,
                                   aduLeft);
 #endif
-#if 0 
-      avuLeft+=value;
-      avuRight-=value; 
-      Filter::tau(avuLeft)*=deltaInv;
-      Filter::tau(avuRight)*=deltaInv;
-      Filter::mu( avuLeft)*=deltaInv;
-      Filter::mu( avuRight)*=deltaInv;
-#endif
-//      for(int ii=0; ii<dimRange ; ++ii)
-  //      {
-    //      Filter::sigma( avuLeft , ii )*=deltaInv;
-      //    Filter::sigma( avuRight , ii )*=deltaInv;
-       // } 
+       avuLeft+=value;
+       avuRight-=value; 
+      
        aduRight-=aduLeft;
-         
+
+        
+           
   }
 
 //Boundary Intgral
@@ -513,7 +437,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                           vuMidEn,
                                           duMidEn,    
                                           value,
-                                          advalue);
+                                           advalue);
 #endif
       avuLeft+=value;
       
