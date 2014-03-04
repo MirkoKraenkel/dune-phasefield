@@ -210,8 +210,8 @@ public:
     
       nonConRight=nonConLeft;
 
-      nonConLeft *=(minusjumpMu*rhoLeft -jumpPhi*tauLeft);
-      nonConRight*=(minusjumpMu*rhoRight-jumpPhi*tauRight);
+      nonConLeft *=(-minusjumpMu*rhoLeft -jumpPhi*tauLeft);
+      nonConRight*=(-minusjumpMu*rhoRight-jumpPhi*tauRight);
       
       nonConLeft[dimDomain+1]=vLeftNormal*jumpPhi; 
       nonConRight[dimDomain+1]=vRightNormal*jumpPhi;   
