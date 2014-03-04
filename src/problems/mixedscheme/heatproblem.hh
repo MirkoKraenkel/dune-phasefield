@@ -44,7 +44,7 @@ public:
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
-    smear_( Fem::Parameter::getValue<double> ("phasefield.smear")),
+    rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     thermodyn_()
     {
@@ -98,7 +98,7 @@ public:
   const double endTime_;
   const double mu_;
   const double delta_;
-  double smear_;
+  double rho_;
   const double phiscale_;
   const ThermodynamicsType thermodyn_;
   
@@ -133,8 +133,7 @@ inline void HeatProblem<GridType,RangeProvider>
   dFdphi*=cost;
   dFdphi*=thermodyn_.deltaInv();
      
-   //double rho=0.5*cosx*cost+1;
-   double rho=1.5;
+   double rho=rho_;
    //double v=sinx*cost;
    double v=0;
    //rho
