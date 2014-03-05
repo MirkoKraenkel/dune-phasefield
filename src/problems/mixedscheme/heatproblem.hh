@@ -9,7 +9,7 @@
 
 // local includes
 
-#include <dune/phasefield/modelling/thermodynamicsTest.hh>
+#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
 
 //#include <dune/fem/probleminterfaces.hh>
 
@@ -37,7 +37,8 @@ public:
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
-   typedef TestThermodynamics ThermodynamicsType;
+//   typedef TestThermodynamics ThermodynamicsType;
+  typedef BalancedThermodynamics ThermodynamicsType; 
 
   HeatProblem() : 
     myName_( "Mixedtest Heatproblem" ),
@@ -128,12 +129,8 @@ inline void HeatProblem<GridType,RangeProvider>
   double cosx=cos(2*M_PI*x);
   double sinx=sin(2*M_PI*x);
   double sint=sin(M_PI*t); 
-  double dFdphi=cosx*cosx*cost*cost-1;
-  dFdphi*=cosx;
-  dFdphi*=cost;
-  dFdphi*=thermodyn_.deltaInv();
-     
-   double rho=rho_;
+    
+  double rho=rho_;
    //double v=sinx*cost;
    double v=0;
    //rho
@@ -145,33 +142,36 @@ inline void HeatProblem<GridType,RangeProvider>
    }
    if(dimension==2)
      res[2]=0;
-   // phi
-   res[dimension+1]=0.5*cosx*cost+0.5;
-   //res[dimension+1]=tanx;
-if( dimRange > dimDomain+2)
-{
-    //mu
-    res[dimension+2]=0.5*v*v;
-    //tau
-    res[dimension+3]=thermodyn_.delta()*4*M_PI*M_PI*cosx*cost*0.5+dFdphi;
+   double  phi=0.05*cosx+0.5;
+   res[dimension+1]=phi;
+   
+   double dFdphi= thermodyn_.reactionSource(rho,phi); 
+
+     
+   if( dimRange > dimDomain+2)
+    {
+      //mu
+      res[dimension+2]=0.5*v*v;
+      //tau
+      res[dimension+3]=thermodyn_.delta()*8*0.05*M_PI*M_PI*cosx*0.5+dFdphi;
 
 
 #if SCHEME==DG
     //sigma
-  if(dimension==1)
+    if(dimension==1)
+      {
+        res[dimension+4]=-2*M_PI*sinx*cost*0.05;
+      }
+     else
+      { 
+        res[dimension+4]=-2*M_PI*sinx*cost*0.5;
+        res[dimension+5]=0; 
+      }
+    }
+   else
     {
-      res[dimension+4]=-2*M_PI*sinx*cost*0.5;
+      res[1]*=res[0];
     }
-  else
-    { 
-      res[dimension+4]=-2*M_PI*sinx*cost*0.5;
-      res[dimension+5]=0; 
-    }
-}
-else
-{
-  res[1]*=res[0];
-}
 #elif SCHEME==FEM
 #endif
 }
