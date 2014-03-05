@@ -127,7 +127,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   	rho=cons[0];
     rho_inv=1./rho;
     phi=cons[phaseId];
-    rho_inv=1; 
     //velocity 
     prim[0] = cons[1]*rho_inv;
     //pressure  
@@ -176,8 +175,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		double rho=cons[0];
 		double phi=cons[phaseId];
     
-	  //assert( phi > -1e-8);
-//    assert( phi < 1.+(1e-8));
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
@@ -208,9 +205,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		assert( u[0] > 1e-20 );
 		double rho_inv = 1. / u[0];
 		const double v = u[1]*rho_inv;
-   f[0][0] = u[1];
+    
+    f[0][0] = u[1];
     f[1][0] =v*u[1];
- //   f[1][0]= v*v;	
     f[2][0] = 0;
   }
 
@@ -250,28 +247,28 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	{
 
     RangeType source{0.};
-    SourceTerms::systemSource(xglobal,time,source);
-    double rho_inv=1./u[0];
+    const double rho_inv=1./u[0];
 
-   double dphi=jacU[2][0];
-   dphi*=-1;
+    double dphi=jacU[2][0];
     
-   double v=u[1]*rho_inv;
+    double v=u[1]*rho_inv;
 
-    //source*=-1.;
 
-    f[0]=source[0];
-    f[1]=-dphi*theta[1]+source[1];
-    //f[1]=source[1]; 
+    f[0]=0;
+    //-(\rho\nabla\mu-\tau\nabla\phi) 
+    f[1]=dtheta[0]*u[0]-dphi*theta[1];
+    f[1]*=-1.;// source term is on the rhs => sign
     //nonconservative Discretization of transport term
-    f[2]=-theta[1]+v*dphi+source[2];
-
+    f[2]=theta[1];
+    f[2]*=-1.*rho_inv;
+    f[2]-=v*dphi;
+    
     return 0.4*deltaInv()*deltaInv(); 
   }
   template< class Thermodynamics >
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1 ,Thermodynamics >
-  ::diffusion( const RangeType& u,
+ ::diffusion( const RangeType& u,
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
   {

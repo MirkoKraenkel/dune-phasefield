@@ -252,34 +252,16 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                 RangeType& f) const
 	{
 
-    RangeType nstksource,acsource;
-    SourceTerms::nstkSource(xglobal,
-                            time,
-                            thermoDynamics_.delta(),
-                            thermoDynamics_.velo(),
-                            nstksource);
-    
-    SourceTerms::acSource(xglobal,
-                          time,
-                          thermoDynamics_.delta(),
-                          thermoDynamics_.velo(),
-                          acsource);
 
-#if USEJACOBIAN
     //dphi=1/rho*(d(rho*phi)-phi*drho)   
    double rho_inv=1./u[0];
    double phi=u[2]*rho_inv;
    double dphi=jacU[2][0]-phi*jacU[0][0];
-   dphi*=-rho_inv;
-#else
-abort();   double dphi=du[2];
-#endif  
+   dphi*=rho_inv;
   	f[0]=0;
-    f[1]=-dtheta[0]*u[0]-dphi*theta[1];
-    f[2]=-theta[1]/*deltaInv()*/;
+    f[1]=-dtheta[0]*u[0]+dphi*theta[1];
+    f[2]=-theta[1]*rho_inv;
     
-    f+=nstksource;
-    f+=acsource;
     
     
     return 0.4*deltaInv()*deltaInv(); 
@@ -345,8 +327,8 @@ abort();   double dphi=du[2];
   double u_normal=(u[1])/u[0];
   double c=thermoDynamics_.a(u[0],u[2]);
 //  std::cout<<"physics maxSpeed"<< std::abs(u_normal) <<std::endl;
-//  return std::abs(u_normal)+sqrt(c);
-    return std::abs(thermoDynamics_.velo());
+  return std::abs(u_normal)+sqrt(c);
+//    return std::abs(thermoDynamics_.velo());
  } 
 
 
