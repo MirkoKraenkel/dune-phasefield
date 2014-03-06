@@ -27,7 +27,7 @@ public:
     beta_(penalty),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
-  {
+    {
     }
 
 
@@ -181,9 +181,10 @@ double MixedFlux<Model>
      //Filter::rho(gLeft)=vNormalEn-vNormalNb;
       Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
       Filter::rho(gLeft)*=-0.5;
-      double visc=Filter::rho(jump);
-      Filter::rho(gLeft)+=numVisc_*area*visc;
-
+     
+      //double visc=Filter::rho(jump);
+      //Filter::rho(gLeft)+=numVisc_*area*visc;
+      Filter::rho( gRight )=Filter::rho( gLeft );
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
@@ -192,10 +193,14 @@ double MixedFlux<Model>
         { 
           //F_2=F_{2.1}+F_{2.2}
           //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-           Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
-          //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
+          Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
+          Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midNb)*0.5;
+          
+           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
-       } 
+          Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
+       
+        } 
     
       //----------------------------------------------------------------
       double laplaceFlux(0.);
@@ -206,6 +211,8 @@ double MixedFlux<Model>
        
           //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
           Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
+          Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(midNb,i)*0.5;
+       
           //tau
           //F_{3.2}
           //(\sigma^+-\sigma^-)\cdot n * 0.5
@@ -216,6 +223,7 @@ double MixedFlux<Model>
       //----------------------------------------------------------------
       //tau-------------------------------------------------------------
       Filter::tau(gLeft)-=model_.delta()*laplaceFlux;
+      Filter::tau(gRight)=Filter::tau( gLeft );
       
       //----------------------------------------------------------------
 
@@ -225,6 +233,8 @@ double MixedFlux<Model>
           //F_4
           //(\phi^+-\phi^-)\normal*0.5
           Filter::sigma(gLeft,i)=(Filter::phi(valEn)-Filter::phi(valNb))*normal[i]*0.5;
+          Filter::sigma(gRight,i)=Filter::sigma( gLeft,i);
+  
         } 
       //----------------------------------------------------------------
       return 0.;
