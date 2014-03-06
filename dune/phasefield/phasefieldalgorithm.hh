@@ -609,7 +609,7 @@ public:
           if( grid_.comm().rank() == 0 )
           {
     
-            std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
+            std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate<<std::endl;
           if(false)
             {
               if(Uold!=nullptr)
@@ -617,7 +617,9 @@ public:
               std::cout<<std::endl;
               }    
             }
-       
+        writeEnergy( tp , energyfile);
+  
+  
         }
 
  			writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
