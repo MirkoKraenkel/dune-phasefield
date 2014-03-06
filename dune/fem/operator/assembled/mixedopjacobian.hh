@@ -94,6 +94,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
   RangeFieldType normU=std::sqrt(u.scalarProductDofs(u));
   jOp.clear();
 
+  double deltaInv=1./deltaT_;
   
   const DiscreteFunctionSpaceType &dfSpace = u.space();
   const GridPartType& gridPart = dfSpace.gridPart();
@@ -115,45 +116,66 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
     const LocalFunctionType uLocal = u.localFunction( entity );
 
+    //initialize uOld
     setEntity( entity );
     
     LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
     const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
     const unsigned int numBasisFunctions = baseSet.size();
  
-   
+ 
     
     QuadratureType quadrature( entity, 2*dfSpace.order() );
     const size_t numQuadraturePoints = quadrature.nop();
     
-    std::vector<RangeType> uValues(numQuadraturePoints);
+    std::vector<RangeType>         uValues(numQuadraturePoints);
     std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
+
+    std::vector<RangeType>         uOldValues(numQuadraturePoints);
+    std::vector<JacobianRangeType> uOldJacobians(numQuadraturePoints);
+
 
     uLocal.evaluateQuadrature(quadrature, uValues);
     uLocal.evaluateQuadrature(quadrature,uJacobians);
     
-    for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+    uOldLocal_.evaluateQuadrature( quadrature, uOldValues); 
+    uOldLocal_.evaluateQuadrature( quadrature, uOldJacobians);
+    
+    const DomainType xgl = geometry.global(x);
+    RangeType vuOld{0.},vuMid{0};
+    
+       
+   for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
       {
         baseSet.evaluateAll( quadrature[ pt ], phi);
         baseSet.jacobianAll( quadrature[ pt ], dphi);
 
-        RangeType vu{0.} , fu{0.};
-        JacobianRangeType dvu{0.} , fdu{0.};
-        
-        //  uLocal.evaluate( quadrature[ pt ], vu);
-        //  uLocal.jacobian( quadrature[ pt ], dvu);
+        RangeType vu{0.} , vuMid{0.} ,fu{0.};
+        JacobianRangeType dvu{0.} , duMid{0.}, fdu{0.};
           
-         localIntegral(pt,
-                       geometry,
-                       quadrature,
-                       uValues[pt],
-                       uJacobians[pt],
-                       vu,
-                       dvu);
+        //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
+        vuMid.axpy(factorImp_,uValuesp[pt]);
+        vuMid.axpy(factorExp_,uOldValues[pt]);
+  
+        JacobianRangeType duOld,duMid ;
+       
+        //(1+theta)/2*DU^n+(1-theta)/2*DU^(n-1)
+        // #if OPCHECK vuMid=vuOld
+        duMid.axpy(factorImp_,uJacobians[pt]);
+        duMid.axpy(factorExp_,uOldJacobians[pt]);
+
+         
+        
         for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
         {
-           
-            Filter::rho(fu)=deltaInv*Filter::rho(phi[ jj ])
+          RangeFieldType div{0.},grad{0.};
+          for( size_t ii = 0; ii < dimDomain ; ++ ii)
+            {
+              div+=Filter::dvelocity(duMid,ii)
+            
+            }
+
+            Filter::rho(fu)=deltaInv*Filter::rho( phi[ jj ] )
            
           
           
