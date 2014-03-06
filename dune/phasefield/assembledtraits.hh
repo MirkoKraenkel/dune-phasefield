@@ -38,7 +38,11 @@
 #if MATRIXFREE
 #include <dune/fem/operator/assembled/newheatoperator.hh>
 #else
-#include <dune/fem/operator/assembled/localfdoperator.hh>
+#if VISIT
+#include <dune/fem/operator/assembled/newlocalfdoperator.hh>
+#else
+#include <dune/fem/operator/assembled/localfdoperatorwithVisit.hh>
+#endif
 #endif
 
 
