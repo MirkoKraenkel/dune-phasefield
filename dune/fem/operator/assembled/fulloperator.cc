@@ -204,7 +204,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     const DomainType xgl = geometry.global(x);
     RangeType vuOld{0.},vuMid{0};
     
-    //this should stay instide local Integral as it is perator specific
+    //this should stay instide local Integral as it is operator specific
     uOldLocal_.evaluate( quadrature[ pt ], vuOld); 
         
     double deltaInv=1./deltaT_;
@@ -436,9 +436,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                   value,
                                   aduLeft);
 #endif
-#if 0 
-      avuLeft+=value;
+     avuLeft+=value;
       avuRight-=value; 
+ #if 0 
       Filter::tau(avuLeft)*=deltaInv;
       Filter::tau(avuRight)*=deltaInv;
       Filter::mu( avuLeft)*=deltaInv;
@@ -449,8 +449,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     //      Filter::sigma( avuLeft , ii )*=deltaInv;
       //    Filter::sigma( avuRight , ii )*=deltaInv;
        // } 
-       aduRight-=aduLeft;
-         
+      aduRight=aduLeft;
+      aduRight*=-1.;  
   }
 
 //Boundary Intgral
