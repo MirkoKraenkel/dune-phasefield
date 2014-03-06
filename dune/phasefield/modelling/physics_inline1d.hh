@@ -261,19 +261,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 							  const GradientRangeType& du,
 							  RangeType& f) const
 	{
-    RangeType nstksource,acsource;
-    SourceTerms::nstkSource(xglobal,
-                            time,
-                            thermoDynamics_.delta(),
-                            thermoDynamics_.velo(),
-                            nstksource);
-    
-    SourceTerms::acSource(xglobal,
-                          time,
-                          thermoDynamics_.delta(),
-                          thermoDynamics_.velo(),
-                          acsource);
-
 
     double rho=u[0];
     double phi=u[2];
@@ -283,9 +270,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     f[1]=0;
     f[2]=-reaction;
 	  
-    f+=nstksource;
-    f+=acsource;
-    return delta();
+ 
+    return 4*deltaInv()*deltaInv();
   }
 
   template< class Thermodynamics >
