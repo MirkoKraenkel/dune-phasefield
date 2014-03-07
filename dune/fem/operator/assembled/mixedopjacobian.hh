@@ -17,11 +17,12 @@ class PhasefieldJacobianOperator
  :public Dune::Fem::DifferentiableOperator < Jacobian >,
   protected DGPhasefieldOperator<DiscreteFunction,Model,Flux>
 {
- 
+  
   typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
   
   typedef Dune::Fem::DifferentiableOperator< Jacobian> BaseType;
  
+  enum{dimDomain=MyOperatorType::dimDomain};
 
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
 
@@ -41,12 +42,13 @@ class PhasefieldJacobianOperator
   typedef typename MyOperatorType::LocalFunctionType LocalFunctionType;
   typedef typename MyOperatorType::QuadratureType QuadratureType;
   typedef typename MyOperatorType::FaceQuadratureType FaceQuadratureType;
-  
+  typedef typename MyOperatorType::Filter Filter;
+
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalFunctionType;
   typedef typename MyOperatorType::GridPartType GridPartType;
   typedef typename GridPartType::IndexSetType IndexSetType;
   public: 
-  LocalFDOperator(const ModelType &model,
+  PhasefieldJacobianOperator(const ModelType &model,
                   const DiscreteFunctionSpaceType &space,
                   const NumericalFluxType &flux)
   :MyOperatorType(model,space,flux),
@@ -65,8 +67,12 @@ class PhasefieldJacobianOperator
   using MyOperatorType::setPreviousTimeStep;
   using MyOperatorType::getPreviousTimeStep; 
   using MyOperatorType::space;
-
-   typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
+  using MyOperatorType::deltaT_;
+  using MyOperatorType::uOldLocal_;
+  using MyOperatorType::factorImp_;
+  using MyOperatorType::factorExp_;
+  using MyOperatorType::model_;
+  typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
   
 
   void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
@@ -81,7 +87,7 @@ class PhasefieldJacobianOperator
 // // ------------------------------------------------
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> void
-LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
+PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
   ::jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const
 {
   typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
@@ -141,7 +147,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
     uOldLocal_.evaluateQuadrature( quadrature, uOldValues); 
     uOldLocal_.evaluateQuadrature( quadrature, uOldJacobians);
     
-    const DomainType xgl = geometry.global(x);
+  //  const DomainType xgl = geometry.global(x);
     RangeType vuOld{0.},vuMid{0};
     
        
@@ -154,10 +160,9 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         JacobianRangeType dvu{0.} , duMid{0.}, fdu{0.};
           
         //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
-        vuMid.axpy(factorImp_,uValuesp[pt]);
+        vuMid.axpy(factorImp_,uValues[pt]);
         vuMid.axpy(factorExp_,uOldValues[pt]);
   
-        JacobianRangeType duOld,duMid ;
        
         //(1+theta)/2*DU^n+(1-theta)/2*DU^(n-1)
         // #if OPCHECK vuMid=vuOld
@@ -169,27 +174,86 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
         {
           RangeFieldType div{0.},grad{0.};
-          for( size_t ii = 0; ii < dimDomain ; ++ ii)
+          for(int ii = 0; ii < dimDomain ; ++ ii)
             {
-              div+=Filter::dvelocity(duMid,ii)
-            
+              div+=Filter::dvelocity(duMid, ii, ii)*Filter::rho( phi[ jj ])
+                +Filter::dvelocity( dphi[jj], ii, ii)*Filter::rho( vuMid );
+              grad+=Filter::drho( duMid , ii )*Filter::velocity( phi[ jj ], ii )
+                +Filter::drho(dphi[jj], ii )*Filter::velocity( vuMid, ii);
             }
 
             Filter::rho(fu)=deltaInv*Filter::rho( phi[ jj ] )
+              +0.5*(div+grad);
+         
+          for( size_t ii = 0;ii <dimDomain ; ++ii)
+            {
+              Filter::velocity( fu , ii) = (Filter::velocity( vu, ii )-Filter::velocity( vuOld ,ii ))*Filter::rho( phi[ jj ] )*0.5
+                +Filter::velocity( phi[ jj ] , ii)*Filter::rho( vuMid);
+
+              RangeFieldType  sgradv{0.};
+              
+              for( size_t kk = 0 ; kk < dimDomain ; ++kk )
+              {
+                sgradv+=(Filter::dvelocity( duMid, ii , kk ) - Filter::dvelocity( duMid , kk , ii));
+                sgradv*=(Filter::velocity( vuMid, kk)*Filter::rho( phi[ jj ] ) + Filter::velocity( phi[ jj ] , kk )*Filter::rho( vuMid));
+                sgradv+=(Filter::dvelocity( dphi[ jj ] , ii, kk ) - Filter::dvelocity( dphi[ jj ] , kk , ii ))*Filter::velocity( vuMid , kk )*Filter::rho( vuMid );
+              }
+              
+              sgradv+=Filter::rho( phi[ jj ]  )*Filter::dmu( duMid, ii ) + Filter::rho( vuMid )*Filter::dmu( dphi[ jj ] , ii );
+              sgradv-=Filter::tau( phi[ jj ]  )*Filter::dphi( duMid, ii) + Filter::tau( vuMid )*Filter::dphi(dphi[ jj ] , ii );
+              sgradv*=0.5;
+              
+              
+              Filter::velocity( fu , ii )+=sgradv;
+
+             }   
+          
+            RangeFieldType gradphiv{0.};
+            Filter::phi( fu )=Filter::phi( phi[ jj ] )*deltaInv;
+
+            for( size_t ii ; ii < dimDomain ; ++ ii)
+              {
+                gradphiv+=Filter::dphi( dphi[ jj ] , ii) * Filter::velocity( vuMid, ii )+ Filter::dphi( duMid, ii )*Filter::velocity( phi[ jj ], ii  );
+              }
+
+            //(phi_tau rho - tau phi_rho)/ rho*rho
+            RangeFieldType taurho=Filter::tau( phi[ jj ])*Filter::rho( vuMid ) - Filter::tau( vuMid )*Filter::rho( phi[ jj ] );
+            taurho/=Filter::rho( vuMid )*Filter::rho( vuMid );
+            
+            Filter::phi( fu )+=0.5*(gradphiv+taurho);
+            
+            Filter::tau( fu )=0.5*Filter::tau( phi[ jj ] );
+            RangeFieldType dphitau{0.};
+            model_.dphitauSource(Filter::phi(vuOld),Filter::phi( vu ), Filter::rho( vuOld ),dphitau);
+            Filter::tau( fu )-=dphitau*Filter::phi( phi[ jj ] );
+            
+            RangeFieldType divsigma{0.};
+            for( size_t ii ; ii < dimDomain ; ++ii )
+              divsigma+=0.5*Filter::dsigma( dphi[ jj ] ,  ii , ii);
+            
+            Filter::tau( fu )+=model_.delta()*divsigma;
+          
+            Filter::mu( fu )+=0.5*Filter::mu( phi[ jj ] );
+            RangeFieldType drhomu{0.},dphimu{0.};
+            model_.drhomuSource(  Filter::rho( vu ), Filter::rho( vuOld ), Filter::phi( vu),drhomu);
+            model_.dphimuSource(  Filter::rho( vu ), Filter::rho( vuOld ), Filter::phi( vu),dphimu);
+            Filter::mu( fu )-=drhomu*Filter::rho( phi[ jj ] ); 
+            Filter::mu( fu )-=dphimu*Filter::phi( phi[ jj ] );
+            for( size_t ii ; ii < dimDomain ; ++ ii)
+             Filter::mu( fu )-=0.5*Filter::velocity( vu , ii )*Filter::velocity( phi[ jj ] , ii );  
            
-          
-          
-          
-          
-          
-          jLocal.column( jj ).axpy( phi , dphi , fu , fdu );
+            for( size_t ii;  ii <dimDomain ; ++ii)
+              Filter::sigma( fu , ii )+=Filter::dphi( dphi[ jj ], ii);
+
+
+            jLocal.column( jj ).axpy( phi , dphi , fu , fdu );
         }
       } 
    
       
-    if ( space().continuous() )
+    if ( !space().continuous() )
       continue;
-    
+#if 0    
     const IntersectionIteratorType endiit = gridPart.iend( entity );
     for ( IntersectionIteratorType iit = gridPart.ibegin( entity );
           iit != endiit ; ++ iit )
@@ -372,6 +436,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             }
       }
     }
+#endif
   } // end grid traversal 
   jOp.communicate();
 }
