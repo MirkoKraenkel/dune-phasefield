@@ -207,16 +207,18 @@ double JacobianFlux<Model>
         { 
           //F_2=F_{2.1}+F_{2.2}
           //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-         Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(phiEn)*0.5;
-          Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(phiNb)*0.5;
+          Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(phiEn)*0.5;
           Filter::velocity(gLeft,i)-=Filter::mu(phiEn)*normal[i]*Filter::rho(midEn)*0.5;
-          Filter::velocity(gRight,i)+=Filter::mu(phiNb)*normal[i]*Filter::rho(midNb)*0.5;
+        
+        //  Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(phiNb)*0.5;
+          Filter::velocity(gRight,i)+=Filter::mu(phiNb)*normal[i]*Filter::rho(midEn)*0.5;
           
-           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
+           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau^+*0.5
+        
           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(phiEn)*0.5;
-          Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(phiNb)*0.5;
           Filter::velocity(gLeft,i)+= Filter::phi(phiEn)*normal[i]*Filter::tau(midEn)*0.5;
-          Filter::velocity(gRight,i)-= Filter::phi(phiNb)*normal[i]*Filter::tau(midNb)*0.5;
+      //    Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(phiNb)*0.5;
+          Filter::velocity(gRight,i)-= Filter::phi(phiNb)*normal[i]*Filter::tau(midEn)*0.5;
       
           Filter::velocity(gLeft, i)*=0.5;
           Filter::velocity(gRight,i)*=0.5;
@@ -232,11 +234,11 @@ double JacobianFlux<Model>
         {
           //F_{3.1}
        
-          //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
-          Filter::phi(gLeft)-=Filter::phi(phiEn)*normal[i]*Filter::velocity(midEn,i)*0.5;
-          Filter::phi(gRight)+=Filter::phi(phiNb)*normal[i]*Filter::velocity(midNb,i)*0.5;
-          Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(phiEn,i)*0.5;
-          Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(phiNb,i)*0.5;
+          //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5 
+          Filter::phi(gLeft)-=Filter::phi(phiEn)*normal[i]*Filter::velocity(midEn,i)*0.25;
+          Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(phiEn,i)*0.25;
+          Filter::phi(gRight)+=Filter::phi(phiNb)*normal[i]*Filter::velocity(midEn,i)*0.25;
+        //  Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(phiNb,i)*0.25;
       
 
           //tau
