@@ -91,6 +91,20 @@ public:
    assert(i<dimDomain && j<dimDomain );
    return du[dimDomain+4+i][j];
   }
+#if RHOMODEL
+  static RangeFieldType& alpha( RangeType& u, int i)
+  {
+    return u[dimDomain+5+i];
+  }
+  
+  static RangeFieldType& dalpha( JacobianRangeType& du, int i, int j)
+  {
+   
+   assert(i<dimDomain && j<dimDomain );
+   return du[dimDomain+5+i][j];
+  }
+#endif
+  
 #endif
 
 };
