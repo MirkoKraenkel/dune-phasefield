@@ -18,7 +18,7 @@ SOURCES = $(BASEDIR)/phasefield.cc
 GRIDTYPE = SPGRID 
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM =  1 
-POLORDER = 1 
+POLORDER = 2 
 USEJACOBIAN = 0
 
 PROBLEM = 8 # check ./problemtype.hh
