@@ -21,8 +21,11 @@
 
 //#include <dune/fem/operator/assembled/heatmodel.hh>
 #include <dune/fem/operator/assembled/acmodel.hh>
+#if RHOMODEL
+#include <dune/fem/operator/assembled/fluxRho.hh>
+#else
 #include <dune/fem/operator/assembled/flux.hh>
-
+#endif
 template< class GridType > 
 struct ProblemGenerator 
 {
