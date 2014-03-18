@@ -123,6 +123,9 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
   std::vector< RangeType > phiNb( numDofs );
   std::vector< JacobianRangeType > dphiNb( numDofs );
+  std::vector<RangeType> uValues;
+  std::vector<JacobianRangeType> uJacobians;
+
 
   const IteratorType end = dfSpace.end();
   for( IteratorType it = dfSpace.begin(); it != end; ++it )
@@ -144,8 +147,11 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
     QuadratureType quadrature( entity, 2*dfSpace.order() );
     const size_t numQuadraturePoints = quadrature.nop();
     
-    std::vector<RangeType> uValues(numQuadraturePoints);
-    std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
+    uValues.resize(numQuadraturePoints);
+    uJacobians.resize(numQuadraturePoints);
+   // std::vector<RangeType> uValues(numQuadraturePoints);
+   // std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
+
 
     uLocal.evaluateQuadrature(quadrature, uValues);
     uLocal.evaluateQuadrature(quadrature,uJacobians);
@@ -160,7 +166,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         
       //  uLocal.evaluate( quadrature[ pt ], vu);
      //   uLocal.jacobian( quadrature[ pt ], dvu);
-          
         localIntegral(pt,
                       geometry,
                       quadrature,
@@ -168,7 +173,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
                       uJacobians[pt],
                       fu,
                       fdu);
-    
         for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
           {
             RangeType ueps{0.} , fueps{0.};
@@ -197,7 +201,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
       
     if ( space().continuous() )
       continue;
-    
     const IntersectionIteratorType endiit = gridPart.iend( entity );
     for ( IntersectionIteratorType iit = gridPart.ibegin( entity );
           iit != endiit ; ++ iit )
@@ -396,7 +399,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             }
       }
     }
-  
    visited_[indexSet_.index( entity )]= true;    
   } // end grid traversal 
   jOp.communicate();
