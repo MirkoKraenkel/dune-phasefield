@@ -32,10 +32,28 @@ class BalancedThermodynamics:
   {
   }
 
+
+
   inline void init() const 
   {
     abort();
   }
+
+  inline double h(double rho)const
+  {
+#if RHOMODEL
+    return rho;
+#else
+    return 1.;
+#endif
+  }
+  inline double doubleWell(double phi) const
+  {
+    double    t2 = phi*phi;
+    double    t5 = pow(1.0-phi,2.0);
+    return t2*t5; 
+  }
+
 
   inline double helmholtz(double& rho,double& phi) const
   {
@@ -56,7 +74,7 @@ class BalancedThermodynamics:
     t13 = 10.0*t2*phi;
     t16 = log(rho);
     t17 = rho*t16;
-    return(2.0*deltaInv_*t2*t5+(t10-t11+t13)*(-0.25E1*rho+0.15E1*t17+1.0)+(1.0-t10+
+    return(2.*deltaInv_*t2*t5*h(rho)+(t10-t11+t13)*(-0.25E1*rho+0.15E1*t17+1.0)+(1.0-t10+
           t11-t13)*(-7.0*rho+3.0*t17+0.945940263E1));
   }
 
@@ -73,7 +91,7 @@ class BalancedThermodynamics:
     double t4;
     double t7;
 
-    t1 = deltaInv_;
+    t1 = deltaInv_*h(rho);
     t3 = 1.0-phi;
     t4 = t3*t3;
     t7 = phi*phi;
@@ -96,7 +114,7 @@ class BalancedThermodynamics:
     double t4;
     double t7;
 
-    t1 = deltaInv_;
+    t1 = deltaInv_*h(rho);
     t3 = 1.0-phi;
     t4 = t3*t3;
     t7 = phi*phi;
@@ -121,8 +139,14 @@ class BalancedThermodynamics:
     t3 = t2*phi;
     t5 = log(rho);
     t11 = t1*phi;
+    double dW;
+#if RHOMODEL
+    dW=2.0*deltaInv_*doubleWell(phi);
+#else
+    dW=0;
+#endif
     return(18.0*t3-9.0*t3*t5-45.0*t2+0.225E2*t2*t5+30.0*t11-15.0*t11*t5-4.0+3.0
-        *t5);
+        *t5)+dW;
 
   }
 
@@ -133,11 +157,11 @@ class BalancedThermodynamics:
     double t2;
     double t4;
     double t7;
-      t1 = phi*phi;
-      t2 = t1*t1;
-      t4 = log(rho);
-      t7 = t1*phi;
-      return(90.0*t2-45.0*t2*t4-180.0*t7+0.9E2*t7*t4+90.0*t1-45.0*t1*t4);
+    t1 = phi*phi;
+    t2 = t1*t1;
+    t4 = log(rho);
+    t7 = t1*phi;
+    return(90.0*t2-45.0*t2*t4-180.0*t7+0.9E2*t7*t4+90.0*t1-45.0*t1*t4);
   }
 
   inline double drhochemicalPotential(double& rho,double& phi) const
@@ -161,7 +185,7 @@ class BalancedThermodynamics:
     double t23;
     double t4;
     double t8;
-    
+
     t1 = phi*phi;
     t2 = t1*t1;
     t4 = t2*phi*delta;
