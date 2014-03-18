@@ -145,15 +145,15 @@ inline void HeatProblem<GridType,RangeProvider>
    double  phi=0.05*cosx+0.5;
    res[dimension+1]=phi;
    
-   double dFdphi= thermodyn_.reactionSource(rho,phi); 
-
+  double dFdphi= thermodyn_.reactionSource(rho,phi); 
+  double dFdrho=thermodyn_.chemicalPotential(rho, phi);
      
    if( dimRange > dimDomain+2)
     {
       //mu
-      res[dimension+2]=0.5*v*v;
+      res[dimension+2]=0.5*v*v+dFdrho;
       //tau
-      res[dimension+3]=thermodyn_.delta()*8*0.05*M_PI*M_PI*cosx*0.5+dFdphi;
+      res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*cosx+dFdphi;
 
 
 #if SCHEME==DG
@@ -161,6 +161,9 @@ inline void HeatProblem<GridType,RangeProvider>
     if(dimension==1)
       {
         res[dimension+4]=-2*M_PI*sinx*cost*0.05;
+      #if RHOMODEL
+        res[dimension+5]=res[dimension+4]*rho;
+      #endif
       }
      else
       { 
@@ -170,7 +173,10 @@ inline void HeatProblem<GridType,RangeProvider>
     }
    else
     {
+#if NONCONTRANS
+#else
       res[1]*=res[0];
+#endif
     }
 #elif SCHEME==FEM
 #endif
