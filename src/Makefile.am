@@ -1,5 +1,5 @@
 
-SUBDIRS =
+SUBDIRS = problems
 
 noinst_PROGRAMS = dune_phasefield
 
