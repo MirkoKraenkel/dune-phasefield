@@ -39,9 +39,9 @@
 #include <dune/fem/operator/assembled/newheatoperator.hh>
 #else
 #if VISIT
-#include <dune/fem/operator/assembled/newlocalfdoperator.hh>
+#include <dune/fem/operator/assembled/mixedopjacobian.hh>
 #else
-#include <dune/fem/operator/assembled/localfdoperatorwithVisit.hh>
+#include <dune/fem/operator/assembled/localfdoperator.hh>
 #endif
 #endif
 
@@ -66,8 +66,11 @@ struct AlgorithmTraits
   enum{ dimDomain = GridType::dimensionworld };
   
   //(rho,v_1...v_n,phi,mu,tau,sigma_1...sigma_n)
+#if RHOMODEL
+  enum{ dimRange = 2*dimDomain+5 };
+#else
   enum{ dimRange = 2*dimDomain+4 };
-
+#endif
   // problem dependent types 
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: ModelType        ModelType;
@@ -75,10 +78,10 @@ struct AlgorithmTraits
 	
   // FunctionSpaces
   typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,dimRange> FunctionSpaceType;
-  typedef typename Dune::Fem::LagrangeDiscontinuousGalerkinSpace<FunctionSpaceType,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteSpaceType;
+  typedef typename Dune::Fem::DiscontinuousGalerkinSpace<FunctionSpaceType,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteSpaceType;
 
   typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,1>  EnergySpaceType;
-  typedef typename Dune::Fem::LagrangeDiscontinuousGalerkinSpace<EnergySpaceType  ,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteEnergySpaceType;
+  typedef typename Dune::Fem::DiscontinuousGalerkinSpace<EnergySpaceType  ,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteEnergySpaceType;
 
 
   // DiscreteFunctions
@@ -86,7 +89,11 @@ struct AlgorithmTraits
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
+#if VISIT
+  typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+#else
   typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+#endif
 #if BICG
   typedef typename Dune::Fem::ISTLBICGSTABOp< DiscreteFunctionType, JacobianOperatorType > LinearSolverType; 
 #else
