@@ -44,7 +44,7 @@ class PhasefieldJacobianOperator
   typedef typename MyOperatorType::QuadratureType QuadratureType;
   typedef typename MyOperatorType::FaceQuadratureType FaceQuadratureType;
   typedef typename MyOperatorType::Filter Filter;
- 
+
   typedef  JacobianFlux<ModelType> JacobianFluxType;
 
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalFunctionType;
@@ -163,12 +163,12 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
     for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
     {
-  
+
       const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
       const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
 
-      
-      
+
+
       baseSet.evaluateAll( quadrature[ pt ], phi);
       baseSet.jacobianAll( quadrature[ pt ], dphi);
 
@@ -200,6 +200,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         Filter::rho(fu)=deltaInv*Filter::rho( phi[ jj ] )
           +0.5*(div+grad);
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         for( size_t ii = 0;ii <dimDomain ; ++ii)
         {
@@ -223,9 +224,10 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           Filter::velocity( fu , ii )+=sgradv;
 
         }   
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         RangeFieldType gradphiv{0.};
-       
+
         Filter::phi( fu )=Filter::phi( phi[ jj ] )*deltaInv;
 
         for( size_t ii=0 ; ii < dimDomain ; ++ ii)
@@ -238,19 +240,28 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         taurho/=Filter::rho( vuMid )*Filter::rho( vuMid );
 
         Filter::phi( fu )+=0.5*(gradphiv+taurho);
-
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //mu  
         Filter::mu( fu )=0.5*Filter::mu( phi[ jj ] );
         RangeFieldType drhomu{0.},dphimu{0.};
-        model_.drhomuSource( Filter::rho( vu ) , Filter::rho( vuOld ), Filter::phi( vu),drhomu);
-        model_.dphimuSource( Filter::rho( vu ) , Filter::rho( vuOld ), Filter::phi( vu),dphimu);
+        model_.drhomuSource( Filter::rho( vu ),  Filter::rho( vu ) , Filter::phi( vu ),drhomu);
+        model_.dphimuSource( Filter::rho( vu ),  Filter::rho( vu ) , Filter::phi( vu ),dphimu);
+
         Filter::mu( fu )-=drhomu*Filter::rho( phi[ jj ] ); 
         Filter::mu( fu )-=dphimu*Filter::phi( phi[ jj ] );
         for( size_t ii = 0 ; ii < dimDomain ; ++ ii)
           Filter::mu( fu )-=0.5*Filter::velocity( vu , ii )*Filter::velocity( phi[ jj ] , ii )*0.25;  
 
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //tau
         Filter::tau( fu )=0.5*Filter::tau( phi[ jj ] );
+        
         RangeFieldType dphitau{0.};
-        model_.dphitauSource(Filter::phi(vuOld),Filter::phi( vu ), Filter::rho( vuOld ),dphitau);
+        
+        model_.dphitauSource( Filter::phi(vu),
+            Filter::phi( vu ), 
+            Filter::rho( vu ),
+            dphitau);
         Filter::tau( fu )-=dphitau*Filter::phi( phi[ jj ] );
 
         RangeFieldType divsigma{0.};
@@ -259,12 +270,12 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         Filter::tau( fu )+=model_.delta()*divsigma;
 
-
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////
         for( size_t ii=0;  ii <dimDomain ; ++ii)
         {
           Filter::sigma( fu , ii )=Filter::sigma( phi[ jj ], ii)-Filter::dphi( dphi[ jj ], ii);
         }
-        
+
         model_.diffusion( dphi[jj],fdu); 
         fdu*=0.5;
 
@@ -362,49 +373,51 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           const double intersectionArea = normal.two_norm();
           const double penaltyFactor = penalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
           const double area=std::min(areaEn_,areaNb_); 
-          
+
           baseSet.evaluateAll( quadInside[ pt ] , phi);
           baseSet.jacobianAll( quadInside[ pt ] , dphi);
-              
+
           baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
           baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
- 
+
 
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
-            std::cout<<"PHI="<<phi[jj]<<"\n";
-     
-             
-            RangeType avuLeft{0.}, avuRight{0.}, valueLeft{0.},valueRight{0.};
+                 RangeType avuLeft{0.}, avuRight{0.}, valueLeft{0.},valueRight{0.};
             JacobianRangeType aduLeft{0.},aduRight{0.};
 
-             double  fluxRet=jacFlux_.numericalFlux(normal,
-                                                    area,
-                                                    vuEn[ pt ],
-                                                    vuNb[ pt ],
-                                                    vuMidEn,
-                                                    vuMidNb, 
-                                                    phi[ jj ],
-                                                    phiNb[ jj ],
-                                                    avuLeft,
-                                                    avuRight); 
-            
+            double  fluxRet=jacFlux_.numericalFlux(normal,
+                area,
+                vuEn[ pt ],
+                vuNb[ pt ],
+                vuMidEn,
+                vuMidNb, 
+                phi[ jj ],
+                phiNb[ jj ],
+                avuLeft,
+                avuRight); 
+
             fluxRet+=jacFlux_.diffusionFlux( normal,
-                                             penaltyFactor,
-                                             phi[ jj ],
-                                             phiNb[ jj ],
-                                             dphi[ jj ],
-                                             dphiNb[ jj ],
-                                             valueLeft,
-                                             valueRight,
-                                             aduLeft,
-                                             aduRight);
+                penaltyFactor,
+                phi[ jj ],
+                phiNb[ jj ],
+                dphi[ jj ],
+                dphiNb[ jj ],
+                valueLeft,
+                valueRight,
+                aduLeft,
+                aduRight);
 
-            std::cout<<"BF:"<<jj<<" fu="<<avuLeft<<"\n";
+            avuLeft+=valueLeft;
+            avuRight+=valueRight;
+#if 0
+             std::cout<<"Phi="<<phi[ jj ]<<"\n";
 
-             avuLeft+=valueLeft;
-             avuRight+=valueRight;
+      std::cout<<"avuLeft="<<avuLeft<<"\n";
 
+            std::cout<<"PhiNb="<<phiNb[ jj ]<<"\n";
+            std::cout<<"avuRight="<<avuRight<<"\n"; 
+#endif       
             jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
             jLocalNb.column( jj ).axpy( phi,dphi , avuRight,aduRight, weight); 
 
