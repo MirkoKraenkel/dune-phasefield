@@ -8,7 +8,7 @@
 #include <dune/fem/operator/common/differentiableoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 
-#include "newheatoperator.hh"
+#include "mixedoperator.hh"
 #include "phasefieldfilter.hh"
 #include "jacobianflux.hh"
 

@@ -7,10 +7,12 @@
 
 //DUNE includes
 #include <dune/common/fmatrix.hh>
-#define HEATCHECK 1
-#warning "DEBUGGING VERSION"
 
-#include <dune/fem/quadrature/cachingquadrature.hh>
+
+//Dune::Fem includes
+//#include <dune/fem/quadrature/cachingquadrature.hh>
+#include <dune/fem/quadrature/intersectionquadrature.hh>
+
 #include <dune/fem/operator/common/operator.hh>
 
 #include <dune/fem/function/localfunction/temporary.hh>
@@ -19,8 +21,12 @@
 #include <dune/fem/operator/common/automaticdifferenceoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
 
+#include <dune/fem/gridpart/common/capabilities.hh>
+
+//local includes
 #include "phasefieldfilter.hh"
-#include "flux.hh"
+
+
 template<class DiscreteFunction, class Model, class Flux>
 class DGPhasefieldOperator
 : public virtual Dune::Fem::Operator<DiscreteFunction,DiscreteFunction>
@@ -56,8 +62,10 @@ class DGPhasefieldOperator
 
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalType;
 
-  static const int dimDomain = LocalFunctionType::dimDomain;
+    static const int dimDomain = LocalFunctionType::dimDomain;
   static const int dimRange = LocalFunctionType::dimRange;
+
+
   typedef Dune::Fem::LagrangePointSet<GridPartType,order> LagrangePointSetType;
 
   typedef  PhasefieldFilter<RangeType> Filter; 
@@ -126,11 +134,20 @@ class DGPhasefieldOperator
       RangeType& avu, // to be added to the result local function
       JacobianRangeType& advu) const;
 
+  
+  template<bool conforming> 
+  void computeIntersection( const IntersectionType &intersection,
+                            const LocalFunctionType& uLocal,
+                            const LocalFunctionType& uNeighbor,
+                            LocalFunctionType& wLocal) const;
 
+
+
+  template< class IntersectionQuad>
   void intersectionIntegral( const IntersectionType& intersection,
       const size_t pt,  
-      const FaceQuadratureType& quadInside,
-      const FaceQuadratureType& quadOutside,
+      const IntersectionQuad& quadInside,
+      const IntersectionQuad& quadOutside,
       const RangeType& vuEn,
       const RangeType& vuNb, 
       const JacobianRangeType& duEn,
@@ -277,6 +294,270 @@ class FDJacobianDGPhasefieldOperator
 
 
 };
+
+template<class DiscreteFunction, class Model, class Flux>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
+  ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
+{
+ 
+  // clear destination 
+  w.clear();
+  assert(deltaT_>0);
+  // iterate over grid 
+  const IteratorType end = space().end();
+  for( IteratorType it = space().begin(); it != end; ++it )
+  {
+    
+    bool boundaryElement=false;
+    // get entity (here element) 
+    const EntityType &entity = *it;
+    // get elements geometry
+    const GeometryType& geometry=entity.geometry();
+    // get local representation of the discrete functions 
+    const LocalFunctionType uLocal = u.localFunction( entity);
+
+    setEntity( entity );
+    RangeType vu{0.},avu{0.};
+    JacobianRangeType du{0.},adu{0.};
+    
+    LocalFunctionType wLocal = w.localFunction( entity );
+    const int quadOrder = uLocal.order() + wLocal.order();
+    
+    QuadratureType quadrature( entity, quadOrder );
+    const size_t numQuadraturePoints = quadrature.nop();
+    for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+      {
+        uLocal.evaluate( quadrature[ pt ], vu);
+        uLocal.jacobian( quadrature[ pt ], du);
+        
+        localIntegral( pt , geometry, quadrature , vu , du , avu , adu );   
+       
+        //wlocal+=avu*phi+diffusion*dphi
+        wLocal.axpy( quadrature[ pt ], avu, adu);
+      }   
+   
+    
+      const IntersectionIteratorType iitend = space().gridPart().iend( entity ); 
+      for( IntersectionIteratorType iit = space().gridPart().ibegin( entity ); iit != iitend; ++iit ) // looping over intersections
+      {
+        const IntersectionType &intersection = *iit;
+
+        if ( intersection.neighbor() ) 
+        {
+          const EntityPointerType pOutside = intersection.outside(); // pointer to outside element.
+          const EntityType &neighbor = *pOutside;
+
+          //evaluate additional quantities on neighbor
+          //penaltyfactor
+          setNeighbor(neighbor);
+          // compute penalty factor
+
+
+          LocalFunctionType uNeighbor=u.localFunction(neighbor);
+
+          
+
+         const int quadOrderEn = uLocal.order() + wLocal.order();
+         const int quadOrderNb = uNeighbor.order() + wLocal.order();
+
+         if( !Dune::Fem::GridPartCapabilities::isConforming< GridPartType >::v
+               && !intersection.conforming())
+         {
+          computeIntersection<false>(intersection,
+                              uLocal,
+                              uNeighbor,
+                              wLocal);
+         }
+         else
+         {
+          computeIntersection<true>(intersection,
+                              uLocal,
+                              uNeighbor,
+                              wLocal);
+         
+         }
+#if 0
+ 
+         const size_t numQuadraturePoints = quadInside.nop();
+
+          for( size_t pt=0; pt < numQuadraturePoints; ++pt )
+          {
+            RangeType vuEn{0.},vuNb{0.},avuLeft{0.},avuRight{0.};
+            JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.}, aduRight{0.};
+            uLocal.evaluate( quadInside[ pt ], vuEn);
+            uLocal.jacobian( quadInside[ pt ], duEn);
+            uNeighbor.evaluate( quadOutside[ pt ], vuNb);
+            uNeighbor.jacobian( quadOutside[ pt ], duNb);
+            const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
+            const double weight = quadInside.weight( pt );
+
+
+            //calculate quadrature summands avu
+            intersectionIntegral( intersection,                  
+                pt, 
+                quadInside,   
+                quadOutside, 
+                vuEn,
+                vuNb, 
+                duEn, 
+                duNb,
+                avuLeft,
+                avuRight,
+                aduLeft,
+                aduRight);
+
+            avuLeft*=weight;
+            aduLeft*=weight;
+
+            wLocal.axpy( quadInside[ pt ] , avuLeft , aduLeft );
+          }  //end Quadrature loop
+#endif
+
+        }
+        else if (  intersection.boundary())
+        {
+          boundaryElement=true;
+          const int quadOrderEn = uLocal.order() + wLocal.order();
+
+          FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
+
+          const size_t numQuadraturePoints = quadInside.nop();
+
+
+          for( size_t pt=0; pt < numQuadraturePoints; ++pt )
+          {
+            RangeType vuEn{0.},avuLeft{0.};
+            JacobianRangeType duEn{0.},aduLeft{0.};
+            uLocal.evaluate( quadInside[ pt ], vuEn);
+            uLocal.jacobian( quadInside[ pt ], duEn);
+            const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
+            const double weight = quadInside.weight( pt );
+
+
+            boundaryIntegral( intersection,
+                pt,
+                quadInside,
+                vuEn,
+                duEn,
+                avuLeft,
+                aduLeft);
+            avuLeft*=weight;
+            aduLeft*=weight;
+
+            wLocal.axpy( quadInside[ pt ] , avuLeft , aduLeft );
+          }
+        }
+
+      }
+#if 0     
+      if( boundaryElement )
+      { 
+        const int order=1; 
+        const LagrangePointSetType lagrangePointSet( geometry.type(), order );
+
+        const IntersectionIteratorType iitend = space().gridPart().iend( entity ); 
+        for( IntersectionIteratorType iit = space().gridPart().ibegin( entity ); iit != iitend; ++iit ) // looping over intersections
+        {
+          const IntersectionType &intersection = *iit;
+
+          if ( intersection.boundary())
+          {
+            // get face number of boundary intersection 
+            const int face = intersection.indexInInside();
+
+
+            typedef typename LagrangePointSetType::template Codim< 1 >:: SubEntityIteratorType
+              FaceDofIteratorType;
+            // get dof iterators 
+            FaceDofIteratorType faceIt = lagrangePointSet.template beginSubEntity< 1 >( face );
+            const FaceDofIteratorType faceEndIt = lagrangePointSet.template endSubEntity< 1 >( face );
+            for( ; faceIt != faceEndIt; ++faceIt )
+            {
+              const int localBlock=*faceIt;
+              ntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
+                  const int localBlockSize=DiscreteFunctionSpaceTiyplocalBlockSize;
+
+
+              const int dofOffset=localBlock*dimRange;
+              wLocal[dofOffset]=0;
+              for( int ii=0 ; ii < dimDomain ; ++ii)
+              {
+                wLocal[dofOffset+1+ii]=0;
+              }
+
+            }
+
+          }
+        }
+      } 
+#endif
+    
+
+
+  }
+  // communicate data (in parallel runs)
+  w.communicate();
+
+}
+
+template<class DiscreteFunction, class Model, class Flux >
+template<bool conforming>
+void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
+::computeIntersection( const IntersectionType &intersection,
+                       const LocalFunctionType& uLocal,
+                       const LocalFunctionType& uNeighbor,
+                       LocalFunctionType& wLocal) const
+{
+  const int quadOrderEn = uLocal.order() + wLocal.order();
+  const int quadOrderNb = uNeighbor.order() + wLocal.order();
+  typedef Dune::Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
+  typedef typename IntersectionQuadratureType::FaceQuadratureType QuadratureImp;
+
+  IntersectionQuadratureType interQuad(space().gridPart(), intersection,quadOrderEn);
+  const QuadratureImp& quadInside=interQuad.inside();
+  const QuadratureImp& quadOutside=interQuad.outside();
+ 
+//  FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
+//  FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
+
+
+  const size_t numQuadraturePoints = quadInside.nop();
+
+  for( size_t pt=0; pt < numQuadraturePoints; ++pt )
+  {
+    RangeType vuEn{0.},vuNb{0.},avuLeft{0.},avuRight{0.};
+    JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.}, aduRight{0.};
+    uLocal.evaluate( quadInside[ pt ], vuEn);
+    uLocal.jacobian( quadInside[ pt ], duEn);
+    uNeighbor.evaluate( quadOutside[ pt ], vuNb);
+    uNeighbor.jacobian( quadOutside[ pt ], duNb);
+    const double weight = quadInside.weight( pt );
+
+
+    //calculate quadrature summands avu
+    intersectionIntegral( intersection,                  
+        pt, 
+        quadInside,   
+        quadOutside, 
+        vuEn,
+        vuNb, 
+        duEn, 
+        duNb,
+        avuLeft,
+        avuRight,
+        aduLeft,
+        aduRight);
+
+    avuLeft*=weight;
+    aduLeft*=weight;
+
+    wLocal.axpy( quadInside[ pt ] , avuLeft , aduLeft );
+  } 
+}
+
+
+
+
 
 //#include "newheatoperator.cc"
 
