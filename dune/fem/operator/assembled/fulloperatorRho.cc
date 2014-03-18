@@ -1,4 +1,4 @@
-
+#if 0
 template<class DiscreteFunction, class Model, class Flux>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
@@ -187,7 +187,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   w.communicate();
 
 }
-
+#endif
 template<class DiscreteFunction, class Model, class Flux >
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::localIntegral( size_t  pt,
