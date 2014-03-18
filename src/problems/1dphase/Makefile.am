@@ -1,7 +1,6 @@
 # install these headers
 phasedir=$(includedir)/src/problems/phase
-phase_HEADERS= phase_model.hh problemcreator.hh phasewaves.hh \
-phase_model_spec.hh problemtype.hh
+phase_HEADERS=  problemcreator.hh  problemtype.hh
 
 #USE_OMP=-fopenmp
 
