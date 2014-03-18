@@ -1,3 +1,4 @@
+SUBDIRS = assembled
 operatordir = $(top_srcdir)/dune/fem/operator
 operator_HEADERS =	discretemodelcommon.hh \
 										explicitwbdiscretemodel.hh \
