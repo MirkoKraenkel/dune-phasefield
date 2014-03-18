@@ -1,4 +1,4 @@
-
+#if 0
 template<class DiscreteFunction, class Model, class Flux>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
@@ -187,7 +187,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   w.communicate();
 
 }
-
+#endif
 template<class DiscreteFunction, class Model, class Flux >
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::localIntegral( size_t  pt,
@@ -356,13 +356,13 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-Filter::sigma(vuMid, ii)*Filter::rho(vuMid);
   }
   //------------------------------------------------------------------        
-  
+
   //alpha
   //
-   
-  
-  
-  
+
+
+
+
   for(int ii = 0; ii < dimRange ; ii++)
   {
     assert( avu[ii]==avu[ii]) ;
