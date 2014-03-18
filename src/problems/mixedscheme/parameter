@@ -5,13 +5,8 @@ fem.resolvevariables: 1
 #------------
 fem.prefix: ./data$(scheme) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-<<<<<<< HEAD
-fem.io.savestep: 1e-2 #save data every time interval 
-fem.io.savecount:  0  # save every i-th ste
-=======
 fem.io.savestep: 0.1 #save data every time interval 
 fem.io.savecount:    # save every i-th ste
->>>>>>> 37dab68d45bc626dc849ed30aa056a20f0ad40f9
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
 # GRID SOLUTION
@@ -40,10 +35,9 @@ phasefield.addvisc: 0
 phasefield.nonconvisc:  
 phasefield.thetaswitch: -1.
 phasefield.delta: 0.025
-phasefield.mu1:  0.1
-phasefield.rho1: 3.
-phasefield.rho2: 0.3678794412
-phasefield.penalty: 1 
+phasefield.mu1: 0.1
+phasefield.rho0: 2.5 
+phasefield.penalty: 1  
 phasefield.acpenalty: 0 
 phasefield.ipswitch:0
 phasefield.smear: 1.
@@ -56,8 +50,8 @@ gamma: 1.
 # DOMAIN
 #-------
 
-fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
-#fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 ##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
@@ -79,15 +73,15 @@ dgiffusionflux.upwind: -1 -3.141
 paramfile: ./paramFiles/paramSolver
 phasefield.maxTimeStep: 0.5
 fem.ode.tolerance: 1e-54
-fem.solver.newton.tolerance: 1e-10
-fem.solver.tolerance: 1e-9
+fem.solver.newton.tolerance: 1e-8
+fem.solver.tolerance: 1e-10
 fem.solver.verbose: false 
-fem.solver.newton.verbose:false 
-fem.solver.newton.assemblesteps: 1 
+fem.solver.newton.verbose: false
+fem.solver.newton.assemblesteps: 5 
 fem.solver.newton.maxiterations: 100
-fem.differenceoperator.eps: 0 
-phasefield.fdjacobian.epsilon:0 
-#phasefield.maximaltimesteps:1 
+fem.differenceoperator.eps: 1 
+phasefield.fdjacobian.epsilon: 0
+#phasefield.maximaltimesteps: 0 
 phasefield.mixed.theta: 0. #0 if opcheck is used
 
 
