@@ -1,6 +1,6 @@
 # install these headers
-phasedir=$(includedir)/src/problems/phase
-phase_HEADERS=  problemcreator.hh  problemtype.hh
+passschemedir=$(includedir)/src/problems/passscheme
+passscheme_HEADERS=  problemcreator.hh  problemtype.hh
 
 #USE_OMP=-fopenmp
 

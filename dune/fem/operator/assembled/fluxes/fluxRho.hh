@@ -3,7 +3,7 @@
 
 #include <dune/common/fvector.hh>
 
-#include "phasefieldfilter.hh"
+#include "../phasefieldfilter.hh"
 #warning "OLDFLUX"
 template<class Model>
 class MixedFlux

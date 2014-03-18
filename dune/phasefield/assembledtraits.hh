@@ -34,9 +34,8 @@
 
 
 
-//#include <dune/fem/operator/assembled/mixedoperator.hh>
 #if MATRIXFREE
-#include <dune/fem/operator/assembled/newheatoperator.hh>
+#include <dune/fem/operator/assembled/mixedoperator.hh>
 #else
 #if VISIT
 #include <dune/fem/operator/assembled/mixedopjacobian.hh>

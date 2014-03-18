@@ -6,7 +6,7 @@
 
 #include<dune/fem/io/parameter.hh>
 
-#include "phasefieldfilter.hh"
+#include "../phasefieldfilter.hh"
 
 template<class Grid, class Problem>
 class HeatModel

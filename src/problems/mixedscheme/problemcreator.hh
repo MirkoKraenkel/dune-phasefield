@@ -17,14 +17,14 @@
 
 
 
-#include "../1dphase/problemtype.hh"
+#include "../passscheme/problemtype.hh"
 
 //#include <dune/fem/operator/assembled/heatmodel.hh>
-#include <dune/fem/operator/assembled/acmodel.hh>
+#include <dune/fem/operator/assembled/models/acmodel.hh>
 #if RHOMODEL
-#include <dune/fem/operator/assembled/fluxRho.hh>
+#include <dune/fem/operator/assembled/fluxes/fluxRho.hh>
 #else
-#include <dune/fem/operator/assembled/flux.hh>
+#include <dune/fem/operator/assembled/fluxes/flux.hh>
 #endif
 template< class GridType > 
 struct ProblemGenerator 

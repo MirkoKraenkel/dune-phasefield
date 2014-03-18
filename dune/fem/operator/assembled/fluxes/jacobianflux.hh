@@ -3,7 +3,7 @@
 
 #include <dune/common/fvector.hh>
 
-#include "phasefieldfilter.hh"
+#include "../phasefieldfilter.hh"
 #warning "JACOBIANFLUX"
 template<class Model>
 class JacobianFlux
