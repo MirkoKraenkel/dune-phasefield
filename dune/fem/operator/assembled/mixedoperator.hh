@@ -89,7 +89,6 @@ class DGPhasefieldOperator
     assert(theta_>=0 && theta_<=1);
     factorImp_=0.5*(1+theta_);
     factorExp_=0.5*(1-theta_);
-    std::cout<<"factorExp "<<factorExp_<<"\n";
   }
 
   // prepare the solution vector 
@@ -299,7 +298,8 @@ template<class DiscreteFunction, class Model, class Flux>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
 {
- 
+
+
   // clear destination 
   w.clear();
   assert(deltaT_>0);
@@ -307,7 +307,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   const IteratorType end = space().end();
   for( IteratorType it = space().begin(); it != end; ++it )
   {
-    
+   
     bool boundaryElement=false;
     // get entity (here element) 
     const EntityType &entity = *it;
@@ -317,7 +317,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     const LocalFunctionType uLocal = u.localFunction( entity);
 
     setEntity( entity );
-    RangeType vu{0.},avu{0.};
+    RangeType vu(0.),avu(0.);
     JacobianRangeType du{0.},adu{0.};
     
     LocalFunctionType wLocal = w.localFunction( entity );
@@ -426,7 +426,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
           for( size_t pt=0; pt < numQuadraturePoints; ++pt )
           {
-            RangeType vuEn{0.},avuLeft{0.};
+            RangeType vuEn(0.),avuLeft(0.);
             JacobianRangeType duEn{0.},aduLeft{0.};
             uLocal.evaluate( quadInside[ pt ], vuEn);
             uLocal.jacobian( quadInside[ pt ], duEn);
@@ -525,7 +525,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   for( size_t pt=0; pt < numQuadraturePoints; ++pt )
   {
-    RangeType vuEn{0.},vuNb{0.},avuLeft{0.},avuRight{0.};
+    RangeType vuEn(0.),vuNb(0.),avuLeft(0.),avuRight(0.);
     JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.}, aduRight{0.};
     uLocal.evaluate( quadInside[ pt ], vuEn);
     uLocal.jacobian( quadInside[ pt ], duEn);

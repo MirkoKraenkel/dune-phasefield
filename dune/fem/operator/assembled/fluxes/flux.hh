@@ -152,7 +152,7 @@ double MixedFlux<Model>
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn{0.}, midNb{0.},jump,mean,jumpOld;
+      RangeType valEn,valNb,midEn,midNb,jump,mean,jumpOld;
       valEn=vuEn;
       valNb=vuNb;
 
@@ -252,10 +252,9 @@ double MixedFlux<Model>
                   JacobianRangeType& dvalue) const
 {
   
-  RangeType jump{0};
+  RangeType jump;
   jump=uEn;
   jump-=uNb;  
-  JacobianRangeType aduEn{0.}, aduNb{0.}; 
   double integrationElement=normal.two_norm();
   
   
@@ -293,9 +292,8 @@ double MixedFlux<Model>
                   JacobianRangeType& dvalue) const
 {
   
-  RangeType jump{0};
+  RangeType jump;
   jump=uEn;
-  JacobianRangeType aduEn{0.}, aduNb{0.}; 
   double integrationElement=normal.two_norm();
   
   for( int i=0; i<dimDomain;++i)
