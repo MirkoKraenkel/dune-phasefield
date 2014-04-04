@@ -99,7 +99,7 @@ public:
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
  
 
-    viscpara*=visc_;
+    viscpara=visc_;
     visc = uRight;
     visc -= uLeft;
     visc *= viscpara;
@@ -178,11 +178,10 @@ public:
     double rhoRight = uRight[0];
     double phiLeft  = uLeft[dimDomain+1];
     double phiRight = uRight[dimDomain+1];
-#if NONCONTRANS
-#else
+    
     phiLeft/=rhoLeft;
     phiRight/=rhoRight;
-#endif
+    
     double vLeft[dimDomain],vRight[dimDomain];
 
     for(int i=0; i<dimDomain; i++)
@@ -196,15 +195,16 @@ public:
     RangeType visc;
 		ThetaRangeType newvisc,thetaFluxLeft,thetaFluxRight;
    	FluxRangeType anaflux;
+    //add F(uLeft)
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
-     // set gLeft 
-     anaflux.mv( normal, gLeft );
+    // set gLeft 
+    anaflux.mv( normal, gLeft );
       
      
-     model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
+    model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
 											uRight, anaflux );
-  //add F(uleft) 
+    //add F(uRight) 
     anaflux.umv( normal, gLeft );
 
   
@@ -241,30 +241,20 @@ public:
    		gLeft[i] -= visc[i];
     }
 
-   {  
+     
      // \delta\mu  consider sign!!!!!!!!
     newvisc=thetaFluxRight;
     newvisc-=thetaFluxLeft;
     newvisc*=alpha1_; 
-   
-#if 1 
-    gLeft[0]-=newvisc[0];
-   	
-    for(int i=1; i<dimDomain;i++)
-    {
-      gLeft[i] -= (vLeft[i]+vRight[i])*0.5*newvisc[0];
-    }
-#if NONCONTRANS
-#else     
-gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
-#endif
-#endif
-   }  
+ 
+ 		gLeft[0] -= newvisc[0];
+
+
 
    gLeft *= 0.5*len; 
    gRight = gLeft;
  
-   RangeType nonConProd(0);
+   RangeType nonConLeft(0),nonConRight(0.);
 #if 1 
    nonConFlux( normal,
                len,        
@@ -276,9 +266,11 @@ gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
                thetaRight,
                phiLeft,
                phiRight,
-               nonConProd);
-  gLeft -=nonConProd;
-  gRight+=nonConProd;
+               nonConLeft,
+               nonConRight);
+ 
+    gLeft -=nonConLeft;
+    gRight+=nonConRight;
 #endif 
    //   std::cout<<"NUmflux out "<<maxspeed << std::endl;
    return maxspeed * len;
@@ -295,15 +287,50 @@ gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
                           const ThetaRangeType& thetaRight,
                           const double phiLeft,
                           const double phiRight,
-                          RangeType& nonConProd) const
+                          RangeType& nonConLeft,
+                          RangeType& nonConRight) const
   {
-      // {{rho}}
+      double tauLeft,tauRight;
+      tauLeft  = thetaLeft[1];
+      tauRight = thetaRight[1];
+
+
+      
+      
+      //[[\mu]]
+      double minusjumpMu=thetaRight[0]-thetaLeft[0];
+     
+      //[\phi]
+      double jumpPhi=phiLeft-phiRight;
+      //{{v}} 
+      double averageV[dimDomain];
+      
+      double vLeftNormal{0.},vRightNormal{0.};
+
+      nonConLeft=nonConRight=0.;
+      for(int i=0;i<dimDomain;i++)
+      {  
+        nonConLeft[i+1]=normal[i];
+        vLeftNormal+=normal[i]*vLeft[i];
+        vRightNormal+=normal[i]*vRight[i];
+      }     
+    
+      nonConRight=nonConLeft;
+
+      nonConLeft *=(-minusjumpMu*rhoLeft -jumpPhi*tauLeft);
+      nonConRight*=(-minusjumpMu*rhoRight-jumpPhi*tauRight);
+      
+      nonConLeft*=0.5*length;
+      nonConRight*=0.5*length;
+
+#if 0
+    // {{rho}}
       double averageRho=rhoLeft+rhoRight;
       averageRho*=0.5;
-       //[[\mu]]
+      
+      //[[\mu]]
       double jumpMu=thetaLeft[0]-thetaRight[0];
      
-#if USEJACOBIAN
       //{{\tau}}
       double averageTau=thetaLeft[1]+thetaRight[1];
       averageTau*=0.5;
@@ -317,26 +344,19 @@ gLeft[dimDomain+1]-=(phiLeft+phiRight)*0.5*newvisc[0];
       {
         averageV[i]=0.5*(vLeft[i]+vRight[i]);
       }
-#else
-      double averageTau=0.;
-      double jumpPhi=0.;
-#endif
+      
       nonConProd=0.;
       for(int i=0;i<dimDomain;i++)
       {  
         nonConProd[i+1]=normal[i];
         nonConProd[i+1]*=averageRho*jumpMu-averageTau*jumpPhi;        
     
-#if NONCONTRANS
-        nonConProd[dimDomain+2]+=normal[i]*averageV[i]; 
+      }
+        
+
+        nonConProd*=0.5*length;
 #endif
-      }   
-#if NONCONTRANS      
-      nonConProd[dimDomain+2]*=jumpPhi;
-#endif
-//      factor comes from the meanvalue of the testfunctions
-      nonConProd*=0.5*length;
-  }
+      }
                            
                            
 
