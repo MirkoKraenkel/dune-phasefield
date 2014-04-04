@@ -106,11 +106,12 @@ public:
     anaflux.umv( normal, gLeft );
 
   
+ 
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
     model_.thetaSource( outside, time, faceQuadOuter.point( quadPoint ),
-                      uRight,thetaFluxRight );
+                 uRight,thetaFluxRight );
 
 
 
@@ -127,7 +128,7 @@ public:
 
     maxspeed = (maxspeedl > maxspeedr) ? maxspeedl : maxspeedr;
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
-    viscpara*=visc_;
+    viscpara=visc_;
     visc = uRight;
    
     visc -= uLeft;
@@ -143,7 +144,8 @@ public:
     newvisc=thetaFluxRight;
     newvisc-=thetaFluxLeft;
     newvisc*=alpha1_; 
-   
+     
+//     gLeft[0]-=newvisc[0];
 
    gLeft *= 0.5*len; 
    gRight = gLeft;
