@@ -158,7 +158,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
     uOldLocal_.evaluateQuadrature( quadrature, uOldJacobians);
 
     //  const DomainType xgl = geometry.global(x);
-    RangeType vuOld{0.},vuMid{0};
+    RangeType vuOld(0.),vuMid(0);
 
 
     for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
