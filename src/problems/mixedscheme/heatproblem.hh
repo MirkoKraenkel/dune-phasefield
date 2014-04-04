@@ -174,8 +174,10 @@ inline void HeatProblem<GridType,RangeProvider>
    else
     {
 #if NONCONTRANS
+
 #else
       res[1]*=res[0];
+      res[2]*=res[0];
 #endif
     }
 #elif SCHEME==FEM
