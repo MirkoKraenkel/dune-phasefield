@@ -108,6 +108,7 @@ namespace Dune {
     bool hasSource() const { return false; }
     bool hasFlux() const { return true; }  /*@LST1E@*/
 
+
     void setTime(double t) { }
 
 
@@ -274,6 +275,7 @@ namespace Dune {
     typedef typename DestinationType :: RangeFieldType               RangeFieldType;
     typedef typename DestinationType :: DomainFieldType              DomainFieldType;
     typedef typename DestinationType :: JacobianRangeType            JacobianRangeType;
+
 
     typedef typename Traits :: AdaptationHandlerType  AdaptationHandlerType ;
 
@@ -473,11 +475,7 @@ namespace Dune {
     typedef FieldVector< double, dimDomain >               DomainType;
     typedef FieldVector< double, dimDomain-1 >             FaceDomainType;
 
-#if defined TESTOPERATOR
-    static const bool ApplyInverseMassOperator = false;
-#else
     static const bool ApplyInverseMassOperator = true;
-#endif
 
     typedef typename Traits :: GridPartType                            GridPartType;
     typedef typename Traits :: GridType                                GridType;
@@ -511,8 +509,8 @@ namespace Dune {
 
     bool hasSource() const
     {                 
-      return ( model_.hasNonStiffSource() || model_.hasStiffSource() );
-    } /*@\label{dm:hasSource}@*/
+      return true;
+    } 
 
     bool hasFlux() const { return advection || diffusion; };       /*@LST0S@*/
 
@@ -536,6 +534,7 @@ namespace Dune {
         const double dtStiff = 
           model_.stiffSource( en, time, x, u[uVar], u[sigmaVar], s );
         dtEst = ( dtStiff > 0 ) ? dtStiff : dtEst;
+       
         maxDiffTimeStep_ = std::max( dtStiff, maxDiffTimeStep_ );
       }
 
@@ -715,10 +714,11 @@ namespace Dune {
       if( diffusion ) 
       {
         JacobianRangeType diffmatrix;
-      	JacobianRangeType tensionmatrix;
+//      	JacobianRangeType tensionmatrix;
       	model_.diffusion(en, time, x, u[ uVar ],u[sigmaVar], diffmatrix);
- 	      model_.tension(en,time,x,u[uVar],u[thetaVar],tensionmatrix);
-
+ //	      model_.tension(en,time,x,u[uVar],u[thetaVar],tensionmatrix);
+          
+        Dune::Fem::FieldMatrixConverter<typename Model::GradientRangeType,JacobianRangeType> tensionmatrix(u[thetaVar]);        
         // ldg case 
         f += diffmatrix;
 				f += tensionmatrix;
