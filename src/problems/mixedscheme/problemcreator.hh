@@ -51,7 +51,7 @@ struct ProblemGenerator
 
   static inline std::string diffusionFluxName()
   {
-    return "LDG";
+    return "IP";
   }
 
   static inline Dune::GridPtr<GridType>               
