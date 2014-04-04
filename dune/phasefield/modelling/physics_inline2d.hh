@@ -1,6 +1,5 @@
 #ifndef PHYSICS_INLINE2D_HH
 #define PHYSICS_INLINE2D_HH
-csdcsd
 namespace Dune{
 template<class Thermodynamics>
 class PhasefieldPhysics<2,Thermodynamics>
