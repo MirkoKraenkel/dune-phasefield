@@ -48,7 +48,6 @@ class HeatModel
         RangeType& s) const;
 
 
-
     inline void  muSource( const RangeFieldType rho1,
         const RangeFieldType rho2,
         const RangeFieldType phi,
@@ -85,6 +84,17 @@ class HeatModel
 
     inline void diffusion(JacobianRangeType& vu,
         JacobianRangeType& diffusion) const;
+    
+    inline RangeFieldType h( double rho) const
+    {
+      return 1./rho;
+    }
+
+    inline RangeFieldType hprime( double rho) const
+    {
+      return -1./(rho*rho);
+    }
+
 
 
     inline double delta() const
@@ -124,7 +134,7 @@ inline void HeatModel< Grid,Problem>
 #endif
   }
 #if RHOMODEL
-  surfaceEnergy*=rho;
+  surfaceEnergy*=h(rho);
 #else
 #endif
   kin=rho*0.5*kineticEnergy;
