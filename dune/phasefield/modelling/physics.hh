@@ -138,7 +138,7 @@ class PhasefieldPhysics
 #include "physicswb_inline2d.hh"
 #else
 #include "physics_inline1d.hh"
-#include "physicsAC2d.hh"
+#include "physics_inline2d.hh"
 #endif
 	//end namspace DUNE
 
