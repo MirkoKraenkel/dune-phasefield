@@ -529,10 +529,12 @@ public:
       double timeStepEstimate=0.;//dgOperator_.timeStepEstimate();	
      if( (printCount > 0) && (counter % printCount == 0))
 			{
-        if( grid_.comm().rank() == 0 )
-          {
-            std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
-#if 0
+#if 1 
+
+       // if( grid_.comm().rank() == 0 )
+        {
+          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
+ 
             {
               timeStepError=stepError(U,Uold);	
               std::cout<< " ,Error between timesteps="<< timeStepError;
