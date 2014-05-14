@@ -255,20 +255,22 @@ namespace Dune {
       gDiffLeft = 0;
       gDiffRight = 0;     
 #if 1			
-//    const double faceLengthSqr=normal.two_norm2();
-//    const double h=sqrt(faceLengthSqr);
+    const double faceLengthSqr=normal.two_norm2();
+    const double h=sqrt(faceLengthSqr);
       
       // add penalty term ( enVolume() is available since we derive from
 			//    DiscreteModelDefaultWithInsideOutside)
   
-      const double factor = acpenalty_ ;
+      double factor = acpenalty_ ;
 
 	 		RangeType jmp(0);
       
       jmp[1] = uLeft[uVar][dimDomain+1];
 			
       jmp[1]-= uRight[uVar][dimDomain+1];
-			
+		  
+      factor/=h; 
+
 			gLeft.axpy(factor, jmp);
 #endif			
 
