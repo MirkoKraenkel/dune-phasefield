@@ -1,7 +1,7 @@
 #ifndef DUNEPHASEFIELD_PHYSICS_HH
 #define DUNEPHASEFIELD_PHYSICS_HH
 #define MIN_RHO 1e-10
-#warning PHYSICS INCLUDED
+//#warning PHYSICS INCLUDED
 // system include
 #include <cmath>
 #include <iomanip>
