@@ -601,8 +601,8 @@ public:
       }
  
       double timeStepEstimate=dgOperator_.timeStepEstimate();	
-      double diffTimeStep=dgOperator_.maxDiffusionTimeStep();
-      double advTimeStep=dgOperator_.maxAdvectionTimeStep();
+  //    double diffTimeStep=dgOperator_.maxDiffusionTimeStep();
+    //  double advTimeStep=dgOperator_.maxAdvectionTimeStep();
      
       if( (printCount > 0) && (counter % printCount == 0))
         {
