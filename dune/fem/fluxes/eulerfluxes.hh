@@ -302,8 +302,6 @@ public:
      
       //[\phi]
       double jumpPhi=phiLeft-phiRight;
-      //{{v}} 
-      double averageV[dimDomain];
       
       double vLeftNormal{0.},vRightNormal{0.};
 
