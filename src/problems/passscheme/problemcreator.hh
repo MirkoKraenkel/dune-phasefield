@@ -56,11 +56,11 @@ struct ProblemGenerator
 
 // ******************************** NUMERICAL FLUX *****************************
 #if WELLBALANCED
-#warning "FLUX: WB"
+//#warning "FLUX: WB"
 		typedef WBFlux< ModelType > FluxType;
 #else
 #if (FLUX==1)
-#warning "FLUX: LLF"
+//#warning "FLUX: LLF"
     typedef LLFFlux< ModelType > FluxType;
 #elif (FLUX==2)
 
