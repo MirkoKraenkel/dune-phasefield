@@ -1,7 +1,7 @@
 #ifndef WB_MODEL_HH
 #define WB_MODEL_HH
 
-#warning "WBMODEL"
+//#warning "WBMODEL"
 
 // DUNE includes
 #include <dune/common/version.hh>
