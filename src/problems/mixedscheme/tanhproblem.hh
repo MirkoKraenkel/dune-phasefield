@@ -137,15 +137,17 @@ inline void HeatProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double deltaInv=1./delta_;
-  double r=arg.two_norm(); 
-  double tanhr=tanh((r-radius_)*deltaInv); 
+  double r=std::abs( arg[0]-0.5 );
+  double tanhr=tanh( ( r-radius_ )*deltaInv ); 
   //(1-tanh^2)/delta
   double drtanhr=deltaInv*(1-tanhr*tanhr);
   double drdrtanhr=tanhr*drtanhr;
   //-2/delta^2 *(tanh*(1-tanh^2)
   drdrtanhr*=-2*deltaInv;
  
-   double rho=1.85*(0.5)+1.95;
+  // double rho=1.85*(-0.5*tanhr+0.5)+
+   double rho=1.85*(-0.5*tanhr+0.5)+1.95;
+
 
 
   //double v=sinx*cost;
@@ -159,7 +161,10 @@ inline void HeatProblem<GridType,RangeProvider>
    }
    if(dimension==2)
      res[2]=0;
-   double  phi=0.5+0.05*sin(2*M_PI*arg[0]);
+   //double  phi=0.5+0.05*sin(2*M_PI*arg[0]);
+
+   double phi=0.49*tanhr+0.5;
+   
    res[dimension+1]=phi;
   
   double laplacePhi=delta_*0.5*drdrtanhr;
