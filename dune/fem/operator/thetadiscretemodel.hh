@@ -226,7 +226,7 @@ namespace Dune {
 			
       const DomainType normal = it.integrationOuterNormal(x);
 
-#if SWITCH_LDG 			
+#if SW/ITCH_LDG 			
 			JacobianRangeType diffmatL(0.),diffmatR(0.);
       if(!determineDirection(normal))
       {
@@ -251,8 +251,7 @@ namespace Dune {
      
       gLeft*=0.5;
 #endif     
-      gRight=gLeft;
-      gDiffLeft = 0;
+     gDiffLeft = 0;
       gDiffRight = 0;     
 #if 1			
     const double faceLengthSqr=normal.two_norm2();
@@ -270,11 +269,12 @@ namespace Dune {
       jmp[1]-= uRight[uVar][dimDomain+1];
 		  
       factor/=h; 
-
+      
 			gLeft.axpy(factor, jmp);
 #endif			
 
-
+      gRight=gLeft;
+ 
 			double diffTimeStep(0.);
 			return diffTimeStep;
 		}
