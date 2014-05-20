@@ -256,8 +256,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
     f[0]=0;
     //-(\rho\nabla\mu-\tau\nabla\phi) 
-    f[1]=dtheta[0]*u[0]-dphi*theta[1];
-    f[1]*=-1.;// source term is on the rhs => sign
+    f[1]=-dtheta[0]*u[0]+dphi*theta[1];
     //nonconservative Discretization of transport term
     f[2]=theta[1];
     f[2]*=-1.*rho_inv;
