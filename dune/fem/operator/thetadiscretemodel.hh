@@ -1,6 +1,6 @@
 #ifndef DUNE_PHASEFIELD_THETADISCREMODEL_HH
 #define DUNE_PHASEFIELD_THETADISCREMODEL_HH
-#define SWITCH_LDG 0
+#define SWITCH_LDG 1
 
 // Dune includes
 #include <dune/fem/gridpart/common/gridpart.hh>
@@ -226,7 +226,7 @@ namespace Dune {
 			
       const DomainType normal = it.integrationOuterNormal(x);
 
-#if SW/ITCH_LDG 			
+#if  SWITCH_LDG			
 			JacobianRangeType diffmatL(0.),diffmatR(0.);
       if(!determineDirection(normal))
       {
@@ -256,11 +256,11 @@ namespace Dune {
 #if 1			
     const double faceLengthSqr=normal.two_norm2();
     const double h=sqrt(faceLengthSqr);
-      
-      // add penalty term ( enVolume() is available since we derive from
+     // add penalty term ( enVolume() is available since we derive from
 			//    DiscreteModelDefaultWithInsideOutside)
-  
-      double factor = acpenalty_ ;
+      //
+      //penalty is negative, becaus of the sign of the diffusion!!!!!!!!
+      double factor = -1.*acpenalty_ ;
 
 	 		RangeType jmp(0);
       
@@ -269,7 +269,7 @@ namespace Dune {
       jmp[1]-= uRight[uVar][dimDomain+1];
 		  
       factor/=h; 
-      
+       
 			gLeft.axpy(factor, jmp);
 #endif			
 
