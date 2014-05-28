@@ -379,7 +379,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
 
-
   RangeType vuOldEn(0.),vuMidEn(0.),vuOldNb(0.),vuMidNb(0.);
   JacobianRangeType duOldEn{0.},duOldNb{0.},duMidEn{0.}, duMidNb{0.};
 
@@ -417,7 +416,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   JacobianRangeType dvalue{0.},advalue{0.};
   double fluxRet;
-  RangeType gLeft(0.),gRight(0.);
+  //RangeType gLeft{0.};
+// RangeType gRight{0.};
+
   fluxRet=flux_.numericalFlux(normal,
       area,
       vuEn,
@@ -426,6 +427,19 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       vuMidNb, 
       avuLeft,
       avuRight); 
+#if 0  
+  std::cout<<"Flux===\n";
+  std::cout<<"normal"<<normal<<"\n";
+  std::cout<<"area="<<area<<"\n";
+  std::cout<<"vuEn="<<vuEn<<"\n";
+  std::cout<<"vuNb="<<vuNb<<"\n";
+  std::cout<<"vuMidEn="<<vuMidEn<<"\n";
+  std::cout<<"vuMidNb="<<vuMidNb<<"\n";
+  std::cout<<"Fleft="<<avuLeft<<"\n";
+  std::cout<<"Fright="<<avuRight<<"\n";
+
+#endif
+  
 
   RangeType value(0);
 #if 1        
