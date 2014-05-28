@@ -28,6 +28,7 @@ public:
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
     {
+      std::cout<<"MixedFlux\n";
     }
 
 
@@ -83,6 +84,8 @@ double MixedFlux<Model>
     RangeType midEn ;
 
     midEn=vuMidEn;
+
+    gLeft=0.;
 
     double vNormalEn(0.);
 
@@ -152,9 +155,13 @@ double MixedFlux<Model>
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn,midNb,jump,mean,jumpOld;
+    RangeType valEn,valNb,midEn,midNb,jump,mean,jumpOld;
       valEn=vuEn;
       valNb=vuNb;
+     
+      gLeft=0.;
+      gRight=0.;
+
 
       midEn=vuEnMid;
       midNb=vuNbMid;
@@ -185,6 +192,7 @@ double MixedFlux<Model>
       //double visc=Filter::rho(jump);
       //Filter::rho(gLeft)+=numVisc_*area*visc;
       Filter::rho( gRight )=Filter::rho( gLeft );
+      std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
@@ -201,6 +209,7 @@ double MixedFlux<Model>
           Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
        
         } 
+       std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
     
       //----------------------------------------------------------------
       double laplaceFlux(0.);
@@ -224,7 +233,8 @@ double MixedFlux<Model>
       //tau-------------------------------------------------------------
       Filter::tau(gLeft)-=model_.delta()*laplaceFlux;
       Filter::tau(gRight)=Filter::tau( gLeft );
-      
+        std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
+     
       //----------------------------------------------------------------
 
       //sigma-----------------------------------------------------------
@@ -237,7 +247,8 @@ double MixedFlux<Model>
   
         } 
       //----------------------------------------------------------------
-      return 0.;
+        std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
+    return 0.;
   }
 
 template< class Model >
