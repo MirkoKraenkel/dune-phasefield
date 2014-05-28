@@ -192,7 +192,7 @@ double MixedFlux<Model>
       //double visc=Filter::rho(jump);
       //Filter::rho(gLeft)+=numVisc_*area*visc;
       Filter::rho( gRight )=Filter::rho( gLeft );
-      std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
+    //  std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
@@ -209,7 +209,7 @@ double MixedFlux<Model>
           Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
        
         } 
-       std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
+      // std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
     
       //----------------------------------------------------------------
       double laplaceFlux(0.);
@@ -233,7 +233,7 @@ double MixedFlux<Model>
       //tau-------------------------------------------------------------
       Filter::tau(gLeft)-=model_.delta()*laplaceFlux;
       Filter::tau(gRight)=Filter::tau( gLeft );
-        std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
+        //std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
      
       //----------------------------------------------------------------
 
@@ -247,7 +247,7 @@ double MixedFlux<Model>
   
         } 
       //----------------------------------------------------------------
-        std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
+     //   std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
     return 0.;
   }
 
