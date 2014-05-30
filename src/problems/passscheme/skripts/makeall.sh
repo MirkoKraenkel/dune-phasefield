@@ -1,26 +1,27 @@
 #!/bin/sh
 x=0
+if [$# -lt 2]
+then
+  echo "Usage: PolOrder Schmeme: (1=conservative, 2=nocncon1, 3=noncton1)"
+  exit
+fi
 MAXORD=$1
 echo $MAXORD
+
+case $2 in
+1) SCHEMENAME=phasefield
+    ;;
+2) SCHEMENAME=phasefied_nc
+    ;;
+3) SCHEMENAME=phasefield_nctr
+    ;;
+*) echo "Wrong Scheme number!"
+  
 while [ $x -le $MAXORD ]
 do
 make clean
-#make POLORDER=$x phasefield_nc ; mv phasefield_nc nc$x
-make POLORDER=$x phasefield_nctr ; mv phasefield_nctr nctr$x
-#make POLORDER=$x phasefield ; mv phasefield old$x
+make POLORDER=$x $(SCHEMENAME) ; mv $(SCHEMENAME) $(SCHEMENAME)_P$x
 x=$(( $x + 1))
 done
 
-#make clean
-#make POLORDER=1 phasefield_nc ; mv phasefield_nc nc1
-#make clean
-#make POLORDER=0 phasefield_nc ; mv phasefield_nc nc0
-
-
-#make clean
-#make POLORDER=2 phasefield ; mv phasefield con2
-#make clean
-#make POLORDER=1 phasefield ; mv phasefield con1
-#make clean
-#make POLORDER=1 phasefield ; mv phasefield con0
 
