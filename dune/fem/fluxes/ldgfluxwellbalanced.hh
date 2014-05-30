@@ -65,7 +65,7 @@ namespace Dune {
     LDGDiffusionFlux(GridPartType& gridPart,
                      const Model& model ) :
       BaseType( model, true ),
-      penalty_(Dune::Fem::Parameter::getValue<double>("dgdiffusionflux.penalty")),
+      penalty_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty")),
       // Set CFL number for penalty term (compare diffusion in first pass)
       penaltyTerm_( std::abs(  penalty_ ) > 0 )
     {

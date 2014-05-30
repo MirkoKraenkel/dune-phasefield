@@ -169,7 +169,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
-//    surfaceEnergy=gradphi;
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
     kin = kineticEnergy;
@@ -250,7 +249,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 									const ThetaRangeType& thetaR,
 									RangeType& ret) const
 	{
-	abort();
+  	abort();
  	}
 	
 	template< class Thermodynamics >
@@ -269,8 +268,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     f[0]=0;
     f[1]=0;
     f[2]=-reaction;
-	  
- 
+    
     return 4*deltaInv()*deltaInv();
   }
 
@@ -294,14 +292,14 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
-  
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
     diff[2][0]=delta()*dxphi;
     
   }
-   template< class Thermodynamics >
+
+  template< class Thermodynamics >
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1 ,Thermodynamics >
   ::boundarydiffusion( const RangeType& u,
@@ -317,7 +315,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double phi =  u[2]*rho_inv;
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhou    = du[1][0]; //d(rho*v)/dx
-    const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
     thermoDynamics_.pressure( rho,phi);
   
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
@@ -351,8 +348,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  } 
 
 
-// template< class Thermodynamics >
-// template< class JacobianRangeImp>
  template< class Thermodynamics>
  template< class JacobianRangeImp >
  inline void PhasefieldPhysics< 1, Thermodynamics>

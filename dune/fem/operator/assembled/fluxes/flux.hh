@@ -192,6 +192,7 @@ double MixedFlux<Model>
       //double visc=Filter::rho(jump);
       //Filter::rho(gLeft)+=numVisc_*area*visc;
       Filter::rho( gRight )=Filter::rho( gLeft );
+    //  std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
@@ -208,6 +209,7 @@ double MixedFlux<Model>
           Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
        
         } 
+      // std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
     
       //----------------------------------------------------------------
       double laplaceFlux(0.);

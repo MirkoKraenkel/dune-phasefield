@@ -32,27 +32,41 @@ inline double getMemoryUsage()
 template< class HGridType >
 Dune::GridPtr< HGridType > initialize( const std::string& problemDescription )
 { 
-  // ----- read in runtime parameters ------
-  const std::string filekey = Dune::Fem::IOInterface::defaultGridKey( HGridType::dimension );
-  const std::string filename = Dune::Fem::Parameter::getValue< std::string >( filekey ); /*@\label{base:param0}@*/
+  bool restart = Dune::Fem::Parameter::getValue<bool>("phasefield.restart",false);
 
-  // initialize grid
-  Dune::GridPtr< HGridType > gridptr(filename);
-  Dune::Fem::Parameter::appendDGF( filename );
+  Dune::GridPtr< HGridType > gridptr;
+  
+  if(!restart)
+    {
+      // ----- read in runtime parameters ------
+      const std::string filekey = Dune::Fem::IOInterface::defaultGridKey( HGridType::dimension );
+      const std::string filename = Dune::Fem::Parameter::getValue< std::string >( filekey ); /*@\label{base:param0}@*/
 
-  // load balance grid in case of parallel runs 
-  gridptr->loadBalance();
+      // initialize grid
+      gridptr = Dune::GridPtr< HGridType >(filename);
+      Dune::Fem::Parameter::appendDGF( filename );
 
-  // output of error and eoc information
-  std::string eocOutPath = Dune::Fem::Parameter::getValue<std::string>("fem.prefix", std::string("."));
+      // load balance grid in case of parallel runs 
+      gridptr->loadBalance();
 
-  Dune::Fem::FemEoc::initialize(eocOutPath, "eoc", problemDescription); 
+      // output of error and eoc information
+      std::string eocOutPath = Dune::Fem::Parameter::getValue<std::string>("fem.prefix", std::string("."));
 
-  // and refine the grid until the startLevel is reached
-  const int startLevel = Dune::Fem::Parameter::getValue<int>("phasefield.startLevel", 0);
-  for(int level=0; level < startLevel ; ++level)
-    Dune::Fem::GlobalRefine::apply(*gridptr, 1 ); 
-  return gridptr;
+      Dune::Fem::FemEoc::initialize(eocOutPath, "eoc", problemDescription); 
+
+      // and refine the grid until the startLevel is reached
+      const int startLevel = Dune::Fem::Parameter::getValue<int>("phasefield.startLevel", 0);
+      for(int level=0; level < startLevel ; ++level)
+        Dune::Fem::GlobalRefine::apply(*gridptr, 1 ); 
+  
+      return gridptr;
+    }
+  else
+    {
+      std::cout<<"restore the grid\n";
+      gridptr =Dune::Fem::CheckPointer< HGridType > :: restoreGrid( "checkpoint" );
+      return gridptr;
+    }
 } 
 
 

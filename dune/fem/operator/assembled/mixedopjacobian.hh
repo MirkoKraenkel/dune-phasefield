@@ -53,10 +53,12 @@ class PhasefieldJacobianOperator
   public: 
   PhasefieldJacobianOperator(const ModelType &model,
       const DiscreteFunctionSpaceType &space,
-      const NumericalFluxType &flux)
+      const NumericalFluxType &flux,
+      int volQuadOrder=-1)
     :MyOperatorType(model,space,flux),
     stencil_(space,space),
-    jacFlux_(model)
+    jacFlux_(model),
+    localMassMatrix_(space,volQuadOrder)
   {}
 
   using MyOperatorType::localIntegral;

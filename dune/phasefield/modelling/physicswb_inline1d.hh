@@ -230,16 +230,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
   }
 
-	template< class Thermodynamics >
- 	inline void   PhasefieldPhysics< 1, Thermodynamics >
-	::nonConProduct(const RangeType & uL, 
-									const RangeType & uR,
-									const ThetaRangeType& thetaL,
-									const ThetaRangeType& thetaR,
-									RangeType& ret) const
-	{ abort();
-  }
-	
+
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
 	::stiffSource(const DomainType& xglobal, //model already gives globla coordinate
@@ -252,15 +243,18 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                 RangeType& f) const
 	{
 
-
     //dphi=1/rho*(d(rho*phi)-phi*drho)   
-   double rho_inv=1./u[0];
-   double phi=u[2]*rho_inv;
-   double dphi=jacU[2][0]-phi*jacU[0][0];
-   dphi*=rho_inv;
-  	f[0]=0;
+    double rho_inv=1./u[0];
+    double phi=u[2]*rho_inv;
+   
+     double dphi=jacU[2][0]-phi*jacU[0][0];
+     dphi*=rho_inv;
+  
+    
+    f[0]=0;
     f[1]=-dtheta[0]*u[0]+dphi*theta[1];
-    f[2]=-theta[1]*rho_inv;
+   
+    f[2]=-theta[1];
     
     
     

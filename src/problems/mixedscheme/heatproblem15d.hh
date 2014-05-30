@@ -9,7 +9,7 @@
 
 // local includes
 
-#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+#include <dune/phasefield/modelling/thermodynamicsTest.hh>
 
 //#include <dune/fem/probleminterfaces.hh>
 
@@ -37,15 +37,14 @@ public:
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
-//   typedef TestThermodynamics ThermodynamicsType;
-  typedef BalancedThermodynamics ThermodynamicsType; 
+   typedef TestThermodynamics ThermodynamicsType;
 
   HeatProblem() : 
     myName_( "Mixedtest Heatproblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
-    rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
+    smear_( Fem::Parameter::getValue<double> ("phasefield.smear")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     thermodyn_()
     {
@@ -99,7 +98,7 @@ public:
   const double endTime_;
   const double mu_;
   const double delta_;
-  double rho_;
+  double smear_;
   const double phiscale_;
   const ThermodynamicsType thermodyn_;
   
@@ -124,12 +123,22 @@ template <class GridType,class RangeProvider>
 inline void HeatProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-  double x=arg[0];
+  double x{0.},y{0.};
+  for(int ii=0; ii<dimension; ++ii)
+    y+=(arg[ii]-0.5)*(arg[ii]-0.5);
+  x=std::sqrt(y);
+
   double cost=cos(M_PI*t);
   double cosx=cos(2*M_PI*x);
   double sinx=sin(2*M_PI*x);
-    
-  double rho=rho_;
+  double sint=sin(M_PI*t); 
+  double dFdphi=cosx*cosx*cost*cost-1;
+  dFdphi*=cosx;
+  dFdphi*=cost;
+  dFdphi*=thermodyn_.deltaInv();
+     
+   //double rho=0.5*cosx*cost+1;
+   double rho=1.5;
    //double v=sinx*cost;
    double v=0;
    //rho
@@ -141,44 +150,33 @@ inline void HeatProblem<GridType,RangeProvider>
    }
    if(dimension==2)
      res[2]=0;
-   double  phi=0.05*cosx+0.5;
-   res[dimension+1]=phi;
-   
-  double dFdphi= thermodyn_.reactionSource(rho,phi); 
-  double dFdrho=thermodyn_.chemicalPotential(rho, phi);
-     
-   if( dimRange > dimDomain+2)
-    {
-      //mu
-      res[dimension+2]=0.5*v*v+dFdrho;
-      //tau
-      res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*cosx+dFdphi;
+   // phi
+   res[dimension+1]=0.5*cosx*cost+0.5;
+   //res[dimension+1]=tanx;
+if( dimRange > dimDomain+2)
+{
+    //mu
+    res[dimension+2]=0.5*v*v;
+    //tau
+    res[dimension+3]=thermodyn_.delta()*4*M_PI*M_PI*cosx*cost*0.5+dFdphi;
 
 
 #if SCHEME==DG
     //sigma
-    if(dimension==1)
-      {
-        res[dimension+4]=-2*M_PI*sinx*cost*0.05;
-      #if RHOMODEL
-        res[dimension+5]=res[dimension+4]*rho;
-      #endif
-      }
-     else
-      { 
-        res[dimension+4]=-2*M_PI*sinx*cost*0.5;
-        res[dimension+5]=0; 
-      }
-    }
-   else
+  if(dimension==1)
     {
-#if NONCONTRANS
-
-#else
-      res[1]*=res[0];
-      res[2]*=res[0];
-#endif
+      res[dimension+4]=-2*M_PI*sinx*cost*0.5;
     }
+  else
+    { 
+      res[dimension+4]=-2*M_PI*sinx*cost*0.5;
+      res[dimension+5]=0; 
+    }
+}
+else
+{
+  res[1]*=res[0];
+}
 #elif SCHEME==FEM
 #endif
 }

@@ -1,7 +1,7 @@
 #ifndef DUNEPHASEFIELD_PHYSICS_HH
 #define DUNEPHASEFIELD_PHYSICS_HH
 #define MIN_RHO 1e-10
-#warning PHYSICS INCLUDED
+//#warning PHYSICS INCLUDED
 // system include
 #include <cmath>
 #include <iomanip>
@@ -138,7 +138,7 @@ class PhasefieldPhysics
 #include "physicswb_inline2d.hh"
 #else
 #include "physics_inline1d.hh"
-#include "physicsAC2d.hh"
+#include "physics_inline2d.hh"
 #endif
 	//end namspace DUNE
 

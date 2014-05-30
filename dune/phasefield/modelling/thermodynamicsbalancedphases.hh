@@ -176,26 +176,34 @@ class BalancedThermodynamics:
 
   inline double  pressure( double& rho, double& phi) const
   {
-    double delta=delta_;
-
     double t1;
-    double t12;
-    double t13;
+    double t10;
+    double t11;
     double t2;
-    double t23;
     double t4;
-    double t8;
-
+    double t5;
+    double t7;
+    double pressure;
     t1 = phi*phi;
     t2 = t1*t1;
-    t4 = t2*phi*delta;
-    t8 = t2*delta;
-    t12 = t1*phi;
-    t13 = t12*delta;
-    t23 = 900000000.0*t4*rho-5075641578.0*t4-2250000000.0*t8*rho+
-      0.1268910394E11*t8+1500000000.0*t13*rho-8459402630.0*t13-300000000.0*delta*rho+
-      945940263.0*delta+200000000.0*t1-400000000.0*t12+200000000.0*t2;
-    return(-0.1E-7*t23/delta);
+    t4 = 6.0*t2*phi;
+    t5 = 15.0*t2;
+    t7 = 10.0*t1*phi;
+    t10 = log(rho);
+    t11 = rho*t10;
+     
+    pressure=((t4-t5+t7)*(0.25E1*rho-0.15E1*t11-1.0+rho*(-1.0+0.15E1*t10))+(1.0-t4
+            +t5-t7)*(7.0*rho-3.0*t11-0.945940263E1+rho*(-4.0+3.0*t10)));
+   
+    pressure-=doubleWell(phi)*deltaInv_;
+
+    return pressure;
+
+
+
+
+
+
 
   }
 

@@ -47,6 +47,7 @@ public:
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+    radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
     thermodyn_()
     {
     }
@@ -78,6 +79,16 @@ public:
     evaluate( t, x, res );
   }
 
+  inline double dxr( const DomainType& x) const
+  {
+    return x[0]/x.two_norm();
+  }
+
+
+  inline double dxdxr( const DomainType& x) const
+  {
+    return 0; 
+  }
 
   template< class DiscreteFunctionType >
   void finalizeSimulation( DiscreteFunctionType& variablesToOutput,
@@ -101,6 +112,7 @@ public:
   const double delta_;
   double rho_;
   const double phiscale_;
+  const double radius_;
   const ThermodynamicsType thermodyn_;
   
 };
@@ -124,26 +136,39 @@ template <class GridType,class RangeProvider>
 inline void HeatProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-  double x=arg[0];
-  double cost=cos(M_PI*t);
-  double cosx=cos(2*M_PI*x);
-  double sinx=sin(2*M_PI*x);
-    
-  double rho=rho_;
-   //double v=sinx*cost;
-   double v=0;
-   //rho
-   res[0]= rho;
-   //v
+  double deltaInv=1./delta_;
+  double r=std::abs( arg[0]-0.5 );
+  double tanhr=tanh( ( r-radius_ )*deltaInv ); 
+  //(1-tanh^2)/delta
+  double drtanhr=deltaInv*(1-tanhr*tanhr);
+  double drdrtanhr=tanhr*drtanhr;
+  //-2/delta^2 *(tanh*(1-tanh^2)
+  drdrtanhr*=-2*deltaInv;
+ 
+  // double rho=1.85*(-0.5*tanhr+0.5)+
+   double rho=1.85*(-0.5*tanhr+0.5)+1.95;
+
+
+
+  //double v=sinx*cost;
+  double v=0;
+  //rho
+  res[0]= rho;
+ 
    for(int i=1;i<=dimension;i++)
    {
      res[i]=v;
    }
    if(dimension==2)
      res[2]=0;
-   double  phi=0.05*cosx+0.5;
-   res[dimension+1]=phi;
+   //double  phi=0.5+0.05*sin(2*M_PI*arg[0]);
+
+   double phi=0.49*tanhr+0.5;
    
+   res[dimension+1]=phi;
+  
+  double laplacePhi=delta_*0.5*drdrtanhr;
+
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
      
@@ -152,21 +177,25 @@ inline void HeatProblem<GridType,RangeProvider>
       //mu
       res[dimension+2]=0.5*v*v+dFdrho;
       //tau
-      res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*cosx+dFdphi;
-
+#if RHOMODEL
+      abort();
+#else
+      res[dimension+3]=dFdphi-laplacePhi;
+#endif
 
 #if SCHEME==DG
     //sigma
     if(dimension==1)
       {
-        res[dimension+4]=-2*M_PI*sinx*cost*0.05;
+        res[dimension+4]=0.5*drtanhr;
       #if RHOMODEL
         res[dimension+5]=res[dimension+4]*rho;
       #endif
       }
      else
       { 
-        res[dimension+4]=-2*M_PI*sinx*cost*0.5;
+        abort();
+        res[dimension+4]=-10000;
         res[dimension+5]=0; 
       }
     }
@@ -175,7 +204,6 @@ inline void HeatProblem<GridType,RangeProvider>
 #if NONCONTRANS
 
 #else
-      res[1]*=res[0];
       res[2]*=res[0];
 #endif
     }

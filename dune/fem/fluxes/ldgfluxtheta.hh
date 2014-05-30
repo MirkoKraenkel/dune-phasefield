@@ -66,7 +66,7 @@ namespace Dune {
     ThetaDiffusionFlux(GridPartType& gridPart,
                         const Model& model ) :
       BaseType( model, true ),
-      penalty_(Dune::Fem::Parameter::getValue<double>("dgdiffusionflux.penalty")),
+      penalty_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty")),
       // Set CFL number for penalty term (compare diffusion in first pass)
       penaltyTerm_( std::abs(  penalty_ ) > 0 )
     {
@@ -298,9 +298,8 @@ namespace Dune {
       diffmatrix.umv(normal, gLeft);
       gLeft*=0.5;  
       
-
      tension.umv(normal,gLeft);
-
+ 
       //////////////////////////////////////////////////////////
       //
       //  --Time step calculation 
@@ -343,7 +342,9 @@ namespace Dune {
 
 					RangeType jump( uLeft );
 					jump -= uRight;
-					gLeft.axpy(factor, jump);
+		      	
+          
+       		gLeft.axpy(factor, jump);
 				}
 
       gRight = gLeft ;

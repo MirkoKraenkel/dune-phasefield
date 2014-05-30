@@ -17,11 +17,11 @@ class LocalFDOperator
 :public Dune::Fem::DifferentiableOperator < Jacobian >,
   protected DGPhasefieldOperator<DiscreteFunction,Model,Flux>
 {
-
+ 
   typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
-
+  
   typedef Dune::Fem::DifferentiableOperator< Jacobian> BaseType;
-
+ 
 
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
 
@@ -77,7 +77,7 @@ class LocalFDOperator
 
   void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
   template< class LocalMatrixImp >
-    void computeEntity( const EntityType &entity, const LocalFunctionType &uLocal,const BasisFunctionSetType &baseSet,LocalMatrixImp &jLocal) const;
+  void computeEntity( const EntityType &entity, const LocalFunctionType &uLocal,const BasisFunctionSetType &baseSet,LocalMatrixImp &jLocal) const;
 
   private:
   const IndexSetType& indexSet_;
@@ -158,6 +158,7 @@ void LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
       jLocal.column( jj ).axpy( phi_ , dphi_ , fueps , fdueps );
     }
   }
+
 }
 // Implementation of LocalFDOperator
 // // ------------------------------------------------
@@ -209,7 +210,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
   //  const IteratorType end = dfSpace.end();
   // for( IteratorType it = dfSpace.begin(); it != end; ++it )
   for(; it!=end; ++it)
-  {
+ {
     const EntityType &entity = *it;
     const LocalFunctionType uLocal = u.localFunction( entity );
 
@@ -227,7 +228,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
           baseSet,
           jLocal);
     }
-    if ( space().continuous() )
+   if ( space().continuous() )
       continue;
 
     const IntersectionIteratorType endiit = gridPart.iend( entity );
@@ -235,8 +236,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         iit != endiit ; ++ iit )
     {
       const unsigned int numBasisFunctions = baseSet.size();
-
-      const IntersectionType& intersection = *iit ;
+     const IntersectionType& intersection = *iit ;
 
       if( intersection.neighbor() )
       {

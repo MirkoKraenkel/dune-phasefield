@@ -1,7 +1,7 @@
 #ifndef WB_MODEL_HH
 #define WB_MODEL_HH
 
-#warning "WBMODEL"
+//#warning "WBMODEL"
 
 // DUNE includes
 #include <dune/common/version.hh>
@@ -444,8 +444,8 @@ inline double PhaseModel< GridPartType, ProblemImp >
 		DomainType xgl = it.geometry().global( x );
 		uRight[0]=uLeft[0];     
     RangeType uBnd;
-    problem_.evaluate(xgl,time, uRight);
-#if 0 
+    //problem_.evaluate(xgl,time, uRight);
+#if 1 
   for(int i=1;i<dimDomain+1;i++)
 			uRight[i]=problem_.thermodynamics().velo();
         

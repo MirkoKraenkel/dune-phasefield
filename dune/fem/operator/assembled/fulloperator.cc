@@ -371,11 +371,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     JacobianRangeType& aduLeft,
     JacobianRangeType& aduRight) const
 {
-  double deltaInv=1./deltaT_;
+///  double deltaInv=1./deltaT_;
 
   typedef typename IntersectionType::Geometry  IntersectionGeometryType;
   //    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
-
 
 
 
@@ -417,7 +416,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   JacobianRangeType dvalue{0.},advalue{0.};
   double fluxRet;
-  RangeType gLeft(0.),gRight(0.);
+  //RangeType gLeft{0.};
+// RangeType gRight{0.};
+
   fluxRet=flux_.numericalFlux(normal,
       area,
       vuEn,
@@ -426,6 +427,19 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       vuMidNb, 
       avuLeft,
       avuRight); 
+#if 0  
+  std::cout<<"Flux===\n";
+  std::cout<<"normal"<<normal<<"\n";
+  std::cout<<"area="<<area<<"\n";
+  std::cout<<"vuEn="<<vuEn<<"\n";
+  std::cout<<"vuNb="<<vuNb<<"\n";
+  std::cout<<"vuMidEn="<<vuMidEn<<"\n";
+  std::cout<<"vuMidNb="<<vuMidNb<<"\n";
+  std::cout<<"Fleft="<<avuLeft<<"\n";
+  std::cout<<"Fright="<<avuRight<<"\n";
+
+#endif
+  
 
   RangeType value(0);
 #if 1        

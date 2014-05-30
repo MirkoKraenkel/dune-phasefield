@@ -331,10 +331,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
    
     // |sigma^n|^2
-    sigmasqr+=Filter::sigma( vu , ii )*Filter::sigma( vu , ii );
+    sigmasqr+=model_.hprime(Filter::rho(vu))*Filter::sigma( vu , ii )*Filter::sigma( vu , ii );
     
     // |sigma^{n-1}|^2
-    sigmaOldsqr+=Filter::sigma( vuOld , ii )*Filter::sigma( vuOld , ii );
+    sigmaOldsqr+=model_.hprime(Filter::rho(vuOld))*Filter::sigma( vuOld , ii )*Filter::sigma( vuOld , ii );
 
   }
 
@@ -353,7 +353,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
     //   Filter::sigma( avu, ii )*=deltaInv;
  
-    Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-Filter::sigma(vuMid, ii)*Filter::rho(vuMid);
+    Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-model_.h(Filter::rho(vuMid))*Filter::sigma(vuMid, ii);
   }
   //------------------------------------------------------------------        
 
@@ -377,11 +377,12 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
 template<class DiscreteFunction, class Model, class Flux>
+template<class IntersectionQuad>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::intersectionIntegral( const IntersectionType& intersection,
     const size_t pt,  
-    const FaceQuadratureType& quadInside,
-    const FaceQuadratureType& quadOutside,
+    const IntersectionQuad& quadInside,
+    const IntersectionQuad& quadOutside,
     const RangeType& vuEn,
     const RangeType& vuNb, 
     const JacobianRangeType& duEn,

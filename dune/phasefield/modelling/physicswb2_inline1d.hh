@@ -207,8 +207,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		const double v = u[1]*rho_inv;
     
     f[0][0] = u[1];
-    f[1][0] =v*u[1];
-    f[2][0] = 0;
+    f[1][0] = v*u[1];
+    f[2][0] =0.;
   }
 
   template< class Thermodynamics > 
@@ -265,6 +265,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     
     return 0.4*deltaInv()*deltaInv(); 
   }
+  
   template< class Thermodynamics >
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1 ,Thermodynamics >
@@ -279,6 +280,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		diff[1][0]=muLoc*dxv;
   	diff[2][0]=0.;
   }
+  
   template<class Thermodynamics>
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1, Thermodynamics>
@@ -290,9 +292,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	 diff[0][0]=0.;
    diff[1][0]=-delta()*du[2][0];
 
-
-
   }
+
   template< class Thermodynamics >
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1 ,Thermodynamics >
@@ -302,10 +303,11 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   {
      diffusion(u,du,diff); 
   }
+  
   template<class Thermodynamics>
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1, Thermodynamics>
-::boundaryallenCahn( const RangeType& u,
+  ::boundaryallenCahn( const RangeType& u,
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
@@ -324,7 +326,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   double u_normal=(u[1]*n[0])/u[0];
   double c=thermoDynamics_.a(u[0],u[2]);
 //  std::cout<<"physics maxSpeed"<< std::abs(u_normal) <<std::endl;
-  return std::abs(u_normal);
+  return std::abs(u_normal)+c;
 //    return std::abs(thermoDynamics_.velo());
 
  } 
