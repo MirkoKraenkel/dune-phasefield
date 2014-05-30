@@ -28,6 +28,7 @@ public:
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
     {
+      std::cout<<"MixedFlux\n";
     }
 
 
@@ -83,6 +84,8 @@ double MixedFlux<Model>
     RangeType midEn ;
 
     midEn=vuMidEn;
+
+    gLeft=0.;
 
     double vNormalEn(0.);
 
@@ -152,9 +155,13 @@ double MixedFlux<Model>
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn,midNb,jump,mean,jumpOld;
+    RangeType valEn,valNb,midEn,midNb,jump,mean,jumpOld;
       valEn=vuEn;
       valNb=vuNb;
+     
+      gLeft=0.;
+      gRight=0.;
+
 
       midEn=vuEnMid;
       midNb=vuNbMid;
@@ -224,7 +231,7 @@ double MixedFlux<Model>
       //tau-------------------------------------------------------------
       Filter::tau(gLeft)-=model_.delta()*laplaceFlux;
       Filter::tau(gRight)=Filter::tau( gLeft );
-      
+     
       //----------------------------------------------------------------
 
       //sigma-----------------------------------------------------------
@@ -237,7 +244,7 @@ double MixedFlux<Model>
   
         } 
       //----------------------------------------------------------------
-      return 0.;
+    return 0.;
   }
 
 template< class Model >
