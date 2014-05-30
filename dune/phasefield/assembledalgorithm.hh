@@ -583,8 +583,7 @@ public:
   inline double error(TimeProviderType& timeProvider, DiscreteFunctionType& u)
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
-		int component=1;
-    Fem::L2Norm< GridPartType > l2norm(gridPart_, component);
+    Fem::L2Norm< GridPartType > l2norm(gridPart_);
     
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     
