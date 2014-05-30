@@ -10,7 +10,7 @@
 
 #include "mixedoperator.hh"
 #include "phasefieldfilter.hh"
-#include "jacobianflux.hh"
+#include "fluxes/jacobianflux.hh"
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian>
 class PhasefieldJacobianOperator
