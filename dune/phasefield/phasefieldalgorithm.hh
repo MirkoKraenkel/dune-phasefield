@@ -379,8 +379,8 @@ public:
 
       double kineticEnergy;
       
-      double chemicalEnergy; 
 #if WELLBALANCED    
+      double chemicalEnergy; 
       double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy);
       str<<std::setprecision(20)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
 #else

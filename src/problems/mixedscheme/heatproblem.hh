@@ -128,7 +128,6 @@ inline void HeatProblem<GridType,RangeProvider>
   double cost=cos(M_PI*t);
   double cosx=cos(2*M_PI*x);
   double sinx=sin(2*M_PI*x);
-  double sint=sin(M_PI*t); 
     
   double rho=rho_;
    //double v=sinx*cost;
@@ -175,7 +174,8 @@ inline void HeatProblem<GridType,RangeProvider>
     {
 #if NONCONTRANS
 #else
-      res[1]*=res[0];
+   //   res[1]*=res[0];
+      res[2]*=res[0];
 #endif
     }
 #elif SCHEME==FEM

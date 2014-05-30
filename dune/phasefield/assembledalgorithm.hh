@@ -45,7 +45,7 @@
 #include <dune/fem/solver/newtoninverseoperator.hh>
 
 
-#include <dune/fem/adaptation/estimator2.hh>
+#include <dune/fem/adaptation/mixedestimator.hh>
 #include <dune/phasefield/util/cons2prim.hh>
 #include <dune/fem/operator/assembled/boundary.hh>
 namespace Dune{
@@ -129,16 +129,18 @@ public:
 	//typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType*,DiscreteThetaType* > IOTupleType; 
   //Pointers for (rho, v,phi),(totalenergy)
   typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*> IOTupleType; 
-	
+
   // type of data 
   // writer 
-  typedef Dune::Fem::DataWriter< GridType, IOTupleType >    DataWriterType;
+  typedef Dune::Fem::DataOutput< GridType, IOTupleType >    DataWriterType;
+  typedef Dune::Fem::CheckPointer< GridType >   CheckPointerType;
+
 
 	// type of ime provider organizing time for time loops 
 	typedef Dune::Fem::GridTimeProvider< GridType >                 TimeProviderType;
 
   typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
-  typedef Estimator1<DiscreteFunctionType> EstimatorType;
+  typedef MixedEstimator<DiscreteFunctionType> EstimatorType;
 	typedef typename Dune::Fem::LagrangeDiscreteFunctionSpace< FunctionSpaceType, LagrangeGridPartType, 2> InterpolationSpaceType;
   typedef typename Dune::Fem::AdaptiveDiscreteFunction< InterpolationSpaceType > InterpolationFunctionType;
 
@@ -207,7 +209,6 @@ public:
     overallTimer_(),
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
-		//     adaptationParameters_( ),
 #if DGSCHEME
    	dgOperator_(*model_,space(),numericalFlux_),
     boundaryCorrection_(*model_,space()),
@@ -271,12 +272,12 @@ public:
     return *model_;
   }
 
-	virtual void initializeStep(TimeProviderType& tp)
+	virtual void initializeStep(TimeProviderType& timeprovider)
 	{
 		DiscreteFunctionType& U = solution();
 		DiscreteFunctionType& Uold = oldsolution();
     //Create OdeSolver if necessary
-#if SCHEME==DG   
+    
     if( interpolateInitialData_ )
       {
         LagrangeGridPartType lagGridPart(grid_); 
@@ -288,29 +289,25 @@ public:
       }
      else 
       {   
-       Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), U);
+       Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(timeprovider.time()), U);
       }
-#else
-#warning "FEMSCHEME" 
-       Dune::Fem::LagrangeInterpolation<InitialDataType,DiscreteFunctionType>::interpolateFunction( problem(),U);
-#endif    
-//     boundaryCorrection_(U);
+
+     //     boundaryCorrection_(U);
      Uold.assign(U); 
   }
 
-  void step(TimeProviderType& tp,
+  void step(TimeProviderType& timeProvider,
 						int& newton_iterations,
 						int& ils_iterations,
 						int& max_newton_iterations,
 						int& max_ils_iterations)
 	{
-    const double time=tp.time();
-    const double deltaT=tp.deltaT();
+    const double time=timeProvider.time();
+    const double deltaT=timeProvider.deltaT();
     
     DiscreteFunctionType& Uold=oldsolution();
     DiscreteFunctionType& U=solution();
     // to visualize exact solution
-//    Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(tp.time()), Uold);
 
     dgOperator_.setPreviousTimeStep(Uold);
     dgOperator_.setTime(time);
@@ -320,16 +317,15 @@ public:
     start_.clear();
    
     invOp(start_,U);
-//    boundaryCorrection_(U);
+    //    boundaryCorrection_(U);
+    
     // reset overall timer
     overallTimer_.reset(); 
      
-#if 1   
 		newton_iterations     = invOp.iterations();
     ils_iterations        = invOp.linearIterations();;
     max_newton_iterations = std::max(max_newton_iterations,newton_iterations);
     max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
-#endif
 	}
 	
 	//! estimate and mark solution 
@@ -339,8 +335,9 @@ public:
     estimator.estimateAndMark(tolerance_);
     am.adapt();
   }
+
   template<class Stream>
-  void writeEnergy( TimeProviderType& tp,
+  void writeEnergy( TimeProviderType& timeProvider,
                     Stream& str)
   {
     //DiscreteSigmaType* gradient = sigma();
@@ -351,7 +348,7 @@ public:
       double chemicalEnergy; 
       
       double energyIntegral =energyconverter(solution(),model(),*totalenergy,kineticEnergy,chemicalEnergy);
-      str<<std::setprecision(10)<<tp.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
+      str<<std::setprecision(10)<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
 
     }
   
@@ -359,7 +356,7 @@ public:
   
   //! write data, if pointer to additionalVariables is true, they are calculated first 
   void writeData( DataWriterType& eocDataOutput,
-									TimeProviderType& tp,
+									TimeProviderType& timeProvider,
                   const bool reallyWrite )
 	{
     if( reallyWrite )
@@ -367,7 +364,7 @@ public:
 	   //setup additionals variables if needed			 
     }
 	// write the data 
-		eocDataOutput.write( tp );
+		eocDataOutput.write( timeProvider );
 	}
 	
 	
@@ -409,12 +406,15 @@ public:
     max_ils_iterations = 0;max_ils_iterations = 0;  
     
     //Initialize Tp
-    TimeProviderType tp(startTime, grid_ ); 
+    TimeProviderType timeProvider(startTime, grid_ ); 
+
+    CheckPointerType checkPointer( grid_ , timeProvider );
+
 
  		DiscreteFunctionType& U = solution();
     DiscreteFunctionType& Uold = oldsolution(); 
 
- 
+    Dune::Fem::persistenceManager << solution(); 
     RestrictionProlongationType rp( U );
     
 		rp.setFatherChildWeight( Dune::DGFGridInfo<GridType> :: refineWeight() );
@@ -422,9 +422,8 @@ public:
 		// create adaptation manager 
     AdaptationManagerType adaptManager(grid_,rp);
 		
+
     // restoreData if checkpointing is enabled (default is disabled)
-		//restoreFromCheckPoint( tp );
-		
 		// tuple with additionalVariables 
 	  IOTupleType dataTuple( &solution() , &oldsolution() , this->energy());
 	
@@ -438,67 +437,75 @@ public:
 
 	
 		// type of the data writer
-		DataWriterType eocDataOutput( grid_, dataTuple, tp, EocDataOutputParameters( loop_ , dataPrefix() ) );
-		
-  	// set initial data (and create ode solver)
-		initializeStep( tp );
+		DataWriterType eocDataOutput( grid_, 
+                                  dataTuple, 
+                                  timeProvider, 
+                                  EocDataOutputParameters( loop_ , dataPrefix() ) );
+	  bool restart = Dune::Fem::Parameter::getValue<bool>("phasefield.restart",false);
  
- 		// start first time step with prescribed fixed time step 
-		// if it is not 0 otherwise use the internal estimate
-		
-	
-		// adapt the grid to the initial data
-		int startCount = 0;
-		if( adaptCount > 0 )
+    if(!restart)
     {
-      while( startCount < maxAdaptationLevel )
+    	// set initial data (and create ode solver)
+    	initializeStep( timeProvider );
+	
+  		// adapt the grid to the initial data
+	  	int startCount = 0;
+		  
+      if( adaptCount > 0 )
+      {
+        while( startCount < maxAdaptationLevel )
 				{
 					estimateMarkAdapt( adaptManager );
 					
-					initializeStep( tp );
+					initializeStep( timeProvider );
 
 					if( verbose )
 						std::cout << "start: " << startCount << " grid size: " << space().size()<<std::endl;
           ++startCount;
-				
         }
+      }
+    
+      timeProvider.provideTimeStepEstimate(1e-10);
+    	// start first time step with prescribed fixed time step 
+	    // if it is not 0 otherwise use the internal estimate
+			if ( fixedTimeStep_ > 1e-20 )
+			  timeProvider.init( fixedTimeStep_ );
+		  else
+			  timeProvider.init();
+
+      timeProvider.provideTimeStepEstimate(maxTimeStep);                                         
+
+  		writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
-    tp.provideTimeStepEstimate(1e-10);
-		if ( fixedTimeStep_ > 1e-20 )
-			tp.init( fixedTimeStep_ );
-		else
-			tp.init();
-		
-
-    tp.provideTimeStepEstimate(maxTimeStep);                                         
-		
-
-		writeData( eocDataOutput, tp, eocDataOutput.willWrite( tp ) );
-
+    else
+    {
+      std::cout<<"restart!!!!!!!!!!!\n";
+      checkPointer.restoreData( grid_, "checkpoint" ); 
+    }
+    
     if(calcresidual_)
     {
-     
       double scale=Dune::Fem::Parameter::getValue<double>("debug.scale",1);
       Uold.clear();
-      dgOperator_.setTime(tp.time());
-      dgOperator_.setDeltaT(tp.deltaT());
+      dgOperator_.setTime(timeProvider.time());
+      dgOperator_.setDeltaT(timeProvider.deltaT());
       dgOperator_.setPreviousTimeStep(U);
       U*=scale;
       dgOperator_(U,Uold);
       Uold.print(std::cout); 
       U.assign(Uold);
       Uold.assign( dgOperator_.getPreviousTimeStep());
-      writeData(eocDataOutput ,tp , eocDataOutput.willWrite( tp ));
+      writeData(eocDataOutput ,timeProvider , eocDataOutput.willWrite( timeProvider ));
     }
     else
-    for( ; tp.time() < endTime && tp.timeStep() < maximalTimeSteps /* && timeStepError > timeStepTolerance_*/;  )   
+    for( ; timeProvider.time() < endTime && timeProvider.timeStep() < maximalTimeSteps ;  )   
 		{ 
-			tp.provideTimeStepEstimate(maxTimeStep);                                         
-			const double tnow  = tp.time();
-			const double ldt   = tp.deltaT();
+			timeProvider.provideTimeStepEstimate(maxTimeStep);                                         
+			const double tnow  = timeProvider.time();
+			const double ldt   = timeProvider.deltaT();
       int newton_iterations;
       int ils_iterations; 
-      counter  = tp.timeStep();
+      counter  = timeProvider.timeStep();
 					
 			Dune::FemTimer::start(timeStepTimer_);
 			
@@ -506,7 +513,7 @@ public:
 			if( (adaptCount > 0) && (counter % adaptCount) == 0 )
 					estimateMarkAdapt( adaptManager );
 		
-			step( tp, newton_iterations, ils_iterations, 
+			step( timeProvider, newton_iterations, ils_iterations, 
             max_newton_iterations, max_ils_iterations);
 		  
       
@@ -514,7 +521,7 @@ public:
 			if (! U.dofsValid()) 
 			{
   			std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
-	   		eocDataOutput.write(tp);
+	   		eocDataOutput.write(timeProvider);
         energyfile.close();
         abort();
 			}
@@ -522,49 +529,48 @@ public:
       double timeStepEstimate=0.;//dgOperator_.timeStepEstimate();	
      if( (printCount > 0) && (counter % printCount == 0))
 			{
-
-       // if( grid_.comm().rank() == 0 )
-        {
-          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
- 
+        if( grid_.comm().rank() == 0 )
+          {
+            std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
+#if 0
             {
               timeStepError=stepError(U,Uold);	
               std::cout<< " ,Error between timesteps="<< timeStepError;
               std::cout<<std::endl;
             }   
-        }
-         writeEnergy( tp , energyfile);
-
-
+#endif
+          }
+         
+        writeEnergy( timeProvider , energyfile);
      }
 
 
-		writeData( eocDataOutput , tp , eocDataOutput.willWrite( tp ) );
-  	writeCheckPoint( tp, adaptManager );
+    writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
+    checkPointer.write(timeProvider);
     Uold.assign(U);
-      //statistics
-      mindt = (ldt<mindt) ? ldt : mindt;
-      maxdt = (ldt>maxdt) ? ldt : maxdt;
-      averagedt += ldt;
-      total_newton_iterations+=newton_iterations;
-      total_ils_iterations+=ils_iterations;
+    //statistics
+    mindt = (ldt<mindt) ? ldt : mindt;
+    maxdt = (ldt>maxdt) ? ldt : maxdt;
+    averagedt += ldt;
+    total_newton_iterations+=newton_iterations;
+    total_ils_iterations+=ils_iterations;
   
-			// next time step is prescribed by fixedTimeStep
-			// it fixedTimeStep is not 0
-			if ( fixedTimeStep_ > 1e-20 )
-				tp.next( fixedTimeStep_ );
-			else
-      {	tp.next(); abort();}
-		  }		/*end of timeloop*/
-	 //Uold.clear();	
+    // next time step is prescribed by fixedTimeStep
+    // it fixedTimeStep is not 0
+    if ( fixedTimeStep_ > 1e-20 )
+      timeProvider.next( fixedTimeStep_ );
+    else
+      timeProvider.next(); 
+  
+    }		/*end of timeloop*/
+    
     // write last time step  
-		writeData( eocDataOutput, tp, true );
+		writeData( eocDataOutput, timeProvider, true );
 
     energyfile.close();
-	  averagedt /= double(tp.timeStep());
+	  averagedt /= double(timeProvider.timeStep());
 	
-	
-		finalizeStep( tp );                                  
+		finalizeStep( timeProvider );                                  
     
 		++loop_;
 	
@@ -572,44 +578,43 @@ public:
 		fixedTimeStep_ /= fixedTimeStepEocLoopFactor_; 
 	}
 	
-  inline double error(TimeProviderType& tp, DiscreteFunctionType& u)
+  inline double error(TimeProviderType& timeProvider, DiscreteFunctionType& u)
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 		int component=1;
     Fem::L2Norm< GridPartType > l2norm(gridPart_, component);
     
-    double error = l2norm.distance(problem().fixedTimeFunction(tp.time()),u);
+    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     
     return error;
 	}
+  
   //compute Error between old and NewTimeStep
   inline double stepError(DiscreteFunctionType uOld, DiscreteFunctionType& uNew)
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 		Fem::L2Norm<GridPartType> l2norm(gridPart_);
 	  return l2norm.distance(uOld, uNew);
-
 	}
 
-
-	virtual void finalizeStep(TimeProviderType& tp)
+	virtual void finalizeStep(TimeProviderType& timeProvider)
 	{ 
 		DiscreteFunctionType& u = solution();
-		bool doFemEoc = problem().calculateEOC( tp, u, eocId_ );
+		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ );
 
 		// ... and print the statistics out to a file
 		if( doFemEoc )
-			Fem::FemEoc::setErrors(eocId_, error(tp, u));
+			Fem::FemEoc::setErrors(eocId_, error(timeProvider, u));
 	
 		delete adaptationHandler_;
 		adaptationHandler_ = 0;
 	}
 
 	//! restore all data from check point (overload to do something)
-	virtual void restoreFromCheckPoint(TimeProviderType& tp) {} 
+	virtual void restoreFromCheckPoint(TimeProviderType& timeProvider) {} 
 
 	//! write a check point (overload to do something)
-	virtual void writeCheckPoint(TimeProviderType& tp,
+	virtual void writeCheckPoint(TimeProviderType& timeProvider,
 															 AdaptationManagerType& am ) const {}
 
 	virtual DiscreteFunctionType& solution() { return solution_; }
@@ -623,11 +628,9 @@ public:
 	
     if( eocLoopData_ == 0 ) 
 			{
-			
-       eocDataTup_ = IOTupleType( &U , &oldsolution() , totalenergy ); 
+       eocDataTup_ = IOTupleType( &U , nullptr , totalenergy ); 
         //eocDataTup_ = IOTupleType( & U,sig ); 
-        eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
-			
+       eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
       }
 
 			{

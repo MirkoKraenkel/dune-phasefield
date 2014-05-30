@@ -29,7 +29,6 @@ class LocalFDOperator
   typedef typename MyOperatorType::ModelType ModelType;
   typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
   typedef typename MyOperatorType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
-  //typedef typename MyOperatorType::BasisFunctionSetType BasisFunctionSetType;
   typedef typename MyOperatorType::RangeType RangeType;
   typedef typename MyOperatorType::RangeFieldType RangeFieldType;
   typedef typename MyOperatorType::JacobianRangeType JacobianRangeType;
@@ -42,6 +41,8 @@ class LocalFDOperator
   typedef typename MyOperatorType::LocalFunctionType LocalFunctionType;
   typedef typename MyOperatorType::QuadratureType QuadratureType;
   typedef typename MyOperatorType::FaceQuadratureType FaceQuadratureType;
+  typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
+
 
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalFunctionType;
   typedef typename MyOperatorType::GridPartType GridPartType;
@@ -69,22 +70,95 @@ class LocalFDOperator
   using MyOperatorType::getPreviousTimeStep; 
   using MyOperatorType::space;
   using MyOperatorType::space_;
+
+
   typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
 
 
   void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
-
-  
+  template< class LocalMatrixImp >
+    void computeEntity( const EntityType &entity, const LocalFunctionType &uLocal,const BasisFunctionSetType &baseSet,LocalMatrixImp &jLocal) const;
 
   private:
-
   const IndexSetType& indexSet_;
   mutable Dune::Fem::MutableArray<bool> visited_;
   StencilType stencil_;
-  double epsilon_;
+  mutable double epsilon_;
+  mutable  std::vector< RangeType> phi_; 
+  mutable  std::vector< JacobianRangeType > dphi_;
+  mutable std::vector< RangeType > phiNb_;
+  mutable std::vector< JacobianRangeType > dphiNb_;
+
+
+
+
+
 };
+template<class DiscreteFunction,class Model, class Flux, class Jacobian>
+template<class LocalMatrixImp>
+void LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
+::computeEntity( const EntityType &entity, const LocalFunctionType &uLocal, const BasisFunctionSetType& baseSet, LocalMatrixImp &jLocal ) const
+{
+  const unsigned int numBasisFunctions = baseSet.size();
+  const GeometryType geometry = entity.geometry();
 
 
+
+  double epsInv=1./epsilon_;
+
+  QuadratureType quadrature( entity, 2*uLocal.order() );
+  const size_t numQuadraturePoints = quadrature.nop();
+
+  std::vector<RangeType> uValues(numQuadraturePoints);
+  std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
+
+  uLocal.evaluateQuadrature(quadrature, uValues);
+  uLocal.evaluateQuadrature(quadrature,uJacobians);
+  phi_.resize(baseSet.size());  
+  dphi_.resize(baseSet.size());
+
+  for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+  {
+    baseSet.evaluateAll( quadrature[ pt ], phi_);
+    baseSet.jacobianAll( quadrature[ pt ], dphi_);
+
+    RangeType vu(0.) , fu(0.);
+    JacobianRangeType dvu{0.} , fdu{0.};
+
+
+    localIntegral( pt,
+        geometry,
+        quadrature,
+        uValues[pt],
+        uJacobians[pt],
+        fu,
+        fdu);
+
+    for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
+    {
+      RangeType ueps , fueps(0.);
+      JacobianRangeType dueps{0.} , fdueps{0.};
+      ueps=uValues[pt];
+      ueps.axpy( epsilon_ , phi_[ jj ] );
+      dueps=uJacobians[pt];
+      dueps.axpy( epsilon_ , dphi_[ jj ] );
+
+      localIntegral(pt,
+          geometry,
+          quadrature,
+          ueps,
+          dueps,
+          fueps,
+          fdueps);
+
+      fueps-=fu;
+      fueps*=epsInv;
+      fdueps-=fdu;
+      fdueps*=epsInv;
+      jLocal.column( jj ).axpy( phi_ , dphi_ , fueps , fdueps );
+    }
+  }
+}
 // Implementation of LocalFDOperator
 // // ------------------------------------------------
 
@@ -93,140 +167,110 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 ::jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const
 {
   typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
-  typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
-
   Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil(space(),space());
 
   jOp.reserve(stencil);
 
   RangeFieldType normU=std::sqrt(u.scalarProductDofs(u));
   jOp.clear();
+  //  visited_.resize( indexSet_.size(0));
+  // const size_t indSize = visited_.size();
+  //  for( size_t ii = 0; i<indSize; ++i) visited_[i] = false;
   visited_.resize( indexSet_.size(0));
   const size_t indSize = visited_.size();
   for( size_t ii = 0; ii < indSize; ++ii) visited_[ii] = false;
 
-  RangeFieldType eps =epsilon_;
 
-  if( eps <= RangeFieldType( 0 ) )
+
+
+  if( epsilon_ <= RangeFieldType( 0 ) )
   {
     const RangeFieldType machine_eps = std::numeric_limits< RangeFieldType >::epsilon();
 
-    eps = std::sqrt( (RangeFieldType( 1 ) + normU) * machine_eps  );
+    epsilon_ = std::sqrt( (RangeFieldType( 1 ) + normU) * machine_eps  );
   }
 
+
+  double epsInv=1./epsilon_;
   const DiscreteFunctionSpaceType &dfSpace = u.space();
   const GridPartType& gridPart = dfSpace.gridPart();
 
-  const unsigned int numDofs = dfSpace.blockMapper().maxNumDofs() * 
-    DiscreteFunctionSpaceType :: localBlockSize ;
-
-  std::vector< RangeType> phi( numDofs ); 
-  std::vector< JacobianRangeType > dphi( numDofs );
-
-  std::vector< RangeType > phiNb( numDofs );
-  std::vector< JacobianRangeType > dphiNb( numDofs );
-  std::vector<RangeType> uValues;
-  std::vector<JacobianRangeType> uJacobians;
+  typedef typename GridPartType :: template Codim < 0 >::
+    template Partition< All_Partition > :: IteratorType AllIteratorType;
 
 
-  const IteratorType end = dfSpace.end();
-  for( IteratorType it = dfSpace.begin(); it != end; ++it )
+  AllIteratorType it    = dfSpace.gridPart().template begin< 0, All_Partition > ();
+  AllIteratorType end   = dfSpace.gridPart().template end< 0, All_Partition > ();
+
+  //  const unsigned int numDofs = dfSpace.blockMapper().maxNumDofs() * 
+  //  DiscreteFunctionSpaceType :: localBlockSize ;
+
+  //    for(; it!=end; ++it)
+  //  const IteratorType end = dfSpace.end();
+  // for( IteratorType it = dfSpace.begin(); it != end; ++it )
+  for(; it!=end; ++it)
   {
     const EntityType &entity = *it;
-    const GeometryType geometry = entity.geometry();
-
     const LocalFunctionType uLocal = u.localFunction( entity );
 
     setEntity( entity );
-
+ //   std::cout<<"EntityIndex="<<indexSet_.index(entity)<<"\n";
+  //  std::cout<<"PartitionType="<<entity.partitionType()<<"\n";
     LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
+
     const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
-    const unsigned int numBasisFunctions = baseSet.size();
 
-
-    double epsInv=1./eps;
-
-    QuadratureType quadrature( entity, 2*dfSpace.order() );
-    const size_t numQuadraturePoints = quadrature.nop();
-
-    uValues.resize(numQuadraturePoints);
-    uJacobians.resize(numQuadraturePoints);
-    // std::vector<RangeType> uValues(numQuadraturePoints);
-    // std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
-
-
-    uLocal.evaluateQuadrature(quadrature, uValues);
-    uLocal.evaluateQuadrature(quadrature,uJacobians);
-
-    for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
+    //    if(entity.partitionType()!=InteriorEntity)
     {
-      baseSet.evaluateAll( quadrature[ pt ], phi);
-      baseSet.jacobianAll( quadrature[ pt ], dphi);
-
-      RangeType vu{0.} , fu{0.};
-      JacobianRangeType dvu{0.} , fdu{0.};
-
-      //  uLocal.evaluate( quadrature[ pt ], vu);
-      //   uLocal.jacobian( quadrature[ pt ], dvu);
-      localIntegral(pt,
-          geometry,
-          quadrature,
-          uValues[pt],
-          uJacobians[pt],
-          fu,
-          fdu);
-      for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
-      {
-        RangeType ueps{0.} , fueps{0.};
-        JacobianRangeType dueps{0.} , fdueps{0.};
-        ueps=uValues[pt];
-        ueps.axpy( eps , phi[ jj ] );
-        dueps=uJacobians[pt];
-        dueps.axpy( eps , dphi[ jj ] );
-
-        localIntegral(pt,
-            geometry,
-            quadrature,
-            ueps,
-            dueps,
-            fueps,
-            fdueps);
-        fueps-=fu;
-        fueps*=epsInv;
-        fdueps-=fdu;
-        fdueps*=epsInv;
-
-        jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps );
-      }
-    } 
-
-
+      computeEntity( entity,
+          uLocal,
+          baseSet,
+          jLocal);
+    }
     if ( space().continuous() )
       continue;
+
     const IntersectionIteratorType endiit = gridPart.iend( entity );
     for ( IntersectionIteratorType iit = gridPart.ibegin( entity );
         iit != endiit ; ++ iit )
     {
+      const unsigned int numBasisFunctions = baseSet.size();
+
       const IntersectionType& intersection = *iit ;
 
       if( intersection.neighbor() )
       {
         EntityPointerType ep = intersection.outside();
         const EntityType& neighbor = *ep ;
-        if( ! visited_[indexSet_.index( neighbor )])
-        {
+    //    std::cout<<"NeighborIndex="<<indexSet_.index(neighbor)<<"\n";
+
+        if(!visited_[indexSet_.index(neighbor)])
+        { 
           setNeighbor( neighbor );
           typedef typename IntersectionType::Geometry  IntersectionGeometryType;
           //const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
           // get local matrix for face entries 
-          LocalMatrixType jLocalNbEn = jOp.localMatrix( neighbor,entity );
+          LocalMatrixType jLocalNb = jOp.localMatrix( neighbor,entity );
+
+
+          const LocalFunctionType uLocalNb = u.localFunction(neighbor);
           LocalMatrixType jLocalEnNb = jOp.localMatrix( entity, neighbor );
           LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor); 
-          const LocalFunctionType uLocalNb = u.localFunction(neighbor);
+
           // get neighbor's base function set 
-          const BasisFunctionSetType &baseSetNb = jLocalNbEn.domainBasisFunctionSet();
+          const BasisFunctionSetType &baseSetNb = jLocalNb.domainBasisFunctionSet();
           //   const unsigned int numBasisFunctionsNb = baseSetNb.size();
+
+          if( neighbor.partitionType()!=InteriorEntity)
+          {
+         //   std::cout<<"Neighbor is not Interior\n";
+            // LocalMatrixType jNbNb=jOp.localMatrix( neighbor,neighbor);
+            // computeEntity(neighbor,uLocalNb,baseSetNb,jNbNb);
+          }
+
+
+
 
           const int quadOrderEn = 2*uLocal.order();
           const int quadOrderNb = 2*uLocalNb.order();
@@ -249,20 +293,21 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
           {
-            RangeType   avuLeft{0.} , avuRight{0.};
-            JacobianRangeType aduLeft{0.} , aduRight{0.};
+            RangeType   avuLeft(0.),avuRight(0.);
+            JacobianRangeType aduLeft{0.},aduRight{0.};
+            const double weight=quadInside.weight( pt ); 
+            const double weightOutside=quadOutside.weight(pt);
 
-            baseSet.evaluateAll( quadInside[ pt ] , phi);
-            baseSet.jacobianAll( quadInside[ pt ] , dphi);
+            phi_.resize(baseSet.size());
+            dphi_.resize(baseSet.size());
 
-            baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
-            baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
-            const double weightInside = quadInside.weight( pt );
-            const double weightOutside= quadOutside.weight( pt );
-            
-            avuLeft=0.;
-            avuRight=0.;
+            baseSet.evaluateAll( quadInside[ pt ] , phi_);
+            baseSet.jacobianAll( quadInside[ pt ] , dphi_);
 
+            phiNb_.resize(baseSetNb.size());
+            dphiNb_.resize(baseSetNb.size());
+            baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb_ );
+            baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb_ );
             intersectionIntegral( intersection,                  
                 pt, 
                 quadInside,   
@@ -278,22 +323,19 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
             for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
             {
-              RangeType ueps,uepsNb;
-              RangeType fuepsLeft{0.}, fuepsRight{0.};
-              RangeType fuepsNbLeft{0.},  fuepsNbRight{0.};
-              JacobianRangeType dueps{0.} , fduepsLeft{0.} ,  fduepsRight{0.} ,duepsNb{0.} , fduepsNbLeft{0.},fduepsNbRight{0.};;
-          
-              
-              
-              
+              RangeType ueps,fueps(0.),fuepsRight(0.), uepsNb , fuepsNb(0.),fuepsNbRight(0.);
+              JacobianRangeType dueps{0.} , fdueps{0.} ,fduepsRight{0.}, duepsNb{0.} , fduepsNb{0.},fduepsNbRight{0.};
+
               ueps=vuEn[pt];
-              ueps.axpy( eps , phi[ jj ] );
+              ueps.axpy( epsilon_ , phi_[ jj ] );
               dueps=duEn[pt];
-              dueps.axpy( eps, dphi[ jj ] );
+              dueps.axpy( epsilon_, dphi_[ jj ] );
+
               uepsNb=vuNb[pt];
-              uepsNb.axpy( eps , phiNb[ jj ] );
+              uepsNb.axpy( epsilon_ , phiNb_[ jj ] );
               duepsNb=duNb[pt];
-              duepsNb.axpy( eps, dphiNb[ jj ] );
+              duepsNb.axpy( epsilon_, dphiNb_[ jj ] );
+
               intersectionIntegral( intersection,
                   pt,
                   quadInside,
@@ -302,12 +344,10 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
                   vuNb[pt],
                   dueps,
                   duNb[pt],
-                  fuepsLeft,
+                  fueps,
                   fuepsRight,
-                  fduepsLeft,
+                  fdueps,
                   fduepsRight);
-         
-
               intersectionIntegral( intersection,
                   pt,
                   quadInside,
@@ -316,45 +356,43 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
                   uepsNb,
                   duEn[pt],
                   duepsNb,
-                  fuepsNbLeft,
+                  fuepsNb,
                   fuepsNbRight,
-                  fduepsNbLeft,
+                  fduepsNb,
                   fduepsNbRight);
-         
 
-              fuepsLeft-=avuLeft;
-              fuepsLeft*=epsInv;
+              fueps-=avuLeft;
+              fueps*=epsInv;
 
-              fduepsLeft-=aduLeft;
-              fduepsLeft*=epsInv;
+              fdueps-=aduLeft;
+              fdueps*=epsInv;
 
-              fuepsNbLeft-=avuLeft;
-              fuepsNbLeft*=epsInv;
-             
-              fduepsNbLeft-=aduLeft;
-              fduepsNbLeft*=epsInv;
+              fuepsNb-=avuLeft;
+              fuepsNb*=epsInv;
+
+              fduepsNb-=aduLeft;
+              fduepsNb*=epsInv;
 
               fuepsRight-=avuRight;
               fuepsRight*=epsInv;
-              
+
               fduepsRight-=aduLeft;
               fduepsRight*=epsInv;
 
               fuepsNbRight-=avuRight;
               fuepsNbRight*=epsInv;
-              
+
               fduepsNbRight-=aduRight;
               fduepsNbRight*=epsInv;
 
-              //g(u_E+eps*phi_E,u_E)*phi_E
-              jLocal.column( jj ).axpy( phi , dphi , fuepsLeft , fduepsLeft, weightInside );
-              //g(u_E,u_Nb+eps*phi_Nb)*phi_E 
-              jLocalNbEn.column( jj ).axpy( phi, dphi, fuepsNbLeft,fduepsNbLeft, weightInside); 
+#if 1     
+              jLocal.column( jj ).axpy( phi_ , dphi_ , fueps , fdueps, weight );
+              jLocalNb.column( jj ).axpy( phi_, dphi_, fuepsNb,fduepsNb,weight); 
               //g(u_Nb+eps*phi_Nb,uNb)*phi_Nb
-              jLocalNbNb.column( jj).axpy( phiNb, dphiNb, fuepsNbRight,fduepsNbRight, weightOutside);
+              jLocalNbNb.column( jj).axpy( phiNb_, dphiNb_, fuepsNbRight,fduepsNbRight, weightOutside);
               //g(u_Nb,u_En+eps*phi_E)*phi_Nb
-              jLocalEnNb.column( jj ).axpy( phiNb, dphiNb, fuepsRight, fduepsRight, weightOutside);
-
+              jLocalEnNb.column( jj ).axpy( phiNb_, dphiNb_, fuepsRight, fduepsRight, weightOutside);
+#endif
 
             }
           }
@@ -369,14 +407,13 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          RangeType vuEn{0.},vuNb{0.},avuLeft{0.};
+          RangeType vuEn,vuNb,avuLeft(0.);
           JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.};
           uLocal.evaluate( quadInside[ pt ], vuEn);
           uLocal.jacobian( quadInside[ pt ], duEn);
 
-          baseSet.evaluateAll( quadInside[ pt ] , phi);
-          baseSet.jacobianAll( quadInside[ pt ] , dphi);
-          const double weightInside = quadInside.weight( pt );
+          baseSet.evaluateAll( quadInside[ pt ] , phi_);
+          baseSet.jacobianAll( quadInside[ pt ] , dphi_);
 
 
 
@@ -390,12 +427,12 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
-            RangeType ueps{0.},fueps{0.}, uepsNb{0.} , fuepsNb{0.};
+            RangeType ueps,fueps(0.);
             JacobianRangeType dueps{0.} , fdueps{0.} , duepsNb{0.} , fduepsNb{0.};
             ueps=vuEn;
-            ueps.axpy( eps , phi[ jj ] );
+            ueps.axpy( epsilon_ , phi_[ jj ] );
             dueps=duEn;
-            dueps.axpy( eps, dphi[ jj ] );
+            dueps.axpy( epsilon_, dphi_[ jj ] );
 
             boundaryIntegral( intersection,
                 pt,
@@ -412,7 +449,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             fdueps*=epsInv;
 
 
-            jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps, weightInside );
+            jLocal.column( jj ).axpy( phi_ , dphi_ , fueps , fdueps );
           }
         }
       }

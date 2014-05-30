@@ -509,7 +509,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                        LocalFunctionType& wLocal) const
 {
   const int quadOrderEn = uLocal.order() + wLocal.order();
-  const int quadOrderNb = uNeighbor.order() + wLocal.order();
+//  const int quadOrderNb = uNeighbor.order() + wLocal.order();
   typedef Dune::Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
   typedef typename IntersectionQuadratureType::FaceQuadratureType QuadratureImp;
 
