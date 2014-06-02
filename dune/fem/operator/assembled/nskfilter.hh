@@ -8,13 +8,7 @@ template<class Range>
 struct PhasefieldFilter
 {
 public:
-#if DGSCHEME
-  enum { dimDomain = (Range::dimension-4)/2 };
-#elif FEMSCHEME
-  enum{ dimDomain = Range::dimension-4 };
-#else
-#error "WRONG SCHEME FLAG"
-#endif
+  enum { dimDomain = (Range::dimension-2)/2 };
   typedef Dune::FieldMatrix<double,Range::dimension,dimDomain> JacobianRangeType;
   typedef typename Range::field_type RangeFieldType;
   typedef Range RangeType;
@@ -32,28 +26,17 @@ public:
     return u[i+1];
   }
 
-  static RangeFieldType& phi(RangeType& u)
+  
+  static RangeFieldType& mu( RangeType& u)
   {
     return u[dimDomain+1];
   }
   
-  static RangeFieldType& mu( RangeType& u)
-  {
-    return u[dimDomain+2];
-  }
-  
-  static RangeFieldType& tau( RangeType& u)
-  {
-    return u[dimDomain+3];
-  }
-#if FEMSCHEME 
-#elif DGSCHEME
   static RangeFieldType& sigma( RangeType& u, int i)
   {
     assert(i<dimDomain);
-    return u[dimDomain+4+i];
+    return u[dimDomain+2+i];
   }
-#endif
   static RangeFieldType& dvelocity( JacobianRangeType &du,int i,int j)
   {
     assert( i<dimDomain&& j<dimDomain);
@@ -66,46 +49,21 @@ public:
     return du[0][j];
   }
 
-  static RangeFieldType& dphi(JacobianRangeType& du,int j)
-  {
-     assert(j <dimDomain); 
-     return du[dimDomain+1][j];
   }
   
   static RangeFieldType& dmu( JacobianRangeType& du, int j)
   {
      assert(j <dimDomain);
-     return du[dimDomain+2][j];
+     return du[dimDomain+1][j];
   }
   
-  static RangeFieldType& dtau( JacobianRangeType& du,int j)
-  {   
-    assert(j <dimDomain);
-    return du[dimDomain+3][j];
-  }
-#if FEMSCHEME
-#elif DGSCHEME 
   static RangeFieldType& dsigma( JacobianRangeType& du, int i, int j)
   {
    
    assert(i<dimDomain && j<dimDomain );
-   return du[dimDomain+4+i][j];
+   return du[dimDomain+2+i][j];
   }
-#if RHOMODEL
-  static RangeFieldType& alpha( RangeType& u, int i)
-  {
-    return u[dimDomain+5+i];
-  }
-  
-  static RangeFieldType& dalpha( JacobianRangeType& du, int i, int j)
-  {
    
-   assert(i<dimDomain && j<dimDomain );
-   return du[dimDomain+5+i][j];
-  }
-#endif
-  
-#endif
 
 };
 
