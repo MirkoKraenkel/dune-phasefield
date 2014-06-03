@@ -129,7 +129,7 @@ namespace Dune
         estimateLocal(entity, uLocal );
 
         IntersectionIteratorType end = gridPart_.iend( entity );
-#if 1       
+#if 0       
         for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
          {
         
@@ -164,6 +164,7 @@ namespace Dune
     //! mark all elements due to given tolerance 
     bool mark ( const double tolerance ) const
     {
+
       int marked = 0;
       if (tolerance < 0)
       {
@@ -180,20 +181,22 @@ namespace Dune
         // get local tolerance (note: remove sqrt from error)
         // const double localTol2 = tolerance*tolerance / (double)indexSet_.size( 0 );
       	//const double localTol2=tolerance;
-      	// loop over all elements 
+      	// loop over all elements
+         
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
+      
           const ElementType &entity = *it;
+        //  std::cout<<"Indicator Criterium="<< std::abs(indicator_[indexSet_.index(entity)]-0.5) <<"\n"; 
           if(std::abs(indicator_[indexSet_.index(entity)]-0.5) < tolerance )
 	        {
-          
 	          if(entity.level()<maxLevel_)
 		        {
-                
+              std::cout<<"MARK\n";  
               grid_.mark( 1, entity );
 		         
-             
+#if 1      
               IntersectionIteratorType end = gridPart_.iend( entity );
 		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		          {
@@ -210,14 +213,14 @@ namespace Dune
 			            }
 			          }
 		          }
-
+#endif 
 	          ++marked;
 		       }
 	        }
           else if(std::abs(indicator_[indexSet_.index(entity)]-0.5) > tolerance )
 	        { 
-	          if(entity.level()>minLevel_)
-		        grid_.mark(-1,entity);
+	    //      if(entity.level()>minLevel_)
+		    //    grid_.mark(-1,entity);
 	        }
 	        else
           {
@@ -234,7 +237,8 @@ namespace Dune
     
     bool estimateAndMark(double tolerance)
     {
-    //  double esti=estimate();
+      double esti=estimate();
+      
       return mark(tolerance);
     }
     
@@ -247,30 +251,46 @@ namespace Dune
       const typename ElementType :: Geometry &geometry = entity.geometry();
 
       const double volume = geometry.volume();
-      //   double h2 = (dimension == 2 ? volume : std :: pow( volume, 2.0 / (double)dimension ));  
+     // double h2 = (dimension == 2 ? volume : std :: pow( volume, 2.0 / (double)dimension ));  
+      double h2=std::sqrt(volume);
       const int index = indexSet_.index( entity );
      
       ElementQuadratureType quad( entity, 2*(dfSpace_.order() )+1 );
       const int numQuadraturePoints = quad.nop();
+      double sigmasquared=0.;
+ 
       for( int qp = 0; qp < numQuadraturePoints; ++qp )
       {
         JacobianRangeType gradient;
 	      RangeType range;
-	
-      	uLocal.jacobian(quad[qp],gradient);
+        sigmasquared=0;	
+        double weight = quad.weight(qp) * geometry.integrationElement( quad.point( qp )) ;
+	  
+    // 	uLocal.jacobian(quad[qp],gradient);
 	      uLocal.evaluate(quad[qp],range);
-        
-	
-	      double y=range[dimension+1];
-	      y/=range[0];
+        for(int i=0 ; i<dimension; ++i)
+          sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
+	    
+        //sigmasquared*=weight;
+ 
+
+#if 0
+            double y=range[dimension+1];
+	      y/=numQuadraturePoints;
+        //i..y/=range[0];
 
 	      const DomainType global = geometry.global(quad.point(qp));
 	
-      	double weight = quad.weight(qp) * geometry.integrationElement( quad.point( qp )) ;
-	      weight/=volume;
+      weight/=volume;
 	     
-        indicator_[ index ] += weight * y;
+        indicator_[ index ] +=  y;
+#endif
       }
+
+      //L2-Norm Sigma
+      double normsigma=std::sqrt(sigmasquared);
+      indicator_[ index ]=normsigma;
+      std::cout<<"Inidcator[ "<<index<<" ]="<<indicator_[ index ]<<"\n";
     }
 
     
