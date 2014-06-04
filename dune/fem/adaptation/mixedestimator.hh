@@ -21,14 +21,14 @@
 namespace Dune
 {
                  
-  template<class UFunction>
+  template<class UFunction, class Model>
   class MixedEstimator
   {
-    typedef MixedEstimator< UFunction> ThisType;
+    typedef MixedEstimator< UFunction, Model> ThisType;
 
   public:
     typedef UFunction DiscreteFunctionType;
-
+    typedef Model ModelType;
     typedef typename DiscreteFunctionType :: DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
     typedef typename DiscreteFunctionType :: LocalFunctionType LocalFunctionType;
   
@@ -64,6 +64,7 @@ namespace Dune
     const IndexSetType &indexSet_;
     GridType &grid_;
     ErrorIndicatorType indicator_;
+    ModelType& model_;
     double totalIndicator2_,maxIndicator_;
     const double theta_;
     int maxLevel_;
@@ -72,7 +73,7 @@ namespace Dune
       // const ProblemType &problem_;
 
   public:
-    explicit MixedEstimator (const DiscreteFunctionType &uh , GridType &grid):
+    explicit MixedEstimator (const DiscreteFunctionType &uh , GridType &grid, ModelType& model):
       uh_( uh ),
       beta_(1.),
       dfSpace_( uh.space() ),
@@ -80,7 +81,8 @@ namespace Dune
 	    indexSet_( gridPart_.indexSet() ),
 	    grid_( grid ),
 	    indicator_( indexSet_.size( 0 )),
-	    totalIndicator2_(0),
+	    model_(model),
+      totalIndicator2_(0),
 	    maxIndicator_(0),
 	    theta_( Dune::Fem::Parameter::getValue("phasefield.adaptive.theta",0.) ),
 	    maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")), 
@@ -188,9 +190,10 @@ namespace Dune
         {
       
           const ElementType &entity = *it;
-        //  std::cout<<"Indicator Criterium="<< std::abs(indicator_[indexSet_.index(entity)]-0.5) <<"\n"; 
-          if(std::abs(indicator_[indexSet_.index(entity)]-0.5) < tolerance )
+         if(std::abs(indicator_[indexSet_.index(entity)]) > tolerance )
 	        {
+         std::cout<<"Indicator Criterium="<< std::abs(indicator_[indexSet_.index(entity)]) <<"tolerance="<<tolerance<<"\n"; 
+ 
 	          if(entity.level()<maxLevel_)
 		        {
               std::cout<<"MARK\n";  
@@ -289,8 +292,9 @@ namespace Dune
 
       //L2-Norm Sigma
       double normsigma=std::sqrt(sigmasquared);
-      indicator_[ index ]=normsigma;
-      std::cout<<"Inidcator[ "<<index<<" ]="<<indicator_[ index ]<<"\n";
+      indicator_[ index ]=normsigma*10*h2;
+      //if(indicator_[index]>10.)
+      //std::cout<<"Inidcator[ "<<index<<" ]="<<indicator_[ index ]<<"\n";
     }
 
     
