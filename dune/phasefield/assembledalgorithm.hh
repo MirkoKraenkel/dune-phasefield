@@ -125,10 +125,17 @@ public:
 	// type of adaptation manager 
 	typedef Dune::Fem::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
 
+  typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
+  typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
+	typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
+  typedef typename Dune::Fem::LagrangeDiscreteFunctionSpace< FunctionSpaceType, LagrangeGridPartType, 2> InterpolationSpaceType;
+  typedef typename Dune::Fem::AdaptiveDiscreteFunction< InterpolationSpaceType > InterpolationFunctionType;
+
+
 	//type of IOTuple 
 	//typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType*,DiscreteThetaType* > IOTupleType; 
   //Pointers for (rho, v,phi),(totalenergy)
-  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*> IOTupleType; 
+  typedef Dune::tuple< DiscreteFunctionType*, EstimatorDataType*, DiscreteScalarType*> IOTupleType; 
 
   // type of data 
   // writer 
@@ -138,11 +145,6 @@ public:
 
 	// type of ime provider organizing time for time loops 
 	typedef Dune::Fem::GridTimeProvider< GridType >                 TimeProviderType;
-
-  typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
-  typedef MixedEstimator<DiscreteFunctionType> EstimatorType;
-	typedef typename Dune::Fem::LagrangeDiscreteFunctionSpace< FunctionSpaceType, LagrangeGridPartType, 2> InterpolationSpaceType;
-  typedef typename Dune::Fem::AdaptiveDiscreteFunction< InterpolationSpaceType > InterpolationFunctionType;
 
   // NewtonSolver
   typedef typename Dune::Fem::NewtonInverseOperator< JacobianOperatorType, LinearSolverType > NewtonSolverType; 
@@ -168,6 +170,8 @@ private:
   ModelType*              model_;
   FluxType                numericalFlux_;
   AdaptationHandlerType*  adaptationHandler_;
+  EstimatorType           estimator_;
+  EstimatorDataType       estimatorData_;
   Timer                   overallTimer_;
   double                  odeSolve_;
   const unsigned int      eocId_;
@@ -206,6 +210,8 @@ public:
     model_( new ModelType( problem() ) ),
     numericalFlux_( *model_, Fem :: Parameter :: getValue<double>("phasefield.penalty") ),
     adaptationHandler_( 0 ),
+    estimator_(solution_,grid_,model()),
+    estimatorData_("estimator",estimator_,gridPart_,0),
     overallTimer_(),
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
@@ -331,8 +337,10 @@ public:
 	//! estimate and mark solution 
   virtual void estimateMarkAdapt( AdaptationManagerType& am )
   {
-    EstimatorType estimator( solution_,grid_ );
-    estimator.estimateAndMark(tolerance_);
+   // EstimatorType estimator( solution_,grid_,model());
+    
+    estimator_.estimateAndMark(tolerance_);
+   
     am.adapt();
   }
 
@@ -425,7 +433,7 @@ public:
 
     // restoreData if checkpointing is enabled (default is disabled)
 		// tuple with additionalVariables 
-	  IOTupleType dataTuple( &solution() , &oldsolution() , this->energy());
+	  IOTupleType dataTuple( &solution() ,&estimatorData_,  this->energy());
 	
     std::ofstream energyfile;
     std::ostringstream convert;
@@ -447,7 +455,8 @@ public:
     {
     	// set initial data (and create ode solver)
     	initializeStep( timeProvider );
-	
+	 		writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+ 
   		// adapt the grid to the initial data
 	  	int startCount = 0;
 		  
@@ -455,16 +464,25 @@ public:
       {
         while( startCount < maxAdaptationLevel )
 				{
-					estimateMarkAdapt( adaptManager );
-					
+				///	estimateMarkAdapt( adaptManager );
+		    
+          estimator_.estimateAndMark(tolerance_);
+          std::cout<<"\n\n--------WRITE-----------\n\n"; 
+          writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+ 
+   std::cout<<"\n\n--------ADAPT-----------\n\n"; 
+          adaptManager.adapt();
+ 
 					initializeStep( timeProvider );
 
 					if( verbose )
-						std::cout << "start: " << startCount << " grid size: " << space().size()<<std::endl;
+						std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<<std::endl;
           ++startCount;
+    
+            
         }
       }
-    
+   abort(); 
       timeProvider.provideTimeStepEstimate(1e-10);
     	// start first time step with prescribed fixed time step 
 	    // if it is not 0 otherwise use the internal estimate
@@ -475,7 +493,7 @@ public:
 
       timeProvider.provideTimeStepEstimate(maxTimeStep);                                         
 
-  		writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+ 		writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
     else
     {
@@ -492,10 +510,9 @@ public:
       dgOperator_.setPreviousTimeStep(U);
       U*=scale;
       dgOperator_(U,Uold);
-      Uold.print(std::cout); 
       U.assign(Uold);
       Uold.assign( dgOperator_.getPreviousTimeStep());
-      writeData(eocDataOutput ,timeProvider , eocDataOutput.willWrite( timeProvider ));
+//      writeData(eocDataOutput ,timeProvider , eocDataOutput.willWrite( timeProvider ));
     }
     else
     for( ; timeProvider.time() < endTime && timeProvider.timeStep() < maximalTimeSteps ;  )   
@@ -629,8 +646,7 @@ public:
 	
     if( eocLoopData_ == 0 ) 
 			{
-       eocDataTup_ = IOTupleType( &U , nullptr , totalenergy ); 
-        //eocDataTup_ = IOTupleType( & U,sig ); 
+       eocDataTup_ = IOTupleType( &U ,&estimatorData_,  totalenergy ); 
        eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
       }
 
