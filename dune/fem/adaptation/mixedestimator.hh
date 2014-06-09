@@ -55,7 +55,7 @@ namespace Dune
     typedef Fem::CachingQuadrature< GridPartType, 0 > ElementQuadratureType;
     typedef Fem::CachingQuadrature< GridPartType, 1 > FaceQuadratureType;
     typedef std :: vector< double > ErrorIndicatorType;
-
+    
   protected:
     const DiscreteFunctionType &uh_;
     const double &beta_;
@@ -64,16 +64,19 @@ namespace Dune
     const IndexSetType &indexSet_;
     GridType &grid_;
     ErrorIndicatorType indicator_;
-    ModelType& model_;
+    ErrorIndicatorType overshootIndicator_;
+   
+    const  ModelType& model_;
     double totalIndicator2_,maxIndicator_;
     const double theta_;
     int maxLevel_;
     int minLevel_;
     const double coarsen_;
+    const double tolfactor_;
       // const ProblemType &problem_;
 
   public:
-    explicit MixedEstimator (const DiscreteFunctionType &uh , GridType &grid, ModelType& model):
+    explicit MixedEstimator (const DiscreteFunctionType &uh , GridType &grid,const  ModelType& model):
       uh_( uh ),
       beta_(1.),
       dfSpace_( uh.space() ),
@@ -81,19 +84,21 @@ namespace Dune
 	    indexSet_( gridPart_.indexSet() ),
 	    grid_( grid ),
 	    indicator_( indexSet_.size( 0 )),
-	    model_(model),
+	    overshootIndicator_( indexSet_.size( 0 )), 
+      model_(model),
       totalIndicator2_(0),
 	    maxIndicator_(0),
 	    theta_( Dune::Fem::Parameter::getValue("phasefield.adaptive.theta",0.) ),
 	    maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")), 
 	    minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
-	    coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1))
-      {
+	    coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1)),
+      tolfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.tolfactor",1) ) 
+    {
         clear();
       }  
     
     // make this class behave as required for a LocalFunctionAdapter
-    typedef Fem::FunctionSpace< double, double, dimension, 1 > FunctionSpaceType;
+    typedef Fem::FunctionSpace< double, double, dimension, 2 > FunctionSpaceType;
     void init(const ElementType &en)
     {
       enIndex_ = indexSet_.index(en);
@@ -101,9 +106,14 @@ namespace Dune
     }
   
     template< class PointType >
-    void evaluate(const PointType& x,FieldVector<double,1> &ret)
+    void evaluate(const PointType& x,FieldVector<double,2> &ret)
     {
+    
       ret[0] = indicator_[enIndex_];
+      
+//      std::cout<<"Eval Inidcator[ "<<enIndex_<<" ]="<<indicator_[ enIndex_ ]<<"\n";
+   
+      ret[1] = overshootIndicator_[enIndex_];
     }
   private:
     const ElementType *entity_;
@@ -113,7 +123,12 @@ namespace Dune
     void clear ()
     {
       indicator_.resize( indexSet_.size( 0 ));
-      std::fill( indicator_.begin(), indicator_.end(), 0);
+      overshootIndicator_.resize( indexSet_.size( 0 ));
+      std::fill( indicator_.begin(), indicator_.end(), 0.);
+      std::fill( overshootIndicator_.begin(), overshootIndicator_.end(), 0.);
+
+    
+
     }
     
     double estimate ( )
@@ -131,7 +146,7 @@ namespace Dune
         estimateLocal(entity, uLocal );
 
         IntersectionIteratorType end = gridPart_.iend( entity );
-#if 0       
+#if 1        
         for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
          {
         
@@ -139,8 +154,8 @@ namespace Dune
             
            if( intersection.neighbor() )
              estimateIntersection( intersection, entity, uLocal );
-           else
-             estimateBoundary( intersection,entity,uLocal);
+     //      else
+  //  ..       estimateBoundary( intersection,entity,uLocal);
 
          }
 #endif
@@ -173,16 +188,17 @@ namespace Dune
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
+          
           const ElementType &entity = *it;
+          std::cout<<"Indicator[ " << indexSet_.index(entity)<<" ]="<<(indicator_[indexSet_.index(entity)])<<"\n"; 
+ 
+
            grid_.mark( 1, entity );
           ++marked;
       	}
       }
       else
       {
-        // get local tolerance (note: remove sqrt from error)
-        // const double localTol2 = tolerance*tolerance / (double)indexSet_.size( 0 );
-      	//const double localTol2=tolerance;
       	// loop over all elements
          
         const IteratorType end = dfSpace_.end();
@@ -190,16 +206,15 @@ namespace Dune
         {
       
           const ElementType &entity = *it;
-         if(std::abs(indicator_[indexSet_.index(entity)]) > tolerance )
-	        {
-         std::cout<<"Indicator Criterium="<< std::abs(indicator_[indexSet_.index(entity)]) <<"tolerance="<<tolerance<<"\n"; 
- 
+      //   if( (overshootIndicator_[indexSet_.index(entity)])<-0.1) 
+         if( std::abs(indicator_[indexSet_.index(entity)]) > tolerance)
+	       {
+      //      std::cout<<"Mark\n"; 
 	          if(entity.level()<maxLevel_)
 		        {
-              std::cout<<"MARK\n";  
               grid_.mark( 1, entity );
 		         
-#if 1      
+#if 0      
               IntersectionIteratorType end = gridPart_.iend( entity );
 		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		          {
@@ -220,10 +235,10 @@ namespace Dune
 	          ++marked;
 		       }
 	        }
-          else if(std::abs(indicator_[indexSet_.index(entity)]-0.5) > tolerance )
+          else if( indicator_[indexSet_.index(entity)] < 0.1*tolerance )
 	        { 
-	    //      if(entity.level()>minLevel_)
-		    //    grid_.mark(-1,entity);
+	       //  if(entity.level()>minLevel_)
+		       //   grid_.mark(-1,entity);
 	        }
 	        else
           {
@@ -241,8 +256,10 @@ namespace Dune
     bool estimateAndMark(double tolerance)
     {
       double esti=estimate();
-      
-      return mark(tolerance);
+      std::cout<<"----------------------\n\n";
+      std::cout<<"MaxIndicator="<<(*std::max_element(indicator_.begin(),indicator_.end()));
+       std::cout<<"\n\n----------------------\n\n";
+       return mark(tolerance);
     }
     
 
@@ -266,35 +283,19 @@ namespace Dune
       {
         JacobianRangeType gradient;
 	      RangeType range;
-        sigmasquared=0;	
         double weight = quad.weight(qp) * geometry.integrationElement( quad.point( qp )) ;
 	  
-    // 	uLocal.jacobian(quad[qp],gradient);
 	      uLocal.evaluate(quad[qp],range);
         for(int i=0 ; i<dimension; ++i)
           sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
-	    
-        //sigmasquared*=weight;
- 
 
-#if 0
-            double y=range[dimension+1];
-	      y/=numQuadraturePoints;
-        //i..y/=range[0];
-
-	      const DomainType global = geometry.global(quad.point(qp));
-	
-      weight/=volume;
-	     
-        indicator_[ index ] +=  y;
-#endif
-      }
+     }
 
       //L2-Norm Sigma
       double normsigma=std::sqrt(sigmasquared);
-      indicator_[ index ]=normsigma*10*h2;
+      indicator_[ index ]=normsigma*h2;
       //if(indicator_[index]>10.)
-      //std::cout<<"Inidcator[ "<<index<<" ]="<<indicator_[ index ]<<"\n";
+    //  std::cout<<"Inidcator[ "<<index<<" ]="<<indicator_[ index ]<<"\n";
     }
 
     
@@ -365,12 +366,11 @@ namespace Dune
       const int outsideIndex = indexSet_.index( outside );
 
       const bool isOutsideInterior = (outside.partitionType() == InteriorEntity);
-      if( !isOutsideInterior || (insideIndex < outsideIndex) )
+     if( !isOutsideInterior || (insideIndex < outsideIndex) )
       {
         const LocalFunctionType uOutside = uh_.localFunction( outside );
       
       	// const double volume = std::max( inside.geometry().volume() , outside.geometry().volume() );
-        // const double h = 2.*volume / intersection.geometry().volume();
       	const double volume = ( inside.geometry().volume() + outside.geometry().volume() );
  	      const double h = (dimension == 1 ? volume : std::pow(0.5* volume, 1.0 / (double)dimension ));
 
@@ -385,17 +385,18 @@ namespace Dune
         else 
         {
           estimateIntersection< true > ( intersection, inside, outside, quadOrder, insideIndex, outsideIndex, 
-                                         uInside, uOutside,                                       h,volume,
+                                         uInside, uOutside,
+                                         h,volume,
                                          errorInside, errorOutside);
         }
 
-        if( errorInside > 0.0 )
-	  {
-	    indicator_[ insideIndex ] +=  errorInside;
-	   
-	    if( isOutsideInterior )
-	      indicator_[ outsideIndex ] +=  errorOutside;
-	  }
+        if( errorInside < 0.0 )
+	      {
+	        overshootIndicator_[ insideIndex ] +=  errorInside;
+            
+	        if( isOutsideInterior )
+	         overshootIndicator_[ outsideIndex ] +=  errorOutside;
+	      }
       }
     }
 
@@ -449,8 +450,19 @@ namespace Dune
 	      jump=uValuesEn[qp];
 	      jump-=uValuesNb[qp];
 	  
-	      errorInside  += quadInside.weight( qp ) *1./h* (jump * jump) *integrationElement;
-	      errorOutside += quadOutside.weight( qp ) *1./h* (jump * jump) *integrationElement;
+        double sigmaNormalEn=0;
+        double sigmaNormalNb=0;
+        for(int i=0; i<dimension ; ++i)
+         { 
+           sigmaNormalEn+=PhasefieldFilter<RangeType>::sigma(uValuesEn[qp],i)*unitNormal[i];
+           sigmaNormalNb-=PhasefieldFilter<RangeType>::sigma(uValuesNb[qp],i)*unitNormal[i];
+   
+         }
+
+          
+        errorInside += quadInside.weight( qp )*sigmaNormalEn*PhasefieldFilter<RangeType>::phi( jump );
+	      errorOutside += quadOutside.weight( qp )*sigmaNormalNb*PhasefieldFilter<RangeType>::phi( jump );
+ 
 	      
 	    }
     } 
