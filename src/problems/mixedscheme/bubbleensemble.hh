@@ -51,7 +51,7 @@ public:
     pointX_(Fem::Parameter::getValue<double>("phasefield.pX")),
     pointY_(Fem::Parameter::getValue<double>("phasefield.pY")),
     bubblefilename_(Fem::Parameter::getValue<std::string>("phasefield.bubbles")),
-    bubblevector_(1),
+    bubblevector_(0),
     thermodyn_()
     {
      std::ifstream bubblefile;
@@ -61,9 +61,11 @@ public:
      bubblefile.open(filename.c_str());
      while(!bubblefile.eof())
      { 
-       getline(bubblefile, tmp,' ');
+       getline(bubblefile, tmp);
        std::cout<<tmp<<"\n";
+       
        bubblevector_.push_back(atof(tmp.c_str()));
+       std::cout<<"size="<<bubblevector_.size()<<"\n";
      }
      bubblefile.close();
     }
@@ -169,14 +171,20 @@ inline void HeatProblem<GridType,RangeProvider>
   double deltaInv=1./delta_;
   double phi; 
   double width=delta_;
-  for( int i=0 ; i<bubblevector_.size()/3 ;++i)
+  phi=0.;
+  res[dimension+4]=0.;
+  res[dimension+5]=0.;
+for( int i=0 ; i<(bubblevector_.size()-1)/3 ;++i)
   { 
 
     
   DomainType center;
   center[0]=bubblevector_[i*3];
+ 
   center[1]=bubblevector_[1+(i*3)];
   double radius=bubblevector_[2+(i*3)];
+  
+  std::cout<<"center="<<center[0]<<" "<<center[1]<<"radius="<<radius<<"\n";
   DomainType vector=center;
   vector-=arg;
   double r=vector.two_norm();
@@ -184,22 +192,25 @@ inline void HeatProblem<GridType,RangeProvider>
   double tanhr=tanh(tanr);
   double dtanr=1+tanr*tanr;
   double dtanhr=1-tanhr*tanhr; 
-  res[dimension+4]=0.;
-  res[dimension+5]=0.;
-
-  if( r< radius_-(0.5*width))
-    phi=1.;
-  else if(r > radius_+(0.5*width))
-    phi=0.;
-  else
-  {
-    phi=0.5*( tanhr )+0.5;
-    res[dimension+4]=dtanhr*dtanr*(M_PI/width)*dxr(arg);
-    res[dimension+5]=dtanhr*dtanr*(M_PI/width)*dyr(arg);
-
+  if( r < radius+(0.5*width))
+   {
+      if( r < radius-(0.5*width))
+      {
+        phi=1.;
+        continue;
+      }
+      else
+      {
+        phi=0.5*( tanhr )+0.5;
+        res[dimension+4]=dtanhr*dtanr*(M_PI/width)*dxr(arg);
+        res[dimension+5]=dtanhr*dtanr*(M_PI/width)*dyr(arg);
+         continue;
+      }
+    }
+ 
   }
       
- 
+   
 
   double rho=1.;
 
@@ -224,7 +235,7 @@ inline void HeatProblem<GridType,RangeProvider>
   res[dimension+2]=0;
   //tau
   res[dimension+3]=0;
-  }
+  
     //sigma
  }
 
