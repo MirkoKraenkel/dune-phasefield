@@ -8,13 +8,7 @@ template<class Range>
 struct PhasefieldFilter
 {
 public:
-#if DGSCHEME
   enum { dimDomain = (Range::dimension-4)/2 };
-#elif FEMSCHEME
-  enum{ dimDomain = Range::dimension-4 };
-#else
-#error "WRONG SCHEME FLAG"
-#endif
   typedef Dune::FieldMatrix<double,Range::dimension,dimDomain> JacobianRangeType;
   typedef typename Range::field_type RangeFieldType;
   typedef Range RangeType;
@@ -46,14 +40,11 @@ public:
   {
     return u[dimDomain+3];
   }
-#if FEMSCHEME 
-#elif DGSCHEME
   static RangeFieldType& sigma( RangeType& u, int i)
   {
     assert(i<dimDomain);
     return u[dimDomain+4+i];
   }
-#endif
   static RangeFieldType& dvelocity( JacobianRangeType &du,int i,int j)
   {
     assert( i<dimDomain&& j<dimDomain);
@@ -83,8 +74,6 @@ public:
     assert(j <dimDomain);
     return du[dimDomain+3][j];
   }
-#if FEMSCHEME
-#elif DGSCHEME 
   static RangeFieldType& dsigma( JacobianRangeType& du, int i, int j)
   {
    
