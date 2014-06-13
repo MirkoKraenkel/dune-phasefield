@@ -145,7 +145,7 @@ public:
     newvisc-=thetaFluxLeft;
     newvisc*=alpha1_; 
      
-//     gLeft[0]-=newvisc[0];
+   gLeft[0]-=newvisc[0];
 
    gLeft *= 0.5*len; 
    gRight = gLeft;
@@ -193,7 +193,7 @@ public:
       
       
       //[[\mu]]
-      double minusjumpMu=thetaRight[0]-thetaLeft[0];
+      double jumpMu=thetaLeft[0]-thetaRight[0];
      
       //[\phi]
       double jumpPhi=phiLeft-phiRight;
@@ -212,8 +212,8 @@ public:
     
       nonConRight=nonConLeft;
 
-      nonConLeft *=(-minusjumpMu*rhoLeft -jumpPhi*tauLeft);
-      nonConRight*=(-minusjumpMu*rhoRight-jumpPhi*tauRight);
+      nonConLeft *=(jumpMu*rhoLeft -jumpPhi*tauLeft);
+      nonConRight*=(jumpMu*rhoRight-jumpPhi*tauRight);
       
       nonConLeft[dimDomain+1]=vLeftNormal*jumpPhi; 
       nonConRight[dimDomain+1]=vRightNormal*jumpPhi;   
