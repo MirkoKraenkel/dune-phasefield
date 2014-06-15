@@ -87,7 +87,7 @@ void compute(Algorithm& algorithm)
   const int eocSteps   = Dune::Fem::Parameter::getValue<int>("phasefield.eocSteps", 1);
 #if 1
 #ifdef MIXED
- typename Algorithm::IOTupleType dataTup ( &algorithm.solution(),&algorithm.oldsolution(),nullptr);
+ typename Algorithm::IOTupleType dataTup ( &algorithm.solution(),nullptr,nullptr);
 #elif AC 
  typename Algorithm::IOTupleType dataTup ( &algorithm.solution());
 #else
