@@ -56,16 +56,13 @@ class BalancedThermodynamics:
 #endif
   }
 
-  
   inline double doubleWell(double phi) const
   {
     double t1;
     t1 = phi*phi;
     t1*=deltaInv_;
     return(2.0*t1*(t1-2.0*phi*(1.0+alpha_)+1.0+3.0*alpha_));
-  
   }
-
 
   inline double helmholtz(double& rho,double& phi) const
   {
@@ -94,8 +91,6 @@ class BalancedThermodynamics:
 
   }
 
-
-
   inline double reactionSource(double& rho,double& phi) const
   { 
     double alpha=alpha_;
@@ -117,9 +112,6 @@ class BalancedThermodynamics:
     return(4.0*t2*phi*(t3-2.0*phi*(1.0+alpha)+1.0+3.0*alpha)+2.0*t2*t3*(2.0*phi
           -2.0-2.0*alpha)+t22*(-0.25E1*rho+0.15E1*t25+1.0)-t22*(-7.0*rho+3.0*t25+
             0.945940263E1));
-
-
-
 
   }
 

@@ -54,13 +54,7 @@ class PhasefieldPhysics<2,Thermodynamics>
 	inline void pressureAndReaction( const RangeType& cons, 
 																	 double& p,
 																	 double& reaction ) const;
-  inline void nonConProduct(const RangeType & uL, 
-														const RangeType & uR,
-														const ThetaRangeType& thetaL,
-														const ThetaRangeType& thetaR,
-														RangeType& ret) const;
 
- 
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
   
   inline void jacobian( const RangeType& u, JacobianFluxRangeType& a) const;

@@ -211,7 +211,7 @@ public:
     numericalFlux_( *model_, Fem :: Parameter :: getValue<double>("phasefield.penalty") ),
     adaptationHandler_( 0 ),
     estimator_(solution_,grid_,model()),
-    estimatorData_("estimator",estimator_,gridPart_,0),
+    estimatorData_("estimator",estimator_,gridPart_,space_.order()),
     overallTimer_(),
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
@@ -391,14 +391,15 @@ public:
     // if adaptCount is 0 then no dynamics grid adaptation
 		int adaptCount = 0;
 		int maxAdaptationLevel = 0;
-		
+		int startLevel = 0 ;
     Dune::Fem::AdaptationMethod< GridType > am( grid_ );
 		if( am.adaptive() )
 			{
 				adaptCount = Dune::Fem::Parameter::getValue<int>("fem.adaptation.adaptcount");
 				maxAdaptationLevel = Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel");
-			}
-
+			  startLevel = Dune::Fem::Parameter::getValue< int >("phasefield.startLevel",0);
+      }
+    maxAdaptationLevel-=startLevel;
 		double maxTimeStep =Dune::Fem::Parameter::getValue("phasefield.maxTimeStep", std::numeric_limits<double>::max());
 		const double startTime = Dune::Fem::Parameter::getValue<double>("phasefield.startTime", 0.0);
 		const double endTime   = Dune::Fem::Parameter::getValue<double>("phasefield.endTime",1.);	
@@ -467,10 +468,8 @@ public:
 				///	estimateMarkAdapt( adaptManager );
 		    
           estimator_.estimateAndMark(tolerance_);
-          std::cout<<"\n\n--------WRITE-----------\n\n"; 
           writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
- 
-   std::cout<<"\n\n--------ADAPT-----------\n\n"; 
+
           adaptManager.adapt();
  
 					initializeStep( timeProvider );
@@ -482,7 +481,6 @@ public:
             
         }
       }
-   abort(); 
       timeProvider.provideTimeStepEstimate(1e-10);
     	// start first time step with prescribed fixed time step 
 	    // if it is not 0 otherwise use the internal estimate
@@ -500,7 +498,7 @@ public:
       std::cout<<"restart!!!!!!!!!!!\n";
       checkPointer.restoreData( grid_, "checkpoint" ); 
     }
-    
+#if 0    
     if(calcresidual_)
     {
       double scale=Dune::Fem::Parameter::getValue<double>("debug.scale",1);
@@ -582,10 +580,10 @@ public:
       timeProvider.next(); 
   
     }		/*end of timeloop*/
-    
+ 
     // write last time step  
 		writeData( eocDataOutput, timeProvider, true );
-
+#endif
     energyfile.close();
 	  averagedt /= double(timeProvider.timeStep());
 	

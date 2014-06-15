@@ -47,28 +47,38 @@ public:
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
-    radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
-    pointX_(Fem::Parameter::getValue<double>("phasefield.pX")),
-    pointY_(Fem::Parameter::getValue<double>("phasefield.pY")),
     bubblefilename_(Fem::Parameter::getValue<std::string>("phasefield.bubbles")),
     bubblevector_(0),
     thermodyn_()
     {
+      readDataFile( bubblefilename_ );
+    }      
+
+  void readDataFile(std::string filename)
+  {
      std::ifstream bubblefile;
      std::string tmp;
-     std::string filename=bubblefilename_;
-     std::cout<<filename<<"\n";
      bubblefile.open(filename.c_str());
-     while(!bubblefile.eof())
-     { 
-       getline(bubblefile, tmp);
-       std::cout<<tmp<<"\n";
-       
-       bubblevector_.push_back(atof(tmp.c_str()));
-       std::cout<<"size="<<bubblevector_.size()<<"\n";
+     double a;
+     
+     if(! bubblefile )
+     {
+       std::cout<<"There was a problem opening the file\n";
+       abort();
      }
-     bubblefile.close();
+     else
+     {
+      while(  bubblefile >> a )
+        {
+          std::cout<<a<<"\n";
+          bubblevector_.push_back(a);
+        }
+     
+      std::cout<<"size="<<bubblevector_.size()<<"\n";
+      bubblefile.close();
     }
+  }
+
 
 
 
@@ -140,10 +150,7 @@ public:
   const double delta_;
   double rho_;
   const double phiscale_;
-  const double radius_;
-  const double pointX_;
-  const double pointY_;
-  std::string bubblefilename_;
+  std::string bubblefilename_; 
   std::vector<double> bubblevector_;
   const ThermodynamicsType thermodyn_;
   
@@ -170,11 +177,12 @@ inline void HeatProblem<GridType,RangeProvider>
 {
   double deltaInv=1./delta_;
   double phi; 
-  double width=delta_;
+  double width=6*delta_;
   phi=0.;
   res[dimension+4]=0.;
   res[dimension+5]=0.;
-for( int i=0 ; i<(bubblevector_.size()-1)/3 ;++i)
+ 
+  for( int i=0 ; i<(bubblevector_.size())/3 ;++i)
   { 
 
     
@@ -184,11 +192,10 @@ for( int i=0 ; i<(bubblevector_.size()-1)/3 ;++i)
   center[1]=bubblevector_[1+(i*3)];
   double radius=bubblevector_[2+(i*3)];
   
-  std::cout<<"center="<<center[0]<<" "<<center[1]<<"radius="<<radius<<"\n";
   DomainType vector=center;
   vector-=arg;
   double r=vector.two_norm();
-  double tanr=tan((radius_-r) * ( M_PI / width ));
+  double tanr=tan((radius-r) * ( M_PI / width ));
   double tanhr=tanh(tanr);
   double dtanr=1+tanr*tanr;
   double dtanhr=1-tanhr*tanhr; 

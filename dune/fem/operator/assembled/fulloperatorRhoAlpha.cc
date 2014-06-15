@@ -357,8 +357,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   }
   //------------------------------------------------------------------        
 
-  //alpha
-  //
 
 
 

@@ -2,13 +2,13 @@
 x=1
 MAXORD=$1
 d=0.01
-l=5
+l=4
 echo $MAXORD
 while [ $x -le $MAXORD ]
 do
 echo $d
-./phasefielddggmres scheme:2d$x  phasefield.delta:$d fem.adaptation.finestLevel:$(($x+$l)) 
-d=`echo "scale=10;$d/2 "  | bc`
+./phasefielddggmres scheme:2d$x  phasefield.delta:$d fem.adaptation.finestLevel:$((2*$x+$l)) 
+d=`echo "scale=10;$d/4 "  | bc`
 x=$(( $x + 1))
 done
 

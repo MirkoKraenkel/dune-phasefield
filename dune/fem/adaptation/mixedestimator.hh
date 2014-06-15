@@ -110,9 +110,6 @@ namespace Dune
     {
     
       ret[0] = indicator_[enIndex_];
-      
-//      std::cout<<"Eval Inidcator[ "<<enIndex_<<" ]="<<indicator_[ enIndex_ ]<<"\n";
-   
       ret[1] = overshootIndicator_[enIndex_];
     }
   private:
@@ -190,7 +187,7 @@ namespace Dune
         {
           
           const ElementType &entity = *it;
-          std::cout<<"Indicator[ " << indexSet_.index(entity)<<" ]="<<(indicator_[indexSet_.index(entity)])<<"\n"; 
+        //  std::cout<<"Indicator[ " << indexSet_.index(entity)<<" ]="<<(indicator_[indexSet_.index(entity)])<<"\n"; 
  
 
            grid_.mark( 1, entity );
@@ -209,12 +206,11 @@ namespace Dune
       //   if( (overshootIndicator_[indexSet_.index(entity)])<-0.1) 
          if( std::abs(indicator_[indexSet_.index(entity)]) > tolerance)
 	       {
-      //      std::cout<<"Mark\n"; 
 	          if(entity.level()<maxLevel_)
 		        {
               grid_.mark( 1, entity );
 		         
-#if 0      
+#if 1      
               IntersectionIteratorType end = gridPart_.iend( entity );
 		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		          {
@@ -235,10 +231,10 @@ namespace Dune
 	          ++marked;
 		       }
 	        }
-          else if( indicator_[indexSet_.index(entity)] < 0.1*tolerance )
+          else if( indicator_[indexSet_.index(entity)] < coarsen_*tolerance )
 	        { 
-	       //  if(entity.level()>minLevel_)
-		       //   grid_.mark(-1,entity);
+	         if(entity.level()>minLevel_)
+		          grid_.mark(-1,entity);
 	        }
 	        else
           {
@@ -256,10 +252,9 @@ namespace Dune
     bool estimateAndMark(double tolerance)
     {
       double esti=estimate();
-      std::cout<<"----------------------\n\n";
       std::cout<<"MaxIndicator="<<(*std::max_element(indicator_.begin(),indicator_.end()));
-       std::cout<<"\n\n----------------------\n\n";
-       return mark(tolerance);
+      std::cout<<"\nMin h="<<(*std::min_element(overshootIndicator_.begin(),overshootIndicator_.end()));
+      return mark(tolerance);
     }
     
 
@@ -278,24 +273,28 @@ namespace Dune
       ElementQuadratureType quad( entity, 2*(dfSpace_.order() )+1 );
       const int numQuadraturePoints = quad.nop();
       double sigmasquared=0.;
- 
+      double maxsigma=0; 
       for( int qp = 0; qp < numQuadraturePoints; ++qp )
-      {
-        JacobianRangeType gradient;
-	      RangeType range;
-        double weight = quad.weight(qp) * geometry.integrationElement( quad.point( qp )) ;
+        {
+          JacobianRangeType gradient;
+	        RangeType range;
+          double weight = quad.weight(qp) * geometry.integrationElement( quad.point( qp )) ;
 	  
-	      uLocal.evaluate(quad[qp],range);
-        for(int i=0 ; i<dimension; ++i)
-          sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
+	        uLocal.evaluate(quad[qp],range);
+          
+          for(int i=0 ; i<dimension; ++i)
+            sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
 
-     }
+         sigmasquared*=weight;
+        // maxsigma=std::max(sigmasquared,maxsigma);
+
+        }
 
       //L2-Norm Sigma
       double normsigma=std::sqrt(sigmasquared);
-      indicator_[ index ]=normsigma*h2;
-      //if(indicator_[index]>10.)
-    //  std::cout<<"Inidcator[ "<<index<<" ]="<<indicator_[ index ]<<"\n";
+      //double normsigma=std::sqrt(maxsigma);
+      indicator_[ index ]=normsigma;
+      overshootIndicator_[ index ] = h2;
     }
 
     
@@ -392,10 +391,10 @@ namespace Dune
 
         if( errorInside < 0.0 )
 	      {
-	        overshootIndicator_[ insideIndex ] +=  errorInside;
+	       // overshootIndicator_[ insideIndex ] +=  errorInside;
             
-	        if( isOutsideInterior )
-	         overshootIndicator_[ outsideIndex ] +=  errorOutside;
+	       // if( isOutsideInterior )
+	      //   overshootIndicator_[ outsideIndex ] +=  errorOutside;
 	      }
       }
     }

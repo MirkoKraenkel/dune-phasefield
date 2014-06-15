@@ -18,7 +18,21 @@ public:
   {
 	}
 
-  inline void init();
+  //factor in front of the double well
+  inline double h( double& rho ) const
+  {
+    return 1.;
+  }
+  //factor in front of the gradient term
+  inline double h2( double& rho ) const
+  {
+    return 1.;
+  }
+  
+  inline double reactionFactor( ) const
+  {
+    return 1.;
+  }
 
   //free EnergyPart without gradients used for monitoring the free energy
   inline double helmholtz(double& rho,double& phi) const
