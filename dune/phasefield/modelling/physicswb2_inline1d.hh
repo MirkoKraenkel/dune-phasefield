@@ -100,7 +100,8 @@ class PhasefieldPhysics<1,Thermodynamics>
 	inline void boundaryallenCahn( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
-	  inline double nstkSource(const DomainType xglobal, const double time) const ;  
+
+  inline double nstkSource(const DomainType xglobal, const double time) const ;  
   inline double acSource(const DomainType xglobal, const double time) const ;
  
   
@@ -109,7 +110,7 @@ public:
 	inline double delta()const  { return thermoDynamics_.delta(); }
 	inline double deltaInv()const{ return thermoDynamics_.deltaInv(); }
   inline double mu1() const { return thermoDynamics_.mu1();}
- 	inline double mu2() const { abort();return 0.;}
+ 	inline double mu2() const { return thermoDynamics_.mu2();}
 
 
 protected:
@@ -121,8 +122,7 @@ template< class Thermodynamics >
 inline void PhasefieldPhysics< 1, Thermodynamics >
 ::conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
  {
-  	//assert( cons[0] > 0. );
-  
+  	assert( cons[0] > 0. );
   	double rho,rho_inv,phi;
   	rho=cons[0];
     rho_inv=1./rho;
@@ -145,9 +145,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                   double& therm,
                   double& total ) const
   {
-    assert( cons[0] > 0. );
-	  double rho = cons[0];
-	  double rho_inv = 1. /rho;
+    assert( cons[0] > 1e-20 );
+	  double rho_inv = 1./cons[0];
 	  double phi = cons[phaseId];
     
     double kineticEnergy,surfaceEnergy;
@@ -155,13 +154,14 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double gradphi=grad[2][0];
     surfaceEnergy=gradphi*gradphi;
  
+    
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
    
-	  therm = thermoDynamics_.helmholtz( rho, phi );
+	  therm = thermoDynamics_.helmholtz( cons[0], cons[phaseId] );
 	  therm +=surfaceEnergy;
     kin  = kineticEnergy;
-    total = therm+kin; 
+    total = therm + kin; 
   }
 
   template< class Thermodynamics >
@@ -170,7 +170,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 												double& mu,
 												double& reaction ) const
 	{
-		assert( cons[0] > 1e-8 );
+		assert( cons[0] > 1e-20 );
 
 		double rho=cons[0];
 		double phi=cons[phaseId];
@@ -208,7 +208,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     
     f[0][0] = u[1];
     f[1][0] = v*u[1];
-    f[2][0] =0.;
+    f[2][0] = 0.;
   }
 
   template< class Thermodynamics > 
@@ -217,9 +217,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   {
     //assert(u[0] > 1e-10);
     double rho=u[0];
-    a[0][0] = rho;//rho
+    a[0][0] = rho;     //rho
     a[1][0] = u[1]/rho;//(rho v)/rho
-    a[2][0] = u[2];//(rho phi)/rho
+    a[2][0] = u[2];    // phi
   }
 
 	template< class Thermodynamics >
@@ -258,10 +258,10 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     //-(\rho\nabla\mu-\tau\nabla\phi) 
     f[1]=-dtheta[0]*u[0]+dphi*theta[1];
     //nonconservative Discretization of transport term
-    f[2]=theta[1];
-    f[2]*=-1.*rho_inv;
-    f[2]-=v*dphi;
-    
+    f[phaseId]=theta[1];
+    f[phaseId]*=-1.*rho_inv;
+    f[phaseId]-=v*dphi;
+    f[phaseId]*=thermoDynamics_.reactionFactor( u[0] );
     return 0.4*deltaInv()*deltaInv(); 
   }
   
@@ -289,7 +289,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   {
 	
 	 diff[0][0]=0.;
-   diff[1][0]=-delta()*du[2][0];
+   diff[1][0]=-delta()*thermoDynamics_.h2( u[0] )*du[2][0];
 
   }
 

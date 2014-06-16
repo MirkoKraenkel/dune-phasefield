@@ -213,9 +213,6 @@ public:
 	  f[1][1] = vx*u[2];  // \rho*vx*vy
     f[2][0] = vy*u[1];  // \rho*vy*vx
     f[2][1] = vy*u[2];  // \rho*vy*vy
-    f[3][0] = 0; // \phi*\rho*vx
-    f[3][1] = 0; // \phi*\rho*vy
-  
   }
 
   template<class Thermodynamics> 
@@ -261,25 +258,23 @@ public:
 								const JacobianRangeType& jacU,
                 RangeType& f) const
   {
-#if USEJACOBIAN
     double rho_inv=1./u[0];
-    double phi=u[3];
-    double dphix=jacU[3][0];
-    double dphiy=jacU[3][1];
-    dphix*=-1.;
-    dphiy*=-1.;
-#else
-    double dphix=du[6];
-    double dphiy=du[7];
-#endif
+    double phi=u[phaseId];
+    double dphix=jacU[phaseId][0];
+    double dphiy=jacU[phaseId][1];
     double vx=u[1]*rho_inv;
     double vy=u[2]*rho_inv;
 
     f[0]=0;
-		f[1]=-dtheta[0][0]*u[0]-dphix*theta[1];
-		f[2]=-dtheta[0][1]*u[0]-dphiy*theta[1];
-    f[3]=-theta[1]*deltaInv()+vx*dphix+vy*dphiy;
+     //-(\rho\nabla\mu-\tau\nabla\phi) 
 
+    f[1]=-dtheta[0][0]*u[0]+dphix*theta[1];
+		f[2]=-dtheta[0][1]*u[0]+dphiy*theta[1];
+    
+    f[phaseId]=theta[1]
+    f[phaseId]*=-1.*rho_inv;
+    f[phaseId]-=vx*dphix+vy*dphiy;
+    f[phaseId]*=thermoDynamics_.reactionFactor( u[0] )
     return deltaInv()*deltaInv();  
   }
 
@@ -292,8 +287,6 @@ public:
   {
     // du is grad(u) which is 4x2 matrix (for 2d case)
     assert( u[0] > 1e-10 );
- //   double rho_inv = 1. / u[0];
-//    const double v[2] = { u[1]*rho_inv, u[2]*rho_inv };
   
     const double muLoc = mu1();
     const double lambdaLoc =mu2();
@@ -348,11 +341,12 @@ public:
                ThetaJacobianRangeType& diff ) const
   {
    
-	 
+	  
 	  diff[0][0]=0.;
     diff[0][1]=0.;
-    diff[1][0]=-delta()*du[3][0];
-    diff[1][1]=-delta()*du[3][1];
+    diff[1][0]=-delta()*thermoDynamics_.h2( u[0] )*du[3][0];
+    diff[1][1]=-delta()*thermoDynamics_.h2( u[0] )*du[3][1];
+    
   }
 
   template< class Thermodynamics >
