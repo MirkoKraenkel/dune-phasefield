@@ -445,15 +445,14 @@ inline double PhaseModel< GridPartType, ProblemImp >
 		uRight[0]=uLeft[0];     
     RangeType uBnd;
     //problem_.evaluate(xgl,time, uRight);
-#if 1 
-  for(int i=1;i<dimDomain+1;i++)
-			uRight[i]=problem_.thermodynamics().velo();
-        
+
+    //homogenuous dirichlet data for v
+    for(int i=1;i<dimDomain+1;i++)
+			uRight[i]=0.
 	
 		//Neumann Boundary for \phi and \rho
 		uRight[0]=uLeft[0];
 		uRight[dimDomain+1]=uLeft[dimDomain+1];
-#endif
  
 	}
 
