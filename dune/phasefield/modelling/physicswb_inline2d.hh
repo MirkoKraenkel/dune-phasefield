@@ -347,8 +347,6 @@ public:
     diff[0][1]=0.;
     diff[1][0]=-delta()*du[3][0];
     diff[1][1]=-delta()*du[3][1];
-   // diff[1][0]=0.;
-   //diff[1][1]=0.;
   }
 
   template< class Thermodynamics >
@@ -358,7 +356,6 @@ public:
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
-   
 	 
 	  diff[0][0]=0.;
     diff[0][1]=0.;
