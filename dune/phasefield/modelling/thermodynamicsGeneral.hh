@@ -30,6 +30,7 @@ class GeneralThermodynamics:
     alpha_( Dune::Fem::Parameter::getValue<double>( "phasefield.alpha" ) ), 
     mu1_( epsilon_ ),
     mu2_( epsilon_ ),
+    
     a1_( Dune::Fem::Parameter::getValue<double>( "phasefield.stiffenedgas.a1" ) ),
     a2_( Dune::Fem::Parameter::getValue<double>( "phasefield.stiffenedgas.a2" ) ),
     b1_( Dune::Fem::Parameter::getValue<double>( "phasefield.stiffenedgas.b1" ) ),  
@@ -50,21 +51,20 @@ class GeneralThermodynamics:
     return rho;
   }
 
-  inline double h2( double rho) const
-  {
-    return 1./rho;
-  }
-
   inline double h1prime(double rho)const
   {
     return 1.;
+  }
+
+  inline double h2( double rho) const
+  {
+    return 1./rho;
   }
 
   inline double h2prime(double rho)const
   {
     return -1./(rho*rho); 
   }
-
 
 
   inline double doubleWell(double phi) const
@@ -87,7 +87,7 @@ class GeneralThermodynamics:
 
 
 
-  inline double helmholtz(double& rho,double& phi) const
+  inline double helmholtz(double rho,double phi) const
   {
     double t1;
     double t12;
@@ -114,7 +114,7 @@ class GeneralThermodynamics:
 
 
 
-  inline double reactionSource(double& rho,double& phi) const
+  inline double reactionSource(double rho,double phi) const
   { 
     double t1;
     double t11;
@@ -131,24 +131,23 @@ class GeneralThermodynamics:
 
   }
 
-  inline double dphireactionSource( double &rho, double & phi)const
+  inline double dphireactionSource( double rho , double phi ) const
   { 
   }
 
-  inline double chemicalPotential(double& rho,double& phi) const
+  inline double chemicalPotential( double rho , double phi ) const
   {
   }
 
-  inline double dphichemicalPotential(double& rho,double& phi) const
-  {
-
-  }
-
-  inline double drhochemicalPotential(double& rho,double& phi) const
+  inline double dphichemicalPotential( double rho , double phi ) const
   {
   }
 
-  inline double  pressure( double& rho, double& phi) const
+  inline double drhochemicalPotential( double rho , double phi ) const
+  {
+  }
+
+  inline double  pressure( double rho , double phi ) const
   {
 
     double t1;
@@ -172,7 +171,7 @@ class GeneralThermodynamics:
 
 
 
-  inline double a(double rho,double phi) const
+  inline double a( double rho , double phi ) const
   {
     return 1.6;	
   }

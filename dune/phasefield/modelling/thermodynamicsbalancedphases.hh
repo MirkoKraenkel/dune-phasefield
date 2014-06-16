@@ -12,7 +12,6 @@
 
 using namespace Dune;
 // Thermodynamics
-// see MininimizerSonntag.mv
 
 #include "thermodynamicsinterface.hh"
 //thermodynamics with balanced phases, see balancedthermo.mw
@@ -28,7 +27,8 @@ class BalancedThermodynamics:
     deltaInv_( 1./delta_ ),
     epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
     mu1_( epsilon_ ),
-    mu2_( epsilon_ )
+    mu2_( epsilon_ ),
+    reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionRate") )
   {
   }
 
@@ -39,7 +39,7 @@ class BalancedThermodynamics:
     abort();
   }
 
-  inline double h(double rho)const
+  inline double h( double rho ) const
   {
 #if RHOMODEL
     return rho;
@@ -47,6 +47,22 @@ class BalancedThermodynamics:
     return 1.;
 #endif
   }
+  
+  inline double h2( double rho) const
+  {
+    return  1./h(rho);
+  }
+
+  inline double h2prime( double rho ) const
+  {
+    return -1./h(rho)*h(rho);
+  }
+ 
+  inline double reactionFactor() const
+  {
+    return reaction_;
+  }
+
   inline double doubleWell(double phi) const
   {
     double    t2 = phi*phi;
@@ -55,7 +71,7 @@ class BalancedThermodynamics:
   }
 
 
-  inline double helmholtz(double& rho,double& phi) const
+  inline double helmholtz(double rho,double phi) const
   {
     double t10;
     double t11;
@@ -80,7 +96,7 @@ class BalancedThermodynamics:
 
 
 
-  inline double reactionSource(double& rho,double& phi) const
+  inline double reactionSource(double rho,double phi) const
   { 
     double t1;
     double t11;
@@ -103,7 +119,7 @@ class BalancedThermodynamics:
 
   }
 
-  inline double dphireactionSource( double &rho, double & phi)const
+  inline double dphireactionSource( double rho, double  phi) const
   { 
     double t1;
     double t11;
@@ -127,7 +143,7 @@ class BalancedThermodynamics:
 
   }
 
-  inline double chemicalPotential(double& rho,double& phi) const
+  inline double chemicalPotential(double rho,double phi) const
   {
     double t1;
     double t11;
@@ -150,7 +166,7 @@ class BalancedThermodynamics:
 
   }
 
-  inline double dphichemicalPotential(double& rho,double& phi) const
+  inline double dphichemicalPotential(double rho,double phi) const
   {
 
     double t1;
@@ -164,7 +180,7 @@ class BalancedThermodynamics:
     return(90.0*t2-45.0*t2*t4-180.0*t7+0.9E2*t7*t4+90.0*t1-45.0*t1*t4);
   }
 
-  inline double drhochemicalPotential(double& rho,double& phi) const
+  inline double drhochemicalPotential(double rho,double phi) const
   {
     double t1;
     double t2;
@@ -174,7 +190,7 @@ class BalancedThermodynamics:
     return(-0.15E1*(6.0*t2*phi-15.0*t2+10.0*t1*phi-2.0)/rho);
   }
 
-  inline double  pressure( double& rho, double& phi) const
+  inline double  pressure( double rho, double phi) const
   {
     double t1;
     double t10;
@@ -228,7 +244,7 @@ class BalancedThermodynamics:
   mutable double  deltaInv_;
   mutable double  epsilon_;
   mutable double  mu1_,mu2_;
-
+  mutable double reaction_;
 };
 
 
