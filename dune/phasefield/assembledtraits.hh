@@ -37,10 +37,10 @@
 #if MATRIXFREE
 #include <dune/fem/operator/assembled/mixedoperator.hh>
 #else
-#if VISIT
-#include <dune/fem/operator/assembled/mixedopjacobian.hh>
+#if NOFILTER 
+#include <dune/fem/operator/assembled/mixedopjacobian_nofilter.hh>
 #else
-#include <dune/fem/operator/assembled/localfdoperator.hh>
+#include <dune/fem/operator/assembled/mixedopjacobian.hh>
 #endif
 #endif
 
@@ -88,11 +88,13 @@ struct AlgorithmTraits
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
-#if VISIT
+//#if VISIT
+  
   typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-#else
-  typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-#endif
+
+  //#else
+ // typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+//#endif
 #if BICG
   typedef typename Dune::Fem::ISTLBICGSTABOp< DiscreteFunctionType, JacobianOperatorType > LinearSolverType; 
 #else

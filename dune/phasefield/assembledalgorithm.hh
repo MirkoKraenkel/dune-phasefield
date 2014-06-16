@@ -498,7 +498,7 @@ public:
       std::cout<<"restart!!!!!!!!!!!\n";
       checkPointer.restoreData( grid_, "checkpoint" ); 
     }
-#if 0    
+#if 1    
     if(calcresidual_)
     {
       double scale=Dune::Fem::Parameter::getValue<double>("debug.scale",1);
@@ -510,7 +510,7 @@ public:
       dgOperator_(U,Uold);
       U.assign(Uold);
       Uold.assign( dgOperator_.getPreviousTimeStep());
-//      writeData(eocDataOutput ,timeProvider , eocDataOutput.willWrite( timeProvider ));
+      writeData(eocDataOutput ,timeProvider , eocDataOutput.willWrite( timeProvider ));
     }
     else
     for( ; timeProvider.time() < endTime && timeProvider.timeStep() < maximalTimeSteps ;  )   
