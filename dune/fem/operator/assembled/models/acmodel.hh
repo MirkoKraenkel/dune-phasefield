@@ -85,17 +85,20 @@ class HeatModel
     inline void diffusion(JacobianRangeType& vu,
         JacobianRangeType& diffusion) const;
     
-    inline RangeFieldType h( double rho) const
+    inline RangeFieldType h2( double rho) const
     {
       return 1./rho;
     }
 
-    inline RangeFieldType hprime( double rho) const
+    inline RangeFieldType h2prime( double rho) const
     {
       return -1./(rho*rho);
     }
 
-
+    inline double reactionFactor() const
+    { 
+      return problem_.thermodynamics().reactionFactor();
+    }
 
     inline double delta() const
     {

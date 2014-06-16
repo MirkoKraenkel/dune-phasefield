@@ -97,11 +97,7 @@ inline void HeatModel< Grid,Problem>
     for(int i=0; i<dimDomain; i++)
     {
       kineticEnergy+=Filter::velocity(vu,i)*Filter::velocity(vu,i);
-#if DGSCHEME
       surfaceEnergy+=Filter::sigma(vu,i)*Filter::sigma(vu,i);
-#elif FEMSCHEME
-#warning "TOTAL ENERGY NEEDS JACOBIANRANGETYPE - NOT IMPLEMENTED"
-#endif
     }
   
     kin=rho*0.5*kineticEnergy;
