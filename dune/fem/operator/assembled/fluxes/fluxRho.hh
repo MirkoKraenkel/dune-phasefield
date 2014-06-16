@@ -178,7 +178,7 @@ double MixedFlux<Model>
         }
     
       //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
-     //Filter::rho(gLeft)=vNormalEn-vNormalNb;
+      //Filter::rho(gLeft)=vNormalEn-vNormalNb;
       Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
       Filter::rho(gLeft)*=-0.5;
      
@@ -215,9 +215,9 @@ double MixedFlux<Model>
        
           //tau
           //F_{3.2}
-          //(\sigma^+-\sigma^-)\cdot n * 0.5
-        //  laplaceFlux+=(Filter::sigma(midEn,i)*Filter::rho(midEn)-Filter::sigma(midNb,i)*Filter::rho(midNb))*normal[i]*0.5;
-          laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
+          //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
+          laplaceFlux+=(Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))-Filter::sigma(midNb,i)*model_.h2(Filter::rho(midNb)))*normal[i]*0.5;
+       //   laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
         
 
         } 

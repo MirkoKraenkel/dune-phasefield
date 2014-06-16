@@ -1,12 +1,12 @@
-#ifndef PHASEFIELD_JACOBIAN_FLUX_HH
-#define PHASEFIELD_JACBIAN_FLUX_HH
+#ifndef PHASEFIELD_ASSEMBLED_FLUX_HH
+#define PHASEFIELD_ASSEMBLED_FLUX_HH
 
 #include <dune/common/fvector.hh>
 
 #include "../phasefieldfilter.hh"
-#warning "JACOBIANFLUX"
+#warning "OLDFLUX"
 template<class Model>
-class JacobianFlux
+class MixedFlux
 {
   //typedefs
 
@@ -22,9 +22,9 @@ class JacobianFlux
 
   
 public:
-  JacobianFlux(const ModelType& model):
+  MixedFlux(const ModelType& model,double penalty):
     model_(model),
-    beta_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty")),
+    beta_(penalty),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
     {
@@ -37,8 +37,6 @@ public:
                         const RangeType& vuN,
                         const RangeType& vuEnOld,
                         const RangeType& vuNbOld,
-                        RangeType& phiEn,
-                        RangeType& phiNb,
                         RangeType& gLeft,
                         RangeType& gRight) const;
 
@@ -49,10 +47,8 @@ public:
                         const RangeType& uNb,
                         const JacobianRangeType& duEn,
                         const JacobianRangeType& duNb,
-                        RangeType& valueLeft,
-                        RangeType& valueRight,
-                        JacobianRangeType& dvalueLeft,
-                        JacobianRangeType& dvalueRight) const;
+                        RangeType& value,
+                        JacobianRangeType& dvalue) const;
 
   double boundaryFlux( const DomainType& normal, 
                        const double penaltyFactor,                
@@ -77,7 +73,7 @@ private:
 
 
 template< class Model >
-double JacobianFlux<Model>
+double MixedFlux<Model>
 ::boundaryFlux(const DomainType& normal,
                const double penaltyFactor,
                const RangeType& vuEn,
@@ -141,20 +137,22 @@ double JacobianFlux<Model>
 
 
 
+
+
+
+
 template< class Model >
-double JacobianFlux<Model>
+double MixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double area,              
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuEnMid,
                 const RangeType& vuNbMid,
-                RangeType& phiEn,
-                RangeType& phiNb,
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn{0.}, midNb{0.},jump,mean,jumpOld, jumpPhi{0};
+      RangeType valEn,valNb,midEn{0.}, midNb{0.},jump,mean,jumpOld;
       valEn=vuEn;
       valNb=vuNb;
 
@@ -167,11 +165,9 @@ double JacobianFlux<Model>
       mean*=0.5;
       jumpOld=valEn;
       jumpOld-=valNb;
-
-      
       //rho-------------------------------------------------------------
  
-      double vNormalEn{0},testNormalEn{0.},vNormalNb{0.},testNormalNb{0.};
+      double vNormalEn(0.),vNormalNb(0.);
     
       for(int i = 0; i<dimDomain;++i)
         {
@@ -179,26 +175,16 @@ double JacobianFlux<Model>
           vNormalEn+=Filter::velocity(midEn,i)*normal[i];
           //v^-\cdot n^+
           vNormalNb+=Filter::velocity(midNb,i)*normal[i];
-          //Phi[v]^+\cdot n^+
-          testNormalEn+=Filter::velocity(phiEn,i)*normal[i];
-          //Phi[v]^-\cdot n^+
-          testNormalNb+=Filter::velocity(phiNb,i)*normal[i];
-        
         }
-  
-
+    
       //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
-      Filter::rho(gLeft)=vNormalEn*Filter::rho(phiEn);
-      Filter::rho(gLeft)+=testNormalEn*Filter::rho(midEn);
-      
-      Filter::rho(gLeft)*=-0.25;
-     //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5 
-      
+     //Filter::rho(gLeft)=vNormalEn-vNormalNb;
+      Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
+      Filter::rho(gLeft)*=-0.5;
+     
       //double visc=Filter::rho(jump);
       //Filter::rho(gLeft)+=numVisc_*area*visc;
-      Filter::rho( gRight )=vNormalNb*Filter::rho(phiNb);
-      Filter::rho( gRight )+=testNormalNb*Filter::rho(midNb);
-      Filter::rho( gRight )*=0.25;
+      Filter::rho( gRight )=Filter::rho( gLeft );
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
@@ -207,48 +193,39 @@ double JacobianFlux<Model>
         { 
           //F_2=F_{2.1}+F_{2.2}
           //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-          Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(phiEn)*0.5;
-          Filter::velocity(gLeft,i)-=Filter::mu(phiEn)*normal[i]*Filter::rho(midEn)*0.5;
-          Filter::velocity(gRight,i)+=Filter::mu(phiNb)*normal[i]*Filter::rho(midEn)*0.5;
+          Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
+          Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midNb)*0.5;
           
-           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau^+*0.5
-        
-          Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(phiEn)*0.5;
-          Filter::velocity(gLeft,i)+= Filter::phi(phiEn)*normal[i]*Filter::tau(midEn)*0.5;
-          Filter::velocity(gRight,i)-= Filter::phi(phiNb)*normal[i]*Filter::tau(midEn)*0.5;
-      
-          Filter::velocity(gLeft, i)*=0.5;
-          Filter::velocity(gRight,i)*=0.5;
-      
+           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
+          Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
+          Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
 
         } 
     
       //----------------------------------------------------------------
-      double laplaceFluxLeft{0.},laplaceFluxRight{0.};
-
+      double laplaceFlux(0.);
       //phi-------------------------------------------------------------
       for(int i = 0; i<dimDomain;++i)
         {
           //F_{3.1}
        
-          //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5 
-          Filter::phi(gLeft)-=Filter::phi(phiEn)*normal[i]*Filter::velocity(midEn,i)*0.25;
-          Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(phiEn,i)*0.25;
-          Filter::phi(gRight)+=Filter::phi(phiNb)*normal[i]*Filter::velocity(midEn,i)*0.25;
-        //  Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(phiNb,i)*0.25;
-      
-
+          //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
+          Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
+          Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(midNb,i)*0.5;
+       
           //tau
           //F_{3.2}
           //(\sigma^+-\sigma^-)\cdot n * 0.5
-          laplaceFluxLeft+=Filter::sigma(phiEn,i)*normal[i]*0.25;// factor of 0.5 from linearization
-          laplaceFluxRight-=Filter::sigma(phiNb,i)*normal[i]*0.25;
+        //  laplaceFlux+=(Filter::sigma(midEn,i)*Filter::rho(midEn)-Filter::sigma(midNb,i)*Filter::rho(midNb))*normal[i]*0.5;
+          laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
+        
+
         } 
     
       //----------------------------------------------------------------
       //tau-------------------------------------------------------------
-      Filter::tau(gLeft)-=model_.delta()*laplaceFluxLeft;
-      Filter::tau(gRight)-=model_.delta()*laplaceFluxRight;
+      Filter::tau(gLeft)-=model_.delta()*laplaceFlux;
+      Filter::tau(gRight)=Filter::tau( gLeft );
       
       //----------------------------------------------------------------
 
@@ -257,9 +234,8 @@ double JacobianFlux<Model>
         {  
           //F_4
           //(\phi^+-\phi^-)\normal*0.5
-          Filter::sigma(gLeft,i)=Filter::phi(phiEn)*normal[i]*0.5;
-          Filter::sigma(gRight,i)=-Filter::phi(phiNb)*normal[i]*0.5;
-          
+          Filter::sigma(gLeft,i)=(Filter::phi(valEn)-Filter::phi(valNb))*normal[i]*0.5;
+          Filter::sigma(gRight,i)=Filter::sigma( gLeft,i);
   
         } 
       //----------------------------------------------------------------
@@ -267,66 +243,50 @@ double JacobianFlux<Model>
   }
 
 template< class Model >
-double JacobianFlux<Model>
+double MixedFlux<Model>
 :: diffusionFlux( const DomainType& normal,
                   const double penaltyFactor,
                   const RangeType& uEn,
                   const RangeType& uNb,
                   const JacobianRangeType& duEn,
                   const JacobianRangeType& duNb,
-                  RangeType& valueLeft,
-                  RangeType& valueRight,
-                  JacobianRangeType& dvalueLeft,
-                  JacobianRangeType& dvalueRight) const
+                  RangeType& value,
+                  JacobianRangeType& dvalue) const
 {
   
   RangeType jump{0};
   jump=uEn;
   jump-=uNb;  
-  RangeType phiEn=uEn;
-  RangeType phiNb=uNb;
   JacobianRangeType aduEn{0.}, aduNb{0.}; 
   double integrationElement=normal.two_norm();
   
   
   for( int i=0; i<dimDomain;++i)
     {
-      Filter::velocity(valueLeft,i)=beta_*penaltyFactor*Filter::velocity(phiEn,i)*integrationElement*0.5;
-      Filter::velocity(valueRight,i)=-beta_*penaltyFactor*Filter::velocity(phiNb,i)*integrationElement*0.5;
+      Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
     }
-  JacobianRangeType jumpNormalLeft{0.},jumpNormalRight{0.};
+  JacobianRangeType jumpNormal{0.};
  
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
     for(int j=0; j<dimDomain; ++j)
-    { jumpNormalLeft[i+1][j]=-0.5*uEn[i+1]*normal[j];
-      jumpNormalRight[i+1][j]=0.5*uNb[i+1]*normal[j];
-    }
+      jumpNormal[i+1][j]=-0.5*jump[i+1]*normal[j];
+ 
 
-  jumpNormalLeft*=switchIP_;
-  jumpNormalRight*=switchIP_;
-  model_.diffusion(jumpNormalLeft,dvalueLeft);
-  model_.diffusion(jumpNormalRight,dvalueRight);
+  jumpNormal*=switchIP_;
+  model_.diffusion(jumpNormal,dvalue);
    
   JacobianRangeType mean{0.}, Amean{0.};
   mean=duEn;
-  mean*=-0.25;
+  mean+=duNb;
+  mean*=-0.5;
   model_.diffusion(mean,Amean);
 
-  Amean.umv(normal,valueLeft);
-  Amean=0;
-  mean=duNb;
-  mean*=-0.25;
-  model_.diffusion(mean,Amean);
-
-  Amean.umv(normal,valueRight);
- 
-  
-  
+  Amean.umv(normal,value);
   return beta_;
 }
 template< class Model >
-double JacobianFlux<Model>
+double MixedFlux<Model>
 :: diffusionBoundaryFlux( const DomainType& normal,
                   const double penaltyFactor,
                   const RangeType& uEn,
