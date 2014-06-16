@@ -57,8 +57,7 @@ class PhasefieldJacobianOperator
       int volQuadOrder=-1)
     :MyOperatorType(model,space,flux),
     stencil_(space,space),
-    jacFlux_(model),
-    localMassMatrix_(space,volQuadOrder)
+    jacFlux_(model)
   {}
 
   using MyOperatorType::localIntegral;
@@ -169,13 +168,11 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
       const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
       const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
 
-
-
       baseSet.evaluateAll( quadrature[ pt ], phi);
       baseSet.jacobianAll( quadrature[ pt ], dphi);
 
-      RangeType vu{0.} , vuMid{0.} ,fu{0.};
-      JacobianRangeType dvu{0.} , duMid{0.}, fdu{0.};
+      RangeType vu(0.) , vuMid(0.) ,fu(0.);
+      JacobianRangeType dvu(0.) , duMid(0.), fdu(0.);
       vuOld=uOldValues[pt];
       vu=uValues[ pt ];
       //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
