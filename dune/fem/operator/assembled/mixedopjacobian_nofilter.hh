@@ -10,7 +10,7 @@
 
 #include "mixedoperator.hh"
 #include "phasefieldfilter.hh"
-#include "fluxes/jacobianflux.hh"
+#include "fluxes/jacobianflux_nofilter.hh"
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian>
 class PhasefieldJacobianOperator
@@ -57,8 +57,7 @@ class PhasefieldJacobianOperator
       int volQuadOrder=-1)
     :MyOperatorType(model,space,flux),
     stencil_(space,space),
-    jacFlux_(model),
-    localMassMatrix_(space,volQuadOrder)
+    jacFlux_(model)
   {}
 
   using MyOperatorType::localIntegral;
@@ -112,7 +111,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
   RangeFieldType normU=std::sqrt(u.scalarProductDofs(u));
   jOp.clear();
 
-  double deltaInv=1./deltaT_;
+  double deltaTInv=1./deltaT_;
 
   const DiscreteFunctionSpaceType &dfSpace = u.space();
   const GridPartType& gridPart = dfSpace.gridPart();
@@ -194,16 +193,16 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         {
           //   div+=Filter::dvelocity(duMid, ii, ii)*Filter::rho( phi[ jj ])
           //   +Filter::dvelocity( dphi[jj], ii, ii)*Filter::rho( vuMid );
-          div+=duMid[ 1+ii ][ ii ] * phi[ jj ][ 0 ];
+          div+=duMid[ 1+ii ][ ii ] * phi[ jj ][ 0 ] + dphi[ jj ][ 1 + ii ][ ii ]*vuMid[ 0 ];
           
          // grad+=Filter::drho( duMid , ii )*Filter::velocity( phi[ jj ], ii )
          //   +Filter::drho(dphi[jj], ii )*Filter::velocity( vuMid, ii);
-          grad+=duMid[ 0 ][ ii ]
+          grad+=duMid[ 0 ][ ii ]*phi[ jj ][ 1 + ii ] + dphi[ jj ][ 0 ][ ii ]*vuMid[ 1 + ii];
         }
 
         //Filter::rho(fu)=deltaInv*Filter::rho( phi[ jj ] )
         //  +0.5*(div+grad);
-        fu[ 0 ]=deltaInv*phi[ jj ][0]+0.5*( div + grad );
+        fu[ 0 ]=deltaTInv*phi[ jj ][0]+0.5*( div + grad );
         
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -212,10 +211,10 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           //Filter::velocity( fu , ii) = (Filter::velocity( vu, ii )-Filter::velocity( vuOld ,ii ))*Filter::rho( phi[ jj ] )*0.5
           //  +Filter::velocity( phi[ jj ] , ii)*Filter::rho( vuMid)*deltaInv;
 
-          fu[1+ii] = (vu[ 1 + ii ]-vuOld[ 1 + ii ])*phi[ jj ][0]*0.5+phi[ jj ][ 1 + ii ]*vuMid[0]*deltaInv:
+          fu[1+ii] = (vu[ 1 + ii ]-vuOld[ 1 + ii ])*phi[ jj ][0]*0.5+phi[ jj ][ 1 + ii ]*vuMid[0]*deltaTInv;
 
 
-          RangeFieldType  sgradv{0.};
+          RangeFieldType  sgradv(0.);
 
           for( size_t kk = 0 ; kk < dimDomain ; ++kk )
           {
@@ -223,7 +222,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             sgradv+=(duMid[ 1 + ii ][ kk ] - duMid[ 1 + kk ][ ii ]);
             
            // sgradv*=(Filter::velocity( vuMid, kk)*Filter::rho( phi[ jj ] ) + Filter::velocity( phi[ jj ] , kk )*Filter::rho( vuMid));
-            sgradv*=(vuMid[ 1 + kk ]*phi[ jj ][ 0 ] + phi[ jj ][ 1 + kk ])*vuMid[0]'
+            sgradv*=(vuMid[ 1 + kk ]*phi[ jj ][ 0 ] + phi[ jj ][ 1 + kk ])*vuMid[0];
 
             //sgradv+=(Filter::dvelocity( dphi[ jj ] , ii, kk ) - Filter::dvelocity( dphi[ jj ] , kk , ii ))*Filter::velocity( vuMid , kk )*Filter::rho( vuMid );
             sgradv+= ( dphi[ jj ][ 1 + ii ][ kk ] - dphi[ jj ][ 1 + kk ][ ii ])*vuMid[ 1 + kk ]*vuMid[ 0 ];
@@ -245,7 +244,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         //    Filter::phi( fu )=Filter::phi( phi[ jj ] )*deltaInv;
         
-        fu[ dimDomain + 1 ] = phi[ jj ][dimDomain + 1 ]*deltaInv;
+        fu[ dimDomain + 1 ] = phi[ jj ][dimDomain + 1 ]*deltaTInv;
 
         for( size_t ii=0 ; ii < dimDomain ; ++ ii)
         {
@@ -265,18 +264,18 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         //mu  
         //Filter::mu( fu )=0.5*Filter::mu( phi[ jj ] );
-        fu[ dimDomain + 2] = 0.5 * phi[ jj ][ dimDomain+2]
+        fu[ dimDomain + 2] = 0.5 * phi[ jj ][ dimDomain+2];
         
-        RangeFieldType drhomui(0.),dphimu(0.);
+        RangeFieldType drhomu(0.),dphimu(0.);
         //model_.drhomuSource( Filter::rho( vu ),  Filter::rho( vu ) , Filter::phi( vu ),drhomu);
-        model_.drhomuSource( vu[ 0 ], vu [ 0 ] , vu[ dimDomain + 1 ], drhomu ); 
+        model_.drhomuSource( vu[ 0 ] , vu[ 0 ] , vu[ dimDomain + 1 ] , drhomu ); 
         //model_.dphimuSource( Filter::rho( vu ),  Filter::rho( vu ) , Filter::phi( vu ),dphimu);
-        model_.dphimuSource( vu[ 0 ], vu[ 0 ], vu[ dimDomain + 1, dphimu );
+        model_.dphimuSource( vu[ 0 ] , vu[ 0 ] , vu[ dimDomain + 1 ] , dphimu );
 
         //Filter::mu( fu )-=drhomu*Filter::rho( phi[ jj ] ); 
         fu[ dimDomain + 2]-=drhomu*phi[ jj ][ 0 ]; 
         //Filter::mu( fu )-=dphimu*Filter::phi( phi[ jj ] );
-        fu[ dimDomain + 2]-=dphimu*phi[ jj ][ dimDomain + 1]
+        fu[ dimDomain + 2]-=dphimu*phi[ jj ][ dimDomain + 1];
         
         for( size_t ii = 0 ; ii < dimDomain ; ++ ii)
           fu[ dimDomain + 2 ]-=0.5*vu[ 1 + ii ]*phi[ jj ][ 1 + ii ]*0.25;
@@ -287,7 +286,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         //Filter::tau( fu )=0.5*Filter::tau( phi[ jj ] );
         fu[ dimDomain + 2 ]=0.5*phi[ jj ][ dimDomain + 2 ];
 
-        RangeFieldType dphitaui(0.);
+        RangeFieldType dphitau(0.);
         
        // model_.dphitauSource( Filter::phi(vu),
        //     Filter::phi( vu ), 
@@ -309,7 +308,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         for( size_t ii=0;  ii <dimDomain ; ++ii)
         {
           //Filter::sigma( fu , ii )=Filter::sigma( phi[ jj ], ii)-Filter::dphi( dphi[ jj ], ii);
-          fu[ dimDomain + 4 + ii ]= phi[ jj ][ dimDomain + 4 + ii][ ii ] - dphi[ jj ][ dimDomain + 1][ ii ];
+          fu[ dimDomain + 4 + ii ] =  phi[ jj ][ dimDomain + 4 + ii] - dphi[ jj ][ dimDomain + 1][ ii ];
         }
 
         model_.diffusion( dphi[jj],fdu); 
