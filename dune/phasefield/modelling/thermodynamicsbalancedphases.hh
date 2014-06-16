@@ -28,7 +28,7 @@ class BalancedThermodynamics:
     epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
     mu1_( epsilon_ ),
     mu2_( epsilon_ ),
-    reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionRate") )
+    reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
   {
   }
 
