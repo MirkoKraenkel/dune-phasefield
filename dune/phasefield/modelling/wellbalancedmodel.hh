@@ -448,7 +448,7 @@ inline double PhaseModel< GridPartType, ProblemImp >
 
     //homogenuous dirichlet data for v
     for(int i=1;i<dimDomain+1;i++)
-			uRight[i]=0.
+			uRight[i]=0.;
 	
 		//Neumann Boundary for \phi and \rho
 		uRight[0]=uLeft[0];
