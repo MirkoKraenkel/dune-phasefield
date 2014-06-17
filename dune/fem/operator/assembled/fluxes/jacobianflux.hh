@@ -173,7 +173,7 @@ double JacobianFlux<Model>
 
       //rho-------------------------------------------------------------
  
-      double vNormalEn(0.),testNormalEn(0.),vNormalNb(0.),testNormalNbi(0.);
+      double vNormalEn(0.),testNormalEn(0.),vNormalNb(0.),testNormalNb(0.);
 
     
       for(int i = 0; i<dimDomain;++i)
