@@ -260,7 +260,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         taurho/= vuMid[ 0 ]*vuMid[ 0 ];
 
        // Filter::phi( fu )+=0.5*(gradphiv+taurho);
-        fu[ dimDomain + 1]+=0.5*( gradphiv=taurho);
+        fu[ dimDomain + 1]+=0.5*( gradphiv+taurho);
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         //mu  
         //Filter::mu( fu )=0.5*Filter::mu( phi[ jj ] );
@@ -284,7 +284,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         //tau
         //Filter::tau( fu )=0.5*Filter::tau( phi[ jj ] );
-        fu[ dimDomain + 2 ]=0.5*phi[ jj ][ dimDomain + 2 ];
+        fu[ dimDomain + 3 ]=0.5*phi[ jj ][ dimDomain + 3 ];
 
         RangeFieldType dphitau(0.);
         
@@ -293,17 +293,17 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
        //     Filter::rho( vu ),
        //     dphitau);
         model_.dphitauSource( vu[dimDomain+1],vu[dimDomain+1], vu[0],dphitau);
-        fu[ dimDomain + 2 ]-=dphitau*phi[ jj ][ dimDomain + 1]; 
+        fu[ dimDomain + 3 ]-=dphitau*phi[ jj ][ dimDomain + 1]; 
         
      //   Filter::tau( fu )-=dphitau*Filter::phi( phi[ jj ] );
-
+        
         RangeFieldType divsigma(0.);
         for( size_t ii=0 ; ii < dimDomain ; ++ii )
           divsigma+=0.5*dphi[jj][dimDomain+4+ii][ii];
 //          divsigma+=0.5*Filter::dsigma( dphi[ jj ] ,  ii , ii);
 
         //Filter::tau( fu )+=model_.delta()*divsigma;
-        fu[ dimDomain + 2 ]+=model_.delta()*divsigma;
+        fu[ dimDomain + 3 ]+=model_.delta()*divsigma;
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         for( size_t ii=0;  ii <dimDomain ; ++ii)
         {
