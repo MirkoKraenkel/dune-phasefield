@@ -280,7 +280,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         fdu*=weight; 
         fu*=weight;
-        jLocal.column( jj ).axpy( phi,dphi, fu,fdu  );
+    //    jLocal.column( jj ).axpy( phi,dphi, fu,fdu  );
       }
     } 
 
@@ -342,8 +342,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          RangeType    vuMidEn{0.}, vuMidNb{0.};
-          JacobianRangeType aduLeft{0.},aduRight{0.},duMidNb{0.}, duMidEn{0.};
+          RangeType    vuMidEn(0.), vuMidNb(0.);
+          JacobianRangeType aduLeft(0.),aduRight(0.),duMidNb(0.), duMidEn(0.);
           const double weight=quadInside.weight( pt ); 
 
           baseSet.evaluateAll( quadInside[ pt ] , phi);

@@ -163,8 +163,8 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
       baseSet.evaluateAll( quadrature[ pt ], phi);
       baseSet.jacobianAll( quadrature[ pt ], dphi);
 
-      RangeType vu{0.} , fu{0.};
-      JacobianRangeType dvu{0.} , fdu{0.};
+      RangeType vu(0.) , fu(0.);
+      JacobianRangeType dvu(0.) , fdu(0.);
 
       //  uLocal.evaluate( quadrature[ pt ], vu);
       //   uLocal.jacobian( quadrature[ pt ], dvu);
@@ -177,8 +177,8 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
           fdu);
       for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
       {
-        RangeType ueps{0.} , fueps{0.};
-        JacobianRangeType dueps{0.} , fdueps{0.};
+        RangeType ueps(0.) , fueps(0.);
+        JacobianRangeType dueps(0.) , fdueps(0.);
         ueps=uValues[pt];
         ueps.axpy( eps , phi[ jj ] );
         dueps=uJacobians[pt];
@@ -249,8 +249,8 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
           {
-            RangeType   avuLeft{0.} , avuRight{0.};
-            JacobianRangeType aduLeft{0.} , aduRight{0.};
+            RangeType   avuLeft(0.) , avuRight(0.);
+            JacobianRangeType aduLeft(0.) , aduRight(0.);
 
             baseSet.evaluateAll( quadInside[ pt ] , phi);
             baseSet.jacobianAll( quadInside[ pt ] , dphi);
@@ -279,9 +279,9 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
             {
               RangeType ueps,uepsNb;
-              RangeType fuepsLeft{0.}, fuepsRight{0.};
-              RangeType fuepsNbLeft{0.},  fuepsNbRight{0.};
-              JacobianRangeType dueps{0.} , fduepsLeft{0.} ,  fduepsRight{0.} ,duepsNb{0.} , fduepsNbLeft{0.},fduepsNbRight{0.};;
+              RangeType fuepsLeft(0.), fuepsRight(0.);
+              RangeType fuepsNbLeft(0.),  fuepsNbRight(0.);
+              JacobianRangeType dueps(0.) , fduepsLeft(0.) ,  fduepsRight(0.) ,duepsNb(0.) , fduepsNbLeft(0.),fduepsNbRight(0.);;
           
               
               
@@ -369,8 +369,8 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          RangeType vuEn{0.},vuNb{0.},avuLeft{0.};
-          JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.};
+          RangeType vuEn(0.),vuNb(0.),avuLeft(0.);
+          JacobianRangeType duEn(0.),duNb(0.),aduLeft(0.);
           uLocal.evaluate( quadInside[ pt ], vuEn);
           uLocal.jacobian( quadInside[ pt ], duEn);
 
@@ -390,8 +390,8 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
-            RangeType ueps{0.},fueps{0.}, uepsNb{0.} , fuepsNb{0.};
-            JacobianRangeType dueps{0.} , fdueps{0.} , duepsNb{0.} , fduepsNb{0.};
+            RangeType ueps(0.),fueps(0.), uepsNb(0.) , fuepsNb(0.);
+            JacobianRangeType dueps(0.) , fdueps(0.) , duepsNb(0.) , fduepsNb(0.);
             ueps=vuEn;
             ueps.axpy( eps , phi[ jj ] );
             dueps=duEn;

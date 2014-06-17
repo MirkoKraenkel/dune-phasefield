@@ -378,8 +378,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          RangeType    vuMidEn{0.}, vuMidNb{0.};
-          JacobianRangeType aduLeft{0.},aduRight{0.},duMidNb{0.}, duMidEn{0.};
+          RangeType    vuMidEn(0.), vuMidNb(0.);
+          JacobianRangeType aduLeft(0.),aduRight(0.),duMidNb(0.), duMidEn(0.);
           const double weight=quadInside.weight( pt ); 
 
           baseSet.evaluateAll( quadInside[ pt ] , phi);
@@ -418,8 +418,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
-                 RangeType avuLeft{0.}, avuRight{0.}, valueLeft{0.},valueRight{0.};
-            JacobianRangeType aduLeft{0.},aduRight{0.};
+            RangeType avuLefti(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
+            JacobianRangeType aduLeft(0.),aduRight(0.);
 
             double  fluxRet=jacFlux_.numericalFlux(normal,
                 area,
@@ -469,8 +469,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          RangeType vuEn{0.},vuNb{0.},avuLeft{0.};
-          JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.};
+          RangeType vuEn(0.),vuNb(0.),avuLeft(0.);
+          JacobianRangeType duEn(0.),duNb(0.),aduLeft(0.);
           uLocal.evaluate( quadInside[ pt ], vuEn);
           uLocal.jacobian( quadInside[ pt ], duEn);
 

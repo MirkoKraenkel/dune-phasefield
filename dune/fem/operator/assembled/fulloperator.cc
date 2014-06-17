@@ -21,8 +21,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     const LocalFunctionType uLocal = u.localFunction( entity);
 
     setEntity( entity );
-    RangeType vu{0.},avu{0.};
-    JacobianRangeType du{0.},adu{0.};
+    RangeType vu(0.),avu(0.);
+    JacobianRangeType du(0.),adu(0.);
     
     LocalFunctionType wLocal = w.localFunction( entity );
     const int quadOrder = uLocal.order() + wLocal.order();
@@ -71,8 +71,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
           for( size_t pt=0; pt < numQuadraturePoints; ++pt )
           {
-            RangeType vuEn{0.},vuNb{0.},avuLeft{0.},avuRight{0.};
-            JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.}, aduRight{0.};
+            RangeType vuEn(0.),vuNb(0.),avuLeft(0.),avuRight(0.);
+            JacobianRangeType duEn(0.),duNb(0.),aduLeft(0.), aduRight(0.);
             uLocal.evaluate( quadInside[ pt ], vuEn);
             uLocal.jacobian( quadInside[ pt ], duEn);
             uNeighbor.evaluate( quadOutside[ pt ], vuNb);
@@ -115,8 +115,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
           for( size_t pt=0; pt < numQuadraturePoints; ++pt )
           {
-            RangeType vuEn{0.},avuLeft{0.};
-            JacobianRangeType duEn{0.},aduLeft{0.};
+            RangeType vuEn(0.),avuLeft(0.);
+            JacobianRangeType duEn(0.),aduLeft(0.);
             uLocal.evaluate( quadInside[ pt ], vuEn);
             uLocal.jacobian( quadInside[ pt ], duEn);
             const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
@@ -229,7 +229,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   Filter::rho(avu)-=Filter::rho(vuOld);
   Filter::rho(avu)*=deltaInv;
 
-  RangeFieldType div{0.},gradrhodotv{0.};
+  RangeFieldType div(0.),gradrhodotv(0.);
 #if 1 
   //div(rho v)=rho*div v+gradrho v
   for(int ii = 0; ii <dimDomain ; ++ii )
@@ -315,7 +315,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   //   Filter::mu(avu)=Filter::mu(vu)-Filter::mu(vuOld);
   Filter::mu(avu)=Filter::mu( vuMid );
   Filter::mu(avu)-=dFdrho;
-  RangeFieldType usqr{0.},uOldsqr{0.};
+  RangeFieldType usqr(0.),uOldsqr(0.);
 
   for( int ii = 0; ii < dimDomain ; ++ii) 
   {
@@ -380,7 +380,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
   RangeType vuOldEn(0.),vuMidEn(0.),vuOldNb(0.),vuMidNb(0.);
-  JacobianRangeType duOldEn{0.},duOldNb{0.},duMidEn{0.}, duMidNb{0.};
+  JacobianRangeType duOldEn(0.),duOldNb(0.),duMidEn(0.), duMidNb(0.);
 
 
 
@@ -414,10 +414,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   //   DomainType xgl=intersectionGeometry.global(x); 
   //  const double weight = quadInside.weight( pt );
 
-  JacobianRangeType dvalue{0.},advalue{0.};
+  JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
-  //RangeType gLeft{0.};
-// RangeType gRight{0.};
+  //RangeType gLeft(0.);
+// RangeType gRight(0.);
 
   fluxRet=flux_.numericalFlux(normal,
       area,
@@ -485,7 +485,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
   RangeType vuOldEn(0.),vuMidEn(0.);
-  JacobianRangeType duOldEn{0.},duMidEn{0.};
+  JacobianRangeType duOldEn(0.),duMidEn(0.);
 
 
 
@@ -512,7 +512,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   DomainType xgl=intersectionGeometry.global(x); 
   //  const double weight = quadInside.weight( pt );
 
-  JacobianRangeType dvalue{0.},advalue{0.};
+  JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
   RangeType gLeft(0.),gRight(0.);
   fluxRet=flux_.boundaryFlux(normal,
