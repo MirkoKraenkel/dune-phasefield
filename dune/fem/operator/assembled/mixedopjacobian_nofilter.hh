@@ -418,7 +418,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
-            RangeType avuLefti(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
+            RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
             JacobianRangeType aduLeft(0.),aduRight(0.);
 
             double  fluxRet=jacFlux_.numericalFlux(normal,
