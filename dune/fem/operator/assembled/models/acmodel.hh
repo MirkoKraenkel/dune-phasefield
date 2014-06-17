@@ -167,8 +167,7 @@ inline void HeatModel< Grid, Problem >
             RangeFieldType& mu) const
 {
 
-  mu=problem_.thermodynamics().chemicalPotential(rho1,phi);
-
+  mu=problem_.thermodynamics().chemicalPotential(rho2,phi);
 }
 template<class Grid, class Problem > 
 inline void HeatModel< Grid, Problem >
@@ -178,8 +177,7 @@ inline void HeatModel< Grid, Problem >
                 RangeFieldType& mu) const
 
 {
-  mu=problem_.thermodynamics().drhochemicalPotential(rho1,phi);
-
+  mu=problem_.thermodynamics().drhochemicalPotential(rho2,phi);
 }
 template<class Grid, class Problem > 
 inline void HeatModel< Grid, Problem >
@@ -188,8 +186,7 @@ inline void HeatModel< Grid, Problem >
                 RangeFieldType phi,
                 RangeFieldType& mu) const
 {
-  mu=problem_.thermodynamics().dphichemicalPotential(rho1,phi);
-
+  mu=problem_.thermodynamics().dphichemicalPotential(rho2,phi);
 }
 
 
@@ -202,8 +199,8 @@ inline void HeatModel< Grid, Problem>
             RangeFieldType rho,
             RangeFieldType& tau) const
 {
-  tau=problem_.thermodynamics().reactionSource(rho,phi1);
-
+  tau=problem_.thermodynamics().reactionSource(rho,phi2);
+  tau=phi2*phi2;
 }
 template< class Grid, class Problem > 
 inline void HeatModel< Grid, Problem>
@@ -212,8 +209,8 @@ inline void HeatModel< Grid, Problem>
     RangeFieldType rho,
     RangeFieldType& tau) const
 {
-  tau=problem_.thermodynamics().dphireactionSource(rho,phi1);
-
+  tau=problem_.thermodynamics().dphireactionSource(rho,phi2);
+  tau=2*phi2;
 }
 
 
