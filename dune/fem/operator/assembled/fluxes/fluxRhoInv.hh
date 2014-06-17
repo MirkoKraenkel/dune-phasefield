@@ -225,7 +225,7 @@ double MixedFlux<Model>
           //tau
           //F_{3.2}
           //(\sigma^+-\sigma^-)\cdot n * 0.5
-          laplaceFlux+=0.5*(Filter::sigma(midEn,i)/Filter::rho(midEn)-Filter::sigma(midNb,i)/Filter(rhoNb))*normal[i];
+          laplaceFlux+=0.5*(Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))-Filter::sigma(midNb,i)*model_.h2(Filter::rho(midEN))*normal[i];
         
         } 
     
