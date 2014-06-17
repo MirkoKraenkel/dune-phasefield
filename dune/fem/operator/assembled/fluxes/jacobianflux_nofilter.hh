@@ -171,7 +171,7 @@ double JacobianFlux<Model>
       
       //rho-------------------------------------------------------------
  
-      double vNormalEn{0},testNormalEn{0.},vNormalNb{0.},testNormalNb{0.};
+      double vNormalEn{0},testNormalEn(0.),vNormalNb(0.),testNormalNb{0.};
     
       for(int ii = 0; ii < dimDomain ; ++ii )
         {
@@ -300,7 +300,7 @@ double JacobianFlux<Model>
   jump-=uNb;  
   RangeType phiEn=uEn;
   RangeType phiNb=uNb;
-  JacobianRangeType aduEn{0.}, aduNb{0.}; 
+  JacobianRangeType aduEn(0.), aduNb(0.); 
   double integrationElement=normal.two_norm();
   
   
@@ -309,7 +309,7 @@ double JacobianFlux<Model>
       Filter::velocity(valueLeft,i)=beta_*penaltyFactor*Filter::velocity(phiEn,i)*integrationElement*0.5;
       Filter::velocity(valueRight,i)=-beta_*penaltyFactor*Filter::velocity(phiNb,i)*integrationElement*0.5;
     }
-  JacobianRangeType jumpNormalLeft{0.},jumpNormalRight{0.};
+  JacobianRangeType jumpNormalLeft(0.),jumpNormalRight(0.);
  
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
@@ -323,7 +323,7 @@ double JacobianFlux<Model>
   model_.diffusion(jumpNormalLeft,dvalueLeft);
   model_.diffusion(jumpNormalRight,dvalueRight);
    
-  JacobianRangeType mean{0.}, Amean{0.};
+  JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   mean*=-0.25;
   model_.diffusion(mean,Amean);
@@ -352,14 +352,14 @@ double JacobianFlux<Model>
   
   RangeType jump{0};
   jump=uEn;
-  JacobianRangeType aduEn{0.}, aduNb{0.}; 
+  JacobianRangeType aduEn(0.), aduNb(0.); 
   double integrationElement=normal.two_norm();
   
   for( int i=0; i<dimDomain;++i)
     {
       Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
     }
-  JacobianRangeType jumpNormal{0.};
+  JacobianRangeType jumpNormal(0.);
  
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
@@ -370,7 +370,7 @@ double JacobianFlux<Model>
   jumpNormal*=switchIP_;
   model_.diffusion(jumpNormal,dvalue);
    
-  JacobianRangeType mean{0.}, Amean{0.};
+  JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   //mean+=duNb;
   //mean*=-0.5;

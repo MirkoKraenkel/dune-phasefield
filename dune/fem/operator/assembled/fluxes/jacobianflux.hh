@@ -154,7 +154,7 @@ double JacobianFlux<Model>
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn{0.}, midNb{0.},jump,mean,jumpOld, jumpPhi{0};
+      RangeType valEn,valNb,midEn(0.), midNb(0.),jump,mean,jumpOld, jumpPhi(0.);
       valEn=vuEn;
       valNb=vuNb;
 
@@ -168,10 +168,13 @@ double JacobianFlux<Model>
       jumpOld=valEn;
       jumpOld-=valNb;
 
-      
+
+
+
       //rho-------------------------------------------------------------
  
-      double vNormalEn{0},testNormalEn{0.},vNormalNb{0.},testNormalNb{0.};
+      double vNormalEn(0.),testNormalEn(0.),vNormalNb(0.),testNormalNbi(0.);
+
     
       for(int i = 0; i<dimDomain;++i)
         {
@@ -224,7 +227,7 @@ double JacobianFlux<Model>
         } 
     
       //----------------------------------------------------------------
-      double laplaceFluxLeft{0.},laplaceFluxRight{0.};
+      double laplaceFluxLeft(0.),laplaceFluxRight(0.);
 
       //phi-------------------------------------------------------------
       for(int i = 0; i<dimDomain;++i)
@@ -280,12 +283,12 @@ double JacobianFlux<Model>
                   JacobianRangeType& dvalueRight) const
 {
   
-  RangeType jump{0};
+  RangeType jump(0.);
   jump=uEn;
   jump-=uNb;  
   RangeType phiEn=uEn;
   RangeType phiNb=uNb;
-  JacobianRangeType aduEn{0.}, aduNb{0.}; 
+  JacobianRangeType aduEn(0.), aduNb(0.); 
   double integrationElement=normal.two_norm();
   
   
@@ -294,7 +297,7 @@ double JacobianFlux<Model>
       Filter::velocity(valueLeft,i)=beta_*penaltyFactor*Filter::velocity(phiEn,i)*integrationElement*0.5;
       Filter::velocity(valueRight,i)=-beta_*penaltyFactor*Filter::velocity(phiNb,i)*integrationElement*0.5;
     }
-  JacobianRangeType jumpNormalLeft{0.},jumpNormalRight{0.};
+  JacobianRangeType jumpNormalLeft(0.),jumpNormalRight(0.);
  
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
@@ -308,7 +311,7 @@ double JacobianFlux<Model>
   model_.diffusion(jumpNormalLeft,dvalueLeft);
   model_.diffusion(jumpNormalRight,dvalueRight);
    
-  JacobianRangeType mean{0.}, Amean{0.};
+  JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   mean*=-0.25;
   model_.diffusion(mean,Amean);
@@ -335,16 +338,16 @@ double JacobianFlux<Model>
                   JacobianRangeType& dvalue) const
 {
   
-  RangeType jump{0};
+  RangeType jump(0.);
   jump=uEn;
-  JacobianRangeType aduEn{0.}, aduNb{0.}; 
+  JacobianRangeType aduEn(0.), aduNb(0.); 
   double integrationElement=normal.two_norm();
   
   for( int i=0; i<dimDomain;++i)
     {
       Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
     }
-  JacobianRangeType jumpNormal{0.};
+  JacobianRangeType jumpNormal(0.);
  
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
@@ -355,7 +358,7 @@ double JacobianFlux<Model>
   jumpNormal*=switchIP_;
   model_.diffusion(jumpNormal,dvalue);
    
-  JacobianRangeType mean{0.}, Amean{0.};
+  JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   //mean+=duNb;
   //mean*=-0.5;
