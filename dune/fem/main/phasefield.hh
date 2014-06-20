@@ -24,6 +24,9 @@
 #endif
 
 
+#include <dune/grid/parallelgrid.hh>
+
+
 #include <dune/fem/base/base.hh>
 
 // problem dependent
@@ -43,6 +46,19 @@ namespace simulation{
   {
     Fem::FemEoc::clear();
 
+#if 0  
+   typedef Dune::GridSelector :: GridType HostGridType;
+   typedef ProblemGenerator< HostGridType > ProblemGeneratorType;
+
+    // use problem specific initialize method since some problems do different things
+    // there, e.g. poisson 
+		const std::string Flux="Phasefieldflux";
+    Dune::GridPtr<HostGridType> gridptr = ProblemGeneratorType :: initializeGrid( Flux );
+
+    // get grid reference 
+   typedef ParallelGrid< HostGridType > GridType;
+    GridType grid( *gridptr );
+#else
     typedef Dune::GridSelector :: GridType GridType;
     typedef ProblemGenerator< GridType > ProblemGeneratorType;
 
@@ -54,6 +70,7 @@ namespace simulation{
     // get grid reference 
     GridType& grid = *gridptr;
 
+#endif 
     typedef AlgorithmTraits<GridType,ProblemGeneratorType,POLORDER> AlgoTraits;
 		PhasefieldAlgorithm<GridType,AlgoTraits,POLORDER> stepper(grid);
    
