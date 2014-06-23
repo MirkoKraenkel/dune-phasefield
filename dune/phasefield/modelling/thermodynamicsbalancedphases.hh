@@ -121,25 +121,29 @@ class BalancedThermodynamics:
 
   inline double dphireactionSource( double rho, double  phi) const
   { 
-    double t1;
-    double t11;
-    double t16;
-    double t18;
+    double t13;
     double t19;
-    double t3;
-    double t4;
-    double t7;
+    double t2;
+    double t25;
+    double t5;
+    double t8;
+    double t9;
+    {
+      t2 = phi*phi;
+      t5 = t2*phi*delta_;
+      t8 = log(rho);
+      t9 = rho*t8;
+      t13 = t2*delta_;
+      t19 = phi*delta_;
+      t25 = -20000000.0+120000000.0*phi-120000000.0*t2-2700000000.0*t5*rho+
+        900000000.0*t5*t9+5075641580.0*t5+4050000000.0*t13*rho-1350000000.0*t13*t9
+        -7613462365.0*t13-1350000000.0*t19*rho+450000000.0*t19*t9+2537820789.0*t19;
+      return(-0.2E-6*t25/delta_);
+    }
 
-    t1 = deltaInv_*h(rho);
-    t3 = 1.0-phi;
-    t4 = t3*t3;
-    t7 = phi*phi;
-    t11 = t7*t7;
-    t16 = 30.0*t11-60.0*t7*phi+30.0*t7;
-    t18 = log(rho);
-    t19 = rho*t18;
-    return(4.0*t1*phi*t4-4.0*t1*t7*t3+t16*(-0.25E1*rho+0.15E1*t19+1.0)-t16*(
-          -7.0*rho+3.0*t19+0.945940263E1));
+
+
+
 
   }
 
@@ -207,10 +211,10 @@ class BalancedThermodynamics:
     t7 = 10.0*t1*phi;
     t10 = log(rho);
     t11 = rho*t10;
-     
+
     pressure=((t4-t5+t7)*(0.25E1*rho-0.15E1*t11-1.0+rho*(-1.0+0.15E1*t10))+(1.0-t4
-            +t5-t7)*(7.0*rho-3.0*t11-0.945940263E1+rho*(-4.0+3.0*t10)));
-   
+          +t5-t7)*(7.0*rho-3.0*t11-0.945940263E1+rho*(-4.0+3.0*t10)));
+
     pressure-=doubleWell(phi)*deltaInv_;
 
     return pressure;
