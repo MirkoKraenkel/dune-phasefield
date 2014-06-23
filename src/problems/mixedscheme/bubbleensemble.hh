@@ -182,6 +182,17 @@ inline void HeatProblem<GridType,RangeProvider>
   res[dimension+4]=0.;
   res[dimension+5]=0.;
  
+  double rho=1.;
+  double dFdphi= thermodyn_.reactionSource(rho,phi); 
+  double dFdrho=thermodyn_.chemicalPotential(rho, phi);
+    
+ //mu
+ res[dimension+2]=dFdrho;
+  //tau
+ res[dimension+3]=dFdphi;
+ 
+ 
+
   for( int i=0 ; i<(bubblevector_.size())/3 ;++i)
   { 
 
@@ -199,11 +210,24 @@ inline void HeatProblem<GridType,RangeProvider>
   double tanhr=tanh(tanr);
   double dtanr=1+tanr*tanr;
   double dtanhr=1-tanhr*tanhr; 
+  double ddtanr=2*tanr*dtanr;
+  double ddtanhr=-2*tanhr*dtanhr;
+ 
+  
   if( r < radius+(0.5*width))
    {
       if( r < radius-(0.5*width))
       {
         phi=1.;
+        dFdphi= thermodyn_.reactionSource(rho,phi); 
+        dFdrho=thermodyn_.chemicalPotential(rho, phi);
+     
+        //mu
+        res[dimension+2]=dFdrho;
+        //tau
+        res[dimension+3]=dFdphi;
+ 
+     
         continue;
       }
       else
@@ -211,15 +235,24 @@ inline void HeatProblem<GridType,RangeProvider>
         phi=0.5*( tanhr )+0.5;
         res[dimension+4]=dtanhr*dtanr*(M_PI/width)*dxr(arg);
         res[dimension+5]=dtanhr*dtanr*(M_PI/width)*dyr(arg);
-         continue;
+          double laplacePhi=dtanhr*dtanr*(M_PI/width)*(dxdxr(arg)+dydyr(arg))
+                    +(dtanhr*ddtanr +ddtanhr*dtanr*dtanr)*(M_PI/width)*(M_PI/width)*(dxr(arg)*dxr(arg)+dyr(arg)*dyr(arg));
+        laplacePhi*=0.5;
+         dFdphi= thermodyn_.reactionSource(rho,phi); 
+         dFdrho=thermodyn_.chemicalPotential(rho, phi);
+     
+         //mu
+        res[dimension+2]=dFdrho;
+        //tau
+        res[dimension+3]=dFdphi-delta_*laplacePhi;
+ 
+        continue;
       }
     }
  
   }
       
    
-
-  double rho=1.;
 
   double v=0;
   //rho
@@ -233,16 +266,7 @@ inline void HeatProblem<GridType,RangeProvider>
    
   res[dimension+1]=phi;
   
-  double laplacePhi=0;
-
-  double dFdphi= thermodyn_.reactionSource(rho,phi); 
-  double dFdrho=thermodyn_.chemicalPotential(rho, phi);
-     
-   //mu
-  res[dimension+2]=0;
-  //tau
-  res[dimension+3]=0;
-  
+ 
     //sigma
  }
 
