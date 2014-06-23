@@ -46,7 +46,7 @@ namespace simulation{
   {
     Fem::FemEoc::clear();
 
-#if 0  
+#if 1  
    typedef Dune::GridSelector :: GridType HostGridType;
    typedef ProblemGenerator< HostGridType > ProblemGeneratorType;
 
@@ -58,6 +58,7 @@ namespace simulation{
     // get grid reference 
    typedef ParallelGrid< HostGridType > GridType;
     GridType grid( *gridptr );
+    grid.loadBalance();
 #else
     typedef Dune::GridSelector :: GridType GridType;
     typedef ProblemGenerator< GridType > ProblemGeneratorType;
