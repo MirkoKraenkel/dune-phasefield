@@ -5,8 +5,9 @@ fem.resolvevariables: 1
 #------------
 fem.prefix: ./data$(scheme) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 0.1 #save data every time interval 
-fem.io.savecount:    # save every i-th ste
+fem.io.savestep: 0.001 #save data every time interval 
+fem.io.savecount: 1   # save every i-th ste
+fem.io.checkpointstep:0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
 # GRID SOLUTION
@@ -25,6 +26,7 @@ paramfile: ./paramFiles/paramBase
 
 # PROBLEM SETUP
 #--------------
+phasefield.restart: false 
 phasefield.calcresidual: false 
 phasefield.interpolinitial: false 
 phasefield.diffusionTimeStep:1 
@@ -32,15 +34,17 @@ phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.reactionrate: 1. 
 phasefield.addvisc: 0 
-phasefield.nonconvisc:  
-phasefield.thetaswitch: -1.
-phasefield.delta: 0.025
+phasefield.nonconvisc:-1  
+phasefield.delta: 0.05
 phasefield.mu1: 0.1
 phasefield.rho0: 2.5 
 phasefield.penalty: 1  
 phasefield.acpenalty: 0 
 phasefield.ipswitch:0
 phasefield.smear: 1.
+phasefield.radius: 0.4
+phasefield.numbubbles: 2
+phasefield.bubbles: 2bubbles.txt 
 phiscale: 0.99
 pressure: 1
 gamma: 1. 
