@@ -40,7 +40,7 @@ gridsol.usegridsolution: false
 #-----------------
 
 phasefield.eocSteps: 1 
-phasefield.printCount: 100
+phasefield.printCount: 10
 phasefield.verbose: 1 
 
 # create a file with sampled values of the numerical solution
@@ -52,28 +52,28 @@ linesegmentsamplerresolution: 100.
 
 fem.adaptation.method: none  # none | generic | callback
 # specify refinement tolerance 
-fem.adaptation.refineTolerance: 0.001
+fem.adaptation.refineTolerance: 0.01
 # percent of refinement tol used for coarsening 
-fem.adaptation.coarsenPercent: 0.95
+fem.adaptation.coarsenPercent: 0.5
 
 # coarsest level that should be present 
 # finest level that should be present
-fem.adaptation.coarsestLevel:4 
-fem.adaptation.finestLevel: 8 
-phasefield.adaptTol: 2
+fem.adaptation.coarsestLevel:0 
+fem.adaptation.finestLevel: 14 
+phasefield.adaptTol: 0.1 
 # marking strategy 
 # shockind = shock indicator, 
 # apost    = aposteriori based indicator, 
 # grad     = gradient based indicator 
 fem.adaptation.markingStrategy: grad 
 
-fem.adaptation.adaptcount: 10 # after this many time step, 0 disables adaptation
+fem.adaptation.adaptcount: 1 # after this many time step, 0 disables adaptation
 
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 5  
+phasefield.startLevel: 7 
 
 
 phasefield.startTime: 0 
-phasefield.endTime: 40 
+phasefield.endTime: 0.005
