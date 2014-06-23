@@ -25,7 +25,7 @@
 
 
 #include <dune/grid/parallelgrid.hh>
-
+#include <dune/grid/parallelgrid/dgfpaser.hh>
 
 #include <dune/fem/base/base.hh>
 
