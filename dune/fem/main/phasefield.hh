@@ -5,12 +5,6 @@
 #define DUNE_DEVEL_MODE
 #endif
 
-// -1 means higher order FV 
-#if POLORDER == -1 
-#define HIGHER_ORDER_FV 
-#undef POLORDER 
-#define POLORDER 0
-#endif
 
 #include <config.h>
 
@@ -23,9 +17,10 @@
 #endif
 #endif
 
-
+#if PARAGRID
 #include <dune/grid/parallelgrid.hh>
 #include <dune/grid/parallelgrid/dgfparser.hh>
+#endif
 
 #include <dune/fem/base/base.hh>
 
@@ -38,7 +33,6 @@
 #endif
 #include <dune/fem/space/common/allgeomtypes.hh>
 
-//#include <dune/grid/io/visual/grapedatadisplay.hh>
 
 namespace simulation{
 
@@ -46,7 +40,7 @@ namespace simulation{
   {
     Fem::FemEoc::clear();
 
-#if 1  
+#if PARAGRID 
    typedef Dune::GridSelector :: GridType HostGridType;
    typedef ProblemGenerator< HostGridType > ProblemGeneratorType;
 
@@ -56,7 +50,7 @@ namespace simulation{
     Dune::GridPtr<HostGridType> gridptr = ProblemGeneratorType :: initializeGrid( Flux );
 
     // get grid reference 
-   typedef ParallelGrid< HostGridType > GridType;
+    typedef ParallelGrid< HostGridType > GridType;
     GridType grid( *gridptr );
     grid.loadBalance();
 #else
