@@ -179,10 +179,11 @@ inline void HeatProblem<GridType,RangeProvider>
   double phi; 
   double width=6*delta_;
   phi=0.;
+  
   res[dimension+4]=0.;
   res[dimension+5]=0.;
  
-  double rho=1.;
+  double rho=3;
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
     
@@ -219,6 +220,7 @@ inline void HeatProblem<GridType,RangeProvider>
       if( r < radius-(0.5*width))
       {
         phi=1.;
+        rho=2.;
         dFdphi= thermodyn_.reactionSource(rho,phi); 
         dFdrho=thermodyn_.chemicalPotential(rho, phi);
      
@@ -233,8 +235,9 @@ inline void HeatProblem<GridType,RangeProvider>
       else
       {
         phi=0.5*( tanhr )+0.5;
-        res[dimension+4]=dtanhr*dtanr*(M_PI/width)*dxr(arg);
-        res[dimension+5]=dtanhr*dtanr*(M_PI/width)*dyr(arg);
+        rho=-0.5*tanhr+2.5;
+        res[dimension+4]=-1.*dtanhr*dtanr*(M_PI/width)*dxr(arg);
+        res[dimension+5]=-1.*dtanhr*dtanr*(M_PI/width)*dyr(arg);
           double laplacePhi=dtanhr*dtanr*(M_PI/width)*(dxdxr(arg)+dydyr(arg))
                     +(dtanhr*ddtanr +ddtanhr*dtanr*dtanr)*(M_PI/width)*(M_PI/width)*(dxr(arg)*dxr(arg)+dyr(arg)*dyr(arg));
         laplacePhi*=0.5;
