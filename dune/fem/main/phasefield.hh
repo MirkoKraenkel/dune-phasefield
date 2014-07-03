@@ -17,19 +17,9 @@
 #endif
 #endif
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 #if PARAGRID
 #include <dune/grid/parallelgrid.hh>
 #include <dune/grid/parallelgrid/dgfparser.hh>
-=======
-#if HAVE_DUNE_METAGRID
-#include <dune/grid/parallelgrid.hh>
->>>>>>> Stashed changes
-=======
-#if HAVE_DUNE_METAGRID
-#include <dune/grid/parallelgrid.hh>
->>>>>>> Stashed changes
 #endif
 
 #include <dune/fem/base/base.hh>
