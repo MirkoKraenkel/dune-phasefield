@@ -137,6 +137,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
     setEntity( entity );
 
     LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
+
     const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
     const unsigned int numBasisFunctions = baseSet.size();
 
@@ -188,7 +189,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
       for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
       {
-        RangeFieldType div{0.},grad{0.};
+        RangeFieldType div(0.),grad(0.);
         for(int ii = 0; ii < dimDomain ; ++ ii)
         {
           div+=Filter::dvelocity(duMid, ii, ii)*Filter::rho( phi[ jj ])
@@ -206,7 +207,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           Filter::velocity( fu , ii) = (Filter::velocity( vu, ii )-Filter::velocity( vuOld ,ii ))*Filter::rho( phi[ jj ] )*0.5
             +Filter::velocity( phi[ jj ] , ii)*Filter::rho( vuMid)*deltaInv;
 
-          RangeFieldType  sgradv{0.};
+          RangeFieldType  sgradv(0.);
 
           for( size_t kk = 0 ; kk < dimDomain ; ++kk )
           {
@@ -225,7 +226,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         }   
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        RangeFieldType gradphiv{0.};
+        RangeFieldType gradphiv(0.);
 
         Filter::phi( fu )=Filter::phi( phi[ jj ] )*deltaInv;
 
@@ -242,7 +243,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         //mu  
         Filter::mu( fu )=0.5*Filter::mu( phi[ jj ] );
-        RangeFieldType drhomu{0.},dphimu{0.};
+        RangeFieldType drhomu(0.),dphimu(0.);
         model_.drhomuSource( Filter::rho( vuOld ),  Filter::rho( vu ) , Filter::phi( vu ),drhomu);
         model_.dphimuSource( Filter::rho( vuOld ),  Filter::rho( vu ) , Filter::phi( vu ),dphimu);
 
@@ -255,7 +256,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         //tau
         Filter::tau( fu )=0.5*Filter::tau( phi[ jj ] );
         
-        RangeFieldType dphitau{0.};
+        RangeFieldType dphitau(0.);
         
         model_.dphitauSource( Filter::phi(vuOld),
             Filter::phi( vu ), 
@@ -263,7 +264,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             dphitau);
         Filter::tau( fu )-=dphitau*Filter::phi( phi[ jj ] );
 
-        RangeFieldType divsigma{0.};
+        RangeFieldType divsigma(0.);
         for( size_t ii=0 ; ii < dimDomain ; ++ii )
           divsigma+=0.5*Filter::dsigma( dphi[ jj ] ,  ii , ii);
 
@@ -382,9 +383,9 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
-                 RangeType avuLeft{0.}, avuRight{0.}, valueLeft{0.},valueRight{0.};
-            JacobianRangeType aduLeft{0.},aduRight{0.};
-
+             RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
+             JacobianRangeType aduLeft(0.),aduRight(0.);
+  
             double  fluxRet=jacFlux_.numericalFlux(normal,
                 area,
                 vuEn[ pt ],
@@ -409,14 +410,6 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
             avuLeft+=valueLeft;
             avuRight+=valueRight;
-#if 0
-             std::cout<<"Phi="<<phi[ jj ]<<"\n";
-
-      std::cout<<"avuLeft="<<avuLeft<<"\n";
-
-            std::cout<<"PhiNb="<<phiNb[ jj ]<<"\n";
-            std::cout<<"avuRight="<<avuRight<<"\n"; 
-#endif       
             jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
             jLocalNb.column( jj ).axpy( phi,dphi , avuRight,aduRight, weight); 
 
@@ -433,8 +426,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          RangeType vuEn{0.},vuNb{0.},avuLeft{0.};
-          JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.};
+          RangeType vuEn(0.),vuNb(0.),avuLeft(0.);
+          JacobianRangeType duEn(0.),duNb(0.),aduLeft(0.);
           uLocal.evaluate( quadInside[ pt ], vuEn);
           uLocal.jacobian( quadInside[ pt ], duEn);
 

@@ -2,7 +2,6 @@
 #define DUNE_PHASEFIELD_MIXEDOPERATOR_HH
 
 
-#warning  "NEWHEATOP"
 //globlas includes
 
 //DUNE includes
