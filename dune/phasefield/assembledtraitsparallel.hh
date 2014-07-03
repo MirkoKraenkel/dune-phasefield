@@ -12,6 +12,7 @@
 
 //include solvers
 #include <dune/fem/solver/oemsolver.hh>
+#include <dune/fem/solver/cginverseoperator.hh>
 #include <dune/fem/util/oemwrapper.hh>
 
 #if HAVE_DUNE_ISTL
@@ -61,8 +62,8 @@ struct AlgorithmTraits
   typedef ProblemGeneratorImp                      ProblemGeneratorType;
 
    // Choose a suitable GridView
-   typedef Dune :: Fem::DGAdaptiveLeafGridPart< GridType, All_Partition >       GridPartType;
-  //typedef Dune :: Fem::DGAdaptiveLeafGridPart< GridType>       GridPartType;
+ // typedef Dune :: Fem::DGAdaptiveLeafGridPart< GridType, All_Partition >       GridPartType;
+  typedef Dune :: Fem::DGAdaptiveLeafGridPart< GridType>       GridPartType;
    typedef Dune :: Fem::AdaptiveLeafGridPart< GridType >         LagrangeGridPartType;
   
   enum{ dimDomain = GridType::dimensionworld };
@@ -114,8 +115,9 @@ struct AlgorithmTraits
 #else 
   typedef Dune::Fem::SparseRowLinearOperator< DiscreteFunctionType, DiscreteFunctionType> JacobianOperatorType; 
   typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-  typedef Dune::Fem::UMFPACKOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
-//  typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
+  //typedef Dune::Fem::UMFPACKOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
+  typedef Dune::Fem::CGInverseOperator< DiscreteFunctionType> LinearSolverType;
+  //typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
 
 #endif
 #endif
