@@ -93,7 +93,7 @@ double MixedFlux<Model>
          vNormalEn+=Filter::velocity(midEn,i)*normal[i];
      }
   
-    Filter::rho(gLeft)=-1*vNormalEn*Filter::rho(midEn);
+    Filter::rho(gLeft)=0;//-1*vNormalEn*Filter::rho(midEn);
     //Filter::rho(gLeft)*=-0.5;
   
     //----------------------------------------------------------------

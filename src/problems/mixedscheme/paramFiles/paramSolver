@@ -17,7 +17,7 @@ fem.ode.cflStart: 1e-4
 fem.ode.cflMax: 1000 
 fem.timeprovider.factor: 1 
 fem.timeprovider.updatestep: 2
-fixedTimeStep: 1e-3 #when 0 then use dynamic time stepi
+fixedTimeStep: 1e-4 #when 0 then use dynamic time stepi
 
 
 

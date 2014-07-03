@@ -72,8 +72,8 @@ fem.adaptation.adaptcount: 1 # after this many time step, 0 disables adaptation
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 7 
+phasefield.startLevel: 5 
 
 
 phasefield.startTime: 0 
-phasefield.endTime: 0.005
+phasefield.endTime: 5 

@@ -28,7 +28,7 @@ public:
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
     {
-      std::cout<<"MixedFlux\n";
+      std::cout<<"fluxhh\n";
     }
 
 
@@ -96,8 +96,9 @@ double MixedFlux<Model>
          vNormalEn+=Filter::velocity(midEn,i)*normal[i];
      }
   
-    Filter::rho(gLeft)=-1*vNormalEn*Filter::rho(midEn);
-    //Filter::rho(gLeft)*=-0.5;
+ // Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn);
+   // std::cout<<"rho(bnd)="<<Filter::rho(gLeft)<<"\n";
+   Filter::rho(gLeft)=0.;
   
     //----------------------------------------------------------------
     
@@ -122,7 +123,7 @@ double MixedFlux<Model>
 
     //tau-------------------------------------------------------------
 
-    Filter::tau(gLeft)=model_.delta()*laplaceFlux;
+    Filter::tau(gLeft)=0;//model_.delta()*laplaceFlux;
 
     //----------------------------------------------------------------
 
@@ -205,7 +206,9 @@ double MixedFlux<Model>
           Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midNb)*0.5;
           
            //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
-          Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
+          //Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valEn)*0.5;
+          //Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valNb)*0.5;
+           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
           Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
        
         } 

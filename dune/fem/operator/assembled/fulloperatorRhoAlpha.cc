@@ -141,10 +141,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
    
     // |sigma^n|^2
-    sigmasqr+=model_.hprime(Filter::rho(vu))*Filter::sigma( vu , ii )*Filter::sigma( vu , ii );
+    sigmasqr+=model_.h2prime(Filter::rho(vu))*Filter::sigma( vu , ii )*Filter::sigma( vu , ii );
     
     // |sigma^{n-1}|^2
-    sigmaOldsqr+=model_.hprime(Filter::rho(vuOld))*Filter::sigma( vuOld , ii )*Filter::sigma( vuOld , ii );
+    sigmaOldsqr+=model_.h2prime(Filter::rho(vuOld))*Filter::sigma( vuOld , ii )*Filter::sigma( vuOld , ii );
 
   }
 
@@ -162,7 +162,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     //\nabla\phi^n
     Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
  
-    Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-model_.h(Filter::rho(vuMid))*Filter::sigma(vuMid, ii);
+    Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-model_.h2(Filter::rho(vuMid))*Filter::sigma(vuMid, ii);
   }
   //------------------------------------------------------------------        
 

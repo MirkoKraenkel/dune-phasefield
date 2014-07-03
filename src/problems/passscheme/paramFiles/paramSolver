@@ -1,9 +1,9 @@
 # SOLVER CONFIGURATION
 #---------------------
 
-fem.ode.odesolver: EX # ode solvers: EX, IM, IMEX
+fem.ode.odesolver:IM  # ode solvers: EX, IM, IMEX
 fem.ode.linearsolver: gmres 
-fem.ode.gmrescycles: 100 
+fem.ode.gmrescycles: 1000
 fem.ode.order: 1 
 fem.ode.verbose: none  # ode output: none, cfl, full
 fem.ode.cflincrease: 1.5 
@@ -11,13 +11,13 @@ fem.ode.miniterations: 14
 fem.ode.maxiterations: 20
 fem.ode.iterations: 50 
 fem.ode.solver.iterations: 20000
-fem.ode.solver.tolerance: 1e-10
-fem.ode.tolerance: 1-8
+fem.ode.solver.tolerance: 1e-14
+fem.ode.tolerance: 1-12
 fem.ode.cflStart: 1e-4 
 fem.ode.cflMax: 1000 
 fem.timeprovider.factor: 1 
 fem.timeprovider.updatestep: 2
-fixedTimeStep: 1e-7 #when 0 then use dynamic time stepi
+fixedTimeStep: 1e-4 #when 0 then use dynamic time stepi
 
 
 fixedTimeStepEocLoopFactor: 2   # fixed time step is scaled with the inverse of this in each eoc loop

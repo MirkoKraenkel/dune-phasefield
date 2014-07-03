@@ -84,7 +84,6 @@ void PhasefieldBoundaryCorrection<DiscreteFunction, Model>
   ::operator() ( DiscreteFunctionType &u ) const 
 {
 
-  // clear destination 
   // iterate over grid 
   const IteratorType end = space().end();
   for( IteratorType it = space().begin(); it != end; ++it )

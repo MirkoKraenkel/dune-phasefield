@@ -201,9 +201,7 @@ namespace Dune {
       }  
       else
       {
-      
         uRight=uLeft;
-
       }
     
       

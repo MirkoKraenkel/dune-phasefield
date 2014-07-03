@@ -3,10 +3,10 @@ fem.resolvevariables: 1
 #order: 0
 # DATA WRITER
 #------------
-fem.prefix: ./data$(scheme) # specify directory for data output (is created if not exists)
+fem.prefix: ./0207/data$(scheme) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 0.001 #save data every time interval 
-fem.io.savecount: 1   # save every i-th ste
+fem.io.savestep: 0.1 #save data every time interval 
+fem.io.savecount: 10   # save every i-th ste
 fem.io.checkpointstep:0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
@@ -35,7 +35,7 @@ phasefield.additionalvariables: true
 phasefield.reactionrate: 1. 
 phasefield.addvisc: 0 
 phasefield.nonconvisc:-1  
-phasefield.delta: 0.05
+phasefield.delta: 0.025
 phasefield.mu1: 0.1
 phasefield.rho0: 2.5 
 phasefield.penalty: 1  
@@ -54,8 +54,9 @@ gamma: 1.
 # DOMAIN
 #-------
 
-#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
-fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
+fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
+
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 ##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
