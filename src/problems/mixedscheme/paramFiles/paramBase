@@ -50,17 +50,17 @@ linesegmentsamplerresolution: 100.
 # GRID ADAPTATION
 #----------------
 
-fem.adaptation.method: none  # none | generic | callback
+fem.adaptation.method: generic # none | generic | callback
 # specify refinement tolerance 
 fem.adaptation.refineTolerance: 0.01
 # percent of refinement tol used for coarsening 
-fem.adaptation.coarsenPercent: 0.5
+fem.adaptation.coarsenPercent: 0.99
 
 # coarsest level that should be present 
 # finest level that should be present
-fem.adaptation.coarsestLevel:0 
-fem.adaptation.finestLevel: 14 
-phasefield.adaptTol: 0.1 
+fem.adaptation.coarsestLevel: 2 
+fem.adaptation.finestLevel: 7 
+phasefield.adaptTol: 0.15 
 # marking strategy 
 # shockind = shock indicator, 
 # apost    = aposteriori based indicator, 
@@ -68,12 +68,12 @@ phasefield.adaptTol: 0.1
 fem.adaptation.markingStrategy: grad 
 
 fem.adaptation.adaptcount: 1 # after this many time step, 0 disables adaptation
-
+fem.loadbalancing.step:1
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 5 
+phasefield.startLevel: 2 
 
 
 phasefield.startTime: 0 
-phasefield.endTime: 5 
+phasefield.endTime: 1.0

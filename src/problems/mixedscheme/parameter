@@ -35,8 +35,13 @@ phasefield.additionalvariables: true
 phasefield.reactionrate: 1. 
 phasefield.addvisc: 0 
 phasefield.nonconvisc:-1  
+<<<<<<< Updated upstream
 phasefield.delta: 0.025
 phasefield.mu1: 0.1
+=======
+phasefield.delta: 0.0125
+phasefield.mu1: 1
+>>>>>>> Stashed changes
 phasefield.rho0: 2.5 
 phasefield.penalty: 1  
 phasefield.acpenalty: 0 
@@ -60,8 +65,8 @@ fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 ##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
-fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
-#fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
+fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf
@@ -81,17 +86,17 @@ fem.ode.tolerance: 1e-54
 fem.solver.newton.tolerance: 1e-8
 fem.solver.tolerance: 1e-10
 fem.solver.verbose: false 
-fem.solver.newton.verbose: false
+fem.solver.newton.verbose: false 
 fem.solver.newton.assemblesteps: 5 
 fem.solver.newton.maxiterations: 100
 fem.differenceoperator.eps: 1 
 phasefield.fdjacobian.epsilon: 0
-#phasefield.maximaltimesteps: 0 
+#phasefield.maximaltimesteps: 1 
 phasefield.mixed.theta: 0. #0 if opcheck is used
 
 
 
-istl.preconditioning.method: ilu-0 
+istl.preconditioning.method: amg-ilu-0
 istl.gmres.restart: 100
 oemsolver.gmres.restart: 1000
 
@@ -105,5 +110,3 @@ phasefield.energy: false
 
 # Debug
 # --------------
-sigma.sign:1.
-debug.scale:1.
