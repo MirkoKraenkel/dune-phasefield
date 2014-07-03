@@ -137,7 +137,7 @@ inline void HeatModel< Grid,Problem>
 #endif
   }
 #if RHOMODEL
-  surfaceEnergy*=h(rho);
+  surfaceEnergy*=h2(rho);
 #else
 #endif
   kin=rho*0.5*kineticEnergy;
@@ -200,7 +200,6 @@ inline void HeatModel< Grid, Problem>
             RangeFieldType& tau) const
 {
   tau=problem_.thermodynamics().reactionSource(rho,phi2);
-  tau=phi2*phi2;
 }
 template< class Grid, class Problem > 
 inline void HeatModel< Grid, Problem>
@@ -210,7 +209,6 @@ inline void HeatModel< Grid, Problem>
     RangeFieldType& tau) const
 {
   tau=problem_.thermodynamics().dphireactionSource(rho,phi2);
-  tau=2*phi2;
 }
 
 
