@@ -64,7 +64,7 @@ namespace Dune
     const IndexSetType &indexSet_;
     GridType &grid_;
     ErrorIndicatorType indicator_;
-    ErrorIndicatorType overshootIndicator_;
+    mutable ErrorIndicatorType refined_;
    
     const  ModelType& model_;
     double totalIndicator2_,maxIndicator_;
@@ -84,7 +84,7 @@ namespace Dune
 	    indexSet_( gridPart_.indexSet() ),
 	    grid_( grid ),
 	    indicator_( indexSet_.size( 0 )),
-	    overshootIndicator_( indexSet_.size( 0 )), 
+	    refined_( indexSet_.size( 0 )), 
       model_(model),
       totalIndicator2_(0),
 	    maxIndicator_(0),
@@ -93,7 +93,7 @@ namespace Dune
 	    minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
 	    coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1)),
       tolfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.tolfactor",1) ) 
-    {
+      {
         clear();
       }  
     
@@ -110,7 +110,7 @@ namespace Dune
     {
     
       ret[0] = indicator_[enIndex_];
-      ret[1] = overshootIndicator_[enIndex_];
+      ret[1] = refined_[enIndex_];
     }
   private:
     const ElementType *entity_;
@@ -120,12 +120,9 @@ namespace Dune
     void clear ()
     {
       indicator_.resize( indexSet_.size( 0 ));
-      overshootIndicator_.resize( indexSet_.size( 0 ));
+      refined_.resize( indexSet_.size( 0 ));
       std::fill( indicator_.begin(), indicator_.end(), 0.);
-      std::fill( overshootIndicator_.begin(), overshootIndicator_.end(), 0.);
-
-    
-
+      std::fill( refined_.begin(), refined_.end(), std::numeric_limits<int>::min());
     }
     
     double estimate ( )
@@ -138,7 +135,8 @@ namespace Dune
       {
       
         const ElementType &entity = *it;
-        const LocalFunctionType uLocal = uh_.localFunction( entity );
+    
+       const LocalFunctionType uLocal = uh_.localFunction( entity );
   
         estimateLocal(entity, uLocal );
 
@@ -178,17 +176,13 @@ namespace Dune
     //! mark all elements due to given tolerance 
     bool mark ( const double tolerance ) const
     {
-
       int marked = 0;
       if (tolerance < 0)
       {
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
-          
           const ElementType &entity = *it;
-        //  std::cout<<"Indicator[ " << indexSet_.index(entity)<<" ]="<<(indicator_[indexSet_.index(entity)])<<"\n"; 
- 
 
            grid_.mark( 1, entity );
           ++marked;
@@ -197,20 +191,20 @@ namespace Dune
       else
       {
       	// loop over all elements
-         
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
       
           const ElementType &entity = *it;
-      //   if( (overshootIndicator_[indexSet_.index(entity)])<-0.1) 
+         int index=indexSet_.index(entity);
          if( std::abs(indicator_[indexSet_.index(entity)]) > tolerance)
 	       {
 	          if(entity.level()<maxLevel_)
 		        {
+ 
               grid_.mark( 1, entity );
-		         
-#if 1      
+              refined_[ index ] = 1;	
+  #if 1	         
               IntersectionIteratorType end = gridPart_.iend( entity );
 		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		          {
@@ -223,22 +217,26 @@ namespace Dune
                   if(outside.level()<maxLevel_)
 			            {
                     grid_.mark( 1, outside );
-			              ++marked;
-			            }
-			          }
+			              refined_[indexSet_.index(outside)]=1;
+                  ++marked;
+			            
+                  }
+              }
 		          }
-#endif 
-	          ++marked;
+#endif
+            ++marked;
 		       }
 	        }
           else if( indicator_[indexSet_.index(entity)] < coarsen_*tolerance )
-	        { 
-	         if(entity.level()>minLevel_)
+	        {
+            if(entity.level()>minLevel_ && !(refined_[indexSet_.index(entity)]>std::numeric_limits<int>::min()))
+            {  
 		          grid_.mark(-1,entity);
-	        }
+            }
+           }
 	        else
           {
-	          grid_.mark(0,entity);
+          //  grid_.mark(0,entity);
 	        }
 	  
 
@@ -252,8 +250,8 @@ namespace Dune
     bool estimateAndMark(double tolerance)
     {
       double esti=estimate();
-      std::cout<<"MaxIndicator="<<(*std::max_element(indicator_.begin(),indicator_.end()));
-      std::cout<<"\nMin h="<<(*std::min_element(overshootIndicator_.begin(),overshootIndicator_.end()));
+      //std::cout<<"MaxIndicator="<<(*std::max_element(indicator_.begin(),indicator_.end()));
+      //std::cout<<"\nMin h="<<(*std::min_element(refined_.begin(),refined_.end()));
       return mark(tolerance);
     }
     
@@ -264,7 +262,9 @@ namespace Dune
                          const LocalFunctionType &uLocal )
     {
       const typename ElementType :: Geometry &geometry = entity.geometry();
-
+       const Dune::ReferenceElement< double, dimension > &refElement =
+       Dune::ReferenceElements< double, dimension >::general( entity.type() );
+ 
       const double volume = geometry.volume();
      // double h2 = (dimension == 2 ? volume : std :: pow( volume, 2.0 / (double)dimension ));  
       double h2=std::sqrt(volume);
@@ -274,7 +274,16 @@ namespace Dune
       const int numQuadraturePoints = quad.nop();
       double sigmasquared=0.;
       double maxsigma=0; 
-      for( int qp = 0; qp < numQuadraturePoints; ++qp )
+      RangeType range;
+      JacobianRangeType gradient;
+      uLocal.evaluate( refElement.position(0 , 0),range );
+      for( int i=0 ; i < dimension ; ++ i)
+       sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
+
+
+      
+#if 0 
+  for( int qp = 0; qp < numQuadraturePoints; ++qp )
         {
           JacobianRangeType gradient;
 	        RangeType range;
@@ -289,12 +298,14 @@ namespace Dune
         // maxsigma=std::max(sigmasquared,maxsigma);
 
         }
-
+#endif
       //L2-Norm Sigma
       double normsigma=std::sqrt(sigmasquared);
       //double normsigma=std::sqrt(maxsigma);
+      normsigma*=h2;
+
       indicator_[ index ]=normsigma;
-      overshootIndicator_[ index ] = h2;
+      refined_[ index ] = h2;
     }
 
     
@@ -391,10 +402,10 @@ namespace Dune
 
         if( errorInside < 0.0 )
 	      {
-	       // overshootIndicator_[ insideIndex ] +=  errorInside;
+	       // refined_[ insideIndex ] +=  errorInside;
             
 	       // if( isOutsideInterior )
-	      //   overshootIndicator_[ outsideIndex ] +=  errorOutside;
+	      //   refined_[ outsideIndex ] +=  errorOutside;
 	      }
       }
     }
