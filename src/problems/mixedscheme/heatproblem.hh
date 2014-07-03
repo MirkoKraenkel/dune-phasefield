@@ -166,7 +166,7 @@ inline void HeatProblem<GridType,RangeProvider>
       }
      else
       { 
-        res[dimension+4]=-2*M_PI*sinx*cost*0.5;
+        res[dimension+4]=-2*M_PI*sinx*cost*0.05;
         res[dimension+5]=0; 
       }
     }
