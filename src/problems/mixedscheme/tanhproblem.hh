@@ -146,7 +146,7 @@ inline void HeatProblem<GridType,RangeProvider>
   drdrtanhr*=-2*deltaInv;
  
   // double rho=1.85*(-0.5*tanhr+0.5)+
-   double rho=1.85*(-0.5*tanhr+0.5)+1.95;
+   double rho=2.85*(-0.5*tanhr+0.5)+1.95;
 
 
 
@@ -163,7 +163,7 @@ inline void HeatProblem<GridType,RangeProvider>
      res[2]=0;
    //double  phi=0.5+0.05*sin(2*M_PI*arg[0]);
 
-   double phi=0.49*tanhr+0.5;
+   double phi=0.5*tanhr+0.5;
    
    res[dimension+1]=phi;
   
@@ -174,33 +174,36 @@ inline void HeatProblem<GridType,RangeProvider>
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
      
-   if( dimRange > dimDomain+2)
-    {
-      //mu
-      res[dimension+2]=0.5*v*v+dFdrho;
-      //tau
+  if( dimRange > dimDomain+2)
+   {
+    //mu
+     res[dimension+2]=0.5*v*v+dFdrho;
+    //tau
 #if RHOMODEL
       abort();
 #else
-      res[dimension+3]=dFdphi-laplacePhi;
+    if(arg[0]<0.5)
+    res[dimension+3]=dFdphi-laplacePhi;
+      else
+    res[dimension+3]=dFdphi+laplacePhi;
 #endif
 
 #if SCHEME==DG
     //sigma
     if(dimension==1)
       {
+       if(arg[0]<0.5)
+        res[dimension+4]=-0.5*drtanhr;
+       else
         res[dimension+4]=0.5*drtanhr;
+ 
       #if RHOMODEL
         res[dimension+5]=res[dimension+4]*rho;
       #endif
       }
      else
       {  
-       if(arg[0]<0.5)
-        res[dimension+4]=0.5*drtanhr;
-       else
-         res[dimension+4]=-0.5*drtanhr;
-           
+          
        res[dimension+5]=0; 
       }
     }
