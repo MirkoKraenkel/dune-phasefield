@@ -248,17 +248,18 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
           baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
           baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
           intersectionIntegral( intersection,                  
-              pt, 
-              quadInside,   
-              quadOutside, 
-              vuEn[pt],
-              vuNb[pt], 
-              duEn[pt], 
-              duNb[pt],
-              avuLeft,
-              avuRight,
-              aduLeft,
-              aduRight);
+                                pt,
+                                quadInside,
+                                quadOutside,
+                                vuEn[pt],
+                                vuNb[pt],
+                                duEn[pt],
+                                duNb[pt],
+                                avuLeft,
+                                avuRight,
+                                aduLeft,
+                                aduRight);
+
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
             RangeType ueps(0.),fueps(0.),fuepsRight(0.), uepsNb(0.) , fuepsNb(0.),fuepsNbRight(0.);
@@ -273,17 +274,18 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             duepsNb.axpy( eps, dphiNb[ jj ] );
 
             intersectionIntegral( intersection,
-                pt,
-                quadInside,
-                quadOutside,
-                ueps,
-                vuNb[pt],
-                dueps,
-                duNb[pt],
-                fueps,
-                fuepsRight,
-                fdueps,
-                fduepsRight);
+                                  pt,
+                                  quadInside,
+                                  quadOutside,
+                                  ueps,
+                                  vuNb[pt],
+                                  dueps,
+                                  duNb[pt],
+                                  fueps,
+                                  fuepsRight,
+                                  fdueps,
+                                  fduepsRight);
+
             intersectionIntegral( intersection,
                 pt,
                 quadInside,
@@ -306,12 +308,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
             fduepsNb-=aduLeft;
             fduepsNb*=epsInv;
-#if 0
-            std::cout<<"Phi="<<phi[ jj ]<<"\n";
-            std::cout<<"avuLeft="<<fueps<<"\n";
-            std::cout<<"PhiNb="<<phiNb[ jj ]<<"\n";
-            std::cout<<"avuRight="<<fuepsNb<<"\n";
-#endif
 
             jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps, weight );
             jLocalNb.column( jj ).axpy( phi, dphi, fuepsNb,fduepsNb,weight); 
@@ -335,16 +331,15 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           baseSet.evaluateAll( quadInside[ pt ] , phi);
           baseSet.jacobianAll( quadInside[ pt ] , dphi);
-
-
+          const double weight=quadInside.weight( pt );
 
           boundaryIntegral( intersection,                  
-              pt, 
-              quadInside,   
-              vuEn,
-              duEn, 
-              avuLeft,
-              aduLeft );
+                            pt,
+                            quadInside,
+                            vuEn,
+                            duEn,
+                            avuLeft,
+                            aduLeft );
 
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
@@ -356,12 +351,12 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             dueps.axpy( eps, dphi[ jj ] );
 
             boundaryIntegral( intersection,
-                pt,
-                quadInside,
-                ueps,
-                dueps,
-                fueps,
-                fdueps);
+                              pt,
+                              quadInside,
+                              ueps,
+                              dueps,
+                              fueps,
+                              fdueps);
 
 
             fueps-=avuLeft;
@@ -369,8 +364,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             fdueps-=aduLeft;
             fdueps*=epsInv;
 
-
-            jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps );
+            jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps, weight );
           }
         }
       }
