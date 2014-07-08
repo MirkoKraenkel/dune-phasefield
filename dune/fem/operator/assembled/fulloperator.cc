@@ -94,7 +94,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
   }
   Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vuMid )/Filter::rho(vuMid);
-//  Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vu )/Filter::rho(vuMid);
 
   //tau---------------------------------------------------------------
   // dF/dphi
@@ -104,8 +103,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       Filter::rho(vuOld),
       dFdphi);
 
- Filter::tau( avu )=Filter::tau( vuMid );
-// Filter::tau( avu )=Filter::tau( vu );
+  Filter::tau( avu )=Filter::tau( vuMid );
   Filter::tau( avu )-=dFdphi;
 
   RangeFieldType divsigma(0.);
@@ -155,7 +153,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     assert( avu[ii]==avu[ii]) ;
   }
 
-  //avu-=source;
+  //avu+=source;
   avu*=weight;
   adu*=weight;
 
@@ -179,8 +177,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     JacobianRangeType& aduLeft,
     JacobianRangeType& aduRight) const
 {
-///  double deltaInv=1./deltaT_;
-
   typedef typename IntersectionType::Geometry  IntersectionGeometryType;
   //    const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
@@ -230,22 +226,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       vuMidNb, 
       avuLeft,
       avuRight); 
-#if 0  
-  std::cout<<"Flux===\n";
-  std::cout<<"normal"<<normal<<"\n";
-  std::cout<<"area="<<area<<"\n";
-  std::cout<<"vuEn="<<vuEn<<"\n";
-  std::cout<<"vuNb="<<vuNb<<"\n";
-  std::cout<<"vuMidEn="<<vuMidEn<<"\n";
-  std::cout<<"vuMidNb="<<vuMidNb<<"\n";
-  std::cout<<"Fleft="<<avuLeft<<"\n";
-  std::cout<<"Fright="<<avuRight<<"\n";
-
-#endif
-  
+ 
 
   RangeType value(0);
-#if 1        
+  
   fluxRet+=flux_.diffusionFlux(normal,
       penaltyFactor,
       vuMidEn,
@@ -254,20 +238,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       duMidNb,
       value,
       aduLeft);
-#endif
+  
   avuLeft+=value;
   avuRight-=value; 
-#if 0 
-  Filter::tau(avuLeft)*=deltaInv;
-  Filter::tau(avuRight)*=deltaInv;
-  Filter::mu( avuLeft)*=deltaInv;
-  Filter::mu( avuRight)*=deltaInv;
-#endif
-  //      for(int ii=0; ii<dimRange ; ++ii)
-  //      {
-  //      Filter::sigma( avuLeft , ii )*=deltaInv;
-  //    Filter::sigma( avuRight , ii )*=deltaInv;
-  // } 
   aduRight=aduLeft;
   aduRight*=-1.;  
 }
@@ -286,7 +259,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   typedef typename IntersectionType::Geometry  IntersectionGeometryType;
   const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
-  RangeType vuOldEn(0.),vuMidEn(0.);
+  RangeType vuOldEn(0.),vuMidEn(0.), bndValue(0.);
   JacobianRangeType duOldEn(0.),duMidEn(0.);
 
   //calc vuOldEn....
@@ -305,30 +278,40 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   // compute penalty factor
   const double intersectionArea = intersectionGeometry.volume();
   const double penaltyFactor = penalty()*intersectionArea /  areaEn_; 
-  const double area=std::min(areaEn_,areaNb_); 
+  const double area=areaEn_; 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
-
+  const DomainType xgl = intersectionGeometry.global(x);
+  model_.dirichletValue( time_,xgl, bndValue);
 
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
-  RangeType gLeft(0.),gRight(0.);
-  fluxRet=flux_.boundaryFlux(normal,
-      area,
-      vuEn,
-      vuMidEn,  
-      gLeft);
+  RangeType gLeft(0.),dummy(0.);
+  //  fluxRet=flux_.boundaryFlux( normal,
+  //                              area,
+  //                              vuEn,
+  //                              vuMidEn,
+  //                              gLeft);
+
+   fluxRet=flux_.numericalFlux( normal,
+                                area,
+                                vuEn,
+                                bndValue,
+                                vuMidEn,
+                                bndValue,
+                                gLeft,
+                                dummy);
 
   avuLeft+=gLeft;
   RangeType value(0.);
-#if 1        
-  fluxRet+=flux_.diffusionBoundaryFlux(normal,
-      penaltyFactor,
-      vuMidEn,
-      duMidEn,    
-      value,
-      advalue);
-#endif
+
+  fluxRet+=flux_.diffusionBoundaryFlux( normal,
+                                        penaltyFactor,
+                                        vuMidEn,
+                                        duMidEn,    
+                                        value,
+                                        advalue);
+
   avuLeft+=value;
 
 
