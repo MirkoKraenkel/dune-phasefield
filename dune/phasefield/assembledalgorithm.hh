@@ -24,14 +24,7 @@
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
 
-#if DGSCHEME 
-//#include <dune/fem/operator/assembled/newheatoperator.hh>
-//#include <dune/fem/operator/assembled/mixedoperator.hh>
-#elif FEMSCHEME
-#include <dune/fem/operator/assembled/femoperator.hh>
-#endif
 #include <dune/fem/operator/assembled/energyconverter.hh>
-//#include <dune/fem-dg/misc/runfile.hh>
 #include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
@@ -135,7 +128,8 @@ public:
 	//type of IOTuple 
 	//typedef Dune::tuple< DiscreteFunctionType*, DiscreteSigmaType*,DiscreteThetaType* > IOTupleType; 
   //Pointers for (rho, v,phi),(totalenergy)
-  typedef Dune::tuple< DiscreteFunctionType*, EstimatorDataType*, DiscreteScalarType*> IOTupleType; 
+  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*, DiscreteScalarType*> IOTupleType; 
+
 
   // type of data 
   // writer 
@@ -215,12 +209,8 @@ public:
     overallTimer_(),
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
-#if DGSCHEME
    	dgOperator_(*model_,space(),numericalFlux_),
     boundaryCorrection_(*model_,space()),
-#elif FEMSCHEME
-    dgOperator_(*model_,space()),
-#endif
     tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
     interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
     calcresidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
@@ -244,10 +234,10 @@ public:
 
 	//some acces methods
 	//spaecs
-	DiscreteSpaceType& space(){ return space_; }	
+	DiscreteSpaceType& space () { return space_; }	
 	
 
-	ScalarDiscreteSpaceType& energyspace() { return energySpace_; }
+	ScalarDiscreteSpaceType& energyspace () { return energySpace_; }
 	
   size_t gridSize() const
 	{
@@ -255,9 +245,9 @@ public:
 		return grid_.comm().sum(grSize);
 	}
 
-  DiscreteFunctionType& oldsolution() {return oldsolution_;}
-
-  DiscreteScalarType* energy(){ return energy_;}
+  DiscreteFunctionType& oldsolution () {return oldsolution_;}
+  DiscreteFunctionType& start ()       { return start_;}
+  DiscreteScalarType* energy ()        { return energy_;}
 
  
 	std::string dataPrefix()
@@ -278,7 +268,7 @@ public:
     return *model_;
   }
 
-	virtual void initializeStep(TimeProviderType& timeprovider)
+	virtual void initializeStep ( TimeProviderType& timeprovider )
 	{
 		DiscreteFunctionType& U = solution();
 		DiscreteFunctionType& Uold = oldsolution();
@@ -311,7 +301,6 @@ public:
     const double time=timeProvider.time();
     const double deltaT=timeProvider.deltaT();
     
-    DiscreteFunctionType& Uold=oldsolution();
     DiscreteFunctionType& U=solution();
     // to visualize exact solution
 
@@ -324,7 +313,6 @@ public:
    
     invOp(start_,U);
     //    boundaryCorrection_(U);
-    
     // reset overall timer
     overallTimer_.reset(); 
      
@@ -435,7 +423,7 @@ public:
 
     // restoreData if checkpointing is enabled (default is disabled)
 	// tuple with additionalVariables 
-    IOTupleType dataTuple( &solution() ,&estimatorData_,  this->energy());
+    IOTupleType dataTuple( &solution() ,&oldsolution(),  this->energy());
 	
     std::ofstream energyfile;
     std::ostringstream convert;
@@ -549,6 +537,7 @@ public:
  
             {
               timeStepError=stepError(U,Uold);	
+              timeStepError/=ldt;
               std::cout<< " ,Error between timesteps="<< timeStepError;
               std::cout<<std::endl;
             }   
@@ -558,10 +547,12 @@ public:
         writeEnergy( timeProvider , energyfile);
      }
 
-
+  //  start_.assign(Uold);
+    //start_-=(U);
+ 
     writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
     checkPointer.write(timeProvider);
-    Uold.assign(U);
+//    Uold.assign(U);
     //statistics
     mindt = (ldt<mindt) ? ldt : mindt;
     maxdt = (ldt>maxdt) ? ldt : maxdt;
@@ -630,18 +621,19 @@ public:
 	virtual void writeCheckPoint(TimeProviderType& timeProvider,
 															 AdaptationManagerType& am ) const {}
 
-	virtual DiscreteFunctionType& solution() { return solution_; }
+	virtual DiscreteFunctionType& solution () { return solution_; }
 
 
-	virtual void finalize( const int eocloop ) 
+	virtual void finalize ( const int eocloop ) 
 	{
 		DiscreteFunctionType& U = solution(); 
-	  DiscreteScalarType* totalenergy= energy(); 
+	  DiscreteFunctionType& Uold = oldsolution();
+    DiscreteScalarType* totalenergy= energy(); 
     // DiscreteSigmaType* sig= sigma();
 	
     if( eocLoopData_ == 0 ) 
 			{
-       eocDataTup_ = IOTupleType( &U ,&estimatorData_,  totalenergy ); 
+       eocDataTup_ = IOTupleType( &U ,&Uold,  totalenergy ); 
        eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
       }
 
