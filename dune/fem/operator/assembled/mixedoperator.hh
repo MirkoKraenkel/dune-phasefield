@@ -61,7 +61,7 @@ class DGPhasefieldOperator
 
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalType;
 
-    static const int dimDomain = LocalFunctionType::dimDomain;
+  static const int dimDomain = LocalFunctionType::dimDomain;
   static const int dimRange = LocalFunctionType::dimRange;
 
 
@@ -73,8 +73,7 @@ class DGPhasefieldOperator
   //! constructor
   DGPhasefieldOperator(const ModelType &model,
       const DiscreteFunctionSpaceType &space,
-      const NumericalFluxType &flux)
-    : 
+      const NumericalFluxType &flux):
       model_(model),
       space_(space),
       flux_(flux),
@@ -375,42 +374,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                               wLocal);
          
          }
-#if 0
- 
-         const size_t numQuadraturePoints = quadInside.nop();
-
-          for( size_t pt=0; pt < numQuadraturePoints; ++pt )
-          {
-            RangeType vuEn{0.},vuNb{0.},avuLeft{0.},avuRight{0.};
-            JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.}, aduRight{0.};
-            uLocal.evaluate( quadInside[ pt ], vuEn);
-            uLocal.jacobian( quadInside[ pt ], duEn);
-            uNeighbor.evaluate( quadOutside[ pt ], vuNb);
-            uNeighbor.jacobian( quadOutside[ pt ], duNb);
-            const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
-            const double weight = quadInside.weight( pt );
-
-
-            //calculate quadrature summands avu
-            intersectionIntegral( intersection,                  
-                pt, 
-                quadInside,   
-                quadOutside, 
-                vuEn,
-                vuNb, 
-                duEn, 
-                duNb,
-                avuLeft,
-                avuRight,
-                aduLeft,
-                aduRight);
-
-            avuLeft*=weight;
-            aduLeft*=weight;
-
-            wLocal.axpy( quadInside[ pt ] , avuLeft , aduLeft );
-          }  //end Quadrature loop
-#endif
 
         }
         else if (  intersection.boundary())
