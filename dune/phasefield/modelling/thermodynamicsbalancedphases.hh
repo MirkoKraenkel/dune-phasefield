@@ -94,15 +94,26 @@ class BalancedThermodynamics:
           t11-t13)*(-7.0*rho+3.0*t17+0.945940263E1));
   }
 
-
-
-  inline double reactionSource(double rho,double phi) const
-  { 
-    double t1;
+  inline double homSource( double rho, double phi ) const
+  {
     double t11;
     double t16;
     double t18;
     double t19;
+    double t7;
+
+    t7 = phi*phi;
+    t11 = t7*t7;
+    t16 = 30.0*t11-60.0*t7*phi+30.0*t7;
+    t18 = log(rho);
+    t19 = rho*t18;
+    return(t16*(-0.25E1*rho+0.15E1*t19+1.0)-t16*( -7.0*rho+3.0*t19+0.945940263E1));
+
+  }
+
+  inline double reactionSource(double rho,double phi) const
+  { 
+    double t1;
     double t3;
     double t4;
     double t7;
@@ -111,12 +122,7 @@ class BalancedThermodynamics:
     t3 = 1.0-phi;
     t4 = t3*t3;
     t7 = phi*phi;
-    t11 = t7*t7;
-    t16 = 30.0*t11-60.0*t7*phi+30.0*t7;
-    t18 = log(rho);
-    t19 = rho*t18;
-    return(4.0*t1*phi*t4-4.0*t1*t7*t3+t16*(-0.25E1*rho+0.15E1*t19+1.0)-t16*( -7.0*rho+3.0*t19+0.945940263E1));
-
+    return( 4.0*t1*phi*t4-4.0*t1*t7*t3 + homSource( rho, phi ));
   }
 
   inline double dphireactionSource( double rho, double  phi) const
