@@ -13,7 +13,7 @@
 using namespace Dune;
 // Thermodynamics
 #include "thermodynamicsinterface.hh"
-//thermodynamics with balanced phases, see balancedthermo.mw
+//thermodynamics with balanced phases, see balancedthermo_correctionterm.mw
 class BalancedThermodynamics:
 	public Thermodynamics<BalancedThermodynamics>
 {
