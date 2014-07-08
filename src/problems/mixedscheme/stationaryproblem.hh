@@ -142,25 +142,29 @@ inline void StationaryProblem<GridType,RangeProvider>
   phi+=0.5;
   double rho=evalrho(phi);
   res[0] = rho;
-  res[1] = 0;
+  for( int ii=0 ; ii<dimension ; ++ii)
+    {
+      res[1+ii] = 0;
+    }
   res[2] = phi;
    
   double laplacePhi=delta_*dxdxphi;
   double dFdphi = thermodyn_.reactionSource(rho,phi); 
   double dFdrho = thermodyn_.chemicalPotential(rho, phi);
-     
+  
+  
   if( dimRange > dimDomain+2)
     {
       //mu
       res[dimension+2]=dFdrho;
       //tau
-#if RHOMODEL
-      abort();
-#else
-      res[dimension+3]=0;//dFdphi-laplacePhi;
-#endif
+      res[dimension+3]=0;
       //sigma
+      for( int ii = 0 ; ii<dimension; ++ii )
+        res[dimension+4+ii]=0;
+        
       res[dimension+4]=dxphi;
+      
     }
    else
     {
