@@ -17,11 +17,11 @@ class LocalFDOperator
  :public Dune::Fem::DifferentiableOperator < Jacobian >,
   protected DGPhasefieldOperator<DiscreteFunction,Model,Flux>
 {
- 
+
   typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
-  
+
   typedef Dune::Fem::DifferentiableOperator< Jacobian> BaseType;
- 
+
 
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
 
@@ -41,7 +41,7 @@ class LocalFDOperator
   typedef typename MyOperatorType::LocalFunctionType LocalFunctionType;
   typedef typename MyOperatorType::QuadratureType QuadratureType;
   typedef typename MyOperatorType::FaceQuadratureType FaceQuadratureType;
-  
+
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalFunctionType;
   typedef typename MyOperatorType::GridPartType GridPartType;
   typedef typename GridPartType::IndexSetType IndexSetType;
@@ -117,6 +117,9 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
   std::vector< RangeType > phiNb( numDofs );
   std::vector< JacobianRangeType > dphiNb( numDofs );
+  std::vector<RangeType> uValues;
+  std::vector<JacobianRangeType> uJacobians;
+
 
   const IteratorType end = dfSpace.end();
   for( IteratorType it = dfSpace.begin(); it != end; ++it )
@@ -138,8 +141,11 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
     QuadratureType quadrature( entity, 2*dfSpace.order() );
     const size_t numQuadraturePoints = quadrature.nop();
 
-    std::vector<RangeType> uValues(numQuadraturePoints);
-    std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
+    uValues.resize(numQuadraturePoints);
+    uJacobians.resize(numQuadraturePoints);
+    // std::vector<RangeType> uValues(numQuadraturePoints);
+    // std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
+
 
     uLocal.evaluateQuadrature(quadrature, uValues);
     uLocal.evaluateQuadrature(quadrature,uJacobians);
@@ -154,7 +160,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
       //  uLocal.evaluate( quadrature[ pt ], vu);
       //  uLocal.jacobian( quadrature[ pt ], dvu);
-
       localIntegral(pt,
           geometry,
           quadrature,
@@ -178,11 +183,11 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             dueps,
             fueps,
             fdueps);
-
         fueps-=fu;
         fueps*=epsInv;
         fdueps-=fdu;
         fdueps*=epsInv;
+
         jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps );
       }
     } 
@@ -190,7 +195,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
     if ( space().continuous() )
       continue;
-
     const IntersectionIteratorType endiit = gridPart.iend( entity );
     for ( IntersectionIteratorType iit = gridPart.ibegin( entity );
         iit != endiit ; ++ iit )
@@ -215,8 +219,8 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         const BasisFunctionSetType &baseSetNb = jLocalNb.domainBasisFunctionSet();
         //   const unsigned int numBasisFunctionsNb = baseSetNb.size();
 
-        const int quadOrderEn = 2*uLocal.order();
-        const int quadOrderNb = 2*uLocalNb.order();
+        const int quadOrderEn = 2*uLocal.order()+1;
+        const int quadOrderNb = 2*uLocalNb.order()+1;
 
         FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
         FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
@@ -236,7 +240,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          //  RangeType vuEn(0.),vuNb(0.),
           RangeType   avuLeft(0.),avuRight(0.);
           //   JacobianRangeType duEn(0.),duNb(0.),
           JacobianRangeType aduLeft(0.),aduRight(0.);
@@ -287,17 +290,17 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                   fduepsRight);
 
             intersectionIntegral( intersection,
-                pt,
-                quadInside,
-                quadOutside,
-                vuEn[pt],
-                uepsNb,
-                duEn[pt],
-                duepsNb,
-                fuepsNb,
-                fuepsNbRight,
-                fduepsNb,
-                fduepsNbRight);
+                                  pt,
+                                  quadInside,
+                                  quadOutside,
+                                  vuEn[pt],
+                                  uepsNb,
+                                  duEn[pt],
+                                  duepsNb,
+                                  fuepsNb,
+                                  fuepsNbRight,
+                                  fduepsNb,
+                                  fduepsNbRight);
 
             fueps-=avuLeft;
             fueps*=epsInv;
