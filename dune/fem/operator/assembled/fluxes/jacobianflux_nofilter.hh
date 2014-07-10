@@ -53,11 +53,12 @@ public:
                         RangeType& valueRight,
                         JacobianRangeType& dvalueLeft,
                         JacobianRangeType& dvalueRight) const;
-
+  
   double boundaryFlux( const DomainType& normal, 
                        const double penaltyFactor,                
                        const RangeType& vuEn,  
                        const RangeType& vuMidEn,
+                       RangeType& phiEn,
                        RangeType& gLeft) const;
 
   double diffusionBoundaryFlux( const DomainType& normal,
@@ -66,7 +67,6 @@ public:
                                 const JacobianRangeType& duEn,
                                 RangeType& value,
                                 JacobianRangeType& dvalue) const;
-
 
 private:
   const ModelType& model_;
@@ -82,6 +82,7 @@ double JacobianFlux<Model>
                const double penaltyFactor,
                const RangeType& vuEn,
                const RangeType& vuMidEn,
+               RangeType& phiEn,
                RangeType& gLeft) const
   {
     RangeType midEn ;
@@ -157,6 +158,9 @@ double JacobianFlux<Model>
       RangeType valEn,valNb,midEn(0.), midNb(0.),jump,mean,jumpOld, jumpPhi(0.);
       valEn=vuEn;
       valNb=vuNb;
+      
+      //gLeft=0.;
+      gRight=0.;
 
       midEn=vuEnMid;
       midNb=vuNbMid;
@@ -167,11 +171,11 @@ double JacobianFlux<Model>
       mean*=0.5;
       jumpOld=valEn;
       jumpOld-=valNb;
-
+      
       
       //rho-------------------------------------------------------------
  
-      double vNormalEn{0},testNormalEn(0.),vNormalNb(0.),testNormalNb{0.};
+      double vNormalEn(0),testNormalEn(0.),vNormalNb(0.),testNormalNb(0.);
     
       for(int ii = 0; ii < dimDomain ; ++ii )
         {
@@ -209,27 +213,27 @@ double JacobianFlux<Model>
     
       //v---------------------------------------------------------------
     
-      for(int ii = 0; ii < dimDomain ; ++ii )
+      for(int i = 0; i < dimDomain ; ++i )
         { 
           //F_2=F_{2.1}+F_{2.2}
           //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
           //Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(phiEn)*0.5;
-          gLeft[ 1 + ii ]-=jump[ dimDomain + 2 ]*normal[ ii ]*phiEn[ 0 ];
+          gLeft[ 1 + i ]-=jump[ dimDomain + 2 ]*normal[ i ]*phiEn[ 0 ]*0.5;
           //Filter::velocity(gLeft,i)-=Filter::mu(phiEn)*normal[i]*Filter::rho(midEn)*0.5;
-          gLeft[ 1 + ii ]-=phiEn[ dimDomain + 2 ]*normal[ ii ]*midEn[ 0 ];
+          gLeft[ 1 + i ]-=phiEn[ dimDomain + 2 ]*normal[ i ]*midEn[ 0 ]*0.5;
           //Filter::velocity(gRight,i)+=Filter::mu(phiNb)*normal[i]*Filter::rho(midEn)*0.5;
-          gRight[ 1 + ii ]+=phiNb[ dimDomain + 2 ]*normal[ ii ]*midEn[ 0 ]; 
+          gRight[ 1 + i ]+=phiNb[ dimDomain + 2 ]*normal[ i ]*midEn[ 0 ]*0.5; 
          
           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau^+*0.5
           //Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(phiEn)*0.5;
-          gLeft[ 1 + ii ]+=jump[ dimDomain + 1 ]*normal[ ii ]*midEn[ dimDomain + 3 ];
+          gLeft[ 1 + i ]+=jump[ dimDomain + 1 ]*normal[ i ]*phiEn[ dimDomain + 3 ]*0.5;
           //Filter::velocity(gLeft,i)+= Filter::phi(phiEn)*normal[i]*Filter::tau(midEn)*0.5;
-          gLeft[ 1 + ii ]+=phiEn[ dimDomain + 1 ]*normal[ ii ]*midEn[ dimDomain + 3 ];
+          gLeft[ 1 + i ]+=phiEn[ dimDomain + 1 ]*normal[ i ]*midEn[ dimDomain + 3 ]*0.5;
           //Filter::velocity(gRight,i)-= Filter::phi(phiNb)*normal[i]*Filter::tau(midEn)*0.5;
-          gRight[ 1 + ii ]-=phiNb[ dimDomain + 1 ]*normal[ ii ]*midEn[ dimDomain + 3 ];
+          gRight[ 1 + i ]-=phiNb[ dimDomain + 1 ]*normal[ i ]*midEn[ dimDomain + 3 ]*0.5;
           
-          gLeft[ 1 + ii ]*=0.25;
-          gRight[ 1 + ii ]*=0.25;
+          gLeft[ 1 + i ]*=0.5;
+          gRight[ 1 + i ]*=0.5;
 
         } 
     

@@ -67,6 +67,7 @@ class PhasefieldJacobianOperator
   using MyOperatorType::setNeighbor;
   using MyOperatorType::operator();
   using MyOperatorType::setTime;
+  using MyOperatorType::getTime;
   using MyOperatorType::setDeltaT;
   using MyOperatorType::setPreviousTimeStep;
   using MyOperatorType::getPreviousTimeStep; 
@@ -81,6 +82,8 @@ class PhasefieldJacobianOperator
   using MyOperatorType::areaEn_;
   using MyOperatorType::areaNb_;
   using MyOperatorType::flux_;
+  using MyOperatorType::time_;
+
 
 
   typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
@@ -336,7 +339,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         setNeighbor( neighbor );
         typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-        //const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+        const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
         // get local matrix for face entries 
         LocalMatrixType jLocalNb = jOp.localMatrix( neighbor,entity );
@@ -421,38 +424,31 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
             JacobianRangeType aduLeft(0.),aduRight(0.);
 
-            double  fluxRet=jacFlux_.numericalFlux(normal,
-                area,
-                vuEn[ pt ],
-                vuNb[ pt ],
-                vuMidEn,
-                vuMidNb, 
-                phi[ jj ],
-                phiNb[ jj ],
-                avuLeft,
-                avuRight); 
+            double fluxRet=jacFlux_.numericalFlux( normal,
+                                                   area,
+                                                   vuEn[ pt ],
+                                                   vuNb[ pt ],
+                                                   vuMidEn,
+                                                   vuMidNb,
+                                                   phi[ jj ],
+                                                   phiNb[ jj ],
+                                                   avuLeft,
+                                                   avuRight); 
 
             fluxRet+=jacFlux_.diffusionFlux( normal,
-                penaltyFactor,
-                phi[ jj ],
-                phiNb[ jj ],
-                dphi[ jj ],
-                dphiNb[ jj ],
-                valueLeft,
-                valueRight,
-                aduLeft,
-                aduRight);
+                                            penaltyFactor,
+                                            phi[ jj ],
+                                            phiNb[ jj ],
+                                            dphi[ jj ],
+                                            dphiNb[ jj ],
+                                            valueLeft,
+                                            valueRight,
+                                            aduLeft,
+                                            aduRight);
 
             avuLeft+=valueLeft;
             avuRight+=valueRight;
-#if 0
-             std::cout<<"Phi="<<phi[ jj ]<<"\n";
-
-      std::cout<<"avuLeft="<<avuLeft<<"\n";
-
-            std::cout<<"PhiNb="<<phiNb[ jj ]<<"\n";
-            std::cout<<"avuRight="<<avuRight<<"\n"; 
-#endif       
+            
             jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
             jLocalNb.column( jj ).axpy( phi,dphi , avuRight,aduRight, weight); 
 
@@ -463,32 +459,92 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
       else if ( intersection.boundary() )
       {
         const int quadOrderEn = 2*uLocal.order();
+         typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+        const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+
 
         FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
         const size_t numQuadraturePoints = quadInside.nop();
+        std::vector<RangeType> vuEn(numQuadraturePoints);
+        std::vector<JacobianRangeType> duEn(numQuadraturePoints);
+        std::vector<RangeType> vuOldEn(numQuadraturePoints);
+        std::vector<JacobianRangeType> duOldEn(numQuadraturePoints);
+ 
+        uLocal.evaluateQuadrature(quadInside,vuEn);
+        uLocal.evaluateQuadrature(quadInside,duEn);
 
+        uOldLocal_.evaluateQuadrature(quadInside,vuOldEn);
+        uOldLocal_.evaluateQuadrature(quadInside,duOldEn);
+
+   
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          RangeType vuEn(0.),vuNb(0.),avuLeft(0.);
-          JacobianRangeType duEn(0.),duNb(0.),aduLeft(0.);
-          uLocal.evaluate( quadInside[ pt ], vuEn);
-          uLocal.jacobian( quadInside[ pt ], duEn);
+          RangeType vuMidEn(0.),avuLeft(0.),bndValue(0.);
+          JacobianRangeType duMidEn(0.),aduLeft(0.);
+          
+          const double weight=quadInside.weight( pt ); 
+
+          vuMidEn.axpy( factorImp_ , vuEn[ pt ] );
+          vuMidEn.axpy( factorExp_ , vuOldEn[ pt ] );
+
+          duMidEn.axpy( factorImp_ , duEn[ pt ] );
+          duMidEn.axpy( factorExp_ , duOldEn[ pt ] );
 
           baseSet.evaluateAll( quadInside[ pt ] , phi);
           baseSet.jacobianAll( quadInside[ pt ] , dphi);
 
+          const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+
+          const DomainType normal = intersection.integrationOuterNormal( x );
+          const DomainType xgl = intersectionGeometry.global(x);
+          model_.dirichletValue( time_,xgl, bndValue);
 
 
-          boundaryIntegral( intersection,                  
-              pt, 
-              quadInside,   
-              vuEn,
-              duEn, 
-              avuLeft,
-              aduLeft );
+          // compute penalty factor
+          const double intersectionArea = normal.two_norm();
+          const double penaltyFactor = penalty()*intersectionArea /  areaEn_; 
+          const double area=areaEn_; 
 
+ 
           for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
           {
+            RangeType avuLeft(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
+            JacobianRangeType aduLeft(0.),aduRight(0.);
+        
+            double fluxRet=jacFlux_.numericalFlux( normal,
+                                                   area,
+                                                   vuEn[ pt ],
+                                                   bndValue, 
+                                                   vuMidEn,
+                                                   bndValue,
+                                                   phi[ jj ],
+                                                   dummy,
+                                                   avuLeft,
+                                                   avuRight); 
+
+          
+
+#if 0 
+            double  fluxRet=jacFlux_.boundaryFlux( normal,
+                                                   area,
+                                                   vuEn[ pt ],
+                                                   vuMidEn,
+                                                   phi[ jj ],
+                                                   avuLeft ); 
+
+#endif
+#if 1 
+            fluxRet+=jacFlux_.diffusionBoundaryFlux( normal,
+                                                     penaltyFactor,
+                                                     phi[ jj ],
+                                                     dphi[ jj ],
+                                                     valueLeft,
+                                                     aduLeft );                
+#endif
+            avuLeft+=valueLeft;
+            jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
+
+
 
           }
         }
