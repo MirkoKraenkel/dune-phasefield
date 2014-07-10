@@ -13,7 +13,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
   const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
   const DomainType xgl = geometry.global(x);
-  RangeType vuOld(0.),vuMid(0);
+  RangeType vuOld,vuMid(0);
 
   //this should stay instide local Integral as it is operator specific
   uOldLocal_.evaluate( quadrature[ pt ], vuOld); 
@@ -27,7 +27,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   uOldLocal_.jacobian( quadrature[ pt ], duOld);
 
   //(1+theta)/2*DU^n+(1-theta)/2*DU^(n-1)
-  // #if OPCHECK vuMid=vuOld
   duMid.axpy(factorImp_,du);
   duMid.axpy(factorExp_,duOld);
 
@@ -223,14 +222,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   RangeType value(0);
   
-  fluxRet+=flux_.diffusionFlux(normal,
-      penaltyFactor,
-      vuMidEn,
-      vuMidNb,
-      duMidEn,
-      duMidNb,
-      value,
-      aduLeft);
+  fluxRet+=flux_.diffusionFlux( normal,
+                                penaltyFactor,
+                                vuMidEn,
+                                vuMidNb,
+                                duMidEn,
+                                duMidNb,
+                                value,
+                                aduLeft);
   
   avuLeft+=value;
   avuRight-=value; 
