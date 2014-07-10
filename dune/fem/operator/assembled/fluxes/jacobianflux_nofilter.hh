@@ -159,7 +159,7 @@ double JacobianFlux<Model>
       valEn=vuEn;
       valNb=vuNb;
       
-      //gLeft=0.;
+      gLeft=0.;
       gRight=0.;
 
       midEn=vuEnMid;
