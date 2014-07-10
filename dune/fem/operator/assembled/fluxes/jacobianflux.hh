@@ -21,14 +21,14 @@ class JacobianFlux
   typedef  PhasefieldFilter<RangeType> Filter; 
 
   
-public:
-  JacobianFlux(const ModelType& model):
-    model_(model),
-    beta_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty")),
-    switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
-    numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
-    {
-    }
+  public:
+    JacobianFlux(const ModelType& model):
+      model_(model),
+      beta_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty")),
+      switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
+      numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
+      {
+      }
 
 
   double numericalFlux( const DomainType& normal, 
@@ -58,6 +58,7 @@ public:
                        const double penaltyFactor,                
                        const RangeType& vuEn,  
                        const RangeType& vuMidEn,
+                       RangeType& phiEn,
                        RangeType& gLeft) const;
 
   double diffusionBoundaryFlux( const DomainType& normal,
@@ -66,7 +67,6 @@ public:
                                 const JacobianRangeType& duEn,
                                 RangeType& value,
                                 JacobianRangeType& dvalue) const;
-
 
 private:
   const ModelType& model_;
@@ -82,6 +82,7 @@ double JacobianFlux<Model>
                const double penaltyFactor,
                const RangeType& vuEn,
                const RangeType& vuMidEn,
+               RangeType& phiEn,
                RangeType& gLeft) const
   {
     RangeType midEn ;
