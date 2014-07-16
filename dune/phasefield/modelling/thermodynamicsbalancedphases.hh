@@ -33,12 +33,6 @@ class BalancedThermodynamics:
   }
 
 
-
-  inline void init() const 
-  {
-    abort();
-  }
-
   inline double h( double rho ) const
   {
 #if RHOMODEL
@@ -220,16 +214,10 @@ class BalancedThermodynamics:
 
     pressure=((t4-t5+t7)*(0.25E1*rho-0.15E1*t11-1.0+rho*(-1.0+0.15E1*t10))+(1.0-t4
           +t5-t7)*(7.0*rho-3.0*t11-0.945940263E1+rho*(-4.0+3.0*t10)));
-
+#if RHOMODEL
     pressure-=doubleWell(phi)*deltaInv_;
-
+#endif
     return pressure;
-
-
-
-
-
-
 
   }
 
