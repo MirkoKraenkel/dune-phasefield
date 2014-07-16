@@ -12,7 +12,7 @@
 //Note Problen should be independent of Operator/Scheme
 
 #if DGSCHEME
-#include<dune/phasefield/assembledtraitsparallel.hh>
+#include<dune/phasefield/assembledtraits.hh>
 #elif FEMSCHEME
 #include<dune/phasefield/femschemetraits.hh>
 #endif
