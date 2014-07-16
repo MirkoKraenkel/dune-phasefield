@@ -9,8 +9,9 @@
 
 // local includes
 
-#include <dune/phasefield/modelling/thermodynamicsexactequi.hh>
-//#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+//#include <dune/phasefield/modelling/thermodynamicsexactequi.hh>
+#warning "USE thermodynamicsexactequi.hh for EOC "
+#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
 
 
 //#include <dune/fem/probleminterfaces.hh>
