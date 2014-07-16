@@ -7,6 +7,8 @@
 
 #include <dune/fem/operator/common/differentiableoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
+#include <dune/fem/operator/common/temporarylocalmatrix.hh>
+
 
 #include "mixedoperator.hh"
 #include "phasefieldfilter.hh"
@@ -25,7 +27,7 @@ class PhasefieldJacobianOperator
   enum{dimDomain=MyOperatorType::dimDomain};
 
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
-
+  typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
   typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
   typedef typename MyOperatorType::ModelType ModelType;
   typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
@@ -51,8 +53,8 @@ class PhasefieldJacobianOperator
   typedef typename MyOperatorType::GridPartType GridPartType;
   typedef typename GridPartType::IndexSetType IndexSetType;
   
-  typedef std::vector<RangeType> RangeVectorType;
-  typedef std::vector<JacobianRangeType> JacobianVectorType;
+  typedef Dune::Fem::MutableArray<RangeType> RangeVectorType;
+  typedef Dune::Fem::MutableArray<JacobianRangeType> JacobianVectorType;
 
   public: 
   PhasefieldJacobianOperator(const ModelType &model,
@@ -79,7 +81,8 @@ class PhasefieldJacobianOperator
   using MyOperatorType::getPreviousTimeStep; 
   using MyOperatorType::space;
   using MyOperatorType::space_;
-  using MyOperatorType::penalty;
+  using MyOperatorType::viscpenalty;
+  using MyOperatorType::acpenalty;
   using MyOperatorType::deltaT_;
   using MyOperatorType::uOldLocal_;
   using MyOperatorType::uOldNeighbor_;
@@ -94,6 +97,15 @@ class PhasefieldJacobianOperator
 
 
   typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
+ 
+  template< class RangeVector, class JacobianVector>
+  void myaxpy( const size_t jj,
+                const RangeVector& phi,
+                const JacobianVector& dphi,
+                const RangeType& factor,
+                const JacobianRangeType& jacobianFactor,
+                const double weight,
+                LocalMatrixType& jLocal) const;
 
 
   void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
@@ -105,7 +117,8 @@ class PhasefieldJacobianOperator
   StencilType stencil_;
   mutable Dune::Fem::MutableArray<bool> visited_;
   const JacobianFluxType jacFlux_;
-  //mutable RangeVectorType vuEn_,vuNb_,vuEnOld_,
+  mutable RangeVectorType uEn_,uNb_,uEnOld_,uNbOld_;
+  mutable JacobianVectorType duEn_,duNb_,duEnOld_,duNbOld_;
 
 };
 
@@ -113,15 +126,49 @@ class PhasefieldJacobianOperator
 // Implementation of LocalFDOperator
 // // ------------------------------------------------
 
+template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
+template< class RangeVector, class JacobianVector>
+void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
+::myaxpy( const size_t jj ,
+          const RangeVector& phi,
+          const JacobianVector& dphi,
+          const RangeType& factor,
+          const JacobianRangeType& jacobianFactor,
+          const double weight,
+          LocalMatrixType& jLocal) const
+{
+  const unsigned int numBasisFunctions = jLocal.rows();
+  int scalarNumBasisFunctions=numBasisFunctions/RangeType::dimension;
+  int dim=RangeType::dimension; 
+  for( int i = 0;i < numBasisFunctions; ++i)
+   {
+     int range=i%dim;
+     int scalarbf=i/dim;
+     RangeFieldType value = factor[range]*phi[i][range];
+
+    for( int k = 0; k < jacobianFactor.rows; ++k )
+          value += jacobianFactor[ k ][range] * dphi[ i ][ k ][range];
+         
+       jLocal.add( i , jj , weight * value );
+   }
+
+}
+
+
+
+
+
+
+
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> void
 PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 ::jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const
 {
-  typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
-  typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
+ typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
 
   Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil(space(),space());
-
+//  typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
+//  typedef Dune::Fem::TemporaryLocalMatrix< DiscreteFunctionSpaceType, DiscreteFunctionSpaceType> LocalMatrixType;
   jOp.reserve(stencil);
 
   RangeFieldType normU=std::sqrt(u.scalarProductDofs(u));
@@ -156,8 +203,10 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
     //initialize uOld
     setEntity( entity );
-
     LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
+    
+    //LocalMatrixType jLocal( dfSpace, dfSpace);//= jOp.localMatrix( entity, entity );
+    //jLocal.init(entity,entiy);
     const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
     const unsigned int numBasisFunctions = baseSet.size();
 
@@ -165,18 +214,21 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
     QuadratureType quadrature( entity, 2*dfSpace.order() );
     const size_t numQuadraturePoints = quadrature.nop();
 
-    std::vector<RangeType>         uValues(numQuadraturePoints);
-    std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
+  //  std::vector<RangeType>         uValues(numQuadraturePoints);
+  //  std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
 
-    std::vector<RangeType>         uOldValues(numQuadraturePoints);
-    std::vector<JacobianRangeType> uOldJacobians(numQuadraturePoints);
+ //   std::vector<RangeType>         uOldValues(numQuadraturePoints);
+ //   std::vector<JacobianRangeType> uOldJacobians(numQuadraturePoints);
+    
+    uEn_.resize(numQuadraturePoints);
+    uLocal.evaluateQuadrature( quadrature, uEn_);
+    duEn_.resize(numQuadraturePoints); 
+    uLocal.evaluateQuadrature( quadrature, duEn_);
 
-
-    uLocal.evaluateQuadrature(quadrature, uValues);
-    uLocal.evaluateQuadrature(quadrature,uJacobians);
-
-    uOldLocal_.evaluateQuadrature( quadrature, uOldValues); 
-    uOldLocal_.evaluateQuadrature( quadrature, uOldJacobians);
+    uEnOld_.resize(numQuadraturePoints);
+    uOldLocal_.evaluateQuadrature( quadrature, uEnOld_); 
+    duEnOld_.resize(numQuadraturePoints);
+    uOldLocal_.evaluateQuadrature( quadrature, duEnOld_);
 
     //  const DomainType xgl = geometry.global(x);
     RangeType vuOld(0.),vuMid(0);
@@ -193,22 +245,22 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
       RangeType vu(0.) , vuMid(0.) ,fu(0.);
       JacobianRangeType dvu(0.) , duMid(0.), fdu(0.);
-      vuOld=uOldValues[pt];
-      vu=uValues[ pt ];
+      vuOld=uEnOld_[pt];
+      vu=uEn_[ pt ];
       //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
-      vuMid.axpy(factorImp_,uValues[pt]);
-      vuMid.axpy(factorExp_,uOldValues[pt]);
+      vuMid.axpy(factorImp_,uEn_[pt]);
+      vuMid.axpy(factorExp_,uEnOld_[pt]);
 
 
       //(1+theta)/2*DU^n+(1-theta)/2*DU^(n-1)
       // #if OPCHECK vuMid=vuOld
-      duMid.axpy(factorImp_,uJacobians[pt]);
-      duMid.axpy(factorExp_,uOldJacobians[pt]);
+      duMid.axpy(factorImp_,duEn_[pt]);
+      duMid.axpy(factorExp_,duEnOld_[pt]);
 
 
       for( size_t jj = 0; jj < numBasisFunctions ; ++jj )
       {
-        RangeFieldType div{0.},grad{0.};
+        RangeFieldType div(0.),grad(0.);
         for(int ii = 0; ii < dimDomain ; ++ ii)
         {
           div+=duMid[ 1+ii ][ ii ] * phi[ jj ][ 0 ] + dphi[ jj ][ 1 + ii ][ ii ]*vuMid[ 0 ];
@@ -238,7 +290,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         }   
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        RangeFieldType gradphiv{0.};
+        RangeFieldType gradphiv(0.);
         
         fu[ dimDomain + 1 ] = phi[ jj ][dimDomain + 1 ]*deltaTInv;
 
@@ -293,8 +345,12 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         fdu*=weight; 
         fu*=weight;
+#if MYAXPY        
+        myaxpy( jj , phi , dphi , fu , fdu , 1 , jLocal);
+#else
         jLocal.column( jj ).axpy( phi,dphi, fu,fdu  );
-      }
+#endif
+     }
     } 
 
 
@@ -319,12 +375,18 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
             // get local matrix for face entries 
             LocalMatrixType jLocalNbEn = jOp.localMatrix( neighbor,entity );
-            LocalMatrixType jLocalEnNb = jOp.localMatrix( entity, neighbor );
+           LocalMatrixType jLocalEnNb = jOp.localMatrix( entity, neighbor );
             // get local matrix on neighbor 
             LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor); 
- 
-
-            const LocalFunctionType uLocalNb = u.localFunction(neighbor);
+  #if 0  
+            LocalMatrixType jLocalNbEn( dfSpace,dfSpace);
+            jLocalNbEn.init( neighbor, entity);
+            LocalMatrixType jLocalEnNb( dfSpace, dfSpace);
+            jLocalEnNb.init( entity, neighbor);
+            LocalMatrixType jLocalNbNb( dfSpace,dfSpace);
+            jLocalNbNb.init( neighbor,neighbor);
+       #endif
+       const LocalFunctionType uLocalNb = u.localFunction(neighbor);
             // get neighbor's base function set 
             const BasisFunctionSetType &baseSetNb = jLocalNbEn.domainBasisFunctionSet();
             //   const unsigned int numBasisFunctionsNb = baseSetNb.size();
@@ -335,26 +397,24 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
             FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
             const size_t numQuadraturePoints = quadInside.nop();
-            std::vector<RangeType> vuEn(numQuadraturePoints);
-            std::vector<JacobianRangeType> duEn(numQuadraturePoints);
-            std::vector<RangeType> vuNb(numQuadraturePoints);
-            std::vector<JacobianRangeType> duNb(numQuadraturePoints);
-            std::vector<RangeType> vuOldEn(numQuadraturePoints);
-            std::vector<JacobianRangeType> duOldEn(numQuadraturePoints);
-            std::vector<RangeType> vuOldNb(numQuadraturePoints);
-            std::vector<JacobianRangeType> duOldNb(numQuadraturePoints);
+            
+            uEn_.resize( numQuadraturePoints );
+            uLocal.evaluateQuadrature(quadInside,uEn_);
+            duEn_.resize( numQuadraturePoints );
+            uLocal.evaluateQuadrature(quadInside,duEn_);
+            uNb_.resize( numQuadraturePoints );
+            uLocalNb.evaluateQuadrature(quadOutside,uNb_);
+            duNb_.resize( numQuadraturePoints );
+            uLocalNb.evaluateQuadrature(quadOutside,duNb_);
 
-            uLocal.evaluateQuadrature(quadInside,vuEn);
-            uLocal.evaluateQuadrature(quadInside,duEn);
-
-            uLocalNb.evaluateQuadrature(quadOutside,vuNb);
-            uLocalNb.evaluateQuadrature(quadOutside,duNb);
-
-            uOldLocal_.evaluateQuadrature(quadInside,vuOldEn);
-            uOldLocal_.evaluateQuadrature(quadInside,duOldEn);
-
-            uOldNeighbor_.evaluateQuadrature(quadOutside,vuOldNb);
-            uOldNeighbor_.evaluateQuadrature(quadOutside,duOldNb);
+            uEnOld_.resize( numQuadraturePoints );
+            uOldLocal_.evaluateQuadrature(quadInside,uEnOld_);
+            duEnOld_.resize( numQuadraturePoints );
+            uOldLocal_.evaluateQuadrature(quadInside,duEnOld_);
+            uNbOld_.resize( numQuadraturePoints ); 
+            uOldNeighbor_.evaluateQuadrature(quadOutside,uNbOld_);
+            duNbOld_.resize( numQuadraturePoints );
+            uOldNeighbor_.evaluateQuadrature(quadOutside,duNbOld_);
 
 
             for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
@@ -371,17 +431,17 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                 baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
                 baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
 
-                vuMidEn.axpy( factorImp_ , vuEn[ pt ] );
-                vuMidEn.axpy( factorExp_ , vuOldEn[ pt ] );
+                vuMidEn.axpy( factorImp_ , uEn_[ pt ] );
+                vuMidEn.axpy( factorExp_ , uEnOld_[ pt ] );
 
-                vuMidNb.axpy( factorImp_ , vuNb[ pt ] );
-                vuMidNb.axpy( factorExp_ , vuOldNb[ pt ]);
+                vuMidNb.axpy( factorImp_ , uNb_[ pt ] );
+                vuMidNb.axpy( factorExp_ , uNbOld_[ pt ]);
 
-                duMidEn.axpy( factorImp_ , duEn[ pt ] );
-                duMidEn.axpy( factorExp_ , duOldEn[ pt ] );
+                duMidEn.axpy( factorImp_ , duEn_[ pt ] );
+                duMidEn.axpy( factorExp_ , duEnOld_[ pt ] );
 
-                duMidNb.axpy( factorImp_ , duNb[ pt ] );
-                duMidNb.axpy( factorExp_ , duOldNb[ pt ] );
+                duMidNb.axpy( factorImp_ , duNb_[ pt ] );
+                duMidNb.axpy( factorExp_ , duNbOld_[ pt ] );
 
                 const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
 
@@ -389,7 +449,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
                 // compute penalty factor
                 const double intersectionArea = normal.two_norm();
-                const double penaltyFactor = penalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
+                const double penaltyFactor = viscpenalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
                 const double area=std::min(areaEn_,areaNb_); 
 
                 baseSet.evaluateAll( quadInside[ pt ] , phi);
@@ -406,8 +466,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
                     double fluxRet=jacFlux_.numericalFlux( normal,                                                        
                                                            area,
-                                                           vuEn[ pt ],
-                                                           vuNb[ pt ],
+                                                           uEn_[ pt ],
+                                                           uNb_[ pt ],
                                                            vuMidEn,
                                                            vuMidNb,
                                                            phi[ jj ],
@@ -428,16 +488,20 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
                     avuLeft+=valueLeft;
                     avuRight+=valueRight;
-            
+#if MYAXPY
+                    myaxpy( jj, phi, dphi, avuLeft, aduLeft, weightInside, jLocal);
+                    myaxpy( jj, phi, dphi, avuRight, aduRight, weightInside, jLocalNbEn);
+#else
+
                     jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weightInside );
                     jLocalNbEn.column( jj ).axpy( phi,dphi , avuRight,aduRight, weightInside); 
-            
+#endif       
                     DomainType negnormal=normal; 
                     negnormal*=-1.;
                     fluxRet=jacFlux_.numericalFlux( negnormal,
                                                     area,
-                                                    vuNb[ pt ],
-                                                    vuEn[ pt ],
+                                                    uNb_[ pt ],
+                                                    uEn_[ pt ],
                                                     vuMidNb,
                                                     vuMidEn,
                                                     phiNb[ jj ],
@@ -446,24 +510,27 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                                     avuRight); 
 
                     fluxRet+=jacFlux_.diffusionFlux( negnormal,
-                                                    penaltyFactor,
-                                            phiNb[ jj ],
-                                            phi[ jj ],
-                                            dphi[ jj ],
-                                            dphiNb[ jj ],
-                                            valueLeft,
-                                            valueRight,
-                                            aduLeft,
-                                            aduRight);
-             avuLeft+=valueLeft;
-             avuRight+=valueRight;
-         
-  
-              jLocalNbNb.column( jj ).axpy( phiNb , dphiNb , avuLeft , aduLeft , weightOutside );
-              jLocalEnNb.column( jj ).axpy( phiNb , dphiNb , avuRight, aduRight, weightOutside); 
-         
+                                                     penaltyFactor,
+                                                     phiNb[ jj ],
+                                                     phi[ jj ],
+                                                     dphi[ jj ],
+                                                     dphiNb[ jj ],
+                                                     valueLeft,
+                                                     valueRight,
+                                                     aduLeft,
+                                                     aduRight);
+             
+                    avuLeft+=valueLeft;
+                    avuRight+=valueRight;
+#if MYAXPY
+                    myaxpy( jj, phiNb, dphiNb, avuLeft, aduLeft, weightOutside,jLocalNbNb);
+                    myaxpy( jj, phiNb, dphiNb, avuRight,aduRight, weightOutside, jLocalEnNb);
+#else
+                    jLocalNbNb.column( jj ).axpy( phiNb , dphiNb , avuLeft , aduLeft , weightOutside );
+                    jLocalEnNb.column( jj ).axpy( phiNb , dphiNb , avuRight, aduRight, weightOutside); 
+#endif    
 
-            }
+                }
           }
         } 
       
@@ -514,7 +581,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           // compute penalty factor
           const double intersectionArea = normal.two_norm();
-          const double penaltyFactor = penalty()*intersectionArea /  areaEn_; 
+          const double penaltyFactor = viscpenalty()*intersectionArea /  areaEn_; 
           const double area=areaEn_; 
 
  
@@ -554,8 +621,11 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                                      aduLeft );                
 #endif
             avuLeft+=valueLeft;
-            jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
-
+#if MYAXPY
+          myaxpy( jj, phi, dphi, avuLeft, aduLeft, weight, jLocal);
+#else
+          jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
+#endif
 
 
           }
