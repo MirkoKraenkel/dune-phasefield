@@ -163,17 +163,17 @@ template<class DiscreteFunction, class Model, class Flux>
 template< class IntersectionQuad>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::intersectionIntegral( const IntersectionType& intersection,
-    const size_t pt,  
-    const IntersectionQuad& quadInside,
-    const IntersectionQuad& quadOutside,
-    const RangeType& vuEn,
-    const RangeType& vuNb, 
-    const JacobianRangeType& duEn,
-    const JacobianRangeType& duNb,
-    RangeType& avuLeft,
-    RangeType& avuRight,
-    JacobianRangeType& aduLeft,
-    JacobianRangeType& aduRight) const
+                        const size_t pt,  
+                        const IntersectionQuad& quadInside,
+                        const IntersectionQuad& quadOutside,
+                        const RangeType& vuEn,
+                        const RangeType& vuNb, 
+                        const JacobianRangeType& duEn,
+                        const JacobianRangeType& duNb,
+                        RangeType& avuLeft,
+                        RangeType& avuRight,
+                        JacobianRangeType& aduLeft,
+                        JacobianRangeType& aduRight) const
 {
   typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
@@ -204,7 +204,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   const DomainType normal = intersection.integrationOuterNormal( x );
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
-  const double penaltyFactor = penalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
+  const double penaltyFactor = viscpenalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
   const double area=std::min(areaEn_,areaNb_); 
 
   JacobianRangeType dvalue(0.),advalue(0.);
@@ -241,12 +241,12 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 template<class DiscreteFunction, class Model, class Flux>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::boundaryIntegral( const IntersectionType& intersection,
-    const size_t pt,  
-    const FaceQuadratureType& quadInside,
-    const RangeType& vuEn,
-    const JacobianRangeType& duEn,
-    RangeType& avuLeft,
-    JacobianRangeType& aduLeft) const
+                    const size_t pt,  
+                    const FaceQuadratureType& quadInside,
+                    const RangeType& vuEn,
+                    const JacobianRangeType& duEn,
+                    RangeType& avuLeft,
+                    JacobianRangeType& aduLeft) const
 {
   typedef typename IntersectionType::Geometry  IntersectionGeometryType;
   const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
@@ -269,7 +269,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   // compute penalty factor
   const double intersectionArea = intersectionGeometry.volume();
-  const double penaltyFactor = penalty()*intersectionArea /  areaEn_; 
+  const double penaltyFactor = viscpenalty()*intersectionArea /  areaEn_; 
   const double area=areaEn_; 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
