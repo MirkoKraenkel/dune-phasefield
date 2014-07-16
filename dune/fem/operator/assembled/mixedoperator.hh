@@ -56,7 +56,8 @@ class DGPhasefieldOperator
   typedef typename IntersectionIteratorType::Intersection IntersectionType;
   typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
-  typedef Dune::Fem::ElementQuadrature< GridPartType, 1 > FaceQuadratureType;
+  typedef Dune::Fem::CachingQuadrature< GridPartType, 1 > FaceQuadratureType;
+
   typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
 
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalType;
@@ -82,7 +83,9 @@ class DGPhasefieldOperator
       deltaT_(0.),
       uOld_("uOld" , space ),
       uOldLocal_(space),
-      uOldNeighbor_(space)
+      uOldNeighbor_(space),
+      penalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.penalty" )),
+      acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" ))
   {
     assert(theta_>=0 && theta_<=1);
     factorImp_=0.5*(1+theta_);
@@ -91,9 +94,9 @@ class DGPhasefieldOperator
 
   // prepare the solution vector 
   template <class Function>
-    void prepare( const Function &func, DiscreteFunctionType &u ) 
-    { 
-    }
+  void prepare( const Function &func, DiscreteFunctionType &u )
+  {
+  }
 
   //! application operator 
   void operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const;
@@ -124,12 +127,12 @@ class DGPhasefieldOperator
 
 
   void localIntegral( size_t  pt,
-      const GeometryType& geometry,
-      const QuadratureType& quadrature,
-      RangeType& vu,
-      JacobianRangeType& du,
-      RangeType& avu, // to be added to the result local function
-      JacobianRangeType& advu) const;
+                      const GeometryType& geometry,
+                      const QuadratureType& quadrature,
+                      RangeType& vu,
+                      JacobianRangeType& du,
+                      RangeType& avu, // to be added to the result local function
+                      JacobianRangeType& advu) const;
 
   
   template<bool conforming> 
@@ -141,15 +144,15 @@ class DGPhasefieldOperator
 
 
   template< class IntersectionQuad>
-  void intersectionIntegral( const IntersectionType& intersection,
-      const size_t pt,  
-      const IntersectionQuad& quadInside,
-      const IntersectionQuad& quadOutside,
-      const RangeType& vuEn,
-      const RangeType& vuNb, 
-      const JacobianRangeType& duEn,
-      const JacobianRangeType& duNb,
-      RangeType& avuLeft,
+  void intersectionIntegral ( const IntersectionType& intersection,
+                              const size_t pt,
+                              const IntersectionQuad& quadInside,
+                              const IntersectionQuad& quadOutside,
+                              const RangeType& vuEn,
+                              const RangeType& vuNb,
+                              const JacobianRangeType& duEn,
+                              const JacobianRangeType& duNb,
+                              RangeType& avuLeft,
       RangeType& avuRight,
       JacobianRangeType& aduLeft,
       JacobianRangeType& aduRight) const;
@@ -177,8 +180,9 @@ class DGPhasefieldOperator
 
   const ModelType& model() const{ return model_;}
 
-  double penalty() const { return model_.penalty();}
-
+  double viscpenalty() const { return penalty_;}
+  double acpenalty() const { return acpenalty_;} 
+  
   protected:
   ModelType model_;
   const DiscreteFunctionSpaceType &space_;
@@ -194,6 +198,7 @@ class DGPhasefieldOperator
   mutable double areaEn_;
   mutable double areaNb_;
   mutable double penalty_;
+  mutable double acpenalty_;
 };
 
 
@@ -397,12 +402,13 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
             boundaryIntegral( intersection,
-                pt,
-                quadInside,
-                vuEn,
-                duEn,
-                avuLeft,
-                aduLeft);
+                              pt,
+                              quadInside,
+                              vuEn,
+                              duEn,
+                              avuLeft,
+                              aduLeft);
+
             avuLeft*=weight;
             aduLeft*=weight;
 
@@ -497,18 +503,18 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
     //calculate quadrature summands avu
-    intersectionIntegral( intersection,                  
-        pt, 
-        quadInside,   
-        quadOutside, 
-        vuEn,
-        vuNb, 
-        duEn, 
-        duNb,
-        avuLeft,
-        avuRight,
-        aduLeft,
-        aduRight);
+    intersectionIntegral( intersection,
+                          pt,
+                          quadInside,
+                          quadOutside,
+                          vuEn,
+                          vuNb,
+                          duEn,
+                          duNb,
+                          avuLeft,
+                          avuRight,
+                          aduLeft,
+                          aduRight);
 
     avuLeft*=weight;
     aduLeft*=weight;
