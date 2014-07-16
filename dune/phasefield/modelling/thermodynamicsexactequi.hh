@@ -27,14 +27,9 @@ public:
    epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
    mu1_( epsilon_ ),
    mu2_( epsilon_ )
-    {
-    }
+   {
+   }
 
-  inline void init() const 
-  {
-    std::cout<<"thermo.init()\n";
-  abort();
-  }
   
   inline double helmholtz(double& rho,double& phi) const
   {
@@ -183,21 +178,10 @@ public:
 				945940263.0*delta+200000000.0*t1-400000000.0*t12+200000000.0*t2;
 			return(-0.1E-7*t23/delta);
 		}
-
-  
-  
-  
-  
-  
   
   }
 
-   
-
-	
-		
-
-	inline double a(double rho,double phi) const
+  inline double a(double rho,double phi) const
 	{
 		return 1.6;	
 	}
@@ -215,8 +199,8 @@ public:
 private:
 	mutable double  delta_;
 	mutable double  deltaInv_;
-	mutable  double epsilon_;
-  mutable double mu1_,mu2_;
+	mutable double  epsilon_;
+  mutable double  mu1_,mu2_;
 };
 
 
