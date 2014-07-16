@@ -17,10 +17,7 @@ class Thermodynamics
 public:
   Thermodynamics()
   {
- 
   }
-
-  inline void init();
 
   //factor in front of the double well
   inline double h1(  double rho ) const
@@ -49,7 +46,7 @@ public:
     return asImp.reationFacor();
   }
 
-
+  
   //free EnergyPart without gradients used for monitoring the free energy
   inline double helmholtz( double rho , double phi ) const
   { 
