@@ -27,7 +27,7 @@ class PhasefieldJacobianOperator
   enum{dimDomain=MyOperatorType::dimDomain};
   
   enum{ dimRange=MyOperatorType::RangeType::dimension};
-
+  
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
   //typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
   typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
@@ -59,6 +59,8 @@ class PhasefieldJacobianOperator
   typedef Dune::Fem::MutableArray<RangeType> RangeVectorType;
   typedef Dune::Fem::MutableArray<JacobianRangeType> JacobianVectorType;
 
+   typedef typename Dune::FieldMatrix<double,dimRange,dimRange> FluxRangeType;
+ 
   public: 
   PhasefieldJacobianOperator(const ModelType &model,
       const DiscreteFunctionSpaceType &space,
@@ -441,6 +443,7 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
               {
                 RangeType    vuMidEn(0.), vuMidNb(0.);
                 JacobianRangeType aduLeft(0.),aduRight(0.),duMidNb(0.), duMidEn(0.);
+                FluxRangeType fluxLeft(0.), fluxRight(0.);
                 const double weightInside=quadInside.weight( pt ); 
                 const double weightOutside=quadOutside.weight( pt ); 
 
@@ -478,47 +481,30 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
                 baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
                 baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
 
+                jacFlux_.numericalFlux( normal,
+                                        area,
+                                        vuMidEn,
+                                        vuMidNb,
+                                        fluxLeft,
+                                        fluxRight)
+                
+
 
                 for( size_t jj=0 ; jj < numScalarBf ; ++jj)
                   {
                     RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
                     JacobianRangeType aduLeft(0.),aduRight(0.);
 
-                    jacFlux_.rhorhoFlux( normal,                                                        
-                                         area,
-                                         vuMidEn,
-                                         vuMidNb,
-                                         phi[ rhoIndex(jj) ],
-                                         phiNb[ jj ],
-                                         avuLeft,
-                                         avuRight); 
                     
                     for( size_t ii = 0; ii < numScalarBf ; ++ii )
                       {
-                        jLocal.add(ii*dimRange,jj*dimRange ,avuLeft[ii*dimRange]*phi[ ii*dimRange]*weight);
+                        MatrixHelper::axpyCouplings( couplings_,
+                                                    jLocal,
+                                                    ii,
+                                                    jj,
+                                                    weigInside)
+
                       } 
-                    jacFlux_.rhovFlux( normal,
-                                       area,
-                                       vuMidEn,
-                                       vuMidNb,
-                                       phi[ rhoIndex(jj) ],
-                                       phiNb[ jj ],
-                                       avuLeft,
-                                       avuRight); 
-                    for( size_t ii = 0; ii < numScalarBf ; ++ii )
-                     {
-                       for( size_t kk =0;kk<dimension;++kk)
-                        jLocal.add(ii,dimRange,jj*dimRange+1+kk, value[kk]);
-                     }
-                    jacFlux_.vrhoFlux();
-                    
-                    jacFlux_.vmuFlux();
-                    jacFlux_.vtauFlux();
-                    jacFlux_.vphiFlux();
-                    jacFlux_.phiphiFlux();
-                    jacFlux_.phivFlux();
-                    jacFlux_.tausigmaFlux();
-                    jacFlux_.sigmaphiFlux();
                     
 
 
