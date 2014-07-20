@@ -18,6 +18,7 @@ class JacobianFlux
   typedef typename Dune::FieldVector<double,dimRange> RangeType;
   typedef typename Dune::FieldVector<double,dimDomain> DomainType;
   typedef typename Dune::FieldMatrix<double,dimRange,dimDomain> JacobianRangeType;
+  typedef typename Dune::FieldMatrix<double,dimRange,dimRange> FluxRangeType;
   typedef  PhasefieldFilter<RangeType> Filter; 
 
   
@@ -31,14 +32,12 @@ public:
     }
 
 
-  double numericalFlux ( const DomainType& normal, 
-                         const double penaltyFactor,
-                         const RangeType& vuEnOld,
-                         const RangeType& vuNbOld,
-                         RangeType& phiEn,
-                         RangeType& phiNb,
-                         RangeType& gLeft,
-                         RangeType& gRight) const;
+  void  numericalFlux ( const DomainType& normal,
+                        const double penaltyFactor,
+                         const RangeType& vuEn,
+                         const RangeType& vuNb,
+                         FluxRangeType& gLeft,
+                         FluxRangeType& gRight) const;
 
 
   double diffusionFlux ( const DomainType& normal,
@@ -148,8 +147,8 @@ double JacobianFlux<Model>
                 const RangeType& vuNbMid,
                 RangeType& phiEn,
                 RangeType& phiNb,
-                RangeType& gLeft,
-                RangeType& gRight) const
+                FluxRangeType& gLeft,
+                FluxRangeType& gRight) const
   {
       RangeType valEn,valNb,midEn(0.), midNb(0.),jump,mean, jumpPhi(0.);
       
@@ -175,38 +174,32 @@ double JacobianFlux<Model>
           vNormalEn+=midEn[ 1 + ii ]*normal[ ii ];
           //v^-\cdot n^+
           vNormalNb+=midNb[ 1 + ii ]*normal[ ii ];
-          //Phi[v]^+\cdot n^+
-          testNormalEn+=phiEn[ 1 + ii ]*normal[ ii ];
-          //Phi[v]^-\cdot n^+
-          testNormalNb+=phiNb[ 1 + ii ]*normal[ ii ];
+          gLeft[ 0 ][ 1 + ii ]  = -0.25*normal[ ii ]*midEn[ 0 ];
+          gRight[ 0 ][ 1 + ii ] =  0.25*normal[ ii ]*midNb[ 0 ];
         }
   
 
       //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
-      gLeft[ 0 ]=vNormalEn*phiEn[ 0 ];
-      gLeft[ 0 ]+=testNormalEn*midEn[ 0 ];
-      gLeft[ 0 ]*=-0.25;
+      gLeft[ 0 ][ 0 ]=-0.25*vNormalEn;
       //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5 
-      gRight[ 0 ]=vNormalNb*phiNb[ 0 ];
-      gRight[ 0 ]+=testNormalNb*midNb[ 0 ];
-      gRight[ 0 ]*=0.25;
+      gRight[ 0 ][ 0 ]=0.25*vNormalNb;
 
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
     
-      for(int i = 0; i < dimDomain ; ++i )
+      for(int ii = 0; ii < dimDomain ; ++ii )
         { 
-          //F_2=F_{2.1}+F_{2.2}
-          //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-          gLeft[ 1 + i ]-=jump[ dimDomain + 2 ]*normal[ i ]*phiEn[ 0 ]*0.5;
-          gLeft[ 1 + i ]-=phiEn[ dimDomain + 2 ]*normal[ i ]*midEn[ 0 ]*0.5;
-          gRight[ 1 + i ]+=phiNb[ dimDomain + 2 ]*normal[ i ]*midEn[ 0 ]*0.5; 
-         
-          //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau^+*0.5
-          gLeft[ 1 + i ]+=jump[ dimDomain + 1 ]*normal[ i ]*phiEn[ dimDomain + 3 ]*0.5;
-          gLeft[ 1 + i ]+=phiEn[ dimDomain + 1 ]*normal[ i ]*midEn[ dimDomain + 3 ]*0.5;
-          gRight[ 1 + i ]-=phiNb[ dimDomain + 1 ]*normal[ i ]*midEn[ dimDomain + 3 ]*0.5;
+          //(\rho_j,\v_i)
+          gLeft[ 1 + ii ][ 0 ]=jump[ dimDomain + 2 ]*normal[ ii ]*0.5;
+          //(\mu_j,\v_i)
+          gLeft[ 1 + ii ][ dimDomain + 2 ]=-0.5*normal[ ii ]*midEn[ 0 ];
+          gRight[ 1 + ii ][ dimDomain + 2 ]=0.5*normal[ ii ]*midEn[ 0 ]; 
+         //(\tau_j,v_i)
+          gLeft[ 1 + ii ][ dimDomain + 3 ]=jump[ dimDomain + 1 ]*normal[ i ]*0.5;
+          //(\phi_j,v_i)
+          gLeft[ 1 + ii ][ dimDomain + 1] =0.5*normal[ i ]*midEn[ dimDomain + 3 ];
+          gRight[ 1 + ii ][ dimDonain + 1 ]=-0.5*normal[ i ]*midEn[ dimDomain + 3 ];
           
           gLeft[ 1 + i ]*=0.5;
           gRight[ 1 + i ]*=0.5;
@@ -222,21 +215,21 @@ double JacobianFlux<Model>
           //F_{3.1}
        
           //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5 
-          gLeft[ dimDomain + 1 ]-=phiEn[ dimDomain + 1 ]*normal[ ii ]*midEn[ 1 + ii ]*0.25;
-          gLeft[ dimDomain + 1 ]-=jump[ dimDomain + 1 ]*normal[ ii ]*phiEn[ 1 + ii ]*0.25;
-          gRight[ dimDomain + 1 ]+=phiNb[ dimDomain + 1 ]*normal[ ii ]*midEn[ 1 + ii ]*0.25;
+          gLeft[ dimDomain + 1 ][ dimDomain + 1 ]=normal[ ii ]*midEn[ 1 + ii ]*-0.25;
+          gRight[ dimDomain + 1 ][ dimDomain +1 ]=normal[ ii ]*midEn[ 1 + ii ]*0.25;
 
-          //tau
+          gLeft[ dimDomain + 1 ][ 1 + ii ]=jump[ dimDomain + 1 ]*normal[ ii ]*-0.25;
+              //tau
           //F_{3.2}
           //(\sigma^+-\sigma^-)\cdot n * 0.5
-          laplaceFluxLeft+=phiEn[ dimDomain + 4 + ii ]*normal[ ii ]*0.25;
-          laplaceFluxRight-=phiNb[ dimDomain + 4 + ii ]*normal[ ii ]*0.25;
+          laplaceFluxLeft=phiEn[ dimDomain + 4 + ii ]*normal[ ii ]*0.25;
+          laplaceFluxRight=phiNb[ dimDomain + 4 + ii ]*normal[ ii ]*-0.25;
         } 
     
       //----------------------------------------------------------------
       //tau-------------------------------------------------------------
-      gLeft[ dimDomain + 3 ]-=model_.delta()*laplaceFluxLeft;
-      gRight[ dimDomain + 3 ]-=model_.delta()*laplaceFluxRight;
+      gLeft[ dimDomain + 3 ][ dimDomain + 4 ]=-model_.delta()*laplaceFluxLeft;
+      gRight[ dimDomain + 3 ][dimDomain + 4 ]=-model_.delta()*laplaceFluxRight;
       //----------------------------------------------------------------
 
       //sigma-----------------------------------------------------------
@@ -244,8 +237,8 @@ double JacobianFlux<Model>
         {  
           //F_4
           //(\phi^+-\phi^-)\normal*0.5
-          gLeft[ dimDomain + 4 + ii ]=phiEn[ dimDomain + 1 ]*normal[ ii ]*0.5;
-          gRight[ dimDomain + 4 + ii ]=-phiNb[ dimDomain + 1 ]*normal[ ii ]*0.5;
+          gLeft[ dimDomain + 4 + ii ][ dimDomain + 1 ]=normal[ ii ]*0.5;
+          gRight[ dimDomain + 4 + ii ][ dimDomain + 1 ]=normal[ ii ]*-0.5;
   
         } 
       //----------------------------------------------------------------
