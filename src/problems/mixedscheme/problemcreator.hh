@@ -36,7 +36,7 @@ struct ProblemGenerator
   {
     typedef PhaseProblemType  InitialDataType;
 
-    typedef HeatModel< typename GridPart::GridType, InitialDataType > ModelType;
+    typedef PhasefieldModel< typename GridPart::GridType, InitialDataType > ModelType;
     // choice of diffusion flux (see diffusionflux.hh for methods)
 
     // ******************************** NUMERICAL FLUX *****************************

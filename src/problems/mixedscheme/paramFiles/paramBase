@@ -40,7 +40,7 @@ gridsol.usegridsolution: false
 #-----------------
 
 phasefield.eocSteps: 1 
-phasefield.printCount: 10
+phasefield.printCount: 100
 phasefield.verbose: 1 
 
 # create a file with sampled values of the numerical solution
@@ -50,7 +50,7 @@ linesegmentsamplerresolution: 100.
 # GRID ADAPTATION
 #----------------
 
-fem.adaptation.method: generic # none | generic | callback
+fem.adaptation.method: none # none | generic | callback
 # specify refinement tolerance 
 fem.adaptation.refineTolerance: 0.01
 # percent of refinement tol used for coarsening 
@@ -72,8 +72,9 @@ fem.loadbalancing.step:1
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 2 
+phasefield.startLevel: 4 
 
 
 phasefield.startTime: 0 
-phasefield.endTime: 1.0
+phasefield.endTime: 20 
+

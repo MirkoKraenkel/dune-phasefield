@@ -67,7 +67,7 @@ typedef TravelProblem< GridSelector :: GridType,
 #include "bubbleproblem.hh"
 typedef BubbleProblem< GridSelector:: GridType>  PhaseProblemType;
 #elif PROBLEM==7
-#include "../mixedscheme/stationaryproblem.hh"
+#include "../mixedscheme/stationaryroblem.hh"
 typedef StationaryProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
