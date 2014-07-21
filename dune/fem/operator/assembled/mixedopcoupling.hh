@@ -12,8 +12,8 @@
 
 #include "mixedoperator.hh"
 #include "phasefieldfilter.hh"
-#include "fluxes/jacobianflux_nofilter.hh"
-
+#include "fluxes/jacobianfluxcoupling.hh"
+#include "matrixhelper.hh"
 template<class DiscreteFunction,class Model, class Flux, class Jacobian>
 class PhasefieldJacobianOperator
 :public Dune::Fem::DifferentiableOperator < Jacobian >,
@@ -29,7 +29,7 @@ class PhasefieldJacobianOperator
   enum{ dimRange=MyOperatorType::RangeType::dimension};
   
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
-  //typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
+  typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
   typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
   typedef typename MyOperatorType::ModelType ModelType;
   typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
@@ -54,7 +54,7 @@ class PhasefieldJacobianOperator
   typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalFunctionType;
   typedef typename MyOperatorType::GridPartType GridPartType;
   typedef typename GridPartType::IndexSetType IndexSetType;
-    typedef Dune::Fem::TemporaryLocalMatrix< DiscreteFunctionSpaceType, DiscreteFunctionSpaceType> LocalMatrixType;
+  //  typedef Dune::Fem::TemporaryLocalMatrix< DiscreteFunctionSpaceType, DiscreteFunctionSpaceType> LocalMatrixType;
  
   typedef Dune::Fem::MutableArray<RangeType> RangeVectorType;
   typedef Dune::Fem::MutableArray<JacobianRangeType> JacobianVectorType;
@@ -132,6 +132,7 @@ class PhasefieldJacobianOperator
   mutable JacobianVectorType duEn_,duNb_,duEnOld_,duNbOld_;
   mutable int zerocount_;
   mutable int allcount_; 
+  mutable MatrixHelper::Couplings<dimDomain> couplings_;
 };
 
 
@@ -152,7 +153,6 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
   const unsigned int numBasisFunctions = jLocal.rows();
   int scalarNumBasisFunctions=numBasisFunctions/RangeType::dimension;
   int dim=RangeType::dimension; 
-#if 0
   for( int i = 0;i < numBasisFunctions; ++i)
    {
      int range=i%dim;
@@ -166,9 +166,8 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
     //if( value==0)  
       //zerocount_++;   
     //else
-      //jLocal.add( i , jj , weight * value );
+     jLocal.add( i , jj , weight * value );
    }
-#endif
 }
 
 
@@ -220,14 +219,14 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
     //initialize uOld
     setEntity( entity );
    
-  // LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
+   LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
     
-    LocalMatrixType jLocal( dfSpace, dfSpace);//= jOp.localMatrix( entity, entity );
-    jLocal.init(entity,entity);
+  //  LocalMatrixType jLocal( dfSpace, dfSpace);//= jOp.localMatrix( entity, entity );
+    //jLocal.init(entity,entity);
     const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
     const unsigned int numBasisFunctions = baseSet.size();
       
-    const unsigned int numScalarBf = numScalarBf/dimRange;
+    const unsigned int numScalarBf = numBasisFunctions/dimRange;
 
     QuadratureType quadrature( entity, 2*dfSpace.order() );
     const size_t numQuadraturePoints = quadrature.nop();
@@ -253,7 +252,6 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
   //  RangeType vu(0.) , vuMid(0.) ,fu(0.);
    // JacobianRangeType dvu(0.) , duMid(0.), fdu(0.);
  
-
     for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
     {
 
@@ -365,11 +363,9 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         fdu*=weight; 
         fu*=weight;
-#if MYAXPY        
         myaxpy( jj , phi , dphi , fu , fdu , 1 , jLocal);
-#else
-        jLocal.column( jj ).axpy( phi,dphi, fu,fdu  );
-#endif
+//        jLocal.column( jj ).axpy( phi,dphi, fu,fdu  );
+
      }
     } 
 
@@ -392,22 +388,22 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             setNeighbor( neighbor );
             typedef typename IntersectionType::Geometry  IntersectionGeometryType;
             const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
-#if 0
+#if 1
             // get local matrix for face entries 
             LocalMatrixType jLocalNbEn = jOp.localMatrix( neighbor,entity );
-           LocalMatrixType jLocalEnNb = jOp.localMatrix( entity, neighbor );
+            LocalMatrixType jLocalEnNb = jOp.localMatrix( entity, neighbor );
             // get local matrix on neighbor 
-s
-LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor); 
-#endif
-#if 1  
+
+            LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor); 
+
+#else  
             LocalMatrixType jLocalNbEn( dfSpace,dfSpace);
             jLocalNbEn.init( neighbor, entity);
             LocalMatrixType jLocalEnNb( dfSpace, dfSpace);
             jLocalEnNb.init( entity, neighbor);
             LocalMatrixType jLocalNbNb( dfSpace,dfSpace);
             jLocalNbNb.init( neighbor,neighbor);
-       #endif
+#endif
        const LocalFunctionType uLocalNb = u.localFunction(neighbor);
             // get neighbor's base function set 
             const BasisFunctionSetType &baseSetNb = jLocalNbEn.domainBasisFunctionSet();
@@ -486,7 +482,7 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
                                         vuMidEn,
                                         vuMidNb,
                                         fluxLeft,
-                                        fluxRight)
+                                        fluxRight);
                 
 
 
@@ -498,15 +494,46 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
                     
                     for( size_t ii = 0; ii < numScalarBf ; ++ii )
                       {
-                        MatrixHelper::axpyCouplings( couplings_,
-                                                    jLocal,
-                                                    ii,
-                                                    jj,
-                                                    weigInside)
+                        MatrixHelper::axpyCouplings< MatrixHelper::Alignment<dimRange> >( couplings_,
+                                                                                          phi,
+                                                                                          phi,
+                                                                                          fluxLeft,
+                                                                                          ii,
+                                                                                          jj,
+                                                                                          weightInside,
+                                                                                          jLocal);
+
+                        MatrixHelper::axpyCouplings< MatrixHelper::Alignment<dimRange> >( couplings_,
+                                                                                          phi,
+                                                                                          phiNb,
+                                                                                          fluxRight,
+                                                                                          ii,
+                                                                                          jj,
+                                                                                          weightInside,
+                                                                                          jLocalNbEn);
+
+                        MatrixHelper::axpyCouplings< MatrixHelper::Alignment<dimRange> >( couplings_,
+                                                                                          phiNb,
+                                                                                          phi,
+                                                                                          fluxLeft,
+                                                                                          ii,
+                                                                                          jj,
+                                                                                          weightOutside,
+                                                                                          jLocalEnNb);
+
+                        MatrixHelper::axpyCouplings< MatrixHelper::Alignment<dimRange> >( couplings_,
+                                                                                          phi,
+                                                                                          phiNb,
+                                                                                          fluxRight,
+                                                                                          ii,
+                                                                                          jj,
+                                                                                          weightOutside,
+                                                                                          jLocalNbNb);
+
 
                       } 
                     
-
+#if 0
 
 
 
@@ -566,8 +593,9 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
                     jLocalNbNb.column( jj ).axpy( phiNb , dphiNb , avuLeft , aduLeft , weightOutside );
                     jLocalEnNb.column( jj ).axpy( phiNb , dphiNb , avuRight, aduRight, weightOutside); 
 #endif    
-
+#endif
                 }
+
           }
         } 
       
@@ -626,7 +654,7 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
           {
             RangeType avuLeft(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
             JacobianRangeType aduLeft(0.),aduRight(0.);
-        
+       #if  0 
             double fluxRet=jacFlux_.numericalFlux( normal,
                                                    area,
                                                    vuEn[ pt ],
@@ -638,7 +666,7 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
                                                    avuLeft,
                                                    avuRight); 
 
-          
+          #endif
 
 #if 0 
             double  fluxRet=jacFlux_.boundaryFlux( normal,
@@ -650,7 +678,8 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
 
 #endif
 #if 1 
-            fluxRet+=jacFlux_.diffusionBoundaryFlux( normal,
+              double fluxRet;
+              fluxRet+=jacFlux_.diffusionBoundaryFlux( normal,
                                                      penaltyFactor,
                                                      phi[ jj ],
                                                      dphi[ jj ],
@@ -658,11 +687,11 @@ LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor);
                                                      aduLeft );                
 #endif
             avuLeft+=valueLeft;
-#if MYAXPY
+//#if MYAXPY
           myaxpy( jj, phi, dphi, avuLeft, aduLeft, weight, jLocal);
-#else
-          jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
-#endif
+//#else
+ //         jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
+//#endif
 
 
           }
