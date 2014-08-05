@@ -31,8 +31,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   duMid.axpy(factorImp_,du);
   duMid.axpy(factorExp_,duOld);
 
-  //RangeType  source(0.);
-//  model_.systemSource(time_, xgl, source);        
   //rho------------------------------------------------------------- 
   //d_t rho=(rho^n-rho^n-1)/delta t
   Filter::rho(avu)=Filter::rho(vu);
@@ -106,17 +104,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   Filter::tau( avu )=Filter::tau( vuMid );
   Filter::tau( avu )-=dFdphi;
 
-  RangeFieldType divsigma(0.) , gradrhosigma(0.);
+  RangeFieldType divalpha(0.) ;
 
   for( int ii = 0 ; ii < dimDomain ; ++ii) 
     {
-      divsigma+=Filter::dalpha( duMid, ii , ii );
-     // gradrhosigma+=Filter::sigma( vuMid, ii )*Filter::drho( duMid, ii);
+      divalpha+=Filter::dalpha( duMid, ii , ii );
     }
   
-  //delta*\Div(\rho\sigma)=delta*\div \nabla\rho\cdot\sigma+\rho\Div\sigma
-  Filter::tau( avu )+=model_.delta()*(divsigma);
-  //  Filter::tau( avu)*=deltaInv;         
+  Filter::tau( avu )+=model_.delta()*divalpha;
   //-------------------------------------------------------------------
 
   //mu-----------------------------------------------------------------
@@ -140,16 +135,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     // |v^{n-1}|^2
     uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
    
-    // |sigma^n|^2
-    sigmasqr+=model_.h2prime(Filter::rho(vu))*Filter::sigma( vu , ii )*Filter::sigma( vu , ii );
+    // |sigma^n*sigma^{n-1}|
+    sigmasqr+=Filter::sigma( vu , ii )*Filter::sigma( vuOld , ii );
     
-    // |sigma^{n-1}|^2
-    sigmaOldsqr+=model_.h2prime(Filter::rho(vuOld))*Filter::sigma( vuOld , ii )*Filter::sigma( vuOld , ii );
 
   }
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
-  Filter::mu(avu)-=0.25*model_.delta()*(sigmasqr+sigmaOldsqr);
+  Filter::mu(avu)+=0.5*model_.delta()*model_h2prime(Filter::rho(vu))*sigmasqr;
 
   //------------------------------------------------------------------
 
