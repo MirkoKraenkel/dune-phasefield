@@ -210,7 +210,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   const DomainType normal = intersection.integrationOuterNormal( x );
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
-  const double penaltyFactor = viscpenalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
+  const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
   const double area=std::min(areaEn_,areaNb_); 
 
   JacobianRangeType dvalue(0.),advalue(0.);
@@ -275,7 +275,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   // compute penalty factor
   const double intersectionArea = intersectionGeometry.volume();
-  const double penaltyFactor = viscpenalty()*intersectionArea /  areaEn_; 
+  const double penaltyFactor = intersectionArea /  areaEn_; 
   const double area=areaEn_; 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );

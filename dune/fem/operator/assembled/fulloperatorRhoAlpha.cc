@@ -119,7 +119,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   }
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
-  Filter::mu(avu)+=0.5*model_.delta()*model_h2prime(Filter::rho(vu))*sigmasqr;
+  Filter::mu(avu)+=0.5*model_.delta()*model_.h2prime(Filter::rho(vu))*sigmasqr;
 
 
   //tau---------------------------------------------------------------
@@ -218,14 +218,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   const DomainType normal = intersection.integrationOuterNormal( x );
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
-  const double penaltyFactor = viscpenalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
+  const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
   const double area=std::min(areaEn_,areaNb_); 
 
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
 
   fluxRet=flux_.numericalFlux(normal,
-      area,
+      penaltyFactor,
       vuEn,
       vuNb,
       vuMidEn,  
@@ -283,7 +283,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   // compute penalty factor
   const double intersectionArea = intersectionGeometry.volume();
-  const double penaltyFactor = viscpenalty()*intersectionArea /  areaEn_; 
+  const double penaltyFactor = intersectionArea /  areaEn_; 
   const double area=areaEn_; 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
@@ -295,10 +295,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   RangeType gLeft(0.),dummy(0.);
 #if 1 
   fluxRet=flux_.boundaryFlux( normal,
-                                area,
-                                vuEn,
-                                vuMidEn,
-                                gLeft);
+                              penaltyFactor,
+                              vuEn,
+                              vuMidEn,
+                              gLeft);
 #else
    fluxRet=flux_.numericalFlux( normal,
                                 area,
