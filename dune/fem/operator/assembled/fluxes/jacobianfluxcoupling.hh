@@ -25,7 +25,8 @@ class JacobianFlux
 public:
   JacobianFlux(const ModelType& model):
     model_(model),
-    beta_(Dune::Fem::Parameter::getValue<double>("phasefield.penalty")),
+    penalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.penalty" )),
+    acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" )),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
     {
@@ -39,6 +40,17 @@ public:
                          FluxRangeType& gLeft,
                          FluxRangeType& gRight) const;
 
+  template< class ScalarType, class JacobianType, class DiffusionTensorType, class DiffusionVectorType>
+  void scalar2vectorialDiffusionFlux( const DomainType& normal,
+                                  const double penaltyFactor,
+                                  const ScalarType& phiEn,
+                                  const ScalarType& phiNb,
+                                  const JacobianType& dphiEn,
+                                  const JacobianType& dphiNb,
+                                  DiffusionTensorType& aLeft,
+                                  DiffusionTensorType& aRight,
+                                  DiffusionVectorType& bLeft,
+                                  DiffusionVectorType& bRight) const;
 
   double diffusionFlux ( const DomainType& normal,
                          const double penaltyFactor,
@@ -51,7 +63,7 @@ public:
                          JacobianRangeType& dvalueLeft,
                          JacobianRangeType& dvalueRight) const;
   
-  double boundaryFlux( const DomainType& normal, 
+  void boundaryFlux( const DomainType& normal, 
                        const double penaltyFactor,                
                        const RangeType& vuEn,  
                        const RangeType& vuMidEn,
@@ -67,14 +79,15 @@ public:
 
 private:
   const ModelType& model_;
-  double beta_;
+  double penalty_;
+  double acpenalty_;
   const int switchIP_; 
   const double numVisc_;
 };
 
 
 template< class Model >
-double JacobianFlux<Model>
+void JacobianFlux<Model>
 ::boundaryFlux(const DomainType& normal,
                const double penaltyFactor,
                const RangeType& vuEn,
@@ -140,13 +153,11 @@ double JacobianFlux<Model>
 
 
 template< class Model >
-double JacobianFlux<Model>
+void  JacobianFlux<Model>
 ::numericalFlux( const DomainType& normal,
-                const double area,              
+                const double penaltyFactor,              
                 const RangeType& vuEnMid,
                 const RangeType& vuNbMid,
-                RangeType& phiEn,
-                RangeType& phiNb,
                 FluxRangeType& gLeft,
                 FluxRangeType& gRight) const
   {
@@ -191,18 +202,18 @@ double JacobianFlux<Model>
       for(int ii = 0; ii < dimDomain ; ++ii )
         { 
           //(\rho_j,\v_i)
-          gLeft[ 1 + ii ][ 0 ]=jump[ dimDomain + 2 ]*normal[ ii ]*0.5;
+          gLeft[ 1 + ii ][ 0 ]=-0.5*jump[ dimDomain + 2 ]*normal[ ii ];
           //(\mu_j,\v_i)
           gLeft[ 1 + ii ][ dimDomain + 2 ]=-0.5*normal[ ii ]*midEn[ 0 ];
           gRight[ 1 + ii ][ dimDomain + 2 ]=0.5*normal[ ii ]*midEn[ 0 ]; 
          //(\tau_j,v_i)
-          gLeft[ 1 + ii ][ dimDomain + 3 ]=jump[ dimDomain + 1 ]*normal[ i ]*0.5;
+          gLeft[ 1 + ii ][ dimDomain + 3 ]=jump[ dimDomain + 1 ]*normal[ ii ]*0.5;
           //(\phi_j,v_i)
-          gLeft[ 1 + ii ][ dimDomain + 1] =0.5*normal[ i ]*midEn[ dimDomain + 3 ];
-          gRight[ 1 + ii ][ dimDonain + 1 ]=-0.5*normal[ i ]*midEn[ dimDomain + 3 ];
+          gLeft[ 1 + ii ][ dimDomain + 1] =0.5*normal[ ii ]*midEn[ dimDomain + 3 ];
+          gRight[ 1 + ii ][ dimDomain + 1 ]=-0.5*normal[ ii ]*midEn[ dimDomain + 3 ];
           
-          gLeft[ 1 + i ]*=0.5;
-          gRight[ 1 + i ]*=0.5;
+          gLeft[ 1 + ii ]*=0.5;
+          gRight[ 1 + ii ]*=0.5;
 
         } 
     
@@ -215,22 +226,22 @@ double JacobianFlux<Model>
           //F_{3.1}
        
           //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5 
-          gLeft[ dimDomain + 1 ][ dimDomain + 1 ]=normal[ ii ]*midEn[ 1 + ii ]*-0.25;
-          gRight[ dimDomain + 1 ][ dimDomain +1 ]=normal[ ii ]*midEn[ 1 + ii ]*0.25;
+          gLeft[ dimDomain + 1 ][ dimDomain + 1 ]+=normal[ ii ]*midEn[ 1 + ii ]*-0.25;
+          gRight[ dimDomain + 1 ][ dimDomain +1 ]+=normal[ ii ]*midEn[ 1 + ii ]*0.25;
 
           gLeft[ dimDomain + 1 ][ 1 + ii ]=jump[ dimDomain + 1 ]*normal[ ii ]*-0.25;
               //tau
           //F_{3.2}
           //(\sigma^+-\sigma^-)\cdot n * 0.5
-          laplaceFluxLeft=phiEn[ dimDomain + 4 + ii ]*normal[ ii ]*0.25;
-          laplaceFluxRight=phiNb[ dimDomain + 4 + ii ]*normal[ ii ]*-0.25;
+          laplaceFluxLeft=normal[ ii ]*0.25;
+          laplaceFluxRight=normal[ ii ]*-0.25;
+       //tau-------------------------------------------------------------
+      gLeft[ dimDomain + 3 ][ dimDomain + 4+ii ]=-model_.delta()*laplaceFluxLeft;
+      gRight[ dimDomain + 3 ][dimDomain + 4+ii ]=-model_.delta()*laplaceFluxRight;
         } 
     
       //----------------------------------------------------------------
-      //tau-------------------------------------------------------------
-      gLeft[ dimDomain + 3 ][ dimDomain + 4 ]=-model_.delta()*laplaceFluxLeft;
-      gRight[ dimDomain + 3 ][dimDomain + 4 ]=-model_.delta()*laplaceFluxRight;
-      //----------------------------------------------------------------
+     //----------------------------------------------------------------
 
       //sigma-----------------------------------------------------------
       for(int ii = 0; ii < dimDomain ; ++ii )
@@ -242,8 +253,62 @@ double JacobianFlux<Model>
   
         } 
       //----------------------------------------------------------------
-      return 0.;
   }
+template< class Model >
+template< class ScalarType , class JacobianType ,class DiffusionTensorType, class DiffusionVectorType>
+void JacobianFlux<Model>
+:: scalar2vectorialDiffusionFlux( const DomainType& normal,
+                                  const double penaltyFactor,
+                                  const ScalarType& phiEn,
+                                  const ScalarType& phiNb,
+                                  const JacobianType& dphiEn,
+                                  const JacobianType& dphiNb,
+                                  DiffusionTensorType& aLeft,
+                                  DiffusionTensorType& aRight,
+                                  DiffusionVectorType& bLeft,
+                                  DiffusionVectorType& bRight) const
+{
+  double integrationElement=normal.two_norm();
+  //[\phiEn]\otimes n ; [\phiNb]\otimes n
+  JacobianType jumpNormalLeft(0.),jumpNormalRight(0.);
+
+  for(int j=0; j<dimDomain; ++j)
+    { 
+      jumpNormalLeft[0][j]=-0.5*phiEn[0]*normal[j];
+      jumpNormalRight[0][j]=-0.5*phiNb[0]*normal[j];
+    }
+
+  DiffusionTensorType bbLeft,bbRight;
+  jumpNormalLeft*=switchIP_;
+  jumpNormalRight*=switchIP_;
+  
+  model_.scalar2vectorialDiffusion(jumpNormalLeft ,aLeft);
+  model_.scalar2vectorialDiffusion(jumpNormalRight,aRight);
+  
+  model_.scalar2vectorialDiffusion( dphiEn, bbLeft);
+  model_.scalar2vectorialDiffusion( dphiNb, bbRight);
+  
+  //loop over components
+  for( int ii = 0 ; ii < dimDomain ; ++ ii)
+  {
+    bbLeft[ ii ]*=-0.5;
+    bbLeft[ ii ].mv( normal , bLeft[ ii ]);
+    bbLeft[ii]=0;
+    bbRight[ ii ]*=-0.5;
+    bbRight[ ii ].mv( normal , bRight[ ii ]);
+   // for( int jj = 0 ; jj < dimDomain ;++jj)
+    {
+      bRight[ii][ii]-=penalty_*penaltyFactor*integrationElement*phiNb[ 0 ];
+      bLeft[ii][ii]+=penalty_*penaltyFactor*integrationElement*phiEn[ 0 ];
+    }
+  }
+  
+}
+
+
+
+
+
 
 template< class Model >
 double JacobianFlux<Model>
@@ -270,15 +335,16 @@ double JacobianFlux<Model>
   
   for( int i=0; i<dimDomain;++i)
     {
-      Filter::velocity(valueLeft,i)=beta_*penaltyFactor*Filter::velocity(phiEn,i)*integrationElement*0.5;
-      Filter::velocity(valueRight,i)=-beta_*penaltyFactor*Filter::velocity(phiNb,i)*integrationElement*0.5;
+      Filter::velocity(valueLeft,i)=penalty_*penaltyFactor*Filter::velocity(phiEn,i)*integrationElement*0.5;
+      Filter::velocity(valueRight,i)=-penalty_*penaltyFactor*Filter::velocity(phiNb,i)*integrationElement*0.5;
     }
   JacobianRangeType jumpNormalLeft(0.),jumpNormalRight(0.);
  
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
     for(int j=0; j<dimDomain; ++j)
-    { jumpNormalLeft[i+1][j]=-0.5*uEn[i+1]*normal[j];
+    { 
+      jumpNormalLeft[i+1][j]=-0.5*uEn[i+1]*normal[j];
       jumpNormalRight[i+1][j]=0.5*uNb[i+1]*normal[j];
     }
 
@@ -302,7 +368,7 @@ double JacobianFlux<Model>
  
   
   
-  return beta_;
+  return penalty_;
 }
 template< class Model >
 double JacobianFlux<Model>
@@ -321,7 +387,7 @@ double JacobianFlux<Model>
   
   for( int i=0; i<dimDomain;++i)
     {
-      Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
+      Filter::velocity(value,i)=penalty_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
     }
   JacobianRangeType jumpNormal(0.);
  
@@ -341,7 +407,7 @@ double JacobianFlux<Model>
   model_.diffusion(mean,Amean);
 
   Amean.umv(normal,value);
-  return beta_;
+  return penalty_;
 }
 
 #endif
