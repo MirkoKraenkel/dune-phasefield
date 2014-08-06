@@ -22,11 +22,13 @@ class MixedFlux
 
   
 public:
-  MixedFlux(const ModelType& model,double penalty):
+  MixedFlux(const ModelType& model):
     model_(model),
-    beta_(penalty),
+    penalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.penalty" )),
+    acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" )),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
-    numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
+    numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0)), 
+    numViscOld_( Dune::Fem::Parameter::getValue< double >( "phasefield.oldvisc" ,0))
     {
     }
 
@@ -66,9 +68,11 @@ public:
 
 private:
   const ModelType& model_;
-  double beta_;
+  double penalty_;
+  double acpenalty_;
   const int switchIP_; 
   const double numVisc_;
+  const double numViscOld_;
 };
 
 
@@ -263,7 +267,7 @@ double MixedFlux<Model>
   
   for( int i=0; i<dimDomain;++i)
     {
-      Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
+      Filter::velocity(value,i)=penalty_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
     }
   JacobianRangeType jumpNormal(0.);
  
@@ -283,7 +287,7 @@ double MixedFlux<Model>
   model_.diffusion(mean,Amean);
 
   Amean.umv(normal,value);
-  return beta_;
+  return penalty_;
 }
 template< class Model >
 double MixedFlux<Model>
@@ -302,7 +306,7 @@ double MixedFlux<Model>
   
   for( int i=0; i<dimDomain;++i)
     {
-      Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
+      Filter::velocity(value,i)=penalty_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
     }
   JacobianRangeType jumpNormal(0.);
  
@@ -322,7 +326,7 @@ double MixedFlux<Model>
   model_.diffusion(mean,Amean);
 
   Amean.umv(normal,value);
-  return beta_;
+  return penalty_;
 }
 
 #endif
