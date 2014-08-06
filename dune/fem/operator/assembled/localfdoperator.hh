@@ -47,9 +47,9 @@ class LocalFDOperator
   typedef typename GridPartType::IndexSetType IndexSetType;
   public: 
   LocalFDOperator(const ModelType &model,
-      const DiscreteFunctionSpaceType &space,
-      const NumericalFluxType &flux)
-    :MyOperatorType(model,space,flux),
+      const DiscreteFunctionSpaceType &space)//,
+      //const NumericalFluxType &flux)
+    :MyOperatorType(model,space),//,flux),
     stencil_(space,space),
     epsilon_(Dune::Fem::Parameter::getValue<double>("phasefield.fdjacobian.epsilon"))
   {}
@@ -188,7 +188,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         fdueps-=fdu;
         fdueps*=epsInv;
 
-        jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps );
+       jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps );
       }
     } 
 
