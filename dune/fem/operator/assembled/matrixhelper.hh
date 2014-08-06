@@ -52,9 +52,9 @@ public:
   Alignment( )
   {}
 
-  static int map(size_t component, size_t local_index)
+  static int vectorialIndex(size_t component, size_t scalarIndex)
   {
-    return local_index*dimRange+component;
+    return scalarIndex*dimRange+component;
   }
 
 private:
@@ -62,42 +62,47 @@ private:
 
 
 template< class Alignment ,class Couplings, class LocalMatrix,class BfRangeVector, class FluxRangeType>
-void axpyIntersection( Couplings& couplings,
-                    const BfRangeVector& phiRow,
-                    const BfRangeVector& phiCol,
-                    const FluxRangeType& fluxValue,
-                    const size_t local_i,
-                    const size_t local_j,
-                    const double factor,
-                    LocalMatrix& localMatrix)                    
+void axpyIntersection ( Couplings& couplings,
+                        const BfRangeVector& phiRow,
+                        const BfRangeVector& phiCol,
+                        const FluxRangeType& fluxValue,
+                        const size_t local_i,
+                        const size_t local_j,
+                        const double factor,
+                        LocalMatrix& localMatrix)                    
 {
   for( auto coupling : couplings.intersectionCouplings())
     { 
-      auto i = Alignment::map(coupling.first,local_i);
-      auto j = Alignment::map(coupling.second,local_j);
+      auto rowcomp=coupling.first;
+      auto colcomp=coupling.second;
+      
+      auto i = Alignment::vectorialIndex( rowcomp , local_i );
+      auto j = Alignment::vectorialIndex( colcomp , local_j );
+
 #if VECTORIAL
-     localMatrix.add( i,j,fluxValue[ coupling.first ][ coupling.second ]*phiRow[ i ][coupling.first]*phiCol[ j ][coupling.second]*factor);
+     localMatrix.add( i,j,fluxValue[ rowcomp ][ colcomp ]*phiRow[ i ][i rowcomp ]*phiCol[ j ][ colcomp]*factor);
 #else
-     localMatrix.add( i,j,fluxValue[ coupling.first ][ coupling.second ]*phiRow[ local_i ][0]*phiCol[ local_j ][0]*factor);
+     localMatrix.add( i,j,fluxValue[ rowcomp ][ colcomp ]*phiRow[ local_i ][0]*phiCol[ local_j ][0]*factor);
 #endif
     }
 }
 
 template<class Alignment ,class Couplings, class LocalMatrix,class BfRangeVector, class FluxRangeType>
-void axpyElement( Couplings& couplings,
-                  const BfRangeVector& phiRow,
-                  const FluxRangeType& fluxValue, 
-                  const size_t local_i,
-                  const size_t local_j,
-                  const double factor,
-                  LocalMatrix& localMatrix)                    
+void axpyElement ( Couplings& couplings,
+                   const BfRangeVector& phiRow,
+                   const FluxRangeType& fluxValue,
+                   const size_t local_i,
+                   const size_t local_j,
+                   const double factor,
+                   LocalMatrix& localMatrix)                    
 {
   for( auto coupling : couplings.elementCouplings())
     { 
       auto rowcomp=coupling.first;
       auto colcomp=coupling.second;
-      auto i = Alignment::map(rowcomp,local_i);
-      auto j = Alignment::map(colcomp,local_j);
+      
+      auto i = Alignment::vectorialIndex( rowcomp , local_i );
+      auto j = Alignment::vectorialIndex( colcomp , local_j );
 #if VECTORIAL
       localMatrix.add( i,j, fluxValue[ rowcomp ][ colcomp ]*phiRow[ i ][ rowcomp ]*factor);
 #else
