@@ -106,10 +106,10 @@ class PhasefieldPhysics<1,Thermodynamics>
   
   public:
 
-	inline double delta()const  { return thermoDynamics_.delta(); }
+	inline double delta()const   { return thermoDynamics_.delta(); }
 	inline double deltaInv()const{ return thermoDynamics_.deltaInv(); }
   inline double mu1() const { return thermoDynamics_.mu1();}
- 	inline double mu2() const { abort();return 0.;}
+  inline double mu2() const { return thermoDynamics_.mu2();}
 
 
 protected:
