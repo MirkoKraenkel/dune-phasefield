@@ -162,7 +162,7 @@ private:
   DiscreteScalarType*     energy_;
 	const InitialDataType*  problem_;
   ModelType*              model_;
-  FluxType                numericalFlux_;
+  //FluxType                numericalFlux_;
   AdaptationHandlerType*  adaptationHandler_;
   EstimatorType           estimator_;
   EstimatorDataType       estimatorData_;
@@ -202,14 +202,15 @@ public:
     energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
 		problem_( ProblemGeneratorType::problem() ),
     model_( new ModelType( problem() ) ),
-    numericalFlux_( *model_, Fem :: Parameter :: getValue<double>("phasefield.penalty") ),
+ //   numericalFlux_( *model_, Fem :: Parameter :: getValue<double>("phasefield.penalty") ),
     adaptationHandler_( 0 ),
     estimator_(solution_,grid_,model()),
     estimatorData_("estimator",estimator_,gridPart_,space_.order()),
     overallTimer_(),
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
     adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
-   	dgOperator_(*model_,space(),numericalFlux_),
+//   	dgOperator_(*model_,space(),numericalFlux_),
+    dgOperator_( *model_, space()),
     boundaryCorrection_(*model_,space()),
     tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
     interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
@@ -256,13 +257,13 @@ public:
 		return problem_->dataPrefix(); 
 	}
 	
-  const InitialDataType& problem() const 
+  const InitialDataType& problem () const 
   { 
     assert( problem_ ); 
     return *problem_; 
   }
 
-  const ModelType& model() const 
+  const ModelType& model () const 
   { 
     assert( model_ ); 
     return *model_;
@@ -292,11 +293,11 @@ public:
      Uold.assign(U); 
   }
 
-  void step(TimeProviderType& timeProvider,
-						int& newton_iterations,
-						int& ils_iterations,
-						int& max_newton_iterations,
-						int& max_ils_iterations)
+  void step ( TimeProviderType& timeProvider,
+						  int& newton_iterations,
+						  int& ils_iterations,
+						  int& max_newton_iterations,
+						  int& max_ils_iterations)
 	{
     const double time=timeProvider.time();
     const double deltaT=timeProvider.deltaT();
@@ -423,7 +424,7 @@ public:
 
     // restoreData if checkpointing is enabled (default is disabled)
 	// tuple with additionalVariables 
-    IOTupleType dataTuple( &solution() ,&oldsolution(),  this->energy());
+    IOTupleType dataTuple( &solution() ,nullptr,  this->energy());
 	
     std::ofstream energyfile;
     std::ostringstream convert;
@@ -468,7 +469,7 @@ public:
             
         }
       }
-      timeProvider.provideTimeStepEstimate(1e-10);
+      timeProvider.provideTimeStepEstimate(maxTimeStep);
     	// start first time step with prescribed fixed time step 
 	    // if it is not 0 otherwise use the internal estimate
 			if ( fixedTimeStep_ > 1e-20 )
@@ -476,7 +477,7 @@ public:
 		  else
 			  timeProvider.init();
 
-      timeProvider.provideTimeStepEstimate(maxTimeStep);                                         
+     // timeProvider.provideTimeStepEstimate(maxTimeStep);                                         
      
  		  writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
@@ -500,7 +501,6 @@ public:
     else
     for( ; timeProvider.time() < endTime && timeProvider.timeStep() < maximalTimeSteps ;  )   
 		{ 
-			timeProvider.provideTimeStepEstimate(maxTimeStep);                                         
 			const double tnow  = timeProvider.time();
 			const double ldt   = timeProvider.deltaT();
       int newton_iterations;
@@ -515,8 +515,13 @@ public:
 		
 			step( timeProvider, newton_iterations, ils_iterations, 
             max_newton_iterations, max_ils_iterations);
-		  
-      
+#if 0		  
+      if( newton_iterations < 6 )
+        timeProvider.provideTimeStepEstimate( ldt*1.8);
+     if( newton_iterations > 8 || ils_iterations> 500)
+        timeProvider.provideTimeStepEstimate( ldt*0.5);
+     #endif
+
       // Check that no NAN have been generated
 			if (! U.dofsValid()) 
 			{
@@ -526,7 +531,7 @@ public:
         abort();
 			}
 
-      double timeStepEstimate=0.;//dgOperator_.timeStepEstimate();	
+     double timeStepEstimate=0.;//dgOperator_.timeStepEstimate();	
      if( (printCount > 0) && (counter % printCount == 0))
 			{
 #if 1 
@@ -541,18 +546,16 @@ public:
               std::cout<< " ,Error between timesteps="<< timeStepError;
               std::cout<<std::endl;
             }   
+        std::cout<<" linearIterations: "<<ils_iterations<<" newtonIterations: "<<newton_iterations<<std::endl;
 #endif
           }
          
         writeEnergy( timeProvider , energyfile);
      }
 
-  //  start_.assign(Uold);
-    //start_-=(U);
  
     writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
     checkPointer.write(timeProvider);
-//    Uold.assign(U);
     //statistics
     mindt = (ldt<mindt) ? ldt : mindt;
     maxdt = (ldt>maxdt) ? ldt : maxdt;
@@ -633,7 +636,7 @@ public:
 	
     if( eocLoopData_ == 0 ) 
 			{
-       eocDataTup_ = IOTupleType( &U ,&Uold,  totalenergy ); 
+       eocDataTup_ = IOTupleType( &U ,nullptr,  totalenergy ); 
        eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
       }
 
