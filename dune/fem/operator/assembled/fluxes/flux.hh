@@ -231,11 +231,24 @@ double MixedFlux<Model>
           Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
           Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(midNb,i)*0.5;
        
-          //tau
+          //tau 
           //F_{3.2}
-          //(\sigma^+-\sigma^-)\cdot n * 0.5
-          laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
+    
+#if RHOMODEL
+#if LANBDASCHEME
+          //(\lambda^+-\lambda^-)\cdot n * 0.5
+          laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
         
+#else
+          //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
+          laplaceFlux+=(Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))-Filter::sigma(midNb,i)*model_.h2(Filter::rho(midNb)))*normal[i]*0.5;
+#endif
+
+#else
+         //F_{3.2}
+         //(\sigma^+-\sigma^-)\cdot n * 0.5
+         laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
+#endif        
         } 
     
       //----------------------------------------------------------------
