@@ -1,4 +1,66 @@
+#if 0
+class constantComputePolicy
+{
+  
+  static void computeMuTauAlpha( const RangeType& vu,
+                                 const RangeType& vuOld,
+                                 const RangeType& vuMid,
+                                
+  {  
+    RangeFieldType usqr(0.),uOldsqr(0.),divsigma(0.);
 
+    for( int ii = 0; ii < dimDomain ; ++ii) 
+    {
+      // |v^n|^2
+      usqr+=Filter::velocity( vu , ii )*Filter::velocity( vu , ii );
+      // |v^{n-1}|^2
+      uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
+      // \div \sigma| 
+      divsigma+=Filter::dsigma( duMid, ii , ii );
+    }
+
+    Filter::mu(avu)-=0.25*(usqr+uOldsqr);
+    Filter::tau( avu )+=model_.delta()*divsigma;
+ 
+  }
+  
+};
+
+class rhoComputePolicy
+{
+  
+  static void computeMuTauAlpha( const RangeType& vu,
+                                 const RangeType& vuOld,
+                                 const RangeType& vuMid,
+                                
+  {  
+    RangeFieldType usqr(0.),uOldsqr(0.),divsigma(0.);
+
+    for( int ii = 0; ii < dimDomain ; ++ii) 
+    {
+      // |v^n|^2
+      usqr+=Filter::velocity( vu , ii )*Filter::velocity( vu , ii );
+      // |v^{n-1}|^2
+      uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
+      // |sigma^n*sigma^{n-1}|
+      sigmasqr+=Filter::sigma( vu , ii )*Filter::sigma( vuOld , ii );
+      
+      divsigma+=Filter::dsigma( duMid, ii , ii ) * model_.h2( Filter::rho( vuMid ) );
+      gradrhosigma+=Filter::sigma( vuMid, ii )*Filter::drho( duMid, ii)* model_.h2prime( Filter::rho( vuMid ) );
+   
+    }
+
+    Filter::mu(avu)-=0.25*(usqr+uOldsqr);
+    Filter::mu(avu)+=0.5*model_.delta()*model_.h2prime(Filter::rho( vu))*(sigmasqr);
+    Filter::tau( avu )+=model_.delta()*(divsigma+gradrhosigma);
+ 
+ 
+  }
+  
+};
+
+class alphaComputePolicy
+#endif
 template<class DiscreteFunction, class Model, class Flux >
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::localIntegral( size_t  pt,
@@ -90,19 +152,19 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
   }
   Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vuMid )/Filter::rho(vuMid);
+  
   //------------------------------------------------------------------        
+  
   //mu-----------------------------------------------------------------
+  
   double dFdrho;
-
   //model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
   //old version like Paris talk
   model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
 
-
-
   Filter::mu(avu)=Filter::mu( vuMid );
   Filter::mu(avu)-=dFdrho;
-  RangeFieldType usqr(0.),uOldsqr(0.);
+  RangeFieldType usqr(0.) , uOldsqr(0.) , sigmasqr(0.) , sigmaOldsqr(0.);
 
   for( int ii = 0; ii < dimDomain ; ++ii) 
   {
@@ -111,11 +173,17 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
     // |v^{n-1}|^2
     uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
+#if RHOMODEL
+    //\sigma^n*\sigma^{n-1}
+    sigmasqr+=Filter::sigma( vu , ii )*Filter::sigma( vuOld , ii );
+#endif
   }
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
-  // Filter::mu(avu)*=deltaInv;
-
+#if RHOMODEL
+  Filter::mu(avu)+=0.5*model_.delta()*model_.h2prime(Filter::rho(vu))*sigmasqr;
+#endif
+  //------------------------------------------------------------------
 
   //tau---------------------------------------------------------------
   // dF/dphi
@@ -129,15 +197,27 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   Filter::tau( avu )=Filter::tau( vuMid );
   Filter::tau( avu )-=dFdphi;
 
-  RangeFieldType divsigma(0.);
+  RangeFieldType divsigma(0.), gradrhosigma(0.);
 
   for( int ii = 0 ; ii < dimDomain ; ++ii) 
+  {
+#if RHOMODEL
+#if LAMBDASCHEME 
+    divsigma+=Filter::dalpha( duMid, ii , ii );
+#else
+    divsigma+=Filter::dsigma( duMid, ii , ii ) * model_.h2( Filter::rho( vuMid ) );
+    gradrhosigma+=Filter::sigma( vuMid, ii )*Filter::drho( duMid, ii)* model_.h2prime( Filter::rho( vuMid ) );
+#endif
+
     divsigma+=Filter::dsigma( duMid, ii , ii );
-
+#endif
+}
+#if RHOMODEL && !LAMBDASCHEME
+  Filter::tau( avu )+=model_.delta()*(divsigma+gradrhosigma);
+#else
   Filter::tau( avu )+=model_.delta()*divsigma;
+ #endif
   //-------------------------------------------------------------------
-
-  //------------------------------------------------------------------
 
   //sigma--------------------------------------------------------------
   //\sigma-\nabla\phi
@@ -147,16 +227,17 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     Filter::sigma( avu , ii )=Filter::sigma( vu , ii );
     //\nabla\phi^n
     Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
-    //   Filter::sigma( avu, ii )*=deltaInv;
-  }
+#if RHOMODEL && LAMBDASCHEME
+    Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-model_.h2(Filter::rho(vuMid))*Filter::sigma(vuMid, ii);
+#endif
+ }
+  
   //------------------------------------------------------------------        
+  
   for(int ii = 0; ii < dimRange ; ii++)
   {
     assert( avu[ii]==avu[ii]) ;
   }
-  // A(dv)---------------------------------------------------------
-  model_.diffusion( duMid , adu );
-  //--------------------------------------------------------------
   //avu+=source;
   avu*=weight;
   adu*=weight;
@@ -216,14 +297,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
 
-  fluxRet=flux_.numericalFlux(normal,
-      area,
-      vuEn,
-      vuNb,
-      vuMidEn,  
-      vuMidNb, 
-      avuLeft,
-      avuRight); 
+  fluxRet=flux_.numericalFlux( normal,
+                              area,
+                              vuEn,
+                              vuNb,
+                              vuMidEn,  
+                              vuMidNb, 
+                              avuLeft,
+                              avuRight); 
  
 
   RangeType value(0);
@@ -287,10 +368,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   RangeType gLeft(0.),dummy(0.);
 #if 1 
   fluxRet=flux_.boundaryFlux( normal,
-                                area,
-                                vuEn,
-                                vuMidEn,
-                                gLeft);
+                              area,
+                              vuEn,
+                              vuMidEn,
+                              gLeft);
 #else
    fluxRet=flux_.numericalFlux( normal,
                                 area,
