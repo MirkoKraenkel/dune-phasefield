@@ -4,7 +4,7 @@
 #include <dune/common/fvector.hh>
 
 #include "../phasefieldfilter.hh"
-#warning "OLDFLUX"
+
 template<class Model>
 class MixedFlux
 {
@@ -22,11 +22,13 @@ class MixedFlux
 
   
 public:
-  MixedFlux(const ModelType& model,double penalty):
+  MixedFlux(const ModelType& model):
     model_(model),
-    beta_(penalty),
+    penalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.penalty" )),
+    acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" )),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
-    numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
+    numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0)),
+    numViscOld_(Dune::Fem::Parameter::getValue<double>("phasefield.oldvisc",0))
     {
     }
 
@@ -66,9 +68,11 @@ public:
 
 private:
   const ModelType& model_;
-  double beta_;
+  double penalty_;
+  double acpenalty_;
   const int switchIP_; 
   const double numVisc_;
+  const double numViscOld_;
 };
 
 
@@ -80,9 +84,12 @@ double MixedFlux<Model>
                const RangeType& vuMidEn,
                RangeType& gLeft) const
   {
-    RangeType midEn ;
+    RangeType midEn,valEn;
+    valEn=vuEn;
 
     midEn=vuMidEn;
+
+    gLeft=0.;
 
     double vNormalEn(0.);
 
@@ -92,9 +99,9 @@ double MixedFlux<Model>
      {
          vNormalEn+=Filter::velocity(midEn,i)*normal[i];
      }
-  
-    Filter::rho(gLeft)=0;//-1*vNormalEn*Filter::rho(midEn);
-    //Filter::rho(gLeft)*=-0.5;
+
+    Filter::rho(gLeft)=-1*vNormalEn*Filter::rho(midEn);
+ //  Filter::rho(gLeft)=0.;
   
     //----------------------------------------------------------------
     
@@ -127,7 +134,8 @@ double MixedFlux<Model>
 
     for(int i = 0; i<dimDomain;++i)
       {   
-        Filter::sigma(gLeft,i)=0;
+          //(\phi^+-\phi^-)\normal*0.5
+          Filter::sigma(gLeft,i)=0;//(Filter::phi(valEn))*normal[i]*0.5;
       } 
     //----------------------------------------------------------------
   
@@ -152,9 +160,13 @@ double MixedFlux<Model>
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn{0.}, midNb{0.},jump,mean,jumpOld;
+    RangeType valEn,valNb,midEn,midNb,jump,mean,jumpOld;
       valEn=vuEn;
       valNb=vuNb;
+     
+      gLeft=0.;
+      gRight=0.;
+
 
       midEn=vuEnMid;
       midNb=vuNbMid;
@@ -182,9 +194,12 @@ double MixedFlux<Model>
       Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
       Filter::rho(gLeft)*=-0.5;
      
-      //double visc=Filter::rho(jump);
-      //Filter::rho(gLeft)+=numVisc_*area*visc;
-      Filter::rho( gRight )=Filter::rho( gLeft );
+     double viscold=Filter::rho(jump);
+     double visc=Filter::mu( jump );
+     Filter::rho(gLeft)+=numViscOld_*area*viscold;
+     Filter::rho(gLeft)+=numVisc_*area*visc;
+     Filter::rho( gRight )=Filter::rho( gLeft );
+    //  std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
@@ -196,11 +211,14 @@ double MixedFlux<Model>
           Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
           Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midNb)*0.5;
           
-           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
+          //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
+          //Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valEn)*0.5;
+          //Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valNb)*0.5;
           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
           Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
-
+       
         } 
+      // std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
     
       //----------------------------------------------------------------
       double laplaceFlux(0.);
@@ -219,14 +237,14 @@ double MixedFlux<Model>
         //  laplaceFlux+=(Filter::sigma(midEn,i)*Filter::rho(midEn)-Filter::sigma(midNb,i)*Filter::rho(midNb))*normal[i]*0.5;
           laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
         
-
+        
         } 
     
       //----------------------------------------------------------------
       //tau-------------------------------------------------------------
       Filter::tau(gLeft)-=model_.delta()*laplaceFlux;
       Filter::tau(gRight)=Filter::tau( gLeft );
-      
+     
       //----------------------------------------------------------------
 
       //sigma-----------------------------------------------------------
@@ -239,7 +257,7 @@ double MixedFlux<Model>
   
         } 
       //----------------------------------------------------------------
-      return 0.;
+    return 0.;
   }
 
 template< class Model >
@@ -254,18 +272,17 @@ double MixedFlux<Model>
                   JacobianRangeType& dvalue) const
 {
   
-  RangeType jump{0};
+  RangeType jump;
   jump=uEn;
   jump-=uNb;  
-  JacobianRangeType aduEn{0.}, aduNb{0.}; 
   double integrationElement=normal.two_norm();
   
   
   for( int i=0; i<dimDomain;++i)
     {
-      Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
+      Filter::velocity(value,i)=penalty_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
     }
-  JacobianRangeType jumpNormal{0.};
+  JacobianRangeType jumpNormal(0.);
  
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
@@ -276,14 +293,14 @@ double MixedFlux<Model>
   jumpNormal*=switchIP_;
   model_.diffusion(jumpNormal,dvalue);
    
-  JacobianRangeType mean{0.}, Amean{0.};
+  JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   mean+=duNb;
   mean*=-0.5;
   model_.diffusion(mean,Amean);
 
   Amean.umv(normal,value);
-  return beta_;
+  return penalty_;
 }
 template< class Model >
 double MixedFlux<Model>
@@ -295,16 +312,15 @@ double MixedFlux<Model>
                   JacobianRangeType& dvalue) const
 {
   
-  RangeType jump{0};
+  RangeType jump;
   jump=uEn;
-  JacobianRangeType aduEn{0.}, aduNb{0.}; 
   double integrationElement=normal.two_norm();
   
   for( int i=0; i<dimDomain;++i)
     {
-      Filter::velocity(value,i)=beta_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
+      Filter::velocity(value,i)=penalty_*penaltyFactor*Filter::velocity(jump,i)*integrationElement;
     }
-  JacobianRangeType jumpNormal{0.};
+  JacobianRangeType jumpNormal(0.);
  
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
@@ -315,14 +331,14 @@ double MixedFlux<Model>
   jumpNormal*=switchIP_;
   model_.diffusion(jumpNormal,dvalue);
    
-  JacobianRangeType mean{0.}, Amean{0.};
+  JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   //mean+=duNb;
   //mean*=-0.5;
   model_.diffusion(mean,Amean);
 
   Amean.umv(normal,value);
-  return beta_;
+  return penalty_;
 }
 
 #endif
