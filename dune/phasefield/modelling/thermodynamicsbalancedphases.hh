@@ -27,19 +27,14 @@ class BalancedThermodynamics:
     deltaInv_( 1./delta_ ),
     epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
     mu1_( epsilon_ ),
-    mu2_( epsilon_ ),
+    mu2_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2") ),
     reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
   {
   }
-
-
+#if RHOMODEL
   inline double h( double rho ) const
   {
-#if RHOMODEL
     return rho;
-#else
-    return 1.;
-#endif
   }
   
   inline double h2( double rho) const
@@ -51,7 +46,22 @@ class BalancedThermodynamics:
   {
     return -1./h(rho)*h(rho);
   }
- 
+#else
+  inline double h( double rho ) const
+  {
+    return 1.;
+  }
+  
+  inline double h2( double rho) const
+  {
+    return  1.;
+  }
+
+  inline double h2prime( double rho ) const
+  {
+    return 0.;
+  }
+#endif
   inline double reactionFactor() const
   {
     return reaction_;
@@ -234,8 +244,8 @@ class BalancedThermodynamics:
 
   inline double delta()    const { return delta_; }
   inline double deltaInv() const { return deltaInv_; }
-  inline double mu1()      const { return mu2_; }
-  inline double mu2()      const { return mu1_; }
+  inline double mu1()      const { return mu1_; }
+  inline double mu2()      const { return mu2_; }
 
   private:
   mutable double  delta_;
