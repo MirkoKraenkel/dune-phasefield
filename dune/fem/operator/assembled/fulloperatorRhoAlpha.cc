@@ -90,15 +90,15 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
   }
   Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vuMid )/Filter::rho(vuMid);
+  
   //------------------------------------------------------------------        
+  
   //mu-----------------------------------------------------------------
+  
   double dFdrho;
-
   //model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
   //old version like Paris talk
   model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
-
-
 
   Filter::mu(avu)=Filter::mu( vuMid );
   Filter::mu(avu)-=dFdrho;
@@ -120,7 +120,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
   Filter::mu(avu)+=0.5*model_.delta()*model_.h2prime(Filter::rho(vu))*sigmasqr;
-
+  
+  //------------------------------------------------------------------
 
   //tau---------------------------------------------------------------
   // dF/dphi
@@ -144,8 +145,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   Filter::tau( avu )+=model_.delta()*divalpha;
   //-------------------------------------------------------------------
 
-  //------------------------------------------------------------------
-
   //sigma--------------------------------------------------------------
   //\sigma-\nabla\phi
   for( int ii = 0 ; ii < dimDomain ; ++ii) 
@@ -154,18 +153,16 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     Filter::sigma( avu , ii )=Filter::sigma( vu , ii );
     //\nabla\phi^n
     Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
- 
+  
     Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-model_.h2(Filter::rho(vuMid))*Filter::sigma(vuMid, ii);
   }
   //------------------------------------------------------------------        
-
-
+  
   for(int ii = 0; ii < dimRange ; ii++)
   {
     assert( avu[ii]==avu[ii]) ;
   }
-
-  //avu-=source;
+  //avu+=source;
   avu*=weight;
   adu*=weight;
 
@@ -224,14 +221,14 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
 
-  fluxRet=flux_.numericalFlux(normal,
-      penaltyFactor,
-      vuEn,
-      vuNb,
-      vuMidEn,  
-      vuMidNb, 
-      avuLeft,
-      avuRight); 
+  fluxRet=flux_.numericalFlux( normal,
+                              area,
+                              vuEn,
+                              vuNb,
+                              vuMidEn,  
+                              vuMidNb, 
+                              avuLeft,
+                              avuRight); 
  
 
   RangeType value(0);
@@ -295,7 +292,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   RangeType gLeft(0.),dummy(0.);
 #if 1 
   fluxRet=flux_.boundaryFlux( normal,
-                              penaltyFactor,
+                              area,
                               vuEn,
                               vuMidEn,
                               gLeft);
