@@ -7,7 +7,7 @@
 #include<dune/fem/io/parameter.hh>
 
 #include "../phasefieldfilter.hh"
-
+#define LAPLACE  1
 template<class Grid, class Problem>
 class PhasefieldModel
 {
@@ -23,7 +23,8 @@ class PhasefieldModel
     typedef typename Dune::FieldVector<RangeFieldType,dimRange> RangeType;
     typedef typename Dune::FieldVector<RangeFieldType,dimDomain> DomainType; 
     typedef typename Dune::FieldMatrix<RangeFieldType,dimRange,dimDomain> JacobianRangeType;
-
+    typedef typename Dune::FieldMatrix<RangeFieldType, dimDomain , dimDomain> ComponentDiffusionType;
+    typedef typename std::array< ComponentDiffusionType,dimDomain> DiffusionTensorType;
     typedef PhasefieldFilter<RangeType> Filter;
 
 
@@ -75,19 +76,24 @@ class PhasefieldModel
     inline void dirichletValue ( const double time,
                                  const DomainType& xglobal,
                                  RangeType& g) const;
+    inline double diffusion () const
+    { 
+      return problem_.thermodynamics().mu1();
+    }
 
-
+    template< class JacobianVector>
+    inline void scalar2vectorialDiffusion ( const JacobianVector& dphi , DiffusionTensorType& diffusion ) const; 
     inline void diffusion ( JacobianRangeType& vu,
                             JacobianRangeType& diffusion) const;
     
     inline RangeFieldType h2 ( double rho ) const
     {
-      return 1./rho;
+      return  problem_.thermodynamics().h2( rho );
     }
 
     inline RangeFieldType h2prime( double rho ) const
     {
-      return -1./(rho*rho);
+      return problem_.thermodynamics().h2prime( rho );
     }
 
     inline double reactionFactor () const
@@ -124,16 +130,11 @@ inline void PhasefieldModel< Grid,Problem>
   for(int i=0; i<dimDomain; i++)
   {
     kineticEnergy+=Filter::velocity(vu,i)*Filter::velocity(vu,i);
-#if DGSCHEME
     surfaceEnergy+=Filter::sigma(vu,i)*Filter::sigma(vu,i);
-#elif FEMSCHEME
-#warning "TOTAL ENERGY NEEDS JACOBIANRANGETYPE - NOT IMPLEMENTED"
-#endif
   }
-#if RHOMODEL
+  
   surfaceEnergy*=h2(rho);
-#else
-#endif
+  
   kin=rho*0.5*kineticEnergy;
   surfaceEnergy*=0.5;
   surfaceEnergy*=problem_.thermodynamics().delta();
@@ -211,6 +212,36 @@ inline void PhasefieldModel< Grid,Problem>
   problem_.evaluate(time,xglobal,g);
 }
 
+
+template< class Grid, class Problem > 
+template< class JacobianVector>
+inline void PhasefieldModel< Grid, Problem>
+::scalar2vectorialDiffusion( const JacobianVector& dphi,DiffusionTensorType& du) const
+{
+
+  double mu1=0.5*problem_.thermodynamics().mu1();
+  double mu2=problem_.thermodynamics().mu2();
+  for( int ii=0 ; ii < dimDomain  ; ++ii)
+    {
+#if  LAPLACE
+      for(int jj=0 ; jj < dimDomain ; ++jj )
+        du[ ii ][ ii ][ jj ] = mu2*dphi[ 0 ][ jj ];
+#else
+// full diffusion
+      for( int jj = 0; jj < dimDomain; ++ jj )
+        {
+          du[ ii ][ jj ][ ii ]=mu1*dphi[ 0 ][ jj ];
+          du[ ii ][ ii ][ jj ]=mu1*dphi[ 0 ][ jj ];
+        }
+      for( int jj=0 ; jj < dimDomain ; ++jj ) 
+        {
+          du[ ii ][ jj ][ jj ]+=mu2*dphi[ 0 ][ ii ];
+        }
+     du[ ii ][ ii ][ ii ]+=mu2*dphi[ 0 ] [ ii ];
+#endif
+}
+} 
+
 template< class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem>
 ::diffusion( JacobianRangeType& dvu,
@@ -218,22 +249,27 @@ inline void PhasefieldModel< Grid, Problem>
 {
   diffusion=0;
   double mu1=problem_.thermodynamics().mu1();
-  //   double mu2=problem_.thermodynamics().mu2();
+  double mu2=problem_.thermodynamics().mu2();
 
   //  diffusion*=mu1;
-
-
+#if LAPLACE 
+   for(int ii = 0 ; ii < dimDomain ; ++ii )
+    for(int jj = 0; jj < dimDomain ; ++ jj)
+     Filter::dvelocity(diffusion,ii,jj )=mu2*Filter::dvelocity(dvu,ii,jj);
+#else
   for(int ii = 0 ; ii < dimDomain ; ++ii )
   {
     for(int jj = 0; jj < dimDomain ; ++ jj)
-      Filter::dvelocity(diffusion,ii,jj )=mu1*Filter::dvelocity(dvu,ii,jj);
+      {
+        Filter::dvelocity(diffusion,ii,ii)+=mu2*Filter::dvelocity(dvu,jj,jj);
+      }
 
-    //     for(int j=0; j<dimDomain ; ++j )
-    //      {
-    //      Filter::dvelocity(diffusion,i,j)+=mu2*0.5*(Filter::dvelocity(dvu,i,j)+Filter::dvelocity(dvu,j,i));
-    // }
+    for(int jj=0; jj<dimDomain ; ++jj )
+      {
+        Filter::dvelocity(diffusion,ii,jj)+=mu1*0.5*(Filter::dvelocity(dvu,ii,jj)+Filter::dvelocity(dvu,jj,ii));
+      }
   }
-
+#endif
 }
 
 #endif
