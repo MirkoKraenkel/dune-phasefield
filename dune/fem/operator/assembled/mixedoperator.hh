@@ -26,7 +26,7 @@
 #include "phasefieldfilter.hh"
 
 
-template<class DiscreteFunction, class Model, class Flux>
+template<class DiscreteFunction, class Model, class Flux  >
 class DGPhasefieldOperator
 : public virtual Dune::Fem::Operator<DiscreteFunction,DiscreteFunction>
 {
@@ -72,25 +72,22 @@ class DGPhasefieldOperator
 
   public:
   //! constructor
-  DGPhasefieldOperator(const ModelType &model,
-      const DiscreteFunctionSpaceType &space,
-      const NumericalFluxType &flux):
-      model_(model),
-      space_(space),
-      flux_(flux),
-      theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
-      time_(0.),
-      deltaT_(0.),
-      uOld_("uOld" , space ),
-      uOldLocal_(space),
-      uOldNeighbor_(space),
-      penalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.penalty" )),
-      acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" ))
-  {
-    assert(theta_>=0 && theta_<=1);
-    factorImp_=0.5*(1+theta_);
-    factorExp_=0.5*(1-theta_);
-  }
+  DGPhasefieldOperator( const ModelType &model,
+                        const DiscreteFunctionSpaceType &space):
+                        model_(model),
+                        space_(space),
+                        flux_(model),
+                        theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
+                        time_(0.),
+                        deltaT_(0.),
+                        uOld_("uOld" , space ),
+                        uOldLocal_(space),
+                        uOldNeighbor_(space)
+   {
+      assert(theta_>=0 && theta_<=1);
+      factorImp_=0.5*(1+theta_);
+      factorExp_=0.5*(1-theta_);
+    }
 
   // prepare the solution vector 
   template <class Function>
@@ -153,35 +150,29 @@ class DGPhasefieldOperator
                               const JacobianRangeType& duEn,
                               const JacobianRangeType& duNb,
                               RangeType& avuLeft,
-      RangeType& avuRight,
-      JacobianRangeType& aduLeft,
-      JacobianRangeType& aduRight) const;
+                              RangeType& avuRight,
+                              JacobianRangeType& aduLeft,
+                              JacobianRangeType& aduRight) const;
 
   void boundaryIntegral( const IntersectionType& intersection,
-      const size_t pt,  
-      const FaceQuadratureType& quadInside,
-      const RangeType& vuEn,
-      const JacobianRangeType& duEn,
-      RangeType& avuLeft,
-      JacobianRangeType& aduLeft) const;
-
-
-
-
+                        const size_t pt,  
+                        const FaceQuadratureType& quadInside,
+                        const RangeType& vuEn,
+                        const JacobianRangeType& duEn,
+                        RangeType& avuLeft,
+                        JacobianRangeType& aduLeft) const;
 
   template<class LocalArgType, class LFDestType>
-    void computeBoundary( const IntersectionType& intersection,
-        const EntityType& entity,
-        const double area,
-        const LocalArgType& uEn, 
-        LFDestType& wlocal) const;
+  void computeBoundary( const IntersectionType& intersection,
+                        const EntityType& entity,
+                        const double area,
+                        const LocalArgType& uEn, 
+                        LFDestType& wlocal) const;
 
   const DiscreteFunctionSpaceType& space() const {return space_;}
 
   const ModelType& model() const{ return model_;}
 
-  double viscpenalty() const { return penalty_;}
-  double acpenalty() const { return acpenalty_;} 
   
   protected:
   ModelType model_;
@@ -197,8 +188,6 @@ class DGPhasefieldOperator
   mutable TemporaryLocalType uOldNeighbor_; 
   mutable double areaEn_;
   mutable double areaNb_;
-  mutable double penalty_;
-  mutable double acpenalty_;
 };
 
 
@@ -338,7 +327,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         //wlocal+=avu*phi+diffusion*dphi
         wLocal.axpy( quadrature[ pt ], avu, adu);
       }   
-   
     
       const IntersectionIteratorType iitend = space().gridPart().iend( entity ); 
       for( IntersectionIteratorType iit = space().gridPart().ibegin( entity ); iit != iitend; ++iit ) // looping over intersections
@@ -527,13 +515,12 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
 
-//#include "newheatoperator.cc"
 
-#if RHOMODEL 
-#include "fulloperatorRhoAlpha.cc"
-#else
+//#if RHOMODEL 
+//#include "fulloperatorRhoAlpha.cc"
+//#else
 #include "fulloperator.cc"
-#endif
+//#endif
 
 
 
