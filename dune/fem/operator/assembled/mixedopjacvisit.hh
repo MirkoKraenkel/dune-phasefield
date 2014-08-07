@@ -233,7 +233,6 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
     //  const DomainType xgl = geometry.global(x);
     RangeType vuOld(0.),vuMid(0);
 
-
     for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
     {
 
@@ -372,20 +371,20 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             setNeighbor( neighbor );
             typedef typename IntersectionType::Geometry  IntersectionGeometryType;
             const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
-
+#if 1
             // get local matrix for face entries 
-            LocalMatrixType jLocalNbEn = jOp.localMatrix( neighbor,entity );
+           LocalMatrixType jLocalNbEn = jOp.localMatrix( neighbor,entity );
            LocalMatrixType jLocalEnNb = jOp.localMatrix( entity, neighbor );
             // get local matrix on neighbor 
             LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor); 
-  #if 0  
+#else
             LocalMatrixType jLocalNbEn( dfSpace,dfSpace);
             jLocalNbEn.init( neighbor, entity);
             LocalMatrixType jLocalEnNb( dfSpace, dfSpace);
             jLocalEnNb.init( entity, neighbor);
             LocalMatrixType jLocalNbNb( dfSpace,dfSpace);
             jLocalNbNb.init( neighbor,neighbor);
-       #endif
+#endif
        const LocalFunctionType uLocalNb = u.localFunction(neighbor);
             // get neighbor's base function set 
             const BasisFunctionSetType &baseSetNb = jLocalNbEn.domainBasisFunctionSet();
