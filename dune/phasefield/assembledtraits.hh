@@ -38,9 +38,9 @@
 #include <dune/fem/operator/assembled/mixedoperator.hh>
 #else
 #if FD 
-#include <dune/fem/operator/assembled/localfdoperatorwithVisit.hh>
+#include <dune/fem/operator/assembled/localfdoperator.hh>
 #else
-#include <dune/fem/operator/assembled/mixedopjacvisit.hh>
+#include <dune/fem/operator/assembled/mixedopcoupling.hh>
 #endif
 #endif
 
