@@ -10,12 +10,9 @@
 #include <dune/fem/base/base.hh>
 #include <dune/fem/operator/common/automaticdifferenceoperator.hh>
 //Note Problen should be independent of Operator/Scheme
-
-#if DGSCHEME
 #include<dune/phasefield/assembledtraits.hh>
-#elif FEMSCHEME
-#include<dune/phasefield/femschemetraits.hh>
-#endif
+
+
 // include std libs
 #include <iostream>
 #include <string>
@@ -23,22 +20,23 @@
 
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
-
-#include <dune/fem/operator/assembled/energyconverter.hh>
-#include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
-#include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
-
-#include <dune/fem-dg/operator/adaptation/adaptation.hh>
-
-
+//solver
 #include <dune/fem/solver/cginverseoperator.hh>
-
 #include <dune/fem/solver/oemsolver.hh>
 #include <dune/fem/solver/newtoninverseoperator.hh>
 
-
+//adaption
+#include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
+#include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
+#include <dune/fem-dg/operator/adaptation/adaptation.hh>
 #include <dune/fem/adaptation/mixedestimator.hh>
+//post processing
+
+
+
+
+#include <dune/fem/operator/assembled/energyconverter.hh>
 #include <dune/phasefield/util/cons2prim.hh>
 #include <dune/fem/operator/assembled/boundary.hh>
 namespace Dune{
@@ -69,7 +67,7 @@ struct EocDataOutputParameters :   /*@LST1S@*/
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//  EOC output parameter class 
+//  Algorithm class 
 //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -91,36 +89,42 @@ public:
 	typedef typename Traits::GridPartType GridPartType;
   //for interpolation of initial Data 
 	typedef typename Traits::LagrangeGridPartType LagrangeGridPartType;
-	//Problem Dependent Type
+	
+  //Problem Dependent Type
 	typedef typename Traits :: InitialDataType             InitialDataType;
 	typedef typename Traits :: ModelType                   ModelType;
 	typedef typename Traits :: FluxType                    FluxType;
   
-
   //discrete spaces
-  //discrete space of the solution
   typedef typename Traits::DiscreteSpaceType       DiscreteSpaceType;
-  //discrete space for monitoring the discrete energy
   typedef typename Traits::DiscreteEnergySpaceType ScalarDiscreteSpaceType;
-	//discrete functions
+	
+  
+  
+  //discrete functions
 	typedef typename Traits::DiscreteFunctionType DiscreteFunctionType;
 	typedef typename Traits::DiscreteScalarType   DiscreteScalarType;
  
   
-  typedef typename Traits :: JacobianOperatorType JacobianOperatorType;
-  typedef typename Traits :: DiscreteOperatorType DiscreteOperatorType;
-	typedef PhasefieldBoundaryCorrection<DiscreteFunctionType, ModelType> BoundaryCorrectionType;
-  typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
-  typedef typename Traits :: LinearSolverType LinearSolverType;
-
+  
   typedef typename DiscreteSpaceType::FunctionSpaceType FunctionSpaceType;
 
-	// type of adaptation manager 
+  //Operator
+  typedef typename Traits :: DiscreteOperatorType DiscreteOperatorType;
+  typedef typename Traits :: JacobianOperatorType JacobianOperatorType;
+ 	typedef PhasefieldBoundaryCorrection<DiscreteFunctionType, ModelType> BoundaryCorrectionType;
+ 
+  //Solver
+  typedef typename Traits :: LinearSolverType LinearSolverType;
+  typedef typename Dune::Fem::NewtonInverseOperator< JacobianOperatorType, LinearSolverType > NewtonSolverType; 
+  //Adaptation
+  typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
+ 	// type of adaptation manager 
 	typedef Dune::Fem::AdaptationManager< GridType, RestrictionProlongationType > AdaptationManagerType;
-
   typedef AdaptationHandler< GridType,typename DiscreteSpaceType::FunctionSpaceType >  AdaptationHandlerType;
   typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
 	typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
+  
   typedef typename Dune::Fem::LagrangeDiscreteFunctionSpace< FunctionSpaceType, LagrangeGridPartType, 2> InterpolationSpaceType;
   typedef typename Dune::Fem::AdaptiveDiscreteFunction< InterpolationSpaceType > InterpolationFunctionType;
 
@@ -130,18 +134,13 @@ public:
   //Pointers for (rho, v,phi),(totalenergy)
   typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*, DiscreteScalarType*> IOTupleType; 
 
-
   // type of data 
   // writer 
   typedef Dune::Fem::DataOutput< GridType, IOTupleType >    DataWriterType;
   typedef Dune::Fem::CheckPointer< GridType >   CheckPointerType;
 
-
 	// type of ime provider organizing time for time loops 
 	typedef Dune::Fem::GridTimeProvider< GridType >                 TimeProviderType;
-
-  // NewtonSolver
-  typedef typename Dune::Fem::NewtonInverseOperator< JacobianOperatorType, LinearSolverType > NewtonSolverType; 
 
 	//MemberVaribles
 private:
@@ -158,30 +157,22 @@ private:
   std::string             energyFilename_;
   DiscreteFunctionType    solution_;
 	DiscreteFunctionType    oldsolution_; 
-	DiscreteFunctionType    start_;
   DiscreteScalarType*     energy_;
-	const InitialDataType*  problem_;
+  const InitialDataType*  problem_;
   ModelType*              model_;
-  //FluxType                numericalFlux_;
   AdaptationHandlerType*  adaptationHandler_;
-  EstimatorType           estimator_;
-  EstimatorDataType       estimatorData_;
   Timer                   overallTimer_;
-  double                  odeSolve_;
   const unsigned int      eocId_;
-  const bool              adaptive_;
-#if PF_USE_ADAPTATION
-  AdaptationParameters    adaptationParameters_;
-#endif
-	DiscreteOperatorType    dgOperator_;
-  BoundaryCorrectionType  boundaryCorrection_;
-#if PF_USE_ADAPTATION
-  DGIndicatorType         dgIndicator_;
-#endif
   double tolerance_;
   bool interpolateInitialData_;
   bool calcresidual_;
   double timeStepTolerance_;
+  ////////////////////////////////////////
+  DiscreteOperatorType    dgOperator_;
+  BoundaryCorrectionType  boundaryCorrection_;
+  DiscreteFunctionType    start_;
+  EstimatorType           estimator_;
+  EstimatorDataType       estimatorData_;
 public:
 	//Constructor
 	PhasefieldAlgorithm(GridType& grid):
@@ -198,24 +189,21 @@ public:
     energyFilename_(Dune::Fem::Parameter::getValue< std::string >("phasefield.energyfile","./energy.gnu")),
     solution_( "solution", space() ),
 		oldsolution_( "oldsolution", space() ),
-	  start_("start",space()),
-    energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
+	  energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
 		problem_( ProblemGeneratorType::problem() ),
     model_( new ModelType( problem() ) ),
- //   numericalFlux_( *model_, Fem :: Parameter :: getValue<double>("phasefield.penalty") ),
     adaptationHandler_( 0 ),
-    estimator_(solution_,grid_,model()),
-    estimatorData_("estimator",estimator_,gridPart_,space_.order()),
     overallTimer_(),
     eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
-    adaptive_( Dune::Fem::AdaptationMethod< GridType >( grid_ ).adaptive() ),
-//   	dgOperator_(*model_,space(),numericalFlux_),
-    dgOperator_( *model_, space()),
-    boundaryCorrection_(*model_,space()),
     tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
     interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
     calcresidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
-    timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
+    timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) ),
+    dgOperator_( *model_, space()),
+    boundaryCorrection_(*model_,space()),
+    start_("start",space()),
+    estimator_(solution_,grid_,model()),
+    estimatorData_("estimator",estimator_,gridPart_,space_.order())
     {
       start_.clear();
     }
@@ -234,7 +222,7 @@ public:
   }
 
 	//some acces methods
-	//spaecs
+	//space
 	DiscreteSpaceType& space () { return space_; }	
 	
 
@@ -326,9 +314,7 @@ public:
 	//! estimate and mark solution 
   virtual void estimateMarkAdapt( AdaptationManagerType& am )
   {
-    std::cout<<"estimate\n"; 
     estimator_.estimateAndMark(tolerance_);
-   
     am.adapt();
   }
 
@@ -586,13 +572,11 @@ public:
 		fixedTimeStep_ /= fixedTimeStepEocLoopFactor_; 
 	}
 	
-  inline double error(TimeProviderType& timeProvider, DiscreteFunctionType& u)
+  inline double error ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
     Fem::L2Norm< GridPartType > l2norm(gridPart_);
-    
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
-    
     return error;
 	}
   
