@@ -9,8 +9,6 @@
 #include <dune/fem/misc/threads/threadmanager.hh>
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
-//#include <dune/fem/solver/odesolver.hh>
-
 // local includes
 // definition of simulate() 
 #if AC
@@ -19,10 +17,6 @@
 #include "phasefield.hh"
 #endif
 
-#if 0
-HAVE_PETSC
-#include <petsc.h>
-#endif
 
 
 
@@ -35,17 +29,8 @@ int main(int argc, char ** argv, char ** envp) {
   Dune::Fem::MPIManager :: initialize( argc, argv );
   try {
 
-#if 0
-    HAVE_PETSC
-      static char help[] = "Petsc-Slepc init";
-#endif
 
-#if 0
-    HAVE_SLEPC
-      SlepcInitialize(&argc,&argv,(char*)0,help);
-#endif
-
-  // *** Initialization
+      // *** Initialization
      Dune::Fem::Parameter::append(argc,argv);                      
       if (argc == 2) 
       {
@@ -60,8 +45,6 @@ int main(int argc, char ** argv, char ** envp) {
     int numThreads = Dune::Fem::Parameter::getValue< int >("fem.parallel.numberofthreads", 1);
     Dune :: Fem :: ThreadManager :: setMaxNumberThreads( numThreads );
 
-    //int polynomialOrder = 1;
-    //polynomialOrder = Dune::Fem::Parameter :: getValue("phasefield.polynomialOrder", polynomialOrder );
 
     simulation :: simulate();  
 	  
