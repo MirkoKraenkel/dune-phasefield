@@ -47,7 +47,7 @@
 
 template <class GridImp,
           class ProblemGeneratorImp,int polOrd>             
-struct AlgorithmTraits 
+struct MixedAlgorithmTraits 
 {
   enum { polynomialOrder = polOrd };
 
@@ -79,28 +79,31 @@ struct AlgorithmTraits
   typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,dimRange> FunctionSpaceType;
   typedef typename Dune::Fem::DiscontinuousGalerkinSpace<FunctionSpaceType,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteSpaceType;
 
-  typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,1>  EnergySpaceType;
-  typedef typename Dune::Fem::DiscontinuousGalerkinSpace<EnergySpaceType  ,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteEnergySpaceType;
+  typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,1>  ScalarSpaceType;
+  typedef typename Dune::Fem::DiscontinuousGalerkinSpace<ScalarSpaceType  ,GridPartType,polOrd,Dune::Fem::CachingStorage> DiscreteScalarSpaceType;
 
 
   // DiscreteFunctions
 #if WANT_ISTL
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
-  typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
+  typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteScalarSpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
+
 #if FD 
-   typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+  typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
 #else 
   typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
 #endif
+
 #if BICG
   typedef typename Dune::Fem::ISTLBICGSTABOp< DiscreteFunctionType, JacobianOperatorType > LinearSolverType; 
 #else
-   typedef typename Dune::Fem::ISTLGMResOp< DiscreteFunctionType , JacobianOperatorType > LinearSolverType;
+  typedef typename Dune::Fem::ISTLGMResOp< DiscreteFunctionType , JacobianOperatorType > LinearSolverType;
 #endif
+
 #else  
   typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
-  typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteEnergySpaceType> DiscreteScalarType;
+  typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteScalarSpaceType> DiscreteScalarType;
 
   
 #if MATRIXFREE 
@@ -114,6 +117,10 @@ struct AlgorithmTraits
   typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
 #endif
 #endif
+  //Pointers for (rho,v,phi,mu,tau,sigma) and (totalenergy)
+  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*, DiscreteScalarType*> IOTupleType; 
+
+
   // type of restriction/prolongation projection for adaptive simulations 
   typedef Dune :: Fem::RestrictProlongDefault< DiscreteFunctionType > RestrictionProlongationType;
 };
