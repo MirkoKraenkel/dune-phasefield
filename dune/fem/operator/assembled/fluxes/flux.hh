@@ -336,7 +336,8 @@ double MixedFlux<Model>
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
     for(int j=0; j<dimDomain; ++j)
-      jumpNormal[i+1][j]=-0.5*jump[i+1]*normal[j];
+      jumpNormal[ i+1 ][ j ]=-1*jump[i+1]*normal[j];
+   //   jumpNormal[i+1][j]=-0.5*jump[i+1]*normal[j];
  
 
   jumpNormal*=switchIP_;
@@ -345,6 +346,7 @@ double MixedFlux<Model>
   JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   //mean+=duNb;
+  mean*=-1;
   //mean*=-0.5;
   model_.diffusion(mean,Amean);
 
