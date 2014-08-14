@@ -10,10 +10,10 @@
 
 // local includes
 // #include "idealthermodynamics2interpol.hh"
-//#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
 
 //#include <dune/phasefield/modelling/thermodynamicstravel.hh>
-#include <dune/phasefield/modelling/thermodynamicsTest.hh>
+//#include <dune/phasefield/modelling/thermodynamicsTest.hh>
 
 #include <dune/fem/probleminterfaces.hh>
 
@@ -41,8 +41,8 @@ public:
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
-  //typedef BalancedThermodynamics  ThermodynamicsType;
-    typedef TestThermodynamics ThermodynamicsType;
+  typedef BalancedThermodynamics  ThermodynamicsType;
+  //typedef TestThermodynamics ThermodynamicsType;
 
   TravelProblem() : 
     myName_( "TravelBalanced Problem" ),
@@ -146,7 +146,7 @@ inline void TravelProblem<GridType,RangeProvider>
   double x=arg[0];
   double y=(x-gamma_*t);
    
-   double tanx=0.1*tanh(y/(delta_))+0.5;
+   //double tanx=0.1*tanh(y/(delta_))+0.5;
  
    res[0]=1;
    res[dimension+1]=0.5*tanh(y/delta_)+0.5;
