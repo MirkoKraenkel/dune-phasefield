@@ -127,6 +127,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   	rho=cons[0];
     rho_inv=1./rho;
     phi=cons[phaseId];
+    
     //velocity 
     prim[0] = cons[1]*rho_inv;
     //pressure  
@@ -145,23 +146,22 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                   double& therm,
                   double& total ) const
   {
-    assert( cons[0] > 1e-20 );
-	  double rho_inv = 1./cons[0];
+	  double rho = cons[0];
+    double rho_inv = 1./rho;
 	  double phi = cons[phaseId];
     
     double kineticEnergy,surfaceEnergy;
     kineticEnergy=cons[1]*cons[1];
     double gradphi=grad[2][0];
     surfaceEnergy=gradphi*gradphi;
- 
     
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
    
-	  therm = thermoDynamics_.helmholtz( cons[0], cons[phaseId] );
+	  therm = thermoDynamics_.helmholtz( cons[0], phi );
 	  therm +=surfaceEnergy;
     kin  = kineticEnergy;
-    total = therm + kin; 
+    total = therm+kinenticEnergy; 
   }
 
   template< class Thermodynamics >
@@ -174,7 +174,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
 		double rho=cons[0];
 		double phi=cons[phaseId];
-    
+   
+
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
@@ -195,8 +196,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 			
 		assert( p > 1e-20 );
 	}
-
-
 
   template< typename Thermodynamics >
   inline void  PhasefieldPhysics< 1, Thermodynamics>
@@ -223,18 +222,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   }
 
 	template< class Thermodynamics >
- 	inline void   PhasefieldPhysics< 1, Thermodynamics >
-	::nonConProduct(const RangeType & uL, 
-									const RangeType & uR,
-									const ThetaRangeType& thetaL,
-									const ThetaRangeType& thetaR,
-									RangeType& ret) const
-	{
-    std::cout<<"Dont call nonConPruct\n";
-    abort();
-  }
-	
-	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
 	::stiffSource(const DomainType& xglobal,
                 const double time,
@@ -245,24 +232,24 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								const JacobianRangeType& jacU,
                 RangeType& f) const
 	{
-
-    RangeType source{0.};
-    const double rho_inv=1./u[0];
-
-    double dphi=jacU[2][0];
     
+    const double rho_inv=1./u[0];
+    double dphi=jacU[phaseId][0];
     double v=u[1]*rho_inv;
-
+  
+    double reactionFac=thermoDynamics_.reactionFactor();
 
     f[0]=0;
     //-(\rho\nabla\mu-\tau\nabla\phi) 
     f[1]=-dtheta[0]*u[0]+dphi*theta[1];
-    //nonconservative Discretization of transport term
     f[phaseId]=theta[1];
-    f[phaseId]*=-1.*rho_inv;
+    f[phaseId]*=-1.
+    f[phaseId]*=rho_inv;
+    f[phaseId]*=reactionFac;
+    //nonconservative Discretization of transport term
     f[phaseId]-=v*dphi;
-    f[phaseId]*=thermoDynamics_.reactionFactor( u[0] );
-    return 0.4*deltaInv()*deltaInv(); 
+ 
+    return 0.4*reactionFac*deltaInv(); 
   }
   
   template< class Thermodynamics >
@@ -324,13 +311,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   assert(u[0] > 1e-20);
   double u_normal=(u[1]*n[0])/u[0];
   double c=thermoDynamics_.a(u[0],u[2]);
-//  std::cout<<"physics maxSpeed"<< std::abs(u_normal) <<std::endl;
   return std::abs(u_normal)+c;
-//    return std::abs(thermoDynamics_.velo());
-
  } 
-
-
 
 }//end namespace Dune
 #endif// PHYSICS_INLINE_HH
