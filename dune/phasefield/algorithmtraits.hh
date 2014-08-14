@@ -50,8 +50,10 @@ struct AlgorithmTraits
 	typedef typename  DiscreteOperatorType :: SpaceType                              DiscreteSpaceType;
   typedef typename  DiscreteOperatorType :: Space1Type                             SigmaDiscreteSpaceType;   
 	typedef typename  DiscreteOperatorType :: Space2Type                             ThetaDiscreteSpaceType;
-  typedef typename  DiscreteOperatorType :: ScalarDiscreteFunctionSpaceType        ScalarDiscreteSpaceType;
+  typedef typename  DiscreteOperatorType :: ScalarDiscreteFunctionSpaceType        DiscreteScalarSpaceType;
 	
+	//type of IOTuple
+  typedef typename Dune::tuple< DiscreteFunctionType*,DiscreteSigmaType*, DiscreteThetaType*, DiscreteScalarType*> IOTupleType;
 
 	// The ODE Solvers                                                         /*@LST1S@*/
   typedef DuneODE :: OdeSolverInterface< DiscreteFunctionType > OdeSolverType ;
