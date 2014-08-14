@@ -1,7 +1,7 @@
-#ifndef PHASE_RPOBLEMCREATOR_HH
-#define PHASE_RPOBLEMCREATOR_HH
+#ifndef PHASE_MIXERDPOBLEMCREATOR_HH
+#define PHASE_MIXERDPOBLEMCREATOR_HH
 #include <config.h>
-
+#warning "MixedProblemCreator"
 // system includes
 #include <string>
 
@@ -21,13 +21,13 @@
 
 //#include <dune/fem/operator/assembled/heatmodel.hh>
 #include <dune/fem/operator/assembled/models/acmodel.hh>
-#if RHOMODEL
-#include <dune/fem/operator/assembled/fluxes/fluxRho.hh>
-#else
+//#if RHOMODEL
+//#include <dune/fem/operator/assembled/fluxes/fluxRho.hh>
+//#else
 #include <dune/fem/operator/assembled/fluxes/flux.hh>
-#endif
+//#endif
 template< class GridType > 
-struct ProblemGenerator 
+struct MixedProblemGenerator 
 {
   typedef PhaseProblemType ProblemType;
 
@@ -69,4 +69,5 @@ struct ProblemGenerator
 };
 
 
-#endif // PHASE_PROBLEMCREATOR_HH
+#endif // PHASE_MIXERDPOBLEMCREATOR_HH
+
