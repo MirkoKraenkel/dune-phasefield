@@ -25,24 +25,56 @@
 #include <dune/fem/base/base.hh>
 
 // problem dependent
-#include <problemcreator.hh>
-#if MIXED
-#include <dune/phasefield/assembledalgorithm.hh>
-#else
-#include <dune/phasefield/phasefieldalgorithm.hh> 
-#endif
+#warning "PROBCREATOR"
+#include <src/problems/passscheme/problemcreator.hh>
+#include <src/problems/mixedscheme/mixedproblemcreator.hh>
+//#if MIXED
+#include <dune/phasefield/assembledalgoderived.hh>
+//#else
+#include <dune/phasefield/passalgoderived.hh> 
+//#endif
 #include <dune/fem/space/common/allgeomtypes.hh>
 
 
 namespace simulation{
 
+template< bool mixed,int Polorder,class GridImp>
+struct SchemeTraits
+{
+};
+
+template< int Polorder,class GridImp>
+struct SchemeTraits< true, Polorder, GridImp >
+{
+  typedef GridImp GridType;
+  typedef MixedProblemGenerator<GridType> ProblemGeneratorType;
+  typedef MixedAlgorithmTraits< GridType , ProblemGeneratorType ,Polorder> AlgorithmTraitsType;
+  typedef AssembledAlgorithm< GridType,AlgorithmTraitsType> AlgorithmType;
+};
+
+template< int Polorder,class GridImp>
+struct SchemeTraits< false ,Polorder, GridImp >
+{
+  typedef GridImp GridType;
+  typedef ProblemGenerator<GridType> ProblemGeneratorType;
+  typedef AlgorithmTraits< GridType , ProblemGeneratorType , Polorder > AlgorithmTraitsType;
+  typedef PassAlgorithm< GridType , AlgorithmTraitsType > AlgorithmType;
+};
+
+
+
   void simulate()
   {
     Fem::FemEoc::clear();
 
+#if MIXED
+    const bool mixed = true;
+#else
+    const bool mixed = false;
+#endif
 #if PARAGRID 
    typedef Dune::GridSelector :: GridType HostGridType;
-   typedef ProblemGenerator< HostGridType > ProblemGeneratorType;
+   typedef MixedProblemGenerator< HostGridType > ProblemGeneratorType;
 
     // use problem specific initialize method since some problems do different things
     // there, e.g. poisson 
@@ -55,7 +87,14 @@ namespace simulation{
     grid.loadBalance();
 #else
     typedef Dune::GridSelector :: GridType GridType;
-    typedef ProblemGenerator< GridType > ProblemGeneratorType;
+    
+    typedef SchemeTraits< mixed , POLORDER, GridType> SchemeTraitsType; 
+  
+    typedef typename SchemeTraitsType::ProblemGeneratorType ProblemGeneratorType;
+    typedef typename SchemeTraitsType::AlgorithmTraitsType AlgoTraits;
+    typedef typename SchemeTraitsType::AlgorithmType AlgorithmType;
+
+    // typedef MixedProblemGenerator< GridType > ProblemGeneratorType;
 
     // use problem specific initialize method since some problems do different things
     // there, e.g. poisson 
@@ -64,14 +103,18 @@ namespace simulation{
 
     // get grid reference 
     GridType& grid = *gridptr;
-
 #endif 
-    typedef AlgorithmTraits<GridType,ProblemGeneratorType,POLORDER> AlgoTraits;
-		PhasefieldAlgorithm<GridType,AlgoTraits,POLORDER> stepper(grid);
-   
+    AlgorithmType algorithm( grid );  
+#if 0
+typedef AlgorithmTraits<GridType,ProblemGeneratorType,POLORDER> AlgoTraits;
+#if MIXED
+	  AssembledAlgorithm< GridType,AlgoTraits >  stepper( grid );
+#else
+    PassAlgorithm< GridType, AlgoTraits > stepper( grid );  
+#endif
+#endif
     //defined in base.hh
-    compute( stepper );
-    //  compute( grid );
+    compute( algorithm );
   } 
 
 } // end namespace LOOPSPACE
