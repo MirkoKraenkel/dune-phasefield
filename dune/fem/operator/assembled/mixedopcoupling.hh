@@ -52,12 +52,8 @@ class PhasefieldJacobianOperator
   typedef typename MyOperatorType::GridPartType GridPartType;
   typedef typename GridPartType::IndexSetType IndexSetType;
   typedef typename Model::DiffusionTensorType DiffusionType;
-#if TEMPORARY
   typedef Dune::Fem::TemporaryLocalMatrix< DiscreteFunctionSpaceType, DiscreteFunctionSpaceType> LocalMatrixType;
   typedef typename JacobianOperatorType::LocalMatrixType RealLocalMatrixType;
-#else
-  typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
-#endif
   typedef Dune::Fem::MutableArray<RangeType> RangeVectorType;
   typedef Dune::Fem::MutableArray<JacobianRangeType> JacobianVectorType;
   
@@ -247,17 +243,10 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
     DiscreteFunctionSpaceType :: localBlockSize ;
 
 
-#if VECTORIAL
-  std::vector< RangeType> phi( numDofs ); 
-  std::vector< JacobianRangeType > dphi( numDofs );
-  std::vector< RangeType > phiNb( numDofs );
-  std::vector< JacobianRangeType > dphiNb( numDofs );
-#else
   std::vector< ComponentRangeType> phi( numDofs/dimRange);
   std::vector< ComponentJacobianType> dphi( numDofs/dimRange);
   std::vector< ComponentRangeType> phiNb( numDofs/dimRange);
   std::vector< ComponentJacobianType> dphiNb( numDofs/dimRange);
-#endif
  
  
   const IteratorType end = dfSpace.end();
@@ -270,13 +259,11 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
     //initialize uOld
     setEntity( entity );
-#if TEMPORARY     
     LocalMatrixType jLocal( dfSpace, dfSpace);//= jOp.localMatrix( entity, entity );
     jLocal.init(entity,entity);
+    jLocal.clear();
     RealLocalMatrixType realLocal=jOp.localMatrix( entity, entity);
-#else   
-    LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
-#endif
+
     const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
     const unsigned int numBasisFunctions = baseSet.size();
       
@@ -302,15 +289,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
       const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
       const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
 
-#if VECTORIAL
-      baseSet.evaluateAll( quadrature[ pt ], phi);
-      baseSet.jacobianAll( quadrature[ pt ], dphi);
-#else
       MatrixHelper::evaluateScalarAll( quadrature[ pt ], baseSet.shapeFunctionSet(),phi);
       MatrixHelper::jacobianScalarAll( quadrature[ pt ], geometry, baseSet.shapeFunctionSet(),dphi);      
-//      baseSet.evaluateScalarAll( quadrature[ pt ], phi);
-//      baseSet.jacobianScalarAll( quadrature[ pt ], dphi);
-#endif
     
       
       RangeType vu(0.) , vuMid(0.) ,fu(0.);
@@ -329,7 +309,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
       
       for( size_t jj=0 ;  jj < numScalarBf ; ++jj)
         {
-          flux=0.;
+          flux*=0.;
           //evaluate Operator  for all basisFunctions
           //rhog
           flux[0][0]=deltaTInv*phi[ jj ][0];
@@ -421,11 +401,9 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             } 
       }
     } 
-#if TEMPORARY   
     add(jLocal, realLocal);
     jLocal.clear();
-#endif
-    if ( !space().continuous() )
+    if ( space().continuous() )
       continue;
     
     const IntersectionIteratorType endiit = gridPart.iend( entity );
@@ -445,28 +423,22 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                 setNeighbor( neighbor );
                 typedef typename IntersectionType::Geometry  IntersectionGeometryType;
                 const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
-#if TEMPORARY  
+                jLocal.clear();
                 LocalMatrixType jLocalNbEn( dfSpace,dfSpace);
                 jLocalNbEn.init( neighbor, entity);
+                jLocalNbEn.clear();
                 LocalMatrixType jLocalEnNb( dfSpace, dfSpace);
                 jLocalEnNb.init( entity, neighbor);
+                jLocalEnNb.clear();
                 LocalMatrixType jLocalNbNb( dfSpace,dfSpace);
                 jLocalNbNb.init( neighbor,neighbor);
-                // get local matrix for face entries 
+                jLocalNbNb.clear();
+                // get local matrix for face entries and neighbor
                 RealLocalMatrixType realLocalNbEn = jOp.localMatrix( neighbor,entity );
                 RealLocalMatrixType realLocalEnNb = jOp.localMatrix( entity, neighbor );
-                // get local matrix on neighbor 
                 RealLocalMatrixType realLocalNbNb = jOp.localMatrix( neighbor,neighbor); 
 
 
-#else
-                // get local matrix for face entries 
-                LocalMatrixType jLocalNbEn = jOp.localMatrix( neighbor,entity );
-                LocalMatrixType jLocalEnNb = jOp.localMatrix( entity, neighbor );
-                // get local matrix on neighbor 
-                LocalMatrixType jLocalNbNb = jOp.localMatrix( neighbor,neighbor); 
-
-#endif
                 const LocalFunctionType uLocalNb = u.localFunction(neighbor);
                 // get neighbor's base function set 
                 const BasisFunctionSetType &baseSetNb = jLocalNbEn.domainBasisFunctionSet();
@@ -506,27 +478,14 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                     
                     const double weightInside=quadInside.weight( pt ); 
                     const double weightOutside=quadOutside.weight( pt ); 
-#if VECTORIAL
-                    baseSet.evaluateAll( quadInside[ pt ] , phi);
-                    baseSet.jacobianAll( quadInside[ pt ] , dphi);
-
-                    baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
-                    baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
-#else
-    
                     
-                    //baseSet.evaluateScalarAll( quadInside[ pt ] , phi);
-                    //baseSet.jacobianScalarAll( quadInside[ pt ] , dphi);
                     MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
                     MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi);
 
-                    //baseSetNb.evaluateScalarAll( quadOutside[ pt ] , phiNb );
-                    //baseSetNb.jacobianScalarAll( quadOutside[ pt ] , dphiNb );
-                    MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb);
-                    MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb);
+                   MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb);
+                   MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb);
 
 
-#endif
                     vuMidEn.axpy( factorImp_ , uEn_[ pt ] );
                     vuMidEn.axpy( factorExp_ , uEnOld_[ pt ] );
 
@@ -595,7 +554,6 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                                                                 weightInside,
                                                                                 jLocalNbEn );
 
-#if 1 
                             MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
                                                                                 phiNb,
                                                                                 phi,
@@ -613,7 +571,6 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                                                                 jj,
                                                                                 weightOutside,
                                                                                 jLocalNbNb );
-#endif  
 #if 1
                         for(int i  = 0; i  < dimDomain ; ++i )
                           {
@@ -645,22 +602,19 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                       } 
                 }
           }
-#if TEMPORARY 
-        add( jLocal, realLocal);
-        add( jLocalEnNb, realLocalEnNb);
-        add( jLocalNbEn, realLocalNbEn);
-        add( jLocalNbNb, realLocalNbNb);
-#endif
-    
+          add( jLocal, realLocal);
+          add( jLocalEnNb, realLocalEnNb);
+          add( jLocalNbEn, realLocalNbEn);
+          add( jLocalNbNb, realLocalNbNb);
         } 
       
       }
       else if ( intersection.boundary() )
       {
         const int quadOrderEn = 2*uLocal.order();
-         typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+        typedef typename IntersectionType::Geometry  IntersectionGeometryType;
         const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
-
+        jLocal.clear();
 
         FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
         const size_t numQuadraturePoints = quadInside.nop();
@@ -678,10 +632,11 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
    
         for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
         {
-          RangeType vuMidEn(0.),avuLeft(0.),bndValue(0.);
+          RangeType vuMidEn(0.),bndValue(0.);
+          FluxRangeType fluxLeft(0.);
           JacobianRangeType duMidEn(0.),aduLeft(0.);
           
-          const double weight=quadInside.weight( pt ); 
+          const double weightInside=quadInside.weight( pt );
 
           vuMidEn.axpy( factorImp_ , vuEn[ pt ] );
           vuMidEn.axpy( factorExp_ , vuOldEn[ pt ] );
@@ -689,8 +644,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           duMidEn.axpy( factorImp_ , duEn[ pt ] );
           duMidEn.axpy( factorExp_ , duOldEn[ pt ] );
 
-         // baseSet.evaluateAll( quadInside[ pt ] , phi);
-          //baseSet.jacobianAll( quadInside[ pt ] , dphi);
+          MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
+          MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry , baseSet.shapeFunctionSet(), dphi);
 
           const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
 
@@ -698,65 +653,65 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           const DomainType xgl = intersectionGeometry.global(x);
           model_.dirichletValue( time_,xgl, bndValue);
 
-
           // compute penalty factor
           const double intersectionArea = normal.two_norm();
           const double penaltyFactor = intersectionArea /  areaEn_; 
           const double area=areaEn_; 
+          jacFlux_.boundaryFlux( normal,
+                                 area,
+                                 vuMidEn,
+                                 fluxLeft);
 
- 
-          for( size_t jj=0 ; jj < numBasisFunctions ; ++jj)
+          for( size_t jj=0 ; jj < numScalarBf ; ++jj)
           {
             RangeType avuLeft(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
             JacobianRangeType aduLeft(0.),aduRight(0.);
-       #if  0 
-            double fluxRet=jacFlux_.numericalFlux( normal,
-                                                   area,
-                                                   vuEn[ pt ],
-                                                   bndValue, 
-                                                   vuMidEn,
-                                                   bndValue,
-                                                   phi[ jj ],
-                                                   dummy,
-                                                   avuLeft,
-                                                   avuRight); 
+            DiffusionType aLeft,aRight;
+            DiffusionValueType bLeft, bRight;
 
-          #endif
-
-#if 0 
-            double  fluxRet=jacFlux_.boundaryFlux( normal,
-                                                   area,
-                                                   vuEn[ pt ],
-                                                   vuMidEn,
-                                                   phi[ jj ],
-                                                   avuLeft ); 
-
-#endif
-#if 0 
-              double fluxRet;
-              fluxRet+=jacFlux_.diffusionBoundaryFlux( normal,
-                                                     penaltyFactor,
-                                                     phi[ jj ],
-                                                     dphi[ jj ],
-                                                     valueLeft,
-                                                     aduLeft );                
-#endif
-            avuLeft+=valueLeft;
-//#if MYAXPY
-          myaxpy( jj, phi, dphi, avuLeft, aduLeft, weight, jLocal);
-//#else
- //         jLocal.column( jj ).axpy( phi , dphi , avuLeft,aduLeft , weight );
-//#endif
+            jacFlux_.scalar2vectorialBoundaryFlux( normal,
+                                                  penaltyFactor,
+                                                  phi[ jj ],
+                                                  dphi[ jj ],
+                                                  aLeft,
+                                                  bLeft);
 
 
+            for( size_t ii = 0; ii < numScalarBf ; ++ii )
+              {
+                MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                    phi,
+                                                                    phi,
+                                                                    fluxLeft,
+                                                                    ii,
+                                                                    jj,
+                                                                    weightInside,
+                                                                    jLocal );
+
+                for(int i  = 0; i  < dimDomain ; ++i )
+                  {
+                    int global_i=ii*dimRange+1+i;
+                    for(int j  = 0 ; j  < dimDomain ; ++j )
+                     {
+                       int global_j= jj*dimRange+1+j;
+                       double valueEn;
+                        
+                       valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
+                       valueEn+=bLeft[ j ][ i ]*phi[ ii ];
+
+                       jLocal.add( global_i , global_j , weightInside*valueEn*0.5);
+                      }
+                   }
+              }
           }
         }
+      add( jLocal, realLocal);
       }
     }
   visited_[indexSet_.index( entity )]=true;
   } // end grid traversal 
   jOp.communicate();
-  std::cout<<"addFactor:"<<static_cast<double>(zerocount_)/allcount_<<" zeros:"<<zerocount_<<"\n";
+
 }
 
 
