@@ -5,12 +5,13 @@
 #include <dune/common/nullptr.hh>
 
 // dune-fem includes
+#include <dune/fem/misc/bartonnackmaninterface.hh>
 #include <dune/fem/io/file/datawriter.hh>
 #include <dune/fem/space/common/adaptmanager.hh>
 #include <dune/fem/base/base.hh>
 #include <dune/fem/operator/common/automaticdifferenceoperator.hh>
 //Note Problen should be independent of Operator/Scheme
-#include<dune/phasefield/assembledtraits.hh>
+//#include<dune/phasefield/assembledtraits.hh>
 
 
 // include std libs
@@ -65,13 +66,17 @@ struct EocDataOutputParameters :   /*@LST1S@*/
 
 
 template <class GridImp,
-					class AlgorithmTraits>
+					class AlgorithmTraits,
+          class Impl>
 class PhasefieldAlgorithmBase
+: public Fem::BartonNackmanInterface< PhasefieldAlgorithmBase< GridImp , AlgorithmTraits, Impl>, Impl >
 {
 
 public:
 	//type of Grid
 	typedef GridImp GridType;
+  typedef Fem::BartonNackmanInterface< PhasefieldAlgorithmBase< GridImp , AlgorithmTraits, Impl>, Impl > BaseType;
+
 
   //traits class gathers types depending on the problem and the operator which is specified there 
 	typedef AlgorithmTraits Traits;
@@ -89,7 +94,7 @@ public:
   
   //discrete spaces
   typedef typename Traits::DiscreteSpaceType       DiscreteSpaceType;
-  typedef typename Traits::DiscreteEnergySpaceType ScalarDiscreteSpaceType;
+  typedef typename Traits::DiscreteScalarSpaceType DiscreteScalarSpaceType;
   
   //discrete functions
 	typedef typename Traits::DiscreteFunctionType DiscreteFunctionType;
@@ -112,12 +117,11 @@ public:
   typedef typename Dune::Fem::AdaptiveDiscreteFunction< InterpolationSpaceType > InterpolationFunctionType;
 
 
-	//type of IOTuple 
-  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*, DiscreteScalarType*> IOTupleType; 
-
+	////type of IOTuple 
+  typedef typename Traits::IOTupleType IOTupleType;
   // type of data 
   // writer 
-  typedef Dune::Fem::DataOutput< GridType, IOTupleType >    DataWriterType;
+  typedef Dune::Fem::DataOutput< GridType,IOTupleType >    DataWriterType;
   typedef Dune::Fem::CheckPointer< GridType >   CheckPointerType;
 
 	// type of ime provider organizing time for time loops 
@@ -128,7 +132,7 @@ protected:
 	GridType&               grid_;
 	GridPartType            gridPart_;
 	DiscreteSpaceType       space_;
-	ScalarDiscreteSpaceType energySpace_;
+	DiscreteScalarSpaceType energySpace_;
 	Dune::Fem::IOInterface* eocLoopData_;
 	IOTupleType             eocDataTup_; 
 	unsigned int            timeStepTimer_; 
@@ -165,7 +169,7 @@ public:
     energyFilename_(Dune::Fem::Parameter::getValue< std::string >("phasefield.energyfile","./energy.gnu")),
     solution_( "solution", space() ),
 		oldsolution_( "oldsolution", space() ),
-	  energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : 0),
+	  energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : nullptr ),
 		problem_( ProblemGeneratorType::problem() ),
     model_( new ModelType( problem() ) ),
     adaptationHandler_( 0 ),
@@ -176,10 +180,11 @@ public:
     computeResidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
     timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
     {
+      std::cout<<"Baseconstructor\n";
     }
 
   //! destructor 
-  virtual ~PhasefieldAlgorithmBase()
+  /*virtual*/ ~PhasefieldAlgorithmBase()
   {
 		delete energy_;
 		energy_=0;
@@ -195,7 +200,7 @@ public:
 	//space
 	DiscreteSpaceType& space () { return space_; }	
 
-	ScalarDiscreteSpaceType& energyspace () { return energySpace_; }
+	DiscreteScalarSpaceType& energyspace () { return energySpace_; }
 	
   size_t gridSize() const
 	{
@@ -225,7 +230,7 @@ public:
     return *model_;
   }
 
-	virtual void initializeStep ( TimeProviderType& timeprovider )
+	void initializeStep ( TimeProviderType& timeprovider )
 	{
 		DiscreteFunctionType& U = solution();
 		DiscreteFunctionType& Uold = oldsolution();
@@ -254,10 +259,15 @@ public:
 						  int& max_newton_iterations,
 						  int& max_ils_iterations)
 	{
- 	}
+ 	  BaseType::asImp().step( timeProvider,
+                            newton_iterations,
+                            ils_iterations,
+                            max_newton_iterations,
+                            max_ils_iterations);
+  }
 	
 	//! estimate and mark solution 
-  virtual void estimateMarkAdapt( AdaptationManagerType& am )=0;
+  /*virtual*/ void estimateMarkAdapt( AdaptationManagerType& am ){};
 
   template<class Stream>
   void writeEnergy( TimeProviderType& timeProvider,Stream& str){}
@@ -275,9 +285,16 @@ public:
 		eocDataOutput.write( timeProvider );
 	}
 	
-  	
+  IOTupleType getDataTuple()
+  {
+   return BaseType::asImp().getDataTuple();
+	}
 	
-	virtual void operator()(int loopNumber,double& averagedt, double& mindt, double& maxdt,
+  void initializeSolver( TimeProviderType& timeProvider)
+  {
+    BaseType::asImp().initializeSolver( timeProvider);
+  }
+  /*virtual*/ void operator()(int loopNumber,double& averagedt, double& mindt, double& maxdt,
                           size_t& counter, int& total_newton_iterations, int& total_ils_iterations,
                           int& max_newton_iterations, int& max_ils_iterations)
 	{	
@@ -334,7 +351,7 @@ public:
 		
 
     // restoreData if checkpointing is enabled (default is disabled)
-    IOTupleType dataTuple( &solution() ,nullptr,  this->energy());
+    IOTupleType dataTuple=getDataTuple();//( &solution() ,nullptr,  this->energy());
 	
     std::ofstream energyfile;
     std::ostringstream convert;
@@ -355,7 +372,8 @@ public:
     if(!restart)
     {
     	initializeStep( timeProvider );
-	 		writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+	 		initializeSolver( timeProvider);
+      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
  
   		// adapt the grid to the initial data
 	  	int startCount = 0;
@@ -417,7 +435,7 @@ public:
         abort();
 			}
 
-     double timeStepEstimate;//=dgOperator_.timeStepEstimate();	
+     double timeStepEstimate=0;//dgOperator_.timeStepEstimate();	
      
      if( (printCount > 0) && (counter % printCount == 0))
 			{
@@ -472,7 +490,7 @@ public:
                          TimeProviderType& timeProvider,
                          DataWriterType& eocDataOutput)
   {
-    }
+  }
   inline double error ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
@@ -489,7 +507,7 @@ public:
 	  return l2norm.distance(uOld, uNew);
 	}
 
-	virtual void finalizeStep(TimeProviderType& timeProvider)
+	/*virtual*/ void finalizeStep(TimeProviderType& timeProvider)
 	{ 
 		DiscreteFunctionType& u = solution();
 		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ );
@@ -503,25 +521,22 @@ public:
 	}
 
 	//! restore all data from check point (overload to do something)
-	virtual void restoreFromCheckPoint(TimeProviderType& timeProvider) {} 
+	/*virtual*/ void restoreFromCheckPoint(TimeProviderType& timeProvider) {} 
 
 	//! write a check point (overload to do something)
-	virtual void writeCheckPoint(TimeProviderType& timeProvider,
+	/*virtual*/ void writeCheckPoint(TimeProviderType& timeProvider,
 															 AdaptationManagerType& am ) const {}
 
-	virtual DiscreteFunctionType& solution () { return solution_; }
+	/*virtual*/ DiscreteFunctionType& solution () { return solution_; }
 
 
-	virtual void finalize ( const int eocloop ) 
+	/*virtual*/ void finalize ( const int eocloop ) 
 	{
 		DiscreteFunctionType& U = solution(); 
-	  DiscreteFunctionType& Uold = oldsolution();
-    DiscreteScalarType* totalenergy= energy(); 
-    // DiscreteSigmaType* sig= sigma();
 	
     if( eocLoopData_ == 0 ) 
 			{
-       eocDataTup_ = IOTupleType( &U ,nullptr,  totalenergy ); 
+       eocDataTup_ = getDataTuple(); 
        eocLoopData_ = new DataWriterType( grid_, eocDataTup_ );
       }
 
