@@ -119,7 +119,7 @@ namespace Dune {
 
       // determine side 
       //      const bool useInterior = determineDirection( normal );
-      const bool useInterior = determineDirection(false,0.,0.,intersection );
+     // const bool useInterior = determineDirection(false,0.,0.,intersection );
 	
       GradientJacobianType diffmatrix; 
 
