@@ -84,6 +84,7 @@ class DGPhasefieldOperator
                         uOldLocal_(space),
                         uOldNeighbor_(space)
    {
+      uOld_.clear();
       assert(theta_>=0 && theta_<=1);
       factorImp_=0.5*(1+theta_);
       factorExp_=0.5*(1-theta_);
@@ -244,10 +245,9 @@ class FDJacobianDGPhasefieldOperator
 
   public:
   //! constructor
-  FDJacobianDGPhasefieldOperator(const ModelType &model,
-      const DiscreteFunctionSpaceType &space,
-      const NumericalFluxType &flux)
-    :MyOperatorType(model,space,flux){} 
+  FDJacobianDGPhasefieldOperator( const ModelType &model,
+                                  const DiscreteFunctionSpaceType &space)
+    :MyOperatorType(model,space){} 
 
   using MyOperatorType::prepare;
   //! application operator 
@@ -266,7 +266,6 @@ class FDJacobianDGPhasefieldOperator
   using MyOperatorType::intersectionIntegral;
   using MyOperatorType::space;
   using MyOperatorType::model;
-  using MyOperatorType::penalty;
 
   protected:
   using MyOperatorType::model_;
@@ -300,7 +299,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   for( IteratorType it = space().begin(); it != end; ++it )
   {
    
-    bool boundaryElement=false;
+    //bool boundaryElement=false;
     // get entity (here element) 
     const EntityType &entity = *it;
     // get elements geometry
@@ -348,8 +347,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
           
 
-         const int quadOrderEn = uLocal.order() + wLocal.order();
-         const int quadOrderNb = uNeighbor.order() + wLocal.order();
+         //const int quadOrderEn = uLocal.order() + wLocal.order();
+         //const int quadOrderNb = uNeighbor.order() + wLocal.order();
 
          if( !Dune::Fem::GridPartCapabilities::isConforming< GridPartType >::v
                && !intersection.conforming())
@@ -371,7 +370,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         }
         else if (  intersection.boundary())
         {
-          boundaryElement=true;
+          //boundaryElement=true;
           const int quadOrderEn = uLocal.order() + wLocal.order();
 
           FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
@@ -385,7 +384,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
             JacobianRangeType duEn{0.},aduLeft{0.};
             uLocal.evaluate( quadInside[ pt ], vuEn);
             uLocal.jacobian( quadInside[ pt ], duEn);
-            const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
+            //const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
             const double weight = quadInside.weight( pt );
 
 
