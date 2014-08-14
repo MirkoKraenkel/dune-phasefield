@@ -85,17 +85,9 @@ void compute(Algorithm& algorithm)
   GridType& grid = gridPart.grid();
   // get some parameters
   const int eocSteps   = Dune::Fem::Parameter::getValue<int>("phasefield.eocSteps", 1);
-#if 1
-#ifdef MIXED
- typename Algorithm::IOTupleType dataTup ( &algorithm.solution(),nullptr,nullptr);
-#elif AC 
- typename Algorithm::IOTupleType dataTup ( &algorithm.solution());
-#else
- typename Algorithm::IOTupleType dataTup ( &algorithm.solution(),nullptr,nullptr,nullptr);
-#endif
+  typename Algorithm::IOTupleType dataTup =algorithm.getDataTuple();
   typedef Dune::Fem::DataOutput<GridType, typename Algorithm::IOTupleType> DataOutputType;
   DataOutputType dataOutput( grid, dataTup );
-#endif
   const unsigned int femTimerId = Dune::FemTimer::addTo("timestep");
   for(int eocloop=0; eocloop < eocSteps; ++eocloop)
   {
@@ -132,7 +124,6 @@ void compute(Algorithm& algorithm)
     const double h = Dune::Fem::GridWidth::calcGridWidth(algorithm.space().gridPart());
 
     algorithm.finalize( eocloop );
-#if 1 
     if( Dune::Fem::Parameter :: verbose() )
       Dune::Fem::FemEoc::write(h,grid.size(0), runTime, counter,avgTimeStep,minTimeStep,
                     maxTimeStep, total_newton_iterations, total_ils_iterations, 
@@ -141,11 +132,11 @@ void compute(Algorithm& algorithm)
       Dune::Fem::FemEoc::write(h,grid.size(0),runTime,counter,avgTimeStep,minTimeStep,
                     maxTimeStep,total_newton_iterations,total_ils_iterations,
                     max_newton_iterations, max_ils_iterations);
-#endif
- DataOutputType dataOutput( grid, dataTup );
+   
+    DataOutputType dataOutput( grid, dataTup );
 
  //       dataOutput.writeData(eocloop);
-     // Refine the grid for the next EOC Step. If the scheme uses adaptation,
+    // Refine the grid for the next EOC Step. If the scheme uses adaptation,
     // the refinement level needs to be set in the algorithms' initialize method.
     if(eocloop < eocSteps-1)
     {
