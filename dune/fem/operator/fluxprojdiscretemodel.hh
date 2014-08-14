@@ -203,7 +203,8 @@ namespace Dune {
                         RangeType& gLeft,
                         JacobianRangeType& gDiffLeft ) const   /*@LST0E@*/
     {
-      const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+      //const FaceDomainType& x = faceQuadInner.localPoint( quadPoint );
+
 
       RangeType uRight;
     
