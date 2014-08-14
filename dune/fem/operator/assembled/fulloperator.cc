@@ -296,7 +296,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
-
   fluxRet=flux_.numericalFlux( normal,
                               area,
                               vuEn,
@@ -306,7 +305,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                               avuLeft,
                               avuRight); 
  
-
   RangeType value(0);
   
   fluxRet+=flux_.diffusionFlux( normal,
@@ -390,7 +388,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                                         vuMidEn,
                                         duMidEn,    
                                         value,
-                                        advalue);
+                                        aduLeft);
 
   avuLeft+=value;
 
