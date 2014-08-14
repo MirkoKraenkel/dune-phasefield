@@ -137,8 +137,8 @@ inline void HeatProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double deltaInv=1./delta_;
-  double r=std::abs( arg[0]-0.5 );
-  double tanhr=tanh( ( r-radius_ )*deltaInv ); 
+  double r=arg[0]-0.5;//std::abs( arg[0]-0.5);
+  double tanhr=tanh( ( r )*deltaInv ); 
   //(1-tanh^2)/delta
   double drtanhr=deltaInv*(1-tanhr*tanhr);
   double drdrtanhr=tanhr*drtanhr;
@@ -146,7 +146,7 @@ inline void HeatProblem<GridType,RangeProvider>
   drdrtanhr*=-2*deltaInv;
  
   // double rho=1.85*(-0.5*tanhr+0.5)+
-   double rho=2.85*(-0.5*tanhr+0.5)+1.95;
+   double rho=(1.85)*(-0.5*tanhr+0.5)+1.95;
 
 
 
