@@ -1,5 +1,6 @@
 #ifndef ASSEMBLEDALGORITHM_HH
 #define ASSEMBLEDALGORITHM_HH
+#include "assembledtraits.hh"
 #include "algorithmbase.hh"
 //solver
 #include <dune/fem/solver/cginverseoperator.hh>
@@ -17,10 +18,12 @@ namespace Dune{
 
 template< class GridImp,
           class AlgorithmTraits>
-class AssembledAlgorithm: public PhasefieldAlgorithmBase<GridImp,AlgorithmTraits>
+class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits, AssembledAlgorithm< GridImp,AlgorithmTraits > > 
 {
  public:
- typedef PhasefieldAlgorithmBase<GridImp,AlgorithmTraits> BaseType;
+ typedef AssembledAlgorithm< GridImp, AlgorithmTraits> ThisType;
+ typedef PhasefieldAlgorithmBase< GridImp , AlgorithmTraits , ThisType > BaseType;
+
   typedef typename BaseType::Traits Traits;
   typedef typename BaseType::GridType GridType;
   typedef typename BaseType::DiscreteFunctionType DiscreteFunctionType;
@@ -38,11 +41,14 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase<GridImp,AlgorithmTraits
   //adaptation
   typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
 	typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
-
+  typedef typename Traits::IOTupleType IOTupleType;
+  
   using BaseType::grid_;
   using BaseType::gridPart_;
   using BaseType::space_;
   using BaseType::solution_;
+  using BaseType::oldsolution_;
+  using BaseType::energy_;
   using BaseType::model_;
   using BaseType::overallTimer_;
   using BaseType::tolerance_;
@@ -63,8 +69,12 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase<GridImp,AlgorithmTraits
       estimator_( solution_, grid_, model()),
       estimatorData_( "estimator", estimator_, gridPart_, space_.order() )
       {
-        start_.clear();
+      start_.clear();
       }
+
+    IOTupleType getDataTuple (){ return IOTupleType( &solution(),&oldsolution(), this->energy());}
+    
+    void initializeSolver(typename BaseType::TimeProviderType& timeProvider){};
 
     void step ( TimeProviderType& timeProvider,
 		  				  int& newton_iterations,
@@ -72,11 +82,11 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase<GridImp,AlgorithmTraits
 				  		  int& max_newton_iterations,
 					  	  int& max_ils_iterations)
 	  {
-      const double time=timeProvider.time();
-      const double deltaT=timeProvider.deltaT();
+     const double time=timeProvider.time();
+     const double deltaT=timeProvider.deltaT();
     
       DiscreteFunctionType& U=solution();
-
+      
       dgOperator_.setPreviousTimeStep(U);
       dgOperator_.setTime(time);
       dgOperator_.setDeltaT(deltaT);
@@ -95,7 +105,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase<GridImp,AlgorithmTraits
       max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
 	}
 	  
-  virtual void estimateMarkAdapt( AdaptationManagerType& am)
+  void estimateMarkAdapt( AdaptationManagerType& am)
   {
     estimator_.estimateAndMark(tolerance_);
     am.adapt();
@@ -105,6 +115,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase<GridImp,AlgorithmTraits
   using BaseType::gridSize;
   using BaseType::oldsolution;
   using BaseType::solution;
+
   using BaseType::energy;
   using BaseType::dataPrefix;
   using BaseType::problem;
