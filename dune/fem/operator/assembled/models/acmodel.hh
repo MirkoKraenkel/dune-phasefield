@@ -248,27 +248,27 @@ inline void PhasefieldModel< Grid, Problem>
     JacobianRangeType& diffusion) const
 {
   diffusion=0;
-  double mu1=problem_.thermodynamics().mu1();
-  double mu2=problem_.thermodynamics().mu2();
+ double mu2=problem_.thermodynamics().mu2();
 
-  //  diffusion*=mu1;
 #if LAPLACE 
    for(int ii = 0 ; ii < dimDomain ; ++ii )
     for(int jj = 0; jj < dimDomain ; ++ jj)
      Filter::dvelocity(diffusion,ii,jj )=mu2*Filter::dvelocity(dvu,ii,jj);
 #else
+  double mu1=problem_.thermodynamics().mu1();
+ 
   for(int ii = 0 ; ii < dimDomain ; ++ii )
-  {
-    for(int jj = 0; jj < dimDomain ; ++ jj)
-      {
-        Filter::dvelocity(diffusion,ii,ii)+=mu2*Filter::dvelocity(dvu,jj,jj);
-      }
+    {
+      for(int jj = 0; jj < dimDomain ; ++ jj)
+        {
+          Filter::dvelocity(diffusion,ii,ii)+=mu2*Filter::dvelocity(dvu,jj,jj);
+        }
 
-    for(int jj=0; jj<dimDomain ; ++jj )
-      {
-        Filter::dvelocity(diffusion,ii,jj)+=mu1*0.5*(Filter::dvelocity(dvu,ii,jj)+Filter::dvelocity(dvu,jj,ii));
+      for(int jj=0; jj<dimDomain ; ++jj )
+        {
+          Filter::dvelocity(diffusion,ii,jj)+=mu1*0.5*(Filter::dvelocity(dvu,ii,jj)+Filter::dvelocity(dvu,jj,ii));
+        } 
       }
-  }
 #endif
 }
 
