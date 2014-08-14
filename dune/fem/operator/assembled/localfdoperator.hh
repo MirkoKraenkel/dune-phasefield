@@ -177,12 +177,13 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         dueps.axpy( eps , dphi[ jj ] );
 
         localIntegral(pt,
-            geometry,
-            quadrature,
-            ueps,
-            dueps,
-            fueps,
-            fdueps);
+                      geometry,
+                      quadrature,
+                      ueps,
+                      dueps,
+                      fueps,
+                      fdueps);
+
         fueps-=fu;
         fueps*=epsInv;
         fdueps-=fdu;
@@ -311,10 +312,8 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
             fduepsNb-=aduLeft;
             fduepsNb*=epsInv;
-
             jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps, weight );
             jLocalNb.column( jj ).axpy( phi, dphi, fuepsNb,fduepsNb,weight); 
-
           }
         }
       } 
