@@ -31,6 +31,7 @@ class PhasefieldJacobianOperator
   typedef typename MyOperatorType::ModelType ModelType;
   typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
   typedef typename MyOperatorType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
+  typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
   typedef typename MyOperatorType::DomainType DomainType;
   typedef typename MyOperatorType::RangeType RangeType;
   typedef typename MyOperatorType::RangeFieldType RangeFieldType;
@@ -56,13 +57,13 @@ class PhasefieldJacobianOperator
   typedef typename JacobianOperatorType::LocalMatrixType RealLocalMatrixType;
   typedef Dune::Fem::MutableArray<RangeType> RangeVectorType;
   typedef Dune::Fem::MutableArray<JacobianRangeType> JacobianVectorType;
-  
   typedef typename MatrixHelper::Alignment< dimRange > DofAlignmentType;
-
 
   typedef typename Dune::FieldMatrix<double,dimRange,dimRange> FluxRangeType;
   typedef typename Dune::FieldVector<double,1> ComponentRangeType;
   typedef typename Dune::FieldMatrix<double,1,dimDomain> ComponentJacobianType;
+  typedef std::vector< ComponentRangeType> BasefunctionStorage;
+  typedef std::vector< ComponentJacobianType> BaseJacobianStorage;
   typedef typename std::array<DomainType, dimDomain> DiffusionValueType;
 
   public: 
@@ -105,7 +106,7 @@ class PhasefieldJacobianOperator
 
 
   typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
- 
+#if 0 
   template< class RangeVector, class JacobianVector>
   void myaxpy( const size_t jj,
                 const RangeVector& phi,
@@ -114,7 +115,7 @@ class PhasefieldJacobianOperator
                 const JacobianRangeType& jacobianFactor,
                 const double weight,
                 LocalMatrixType& jLocal) const;
-   
+   #endif
    template< class JacobianVector,class DiffusionTensor>
    void diffusionaxpy( const size_t local_i,
                  const size_t local_j,
@@ -136,6 +137,26 @@ class PhasefieldJacobianOperator
   {
     return scalarbf*dimRange+component;
   }
+  
+  template< bool conforming >
+  void computeIntersection ( const IntersectionType &intersection,
+                             const GeometryType& geometry,
+                             const GeometryType& geometryNb,
+                             const BasisFunctionSetType &baseSet,
+                             const BasisFunctionSetType &baseSetNb,
+                             const LocalFunctionType& uLocal,
+                             const LocalFunctionType& uLocalNb,
+                             BasefunctionStorage& phi,
+                             BasefunctionStorage& phiNb,
+                             BaseJacobianStorage& dphi,
+                             BaseJacobianStorage& dphiNb,
+                             LocalMatrixType&  jLocal,
+                             LocalMatrixType&  jLocalNbEn,
+                             LocalMatrixType&  jLocalEnNb,
+                             LocalMatrixType&  jLocalNbNb)  const;
+
+
+
 
   void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
   //template< class IntersectionQuad >
@@ -156,7 +177,7 @@ class PhasefieldJacobianOperator
 
 // Implementation of LocalFDOperator
 // // ------------------------------------------------
-
+# if 0
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
 template< class RangeVector, class JacobianVector>
 void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
@@ -184,7 +205,7 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
      jLocal.add( i , jj , weight * value );
    }
 }
-
+#endif
 
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
@@ -214,15 +235,199 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
      }
 }
 
+template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
+template< bool comforming >
+void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
+::computeIntersection ( const IntersectionType &intersection,
+                        const GeometryType& geometry,
+                        const GeometryType& geometryNb,
+                        const BasisFunctionSetType &baseSet,
+                        const BasisFunctionSetType &baseSetNb,
+                        const LocalFunctionType& uLocal,
+                        const LocalFunctionType& uLocalNb,
+                        BasefunctionStorage& phi,
+                        BasefunctionStorage& phiNb,
+                        BaseJacobianStorage& dphi,
+                        BaseJacobianStorage& dphiNb,
+                        LocalMatrixType&  jLocal,
+                        LocalMatrixType&  jLocalNbEn,
+                        LocalMatrixType&  jLocalEnNb,
+                        LocalMatrixType&  jLocalNbNb)  const
+{  
+  const unsigned int numScalarBf=baseSet.size()/dimRange;
+  const int quadOrderEn = 2*uLocal.order()+1;
+  const int quadOrderNb = 2*uLocalNb.order()+1;
+  const int maxOrder=std::max(quadOrderNb,quadOrderEn);
+  typedef Dune::Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
+  typedef typename IntersectionQuadratureType::FaceQuadratureType QuadratureImp;
+
+   IntersectionQuadratureType interQuad(space().gridPart(), intersection,maxOrder);
+ 
+   const QuadratureImp& quadInside=interQuad.inside();
+   const QuadratureImp& quadOutside=interQuad.outside();
+  
+
+ //               FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
+   //             FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
+   const size_t numQuadraturePoints = quadInside.nop();
+            
+   uEn_.resize( numQuadraturePoints );
+   uLocal.evaluateQuadrature(quadInside,uEn_);
+   duEn_.resize( numQuadraturePoints );
+   uLocal.evaluateQuadrature(quadInside,duEn_);
+   uNb_.resize( numQuadraturePoints );
+   uLocalNb.evaluateQuadrature(quadOutside,uNb_);
+   duNb_.resize( numQuadraturePoints );
+                uLocalNb.evaluateQuadrature(quadOutside,duNb_);
+
+                uEnOld_.resize( numQuadraturePoints );
+                uOldLocal_.evaluateQuadrature(quadInside,uEnOld_);
+                duEnOld_.resize( numQuadraturePoints );
+                uOldLocal_.evaluateQuadrature(quadInside,duEnOld_);
+                uNbOld_.resize( numQuadraturePoints ); 
+                uOldNeighbor_.evaluateQuadrature(quadOutside,uNbOld_);
+                duNbOld_.resize( numQuadraturePoints );
+                uOldNeighbor_.evaluateQuadrature(quadOutside,duNbOld_);
 
 
+                for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
+                  {
+                    RangeType    vuMidEn(0.), vuMidNb(0.);
+                    JacobianRangeType aduLeft(0.),aduRight(0.),duMidNb(0.), duMidEn(0.);
+                    FluxRangeType fluxLeft(0.), fluxRight(0.);
+                    
+                    const double weightInside=quadInside.weight( pt ); 
+                    const double weightOutside=quadOutside.weight( pt ); 
+                    
+                    MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
+                    MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi);
+
+                    MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb);
+                    MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb);
+
+                    vuMidEn.axpy( factorImp_ , uEn_[ pt ] );
+                    vuMidEn.axpy( factorExp_ , uEnOld_[ pt ] );
+
+                    vuMidNb.axpy( factorImp_ , uNb_[ pt ] );
+                    vuMidNb.axpy( factorExp_ , uNbOld_[ pt ]);
+
+                    duMidEn.axpy( factorImp_ , duEn_[ pt ] );
+                    duMidEn.axpy( factorExp_ , duEnOld_[ pt ] );
+
+                    duMidNb.axpy( factorImp_ , duNb_[ pt ] );
+                    duMidNb.axpy( factorExp_ , duNbOld_[ pt ] );
+
+                    const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+
+                    const DomainType normal = intersection.integrationOuterNormal( x );
+
+                    // compute penalty factor
+                    const double intersectionArea = normal.two_norm();
+                    const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
+                    const double area=std::min(areaEn_,areaNb_); 
+
+
+
+                    jacFlux_.numericalFlux( normal,
+                                            area,
+                                            vuMidEn,
+                                            vuMidNb,
+                                            fluxLeft,
+                                            fluxRight);
+
+                    for( size_t jj=0 ; jj < numScalarBf ; ++jj)
+                      {
+                        RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
+                        DiffusionType aLeft,aRight;
+                        DiffusionValueType bLeft, bRight; 
+
+                        jacFlux_.scalar2vectorialDiffusionFlux( normal,
+                                                                penaltyFactor,
+                                                                phi[ jj ],
+                                                                phiNb[ jj ],
+                                                                dphi[ jj ],
+                                                                dphiNb[ jj ],
+                                                                aLeft,
+                                                                aRight,
+                                                                bLeft,
+                                                                bRight );
+
+
+                        for( size_t ii = 0; ii < numScalarBf ; ++ii )
+                          {
+                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                                phi,
+                                                                                phi,
+                                                                                fluxLeft,
+                                                                                ii,
+                                                                                jj,
+                                                                                weightInside,
+                                                                                jLocal );
+
+                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                                phi,
+                                                                                phiNb,
+                                                                                fluxRight,
+                                                                                ii,
+                                                                                jj,
+                                                                                weightInside,
+                                                                                jLocalNbEn );
+
+                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                                phiNb,
+                                                                                phi,
+                                                                                fluxLeft,
+                                                                                ii,
+                                                                                jj,
+                                                                                weightOutside,
+                                                                                jLocalEnNb );
+
+                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                                phiNb,
+                                                                                phiNb,
+                                                                                fluxRight,
+                                                                                ii,
+                                                                                jj,
+                                                                                weightOutside,
+                                                                                jLocalNbNb );
+#if 1
+                        for(int i  = 0; i  < dimDomain ; ++i )
+                          {
+                            int global_i=ii*dimRange+1+i; 
+                            for(int j  = 0 ; j  < dimDomain ; ++j )
+                              {
+                                int global_j= jj*dimRange+1+j;
+                                double valueEn,valueNb; 
+                                
+                                valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
+                                valueEn+=bLeft[ j ][ i ]*phi[ ii ];
+                                valueNb=-1*(aRight[ j ][ i ]*dphi[ ii ][ 0 ]);
+                                valueNb+=bRight[ j ][ i ]*phi[ ii ];
+
+                                jLocal.add( global_i , global_j , weightInside*valueEn*0.5); 
+                                jLocalNbEn.add( global_i , global_j , weightInside*valueNb*0.5);
+                                
+                                valueEn=(aLeft[ j ][ i ]*dphiNb[ ii ][ 0 ]);
+                                valueEn-=bLeft[ j ][ i ]*phiNb[ ii ];
+                                valueNb=-1*(aRight[ j ][ i ]*dphiNb[ ii][ 0 ]);
+                                valueNb-=bRight[ j ][ i ]*phiNb[ ii ];
+
+                                jLocalEnNb.add( global_i , global_j , weightOutside*valueEn*0.5); 
+                                jLocalNbNb.add( global_i , global_j , weightOutside*valueNb*0.5);
+                               
+                              }
+                          }
+#endif
+                      } 
+                }
+          }
+
+}
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> void
 PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 ::jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const
 {
- typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
-
   Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil(space(),space());
   jOp.reserve(stencil);
 
@@ -241,12 +446,13 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
   const unsigned int numDofs = dfSpace.blockMapper().maxNumDofs() * 
     DiscreteFunctionSpaceType :: localBlockSize ;
+  
+  const unsigned int scalarDofs=numDofs/dimRange;
 
-
-  std::vector< ComponentRangeType> phi( numDofs/dimRange);
-  std::vector< ComponentJacobianType> dphi( numDofs/dimRange);
-  std::vector< ComponentRangeType> phiNb( numDofs/dimRange);
-  std::vector< ComponentJacobianType> dphiNb( numDofs/dimRange);
+  std::vector< ComponentRangeType> phi( scalarDofs );
+  std::vector< ComponentJacobianType> dphi( scalarDofs );
+  std::vector< ComponentRangeType> phiNb( scalarDofs );
+  std::vector< ComponentJacobianType> dphiNb( scalarDofs );
  
  
   const IteratorType end = dfSpace.end();
@@ -443,9 +649,48 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                 // get neighbor's base function set 
                 const BasisFunctionSetType &baseSetNb = jLocalNbEn.domainBasisFunctionSet();
                 //const unsigned int numBasisFunctionsNb = baseSetNb.size();
+                
+                if( !Dune::Fem::GridPartCapabilities::isConforming< GridPartType >::v
+                    && !intersection.conforming())
+                  {
+                    computeIntersection<false>( intersection,
+                                                geometry,
+                                                geometryNb,
+                                                baseSet,
+                                                baseSetNb,
+                                                uLocal,
+                                                uLocalNb,
+                                                phi,
+                                                phiNb,
+                                                dphi,
+                                                dphiNb,
+                                                jLocal,
+                                                jLocalNbEn,
+                                                jLocalEnNb,
+                                                jLocalNbNb);
+                  }
+                  else
+                  {
+                    computeIntersection<true>( intersection,
+                                                geometry,
+                                                geometryNb,
+                                                baseSet,
+                                                baseSetNb,
+                                                uLocal,
+                                                uLocalNb,
+                                                phi,
+                                                phiNb,
+                                                dphi,
+                                                dphiNb,
+                                                jLocal,
+                                                jLocalNbEn,
+                                                jLocalEnNb,
+                                                jLocalNbNb);
 
-                const int quadOrderEn = 2*uLocal.order();
-                const int quadOrderNb = 2*uLocalNb.order();
+                  }
+                #if 0
+                const int quadOrderEn = 2*uLocal.order()+1;
+                const int quadOrderNb = 2*uLocalNb.order()+1;
 
                 FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
                 FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
@@ -482,9 +727,8 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                     MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
                     MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi);
 
-                   MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb);
-                   MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb);
-
+                    MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb);
+                    MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb);
 
                     vuMidEn.axpy( factorImp_ , uEn_[ pt ] );
                     vuMidEn.axpy( factorExp_ , uEnOld_[ pt ] );
@@ -602,6 +846,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                       } 
                 }
           }
+          #endif
           add( jLocal, realLocal);
           add( jLocalEnNb, realLocalEnNb);
           add( jLocalNbEn, realLocalNbEn);
