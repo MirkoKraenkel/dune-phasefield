@@ -30,6 +30,7 @@ AC_CONFIG_FILES([
   dune/fem/adaptation/Makefile
   dune/fem/base/Makefile
   dune/fem/util/Makefile
+  dune/fem/misc/Makefile
   dune/fem/main/Makefile
   dune/fem/fluxes/Makefile
   dune/fem/operator/Makefile
