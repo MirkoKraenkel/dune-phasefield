@@ -19,6 +19,8 @@
 #include <string>
 // fem includes
 #include <dune/fem/misc/l2norm.hh>
+#include <dune/fem/misc/componentl2norm.hh>
+
 #include <dune/fem/operator/projection/l2projection.hh>
 #include <dune/fem/gridpart/common/gridpart.hh>
 #include <dune/fem/gridpart/adaptiveleafgridpart.hh>
@@ -77,6 +79,7 @@ public:
 	typedef GridImp GridType;
   typedef Fem::BartonNackmanInterface< PhasefieldAlgorithmBase< GridImp , AlgorithmTraits, Impl>, Impl > BaseType;
 
+  enum{ dimDomain= GridType::dimensionworld };
 
   //traits class gathers types depending on the problem and the operator which is specified there 
 	typedef AlgorithmTraits Traits;
@@ -270,7 +273,10 @@ public:
   /*virtual*/ void estimateMarkAdapt( AdaptationManagerType& am ){};
 
   template<class Stream>
-  void writeEnergy( TimeProviderType& timeProvider,Stream& str){}
+  void writeEnergy( TimeProviderType& timeProvider,Stream& str)
+  { 
+    BaseType::asImp().writeEnergy( timeProvider, str);
+  }
   
   //! write data, if pointer to additionalVariables is true, they are calculated first 
   void writeData( DataWriterType& eocDataOutput,
@@ -453,8 +459,7 @@ public:
         writeEnergy( timeProvider , energyfile);
      }
 
- 
-    writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
+   writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
     checkPointer.write(timeProvider);
     //statistics
     mindt = (ldt<mindt) ? ldt : mindt;
@@ -469,6 +474,7 @@ public:
       timeProvider.next( fixedTimeStep_ );
     else
       timeProvider.next(); 
+    Uold.assign(U); 
   
     }		/*end of timeloop*/
  
@@ -499,12 +505,42 @@ public:
     return error;
 	}
   
+  inline double densityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
+	{
+		typedef typename DiscreteFunctionType :: RangeType RangeType;
+    std::vector<unsigned int> comp{0.};
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+    return error;
+	}
+  inline double phasefieldError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
+	{
+		typedef typename DiscreteFunctionType :: RangeType RangeType;
+    std::vector<unsigned int> comp{ dimDomain +1 };
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+    return error;
+	}
+  inline double velocityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
+	{
+		typedef typename DiscreteFunctionType :: RangeType RangeType;
+    std::vector<unsigned int> comp;
+    for (int i = 0 ; i < dimDomain ; ++i)
+      comp.push_back(1+i);
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+    return error;
+	}
+  
   //compute Error between old and NewTimeStep
   inline double stepError(DiscreteFunctionType uOld, DiscreteFunctionType& uNew)
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
-		Fem::L2Norm<GridPartType> l2norm(gridPart_);
-	  return l2norm.distance(uOld, uNew);
+//		Fem::L2Norm<GridPartType> l2norm(gridPart_);
+    std::vector<unsigned int> comp{ dimDomain +1 };
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,2);
+    
+    return l2norm.distance(uOld, uNew);
 	}
 
 	/*virtual*/ void finalizeStep(TimeProviderType& timeProvider)
@@ -514,7 +550,7 @@ public:
 
 		// ... and print the statistics out to a file
 		if( doFemEoc )
-			Fem::FemEoc::setErrors(eocId_, error(timeProvider, u));
+			Fem::FemEoc::setErrors(eocId_, phasefieldError(timeProvider, u));
 	
 		delete adaptationHandler_;
 		adaptationHandler_ = 0;
