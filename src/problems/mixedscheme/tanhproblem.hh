@@ -146,11 +146,8 @@ inline void HeatProblem<GridType,RangeProvider>
   drdrtanhr*=-2*deltaInv;
  
   // double rho=1.85*(-0.5*tanhr+0.5)+
-   double rho=(1.85)*(-0.5*tanhr+0.5)+1.95;
-
-
-
-  //double v=sinx*cost;
+  double rho=(1.845933854)*(-0.5*tanhr+0.5)+1.947734046;
+  
   double v=0;
   //rho
   res[0]= rho;
@@ -166,56 +163,54 @@ inline void HeatProblem<GridType,RangeProvider>
    double phi=0.5*tanhr+0.5;
    
    res[dimension+1]=phi;
-  
-  double laplacePhi=delta_*0.5*drdrtanhr;
-  if(arg[0]>0.5)
-    laplacePhi*=-1;
+ 
+#if MIXED
+  // if(arg[0]>0.5)
+ //   laplacePhi*=-1;
 
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
-     
-  if( dimRange > dimDomain+2)
-   {
-    //mu
-     res[dimension+2]=0.5*v*v+dFdrho;
-    //tau
-#if RHOMODEL
-      abort();
-#else
-    if(arg[0]<0.5)
-    res[dimension+3]=dFdphi-laplacePhi;
-      else
-    res[dimension+3]=dFdphi+laplacePhi;
-#endif
+  double sigma=0.5*drtanhr;
+  double gradrho=-0.5*1.845933854*drtanhr;
+  double rhoInv=1./rho;
+  double hprime=-1./(rho*rho);
+  double laplacePhi=0.5*drdrtanhr;
 
-#if SCHEME==DG
-    //sigma
-    if(dimension==1)
-      {
-       if(arg[0]<0.5)
-        res[dimension+4]=-0.5*drtanhr;
-       else
-        res[dimension+4]=0.5*drtanhr;
- 
-      #if RHOMODEL
-        res[dimension+5]=res[dimension+4]*rho;
-      #endif
-      }
-     else
-      {  
-          
-       res[dimension+5]=0; 
-      }
-    }
-   else
+#if RHOMODEL     
+  //mu
+  res[dimension+2]=0.5*v*v+dFdrho-delta_*rhoInv *0.5*sigma*sigma;
+  //tau
+  res[dimension+3]=dFdphi-delta_*rhoInv*laplacePhi+hprime*gradrho*sigma;
+  //sigma_x
+  res[dimension+4]=sigma;
+#else
+  //mu
+  res[dimension+2]=0.5*v*v+dFdrho;
+  //tau
+  res[dimension+3]=dFdphi-delta_*laplacePhi;
+  //sigma_x
+  res[dimension+4]=sigma;
+#endif
+#if LAMBDASCHEME
+  //alpha_x
+  res[dimension+4+dimension]=res[dimension+4]*rhoInv;
+#endif
+  if(dimension==2)
     {
-#if NONCONTRANS
-
-#else
-      res[2]*=res[0];
+      //sigma_y
+      res[dimension+5]=0.;
+#if LAMBDASCHEME
+      //alpha_x
+      res[dimension+7]=0.;
 #endif
     }
-#elif SCHEME==FEM
+    
+#else
+#if NONCONTRANS
+#else
+    res[1]*=res[0];
+ res[2]*=res[0];
+#endif
 #endif
 }
 

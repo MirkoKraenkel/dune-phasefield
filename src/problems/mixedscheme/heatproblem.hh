@@ -130,57 +130,63 @@ inline void HeatProblem<GridType,RangeProvider>
   double sinx=sin(2*M_PI*x);
     
   double rho=rho_;
-   //double v=sinx*cost;
-   double v=0;
-   //rho
-   res[0]= rho;
-   //v
-   for(int i=1;i<=dimension;i++)
+  double rho_inv=1./rho_;
+  double v=0;
+  //rho
+  res[0]= rho;
+  //v
+  for(int i=1;i<=dimension;i++)
    {
-     res[i]=v;
+    res[i]=v;
    }
-   if(dimension==2)
+  
+  if(dimension==2)
      res[2]=0;
+   
    double  phi=0.05*cosx+0.5;
    res[dimension+1]=phi;
-   
+
+
+#if MIXED     
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
-     
-   if( dimRange > dimDomain+2)
+  double sigma=-2*M_PI*sinx*cost*0.05;
+#if RHOMODEL
+  //mu
+  res[dimension+2]=0.5*v*v+dFdrho-thermodyn_.delta()*rho_inv*rho_inv*sigma*sigma*0.5;
+  //tau
+  res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*rho_inv*cosx+dFdphi;
+  //sigma_x
+  res[dimension+4]=sigma;
+#else
+  //mu
+  res[dimension+2]=0.5*v*v+dFdrho;
+  //tau
+  res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*cosx+dFdphi;
+  //sigma_x
+  res[dimension+4]=sigma;
+#endif
+#if LAMBDASCHEME 
+  //alpha_x
+  res[dimension+4+dimension]=res[dimension+4]*rho_inv;
+#endif
+  if(dimension==2)
     {
-      //mu
-      res[dimension+2]=0.5*v*v+dFdrho;
-      //tau
-      res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*cosx+dFdphi;
-
-
-#if SCHEME==DG
-    //sigma
-    if(dimension==1)
-      {
-        res[dimension+4]=-2*M_PI*sinx*cost*0.05;
-      #if RHOMODEL
-        res[dimension+5]=res[dimension+4]*rho;
-      #endif
-      }
-     else
-      { 
-        res[dimension+4]=-2*M_PI*sinx*cost*0.05;
-        res[dimension+5]=0; 
-      }
+      //sigma_y
+      res[dimension+5]=0.;
+#if LAMBDASCHEME
+      //alpha_y
+      res[dimension+7]=0.;
+#endif
     }
-   else
-    {
-#if NONCONTRANS
+#else
 
+#if NONCONTRANS
 #else
       res[1]*=res[0];
       res[2]*=res[0];
 #endif
-    }
-#elif SCHEME==FEM
-#endif
+#endif    
 }
 
 
