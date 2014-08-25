@@ -161,7 +161,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	  therm = thermoDynamics_.helmholtz( cons[0], phi );
 	  therm +=surfaceEnergy;
     kin  = kineticEnergy;
-    total = therm+kinenticEnergy; 
+    total = therm+kineticEnergy; 
   }
 
   template< class Thermodynamics >
@@ -243,7 +243,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     //-(\rho\nabla\mu-\tau\nabla\phi) 
     f[1]=-dtheta[0]*u[0]+dphi*theta[1];
     f[phaseId]=theta[1];
-    f[phaseId]*=-1.
+    f[phaseId]*=-1.;
     f[phaseId]*=rho_inv;
     f[phaseId]*=reactionFac;
     //nonconservative Discretization of transport term
