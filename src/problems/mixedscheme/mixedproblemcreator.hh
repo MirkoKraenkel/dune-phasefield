@@ -20,17 +20,15 @@
 #include "../passscheme/problemtype.hh"
 
 //#include <dune/fem/operator/assembled/heatmodel.hh>
-#include <dune/fem/operator/assembled/models/acmodel.hh>
-//#if RHOMODEL
-//#include <dune/fem/operator/assembled/fluxes/fluxRho.hh>
-//#else
+#include <dune/fem/operator/assembled/models/phasefieldmodel.hh>
 #include <dune/fem/operator/assembled/fluxes/flux.hh>
 //#endif
 template< class GridType > 
 struct MixedProblemGenerator 
 {
   typedef PhaseProblemType ProblemType;
-
+  
+  enum{ dimRange=ProblemType::dimRange};
   template< class GridPart >
   struct Traits
   {
