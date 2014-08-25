@@ -15,10 +15,11 @@ struct RangeTypeProvider;
 template< int dimension>
 struct RangeTypeProvider<dimension,true>
 {
-#if RHOMODEL
-  enum{ rangeDim=2*dimension+5 };
+#if LAMBDASCHEME 
+  enum{ rangeDim=3*dimension+4 };
 #else
-  enum{ rangeDim=2*dimension+4 };
+#warning "NOLAMBDASCHEME"
+enum{ rangeDim=2*dimension+4 };
 #endif
 
 #if 0
@@ -66,15 +67,28 @@ typedef TravelProblem< GridSelector :: GridType,
 #include "bubbleproblem.hh"
 typedef BubbleProblem< GridSelector:: GridType>  PhaseProblemType;
 #elif PROBLEM==7
+#if MIXED
 #include "../mixedscheme/heatproblem.hh"
 typedef HeatProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
+#else
+#include "../mixedscheme/heatproblem.hh"
+typedef HeatProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
+        >PhaseProblemType;
+#endif
 #elif PROBLEM==8
 #include "../mixedscheme/tanhproblem.hh"
+#if MIXED
 typedef HeatProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
+#else
+typedef HeatProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
+        >PhaseProblemType;
+#endif
 #else      
 #error "No valid problem number specified"
 #endif
