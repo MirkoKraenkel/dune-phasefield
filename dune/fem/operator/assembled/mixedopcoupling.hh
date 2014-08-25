@@ -255,172 +255,181 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                         LocalMatrixType&  jLocalNbNb)  const
 {  
   const unsigned int numScalarBf=baseSet.size()/dimRange;
-  const int quadOrderEn = 2*uLocal.order()+1;
-  const int quadOrderNb = 2*uLocalNb.order()+1;
+  const int quadOrderEn = 2*uLocal.order();
+  const int quadOrderNb = 2*uLocalNb.order();
   const int maxOrder=std::max(quadOrderNb,quadOrderEn);
   typedef Dune::Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
   typedef typename IntersectionQuadratureType::FaceQuadratureType QuadratureImp;
 
-   IntersectionQuadratureType interQuad(space().gridPart(), intersection,maxOrder);
+  IntersectionQuadratureType interQuad(space().gridPart(), intersection,maxOrder);
  
-   const QuadratureImp& quadInside=interQuad.inside();
-   const QuadratureImp& quadOutside=interQuad.outside();
+  const QuadratureImp& quadInside=interQuad.inside();
+  const QuadratureImp& quadOutside=interQuad.outside();
   
 
- //               FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
-   //             FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
-   const size_t numQuadraturePoints = quadInside.nop();
+  const size_t numQuadraturePoints = quadInside.nop();
             
-   uEn_.resize( numQuadraturePoints );
-   uLocal.evaluateQuadrature(quadInside,uEn_);
-   duEn_.resize( numQuadraturePoints );
-   uLocal.evaluateQuadrature(quadInside,duEn_);
-   uNb_.resize( numQuadraturePoints );
-   uLocalNb.evaluateQuadrature(quadOutside,uNb_);
-   duNb_.resize( numQuadraturePoints );
+  uEn_.resize( numQuadraturePoints );
+  uLocal.evaluateQuadrature(quadInside,uEn_);
+  duEn_.resize( numQuadraturePoints );
+  uLocal.evaluateQuadrature(quadInside,duEn_);
+  uNb_.resize( numQuadraturePoints );
+  uLocalNb.evaluateQuadrature(quadOutside,uNb_);
+  duNb_.resize( numQuadraturePoints );
                 uLocalNb.evaluateQuadrature(quadOutside,duNb_);
 
-                uEnOld_.resize( numQuadraturePoints );
-                uOldLocal_.evaluateQuadrature(quadInside,uEnOld_);
-                duEnOld_.resize( numQuadraturePoints );
-                uOldLocal_.evaluateQuadrature(quadInside,duEnOld_);
-                uNbOld_.resize( numQuadraturePoints ); 
-                uOldNeighbor_.evaluateQuadrature(quadOutside,uNbOld_);
-                duNbOld_.resize( numQuadraturePoints );
-                uOldNeighbor_.evaluateQuadrature(quadOutside,duNbOld_);
+  uEnOld_.resize( numQuadraturePoints );
+  uOldLocal_.evaluateQuadrature(quadInside,uEnOld_);
+  duEnOld_.resize( numQuadraturePoints );
+  uOldLocal_.evaluateQuadrature(quadInside,duEnOld_);
+  uNbOld_.resize( numQuadraturePoints ); 
+  uOldNeighbor_.evaluateQuadrature(quadOutside,uNbOld_);
+  duNbOld_.resize( numQuadraturePoints );
+  uOldNeighbor_.evaluateQuadrature(quadOutside,duNbOld_);
 
 
-                for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
-                  {
-                    RangeType    vuMidEn(0.), vuMidNb(0.);
-                    JacobianRangeType aduLeft(0.),aduRight(0.),duMidNb(0.), duMidEn(0.);
-                    FluxRangeType fluxLeft(0.), fluxRight(0.);
+  for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
+    {
+      RangeType    vuMidEn(0.), vuMidNb(0.);
+      JacobianRangeType aduLeft(0.),aduRight(0.),duMidNb(0.), duMidEn(0.);
+      FluxRangeType fluxLeft(0.), fluxRight(0.);
+      FluxRangeType fluxLeftNeg(0.), fluxRightNeg(0.);
                     
-                    const double weightInside=quadInside.weight( pt ); 
-                    const double weightOutside=quadOutside.weight( pt ); 
-                    
-                    MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
-                    MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi);
+      const double weightInside=quadInside.weight( pt ); 
+      const double weightOutside=quadOutside.weight( pt ); 
 
-                    MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb);
-                    MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb);
+      MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
+      MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi);
 
-                    vuMidEn.axpy( factorImp_ , uEn_[ pt ] );
-                    vuMidEn.axpy( factorExp_ , uEnOld_[ pt ] );
+      MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb);
+      MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb);
 
-                    vuMidNb.axpy( factorImp_ , uNb_[ pt ] );
-                    vuMidNb.axpy( factorExp_ , uNbOld_[ pt ]);
+      vuMidEn.axpy( factorImp_ , uEn_[ pt ] );
+      vuMidEn.axpy( factorExp_ , uEnOld_[ pt ] );
 
-                    duMidEn.axpy( factorImp_ , duEn_[ pt ] );
-                    duMidEn.axpy( factorExp_ , duEnOld_[ pt ] );
+      vuMidNb.axpy( factorImp_ , uNb_[ pt ] );
+      vuMidNb.axpy( factorExp_ , uNbOld_[ pt ]);
 
-                    duMidNb.axpy( factorImp_ , duNb_[ pt ] );
-                    duMidNb.axpy( factorExp_ , duNbOld_[ pt ] );
+      duMidEn.axpy( factorImp_ , duEn_[ pt ] );
+      duMidEn.axpy( factorExp_ , duEnOld_[ pt ] );
 
-                    const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+      duMidNb.axpy( factorImp_ , duNb_[ pt ] );
+      duMidNb.axpy( factorExp_ , duNbOld_[ pt ] );
 
-                    const DomainType normal = intersection.integrationOuterNormal( x );
+      const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
 
-                    // compute penalty factor
-                    const double intersectionArea = normal.two_norm();
-                    const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
-                    const double area=std::min(areaEn_,areaNb_); 
+      const DomainType normal = intersection.integrationOuterNormal( x );
 
-
-
-                    jacFlux_.numericalFlux( normal,
-                                            area,
-                                            vuMidEn,
-                                            vuMidNb,
-                                            fluxLeft,
-                                            fluxRight);
-
-                    for( size_t jj=0 ; jj < numScalarBf ; ++jj)
-                      {
-                        RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
-                        DiffusionType aLeft,aRight;
-                        DiffusionValueType bLeft, bRight; 
-
-                        jacFlux_.scalar2vectorialDiffusionFlux( normal,
-                                                                penaltyFactor,
-                                                                phi[ jj ],
-                                                                phiNb[ jj ],
-                                                                dphi[ jj ],
-                                                                dphiNb[ jj ],
-                                                                aLeft,
-                                                                aRight,
-                                                                bLeft,
-                                                                bRight );
+      // compute penalty factor
+      const double intersectionArea = normal.two_norm();
+      const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
+      const double area=std::min(areaEn_,areaNb_); 
 
 
-                        for( size_t ii = 0; ii < numScalarBf ; ++ii )
-                          {
-                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                                phi,
-                                                                                phi,
-                                                                                fluxLeft,
-                                                                                ii,
-                                                                                jj,
-                                                                                weightInside,
-                                                                                jLocal );
 
-                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                                phi,
-                                                                                phiNb,
-                                                                                fluxRight,
-                                                                                ii,
-                                                                                jj,
-                                                                                weightInside,
-                                                                                jLocalNbEn );
+      jacFlux_.numericalFlux( normal,
+                              area,
+                              vuMidEn,
+                              vuMidNb,
+                              fluxLeft,
+                              fluxRight);
+      DomainType negnormal=normal;
+      negnormal*=-1;
+     jacFlux_.numericalFlux(negnormal,
+                            area,
+                            vuMidNb,
+                            vuMidEn,
+                            fluxLeftNeg,
+                            fluxRightNeg);
 
-                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                                phiNb,
-                                                                                phi,
-                                                                                fluxLeft,
-                                                                                ii,
-                                                                                jj,
-                                                                                weightOutside,
-                                                                                jLocalEnNb );
 
-                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                                phiNb,
-                                                                                phiNb,
-                                                                                fluxRight,
-                                                                                ii,
-                                                                                jj,
-                                                                                weightOutside,
-                                                                                jLocalNbNb );
-#if 1
-                        for(int i  = 0; i  < dimDomain ; ++i )
-                          {
-                            int global_i=ii*dimRange+1+i; 
-                            for(int j  = 0 ; j  < dimDomain ; ++j )
-                              {
-                                int global_j= jj*dimRange+1+j;
-                                double valueEn,valueNb; 
-                                
-                                valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
-                                valueEn+=bLeft[ j ][ i ]*phi[ ii ];
-                                valueNb=-1*(aRight[ j ][ i ]*dphi[ ii ][ 0 ]);
-                                valueNb+=bRight[ j ][ i ]*phi[ ii ];
+      for( size_t jj=0 ; jj < numScalarBf ; ++jj)
+        {
+          RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
+          DiffusionType aLeft,aRight;
+          DiffusionValueType bLeft, bRight; 
 
-                                jLocal.add( global_i , global_j , weightInside*valueEn*0.5); 
-                                jLocalNbEn.add( global_i , global_j , weightInside*valueNb*0.5);
-                                
-                                valueEn=(aLeft[ j ][ i ]*dphiNb[ ii ][ 0 ]);
-                                valueEn-=bLeft[ j ][ i ]*phiNb[ ii ];
-                                valueNb=-1*(aRight[ j ][ i ]*dphiNb[ ii][ 0 ]);
-                                valueNb-=bRight[ j ][ i ]*phiNb[ ii ];
+          jacFlux_.scalar2vectorialDiffusionFlux( normal,
+                                                  penaltyFactor,
+                                                  phi[ jj ],
+                                                  phiNb[ jj ],
+                                                  dphi[ jj ],
+                                                  dphiNb[ jj ],
+                                                  aLeft,
+                                                  aRight,
+                                                  bLeft,
+                                                  bRight );
 
-                                jLocalEnNb.add( global_i , global_j , weightOutside*valueEn*0.5); 
-                                jLocalNbNb.add( global_i , global_j , weightOutside*valueNb*0.5);
-                               
-                              }
-                          }
+
+          for( size_t ii = 0; ii < numScalarBf ; ++ii )
+          {
+            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                phi,
+                phi,
+                fluxLeft,
+                ii,
+                jj,
+                weightInside,
+                jLocal );
+
+            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                phi,
+                phiNb,
+                fluxRight,
+                ii,
+                jj,
+                weightInside,
+                jLocalNbEn );
+#if 1 
+            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                phiNb,
+                phi,
+                fluxRightNeg,
+                ii,
+                jj,
+                weightOutside,
+                jLocalEnNb );
+
+            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                phiNb,
+                phiNb,
+                fluxLeftNeg,
+                ii,
+                jj,
+                weightOutside,
+                jLocalNbNb );
 #endif
-                      } 
-                }
-          }
+#if 1
+            for(int i  = 0; i  < dimDomain ; ++i )
+            {
+              int global_i=ii*dimRange+1+i; 
+              for(int j  = 0 ; j  < dimDomain ; ++j )
+              {
+                int global_j= jj*dimRange+1+j;
+                double valueEn,valueNb; 
+
+                valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
+                valueEn+=bLeft[ j ][ i ]*phi[ ii ];
+                valueNb=-1*(aRight[ j ][ i ]*dphi[ ii ][ 0 ]);
+                valueNb+=bRight[ j ][ i ]*phi[ ii ];
+
+                jLocal.add( global_i , global_j , weightInside*valueEn*0.5); 
+                jLocalNbEn.add( global_i , global_j , weightInside*valueNb*0.5);
+
+                valueEn=(aLeft[ j ][ i ]*dphiNb[ ii ][ 0 ]);
+                valueEn-=bLeft[ j ][ i ]*phiNb[ ii ];
+                valueNb=-1*(aRight[ j ][ i ]*dphiNb[ ii][ 0 ]);
+                valueNb-=bRight[ j ][ i ]*phiNb[ ii ];
+
+                jLocalEnNb.add( global_i , global_j , weightOutside*valueEn*0.5); 
+                jLocalNbNb.add( global_i , global_j , weightOutside*valueNb*0.5);
+
+              }
+            }
+#endif
+          } 
+        }
+    }
 
 }
 
@@ -525,7 +534,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
               //div u*phi_rho + v\cdot\nabla phi_rho 
               flux[0][0]+=0.5*(duMid[ 1+kk ][ kk ]*phi[ jj ][ 0 ]+vuMid[ 1+kk ]*dphi[ jj ][ 0 ][ kk ]);
               // rho*div phi_v +\nabla\rho\cdot\phi_v
-              flux[ 0 ][ 1+kk ]=0.5*vuMid[0]*dphi[ jj ][0 ][kk]+duMid[0][ kk ]*phi[ jj ][0];
+              flux[ 0 ][ 1+kk ]=0.5*(vuMid[0]*dphi[ jj ][0 ][kk]+duMid[0][ kk ]*phi[ jj ][0]);
       
               flux[1+kk][0] = (vu[ 1 + kk ]-vuOld[ 1 + kk ])*phi[ jj ][0]*0.5;
               flux[1+kk][1+kk]=phi[ jj ][ 0 ]*vuMid[0]*deltaTInv;
@@ -607,9 +616,10 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             } 
       }
     } 
-    add(jLocal, realLocal);
+   add(jLocal, realLocal);
+    //
     jLocal.clear();
-    if ( space().continuous() )
+    if (space().continuous() )
       continue;
     
     const IntersectionIteratorType endiit = gridPart.iend( entity );
@@ -688,275 +698,121 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                                 jLocalNbNb);
 
                   }
-                #if 0
-                const int quadOrderEn = 2*uLocal.order()+1;
-                const int quadOrderNb = 2*uLocalNb.order()+1;
-
-                FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
-                FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
-                const size_t numQuadraturePoints = quadInside.nop();
-            
-                uEn_.resize( numQuadraturePoints );
-                uLocal.evaluateQuadrature(quadInside,uEn_);
-                duEn_.resize( numQuadraturePoints );
-                uLocal.evaluateQuadrature(quadInside,duEn_);
-                uNb_.resize( numQuadraturePoints );
-                uLocalNb.evaluateQuadrature(quadOutside,uNb_);
-                duNb_.resize( numQuadraturePoints );
-                uLocalNb.evaluateQuadrature(quadOutside,duNb_);
-
-                uEnOld_.resize( numQuadraturePoints );
-                uOldLocal_.evaluateQuadrature(quadInside,uEnOld_);
-                duEnOld_.resize( numQuadraturePoints );
-                uOldLocal_.evaluateQuadrature(quadInside,duEnOld_);
-                uNbOld_.resize( numQuadraturePoints ); 
-                uOldNeighbor_.evaluateQuadrature(quadOutside,uNbOld_);
-                duNbOld_.resize( numQuadraturePoints );
-                uOldNeighbor_.evaluateQuadrature(quadOutside,duNbOld_);
-
-
-                for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
-                  {
-                    RangeType    vuMidEn(0.), vuMidNb(0.);
-                    JacobianRangeType aduLeft(0.),aduRight(0.),duMidNb(0.), duMidEn(0.);
-                    FluxRangeType fluxLeft(0.), fluxRight(0.);
-                    
-                    const double weightInside=quadInside.weight( pt ); 
-                    const double weightOutside=quadOutside.weight( pt ); 
-                    
-                    MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
-                    MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi);
-
-                    MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb);
-                    MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb);
-
-                    vuMidEn.axpy( factorImp_ , uEn_[ pt ] );
-                    vuMidEn.axpy( factorExp_ , uEnOld_[ pt ] );
-
-                    vuMidNb.axpy( factorImp_ , uNb_[ pt ] );
-                    vuMidNb.axpy( factorExp_ , uNbOld_[ pt ]);
-
-                    duMidEn.axpy( factorImp_ , duEn_[ pt ] );
-                    duMidEn.axpy( factorExp_ , duEnOld_[ pt ] );
-
-                    duMidNb.axpy( factorImp_ , duNb_[ pt ] );
-                    duMidNb.axpy( factorExp_ , duNbOld_[ pt ] );
-
-                    const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
-
-                    const DomainType normal = intersection.integrationOuterNormal( x );
-
-                    // compute penalty factor
-                    const double intersectionArea = normal.two_norm();
-                    const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
-                    const double area=std::min(areaEn_,areaNb_); 
-
-
-
-                    jacFlux_.numericalFlux( normal,
-                                            area,
-                                            vuMidEn,
-                                            vuMidNb,
-                                            fluxLeft,
-                                            fluxRight);
-
-                    for( size_t jj=0 ; jj < numScalarBf ; ++jj)
-                      {
-                        RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
-                        DiffusionType aLeft,aRight;
-                        DiffusionValueType bLeft, bRight; 
-
-                        jacFlux_.scalar2vectorialDiffusionFlux( normal,
-                                                                penaltyFactor,
-                                                                phi[ jj ],
-                                                                phiNb[ jj ],
-                                                                dphi[ jj ],
-                                                                dphiNb[ jj ],
-                                                                aLeft,
-                                                                aRight,
-                                                                bLeft,
-                                                                bRight );
-
-
-                        for( size_t ii = 0; ii < numScalarBf ; ++ii )
-                          {
-                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                                phi,
-                                                                                phi,
-                                                                                fluxLeft,
-                                                                                ii,
-                                                                                jj,
-                                                                                weightInside,
-                                                                                jLocal );
-
-                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                                phi,
-                                                                                phiNb,
-                                                                                fluxRight,
-                                                                                ii,
-                                                                                jj,
-                                                                                weightInside,
-                                                                                jLocalNbEn );
-
-                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                                phiNb,
-                                                                                phi,
-                                                                                fluxLeft,
-                                                                                ii,
-                                                                                jj,
-                                                                                weightOutside,
-                                                                                jLocalEnNb );
-
-                            MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                                phiNb,
-                                                                                phiNb,
-                                                                                fluxRight,
-                                                                                ii,
-                                                                                jj,
-                                                                                weightOutside,
-                                                                                jLocalNbNb );
-#if 1
-                        for(int i  = 0; i  < dimDomain ; ++i )
-                          {
-                            int global_i=ii*dimRange+1+i; 
-                            for(int j  = 0 ; j  < dimDomain ; ++j )
-                              {
-                                int global_j= jj*dimRange+1+j;
-                                double valueEn,valueNb; 
-                                
-                                valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
-                                valueEn+=bLeft[ j ][ i ]*phi[ ii ];
-                                valueNb=-1*(aRight[ j ][ i ]*dphi[ ii ][ 0 ]);
-                                valueNb+=bRight[ j ][ i ]*phi[ ii ];
-
-                                jLocal.add( global_i , global_j , weightInside*valueEn*0.5); 
-                                jLocalNbEn.add( global_i , global_j , weightInside*valueNb*0.5);
-                                
-                                valueEn=(aLeft[ j ][ i ]*dphiNb[ ii ][ 0 ]);
-                                valueEn-=bLeft[ j ][ i ]*phiNb[ ii ];
-                                valueNb=-1*(aRight[ j ][ i ]*dphiNb[ ii][ 0 ]);
-                                valueNb-=bRight[ j ][ i ]*phiNb[ ii ];
-
-                                jLocalEnNb.add( global_i , global_j , weightOutside*valueEn*0.5); 
-                                jLocalNbNb.add( global_i , global_j , weightOutside*valueNb*0.5);
-                               
-                              }
-                          }
-#endif
-                      } 
-                }
-          }
-          #endif
-          add( jLocal, realLocal);
-          add( jLocalEnNb, realLocalEnNb);
-          add( jLocalNbEn, realLocalNbEn);
-          add( jLocalNbNb, realLocalNbNb);
-        } 
+                  
+                add( jLocal, realLocal);
+                jLocal.clear();
+                add( jLocalNbEn, realLocalNbEn);
+                jLocalNbEn.clear();
+                add( jLocalEnNb, realLocalEnNb);
+                jLocalEnNb.clear();
+                add( jLocalNbNb, realLocalNbNb);
+                jLocalNbNb.clear();
+          } 
       
-      }
-      else if ( intersection.boundary() )
-      {
-        const int quadOrderEn = 2*uLocal.order();
-        typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-        const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
-        jLocal.clear();
+        }
+        else if ( intersection.boundary() )
+        {
+          const int quadOrderEn = 2*uLocal.order();
+          typedef typename IntersectionType::Geometry  IntersectionGeometryType;
+          const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+          jLocal.clear();
 
-        FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
-        const size_t numQuadraturePoints = quadInside.nop();
-        std::vector<RangeType> vuEn(numQuadraturePoints);
-        std::vector<JacobianRangeType> duEn(numQuadraturePoints);
-        std::vector<RangeType> vuOldEn(numQuadraturePoints);
-        std::vector<JacobianRangeType> duOldEn(numQuadraturePoints);
+          FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
+          const size_t numQuadraturePoints = quadInside.nop();
+          std::vector<RangeType> vuEn(numQuadraturePoints);
+          std::vector<JacobianRangeType> duEn(numQuadraturePoints);
+          std::vector<RangeType> vuOldEn(numQuadraturePoints);
+          std::vector<JacobianRangeType> duOldEn(numQuadraturePoints);
  
-        uLocal.evaluateQuadrature(quadInside,vuEn);
-        uLocal.evaluateQuadrature(quadInside,duEn);
+          uLocal.evaluateQuadrature(quadInside,vuEn);
+          uLocal.evaluateQuadrature(quadInside,duEn);
 
-        uOldLocal_.evaluateQuadrature(quadInside,vuOldEn);
-        uOldLocal_.evaluateQuadrature(quadInside,duOldEn);
+          uOldLocal_.evaluateQuadrature(quadInside,vuOldEn);
+          uOldLocal_.evaluateQuadrature(quadInside,duOldEn);
 
    
-        for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
-        {
-          RangeType vuMidEn(0.),bndValue(0.);
-          FluxRangeType fluxLeft(0.);
-          JacobianRangeType duMidEn(0.),aduLeft(0.);
+          for( size_t pt=0 ; pt < numQuadraturePoints ; ++pt )
+            {
+              RangeType vuMidEn(0.),bndValue(0.);
+              FluxRangeType fluxLeft(0.);
+              JacobianRangeType duMidEn(0.),aduLeft(0.);
           
-          const double weightInside=quadInside.weight( pt );
+              const double weightInside=quadInside.weight( pt );
 
-          vuMidEn.axpy( factorImp_ , vuEn[ pt ] );
-          vuMidEn.axpy( factorExp_ , vuOldEn[ pt ] );
+              vuMidEn.axpy( factorImp_ , vuEn[ pt ] );
+              vuMidEn.axpy( factorExp_ , vuOldEn[ pt ] );
 
-          duMidEn.axpy( factorImp_ , duEn[ pt ] );
-          duMidEn.axpy( factorExp_ , duOldEn[ pt ] );
+              duMidEn.axpy( factorImp_ , duEn[ pt ] );
+              duMidEn.axpy( factorExp_ , duOldEn[ pt ] );
 
-          MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
-          MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry , baseSet.shapeFunctionSet(), dphi);
+              MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi );
+              MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry , baseSet.shapeFunctionSet(), dphi);
 
-          const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+              const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
 
-          const DomainType normal = intersection.integrationOuterNormal( x );
-          const DomainType xgl = intersectionGeometry.global(x);
-          model_.dirichletValue( time_,xgl, bndValue);
+              const DomainType normal = intersection.integrationOuterNormal( x );
+              const DomainType xgl = intersectionGeometry.global(x);
+              model_.dirichletValue( time_,xgl, bndValue);
 
-          // compute penalty factor
-          const double intersectionArea = normal.two_norm();
-          const double penaltyFactor = intersectionArea /  areaEn_; 
-          const double area=areaEn_; 
-          jacFlux_.boundaryFlux( normal,
-                                 area,
-                                 vuMidEn,
-                                 fluxLeft);
+              // compute penalty factor
+              const double intersectionArea = normal.two_norm();
+              const double penaltyFactor = intersectionArea /  areaEn_; 
+              const double area=areaEn_; 
+              
+              jacFlux_.boundaryFlux( normal,
+                                     area,
+                                     vuMidEn,
+                                     fluxLeft);
+  
+              for( size_t jj=0 ; jj < numScalarBf ; ++jj)
+                {
+                  RangeType avuLeft(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
+                  JacobianRangeType aduLeft(0.),aduRight(0.);
+                  DiffusionType aLeft,aRight;
+                  DiffusionValueType bLeft, bRight;
 
-          for( size_t jj=0 ; jj < numScalarBf ; ++jj)
-          {
-            RangeType avuLeft(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
-            JacobianRangeType aduLeft(0.),aduRight(0.);
-            DiffusionType aLeft,aRight;
-            DiffusionValueType bLeft, bRight;
-
-            jacFlux_.scalar2vectorialBoundaryFlux( normal,
-                                                  penaltyFactor,
-                                                  phi[ jj ],
-                                                  dphi[ jj ],
-                                                  aLeft,
-                                                  bLeft);
+                  jacFlux_.scalar2vectorialBoundaryFlux( normal,
+                                                          penaltyFactor,
+                                                          phi[ jj ],
+                                                          dphi[ jj ],
+                                                          aLeft,
+                                                          bLeft);
 
 
-            for( size_t ii = 0; ii < numScalarBf ; ++ii )
-              {
-                MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                                                                    phi,
-                                                                    phi,
-                                                                    fluxLeft,
-                                                                    ii,
-                                                                    jj,
-                                                                    weightInside,
-                                                                    jLocal );
+                  for( size_t ii = 0; ii < numScalarBf ; ++ii )
+                    {
+                      MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                          phi,
+                                                                          phi,
+                                                                          fluxLeft,
+                                                                          ii,
+                                                                          jj,
+                                                                          weightInside,
+                                                                          jLocal );
 
-                for(int i  = 0; i  < dimDomain ; ++i )
-                  {
-                    int global_i=ii*dimRange+1+i;
-                    for(int j  = 0 ; j  < dimDomain ; ++j )
-                     {
-                       int global_j= jj*dimRange+1+j;
-                       double valueEn;
+                      for(int i  = 0; i  < dimDomain ; ++i )
+                        {
+                          int global_i=ii*dimRange+1+i;
+                          for(int j  = 0 ; j  < dimDomain ; ++j )
+                            {
+                              int global_j= jj*dimRange+1+j;
+                              double valueEn;
                         
-                       valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
-                       valueEn+=bLeft[ j ][ i ]*phi[ ii ];
+                              valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
+                              valueEn+=bLeft[ j ][ i ]*phi[ ii ];
 
-                       jLocal.add( global_i , global_j , weightInside*valueEn*0.5);
+                              jLocal.add( global_i , global_j , weightInside*valueEn*0.5);
+                            }
+                        }    
                       }
-                   }
-              }
-          }
+                }
+            }
+        add( jLocal, realLocal);
         }
-      add( jLocal, realLocal);
       }
-    }
-  visited_[indexSet_.index( entity )]=true;
+    visited_[indexSet_.index( entity )]=true;
   } // end grid traversal 
   jOp.communicate();
-
 }
 
 
