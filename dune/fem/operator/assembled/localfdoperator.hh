@@ -7,10 +7,7 @@
 
 #include <dune/fem/operator/common/differentiableoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
-
 #include "mixedoperator.hh"
-
-
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian>
 class LocalFDOperator
@@ -85,6 +82,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 ::jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const
 {
   typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
+
   typedef typename DiscreteFunctionSpaceType::BasisFunctionSetType BasisFunctionSetType;
 
   Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil(space(),space());
@@ -189,7 +187,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         fdueps-=fdu;
         fdueps*=epsInv;
 
-       jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps );
+        jLocal.column( jj ).axpy( phi , dphi , fueps , fdueps );
       }
     } 
 
