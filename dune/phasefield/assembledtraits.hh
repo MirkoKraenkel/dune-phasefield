@@ -40,7 +40,11 @@
 #if FD 
 #include <dune/fem/operator/assembled/localfdoperator.hh>
 #else
+#if COUPLING 
 #include <dune/fem/operator/assembled/mixedopcoupling.hh>
+#else
+#include <dune/fem/operator/assembled/mixedopjacobian.hh>
+#endif
 #endif
 #endif
 
@@ -65,9 +69,9 @@ struct MixedAlgorithmTraits
   enum{ dimDomain = GridType::dimensionworld };
   
   //(rho,v_1...v_n,phi,mu,tau,sigma_1...sigma_n)
-#if RHOMODEL
-  enum{ dimRange = 2*dimDomain+5 };
-#else
+  enum{ dimRange=ProblemGeneratorType::dimRange};
+#if 0
+enum{ dimRange = 2*dimDomain+5 };
   enum{ dimRange = 2*dimDomain+4 };
 #endif
   // problem dependent types 
