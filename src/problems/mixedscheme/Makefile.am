@@ -1,6 +1,4 @@
 # install these headers
-phasedir=$(includedir)/src/problems/phase
-#phase_HEADERS= problemtype.hh
 
 #USE_OMP=-fopenmp
 
@@ -9,45 +7,50 @@ LDADD = $(ALL_PKG_LDFLAGS) $(ALL_PKG_LIBS) $(LOCAL_LIBS) $(DUNEMPILDFLAGS) $(DUN
 BASEDIR=../../../dune/fem/main
 
 SOURCES = $(BASEDIR)/phasefield.cc
-#SOURCES = $(BASEDIR)/phasefield.cc $(BASEDIR)/phasefield_pol.cc
 
 
 #GRIDTYPE = ALUGRID_CUBE
 #GRIDTYPE = ALUGRID_CONFORM
 GRIDTYPE = SPGRID
 #GRIDTYPE = ALBERTAGRID
-GRIDDIM =  2 
-POLORDER = 1 
+GRIDDIM =  1 
+POLORDER = 2 
 PROBLEM = 8 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
 AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
               -DPROBLEM=$(PROBLEM) -D$(GRIDTYPE) $(DUNEMPICPPFLAGS) -DFEMTIMER \
-              -DFLUX=$(FLUX) -DDUALDG # -DWBPROBLEM -DWELLBALANCE
+              -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefielddg phasefielddgoem phasefielddggmres phasefield phasefieldparagrid phasefieldfd
-
-
-phasefielddg_SOURCES = $(SOURCES) 
-phasefielddg_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  -DDGSCHEME -DNEWOP -DMATRIXFREE 
-
-phasefielddgoem_SOURCES = $(SOURCES) 
-phasefielddgoem_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  -DDGSCHEME -DNEWOP 
-
-phasefielddggmres_SOURCES = $(SOURCES) 
-phasefielddggmres_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL 
-
-phasefieldparagrid_SOURCES = $(SOURCES) 
-phasefieldparagrid_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL -DNOFILTER -DPARAGRID 
+check_PROGRAMS = phasefield phasefieldcoupling phasefieldfd phasefieldfdrho phasefieldfdlambda phasefieldmfree phasefieldoem #phasefieldcoupling
 
 phasefield_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL -DMYAXPY
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL 
+
+phasefieldcoupling_SOURCES = $(SOURCES) 
+phasefieldcoupling_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DCOUPLING
+
 
 phasefieldfd_SOURCES = $(SOURCES) 
-phasefieldfd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED   -DDGSCHEME -DNEWOP -DWANT_ISTL 
+phasefieldfd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD 
+
+phasefieldfdrho_SOURCES = $(SOURCES) 
+phasefieldfdrho_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL 
+
+phasefieldfdlambda_SOURCES = $(SOURCES) 
+phasefieldfdlambda_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DLAMBDASCHEME
+
+phasefieldmfree_SOURCES = $(SOURCES) 
+phasefieldmfree_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DMATRIXFREE 
+
+phasefieldoem_SOURCES = $(SOURCES) 
+phasefieldoem_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  
 
 
+
+#phasefieldparagrid_SOURCES = $(SOURCES) 
+#phasefieldparagrid_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DNOFILTER -DPARAGRID 
 
 
 
