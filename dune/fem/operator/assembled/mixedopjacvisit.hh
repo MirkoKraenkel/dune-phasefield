@@ -59,9 +59,8 @@ class PhasefieldJacobianOperator
   public: 
   PhasefieldJacobianOperator(const ModelType &model,
       const DiscreteFunctionSpaceType &space,
-      const NumericalFluxType &flux,
       int volQuadOrder=-1)
-    :MyOperatorType(model,space,flux),
+    :MyOperatorType(model,space),
     indexSet_(space_.gridPart().indexSet()),
     visited_(0),
     stencil_(space,space),
@@ -81,8 +80,6 @@ class PhasefieldJacobianOperator
   using MyOperatorType::getPreviousTimeStep; 
   using MyOperatorType::space;
   using MyOperatorType::space_;
-  using MyOperatorType::viscpenalty;
-  using MyOperatorType::acpenalty;
   using MyOperatorType::deltaT_;
   using MyOperatorType::uOldLocal_;
   using MyOperatorType::uOldNeighbor_;
@@ -448,7 +445,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
                 // compute penalty factor
                 const double intersectionArea = normal.two_norm();
-                const double penaltyFactor = viscpenalty()*intersectionArea / std::min( areaEn_, areaNb_ ); 
+                const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
                 const double area=std::min(areaEn_,areaNb_); 
 
                 baseSet.evaluateAll( quadInside[ pt ] , phi);
@@ -580,7 +577,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           // compute penalty factor
           const double intersectionArea = normal.two_norm();
-          const double penaltyFactor = viscpenalty()*intersectionArea /  areaEn_; 
+          const double penaltyFactor =intersectionArea /  areaEn_; 
           const double area=areaEn_; 
 
  
