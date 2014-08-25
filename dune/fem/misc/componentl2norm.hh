@@ -11,30 +11,43 @@ namespace Dune
       
       template< class GridPart >
       class ComponentL2Norm
-      : public L2Norm< GridPart>
+      : public LPNormBase< GridPart,ComponentL2Norm< GridPart > >
       {
-        typedef L2Norm< GridPart > BaseType;
+        typedef LPNormBase< GridPart,ComponentL2Norm< GridPart > > BaseType;
         typedef ComponentL2Norm< GridPart > ThisType;
+      public:
         typedef GridPart GridPartType;
-      
-      protected:
-        typedef typename BaseType::GridIteratorType GridIteratorType;
-        typedef typename BaseType::IntegratorType IntegratorType;
-        typedef typename GridIteratorType::Entity EntityType;
-        
+
         using BaseType::gridPart;
         using BaseType::comm;
-        //using BaseType::FunctionDistance;
+
         template< class Function >
         struct FunctionComponentSquare;
+        template< class UFunction, class VFunction >
+        struct FunctionDistance;
+
+      protected:
+        typedef typename GridPartType::template Codim< 0 >::IteratorType GridIteratorType;
+        typedef typename GridIteratorType::Entity EntityType;
+        typedef CachingQuadrature< GridPartType, 0 > QuadratureType;
+        typedef Integrator< QuadratureType > IntegratorType;
+
+        const unsigned int order_;
 
       public:
-        using BaseType::norm;
-        using BaseType::distance;
         explicit ComponentL2Norm( const GridPartType &gridPart, 
                                   std::vector<unsigned int> components,
                                   unsigned int order=0);
+
+        template< class DiscreteFunctionType >
+        typename DiscreteFunctionType::RangeFieldType
+        norm ( const DiscreteFunctionType &u ) const;
       
+        template< class UDiscreteFunctionType, class VDiscreteFunctionType >
+        typename UDiscreteFunctionType::RangeFieldType
+        distance ( const UDiscreteFunctionType &u, const VDiscreteFunctionType &v ) const;
+
+
         template< class DiscreteFunctionType, class ReturnType >
         void normLocal ( const EntityType &entity, const unsigned int order,
               const DiscreteFunctionType &u, 
@@ -56,10 +69,44 @@ namespace Dune
     ::ComponentL2Norm( const GridPartType &gridPart,
                        const std::vector<unsigned int> components,
                        const unsigned int order) 
-   : BaseType( gridPart, order),
-      components_(components)
+    : BaseType( gridPart),
+      order_( order ),
+      components_( components )
       {
       }
+
+    template< class GridPart >
+    template< class DiscreteFunctionType >
+    inline typename DiscreteFunctionType::RangeFieldType
+    ComponentL2Norm< GridPart >::norm ( const DiscreteFunctionType &u ) const
+    {
+      typedef typename DiscreteFunctionType::RangeFieldType RangeFieldType;
+      typedef FieldVector< RangeFieldType, 1 > ReturnType ;
+
+      // calculate integral over each element
+      ReturnType sum = BaseType :: forEach( u, ReturnType(0), order_ );
+
+      // return result, e.g. sqrt of calculated sum
+      return sqrt( comm().sum( sum[ 0 ] ) );
+    }
+
+
+    template< class GridPart >
+    template< class UDiscreteFunctionType, class VDiscreteFunctionType >
+    inline typename UDiscreteFunctionType::RangeFieldType
+    ComponentL2Norm< GridPart >
+      ::distance ( const UDiscreteFunctionType &u, const VDiscreteFunctionType &v ) const
+    {
+      typedef typename UDiscreteFunctionType::RangeFieldType RangeFieldType;
+      typedef FieldVector< RangeFieldType, 1 > ReturnType ;
+
+      // calculate integral over each element
+      ReturnType sum = BaseType :: forEach( u, v, ReturnType(0), order_ );
+
+      // return result, e.g. sqrt of calculated sum
+      return sqrt( comm().sum( sum[ 0 ] ) );
+    }
+
 
     template< class GridPart >
     template< class DiscreteFunctionType, class ReturnType >
@@ -99,7 +146,7 @@ namespace Dune
       ULocalFunctionType ulocal = u.localFunction( entity );
       VLocalFunctionType vlocal = v.localFunction( entity );
 
-      typedef typename BaseType::template FunctionDistance< ULocalFunctionType, VLocalFunctionType > LocalDistanceType;
+      typedef FunctionDistance< ULocalFunctionType, VLocalFunctionType > LocalDistanceType;
 
       LocalDistanceType dist( ulocal, vlocal );
       FunctionComponentSquare< LocalDistanceType > dist2( dist,components_ );
@@ -129,14 +176,54 @@ namespace Dune
       {
         typename FunctionType::RangeType phi;
         function_.evaluate( x, phi );
-        for( auto i : components_)
-          ret += phi[i]*phi[i];
+        //for( auto i : components_)
+          ret =phi[0]*phi[0];
       }
       
     private:
       const FunctionType &function_;
       const std::vector<unsigned int> components_;
     };
+
+    template< class GridPart >
+    template< class UFunction, class VFunction >
+    struct ComponentL2Norm< GridPart >::FunctionDistance
+    {
+      typedef UFunction UFunctionType;
+      typedef VFunction VFunctionType;
+
+      typedef typename UFunctionType::RangeFieldType RangeFieldType;
+      typedef typename UFunctionType::RangeType RangeType;
+      typedef typename UFunctionType::JacobianRangeType JacobianRangeType;
+
+      FunctionDistance ( const UFunctionType &u, const VFunctionType &v )
+      : u_( u ), v_( v )
+      {}
+ 
+      template< class Point >
+      void evaluate ( const Point &x, RangeType &ret ) const
+      {
+        RangeType phi;
+        u_.evaluate( x, ret );
+        v_.evaluate( x, phi );
+        ret -= phi;
+      }
+
+      template< class Point >
+      void jacobian ( const Point &x, JacobianRangeType &ret ) const
+      {
+        JacobianRangeType phi;
+        u_.jacobian( x, ret );
+        v_.jacobian( x, phi );
+        ret -= phi;
+      }
+
+    private:
+      const UFunctionType &u_;
+      const VFunctionType &v_;
+    };
+
+
 
 
 
