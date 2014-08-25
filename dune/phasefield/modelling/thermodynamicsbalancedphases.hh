@@ -44,7 +44,7 @@ class BalancedThermodynamics:
 
   inline double h2prime( double rho ) const
   {
-    return -1./h(rho)*h(rho);
+    return -1./(h(rho)*h(rho));
   }
 #include "InvRhoSources/maple.c"
 #else
