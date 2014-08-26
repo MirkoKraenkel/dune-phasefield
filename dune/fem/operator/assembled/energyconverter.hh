@@ -20,7 +20,8 @@ double energyconverter( const DiscreteFunctionType& dF,
           	            const ModelType& model,
                         EnergyFunctionType& energyDF,
                         double& kineticEnergy,
-                        double& thermodynamicEnergy )
+                        double& thermodynamicEnergy, 
+                        double& surfaceEnergy)
 {
   typedef typename DiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
     DiscreteFunctionSpaceType;
@@ -47,6 +48,7 @@ double energyconverter( const DiscreteFunctionType& dF,
   EnergyRangeType total(0.0);  
   EnergyRangeType kin(0.0);
   EnergyRangeType therm(0.0); 
+  EnergyRangeType surf(0.0);
   kineticEnergy=0.;
   thermodynamicEnergy=0;
   double integral=0.;
@@ -77,7 +79,7 @@ double energyconverter( const DiscreteFunctionType& dF,
       // evaluate  variables 
       localU.evaluate( quad[qP], vu );
 
-			model.totalEnergy(xgl,vu,kin[0],therm[0],total[0]);
+			model.totalEnergy(xgl,vu,kin[0],therm[0],total[0],surf[0]);
       total*= quad.weight(qP);
 			kin*=quad.weight(qP);
       therm*=quad.weight(qP); 

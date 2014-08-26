@@ -39,7 +39,8 @@ class PhasefieldModel
                               RangeType& vu,
                               double& kin,
                               double& therm,
-                              double& total) const;
+                              double& total,
+                              double& surf ) const;
 
     // additional Source for the whole syten eg. for 
     // generatring exact solutions
@@ -122,7 +123,8 @@ inline void PhasefieldModel< Grid,Problem>
                 RangeType& vu,
                 double& kin,
                 double& therm,
-                double& total ) const
+                double& total,
+                double& surf ) const
 {
   double rho=Filter::rho(vu);
   double phi=Filter::phi(vu);
@@ -143,6 +145,7 @@ inline void PhasefieldModel< Grid,Problem>
   therm+=surfaceEnergy;
 
   total=therm+kin;
+  surf=surfaceEnergy;
 }
 
 template< class Grid, class Problem>
