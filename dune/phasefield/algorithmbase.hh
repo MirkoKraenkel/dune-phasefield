@@ -183,7 +183,6 @@ public:
     computeResidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
     timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
     {
-      std::cout<<"Baseconstructor\n";
     }
 
   //! destructor 
@@ -279,7 +278,7 @@ public:
   }
   
   //! write data, if pointer to additionalVariables is true, they are calculated first 
-  void writeData( DataWriterType& eocDataOutput,
+  virtual void writeData( DataWriterType& eocDataOutput,
 									TimeProviderType& timeProvider,
                   const bool reallyWrite )
 	{
@@ -431,8 +430,8 @@ public:
 		
 			step( timeProvider, newton_iterations, ils_iterations, 
             max_newton_iterations, max_ils_iterations);
-     
-     // Check that no NAN have been generated
+   
+      // Check that no NAN have been generated
 			if (! U.dofsValid()) 
 			{
   			std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
@@ -458,8 +457,7 @@ public:
          
         writeEnergy( timeProvider , energyfile);
      }
-
-   writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
+    writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
     checkPointer.write(timeProvider);
     //statistics
     mindt = (ldt<mindt) ? ldt : mindt;
@@ -475,7 +473,7 @@ public:
     else
       timeProvider.next(); 
     Uold.assign(U); 
-  
+     
     }		/*end of timeloop*/
  
     // write last time step  
@@ -537,8 +535,8 @@ public:
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 //		Fem::L2Norm<GridPartType> l2norm(gridPart_);
-    std::vector<unsigned int> comp{ dimDomain +1 };
-    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,2);
+    std::vector<unsigned int> comp{ dimDomain +2 , dimDomain+3 };
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
     return l2norm.distance(uOld, uNew);
 	}

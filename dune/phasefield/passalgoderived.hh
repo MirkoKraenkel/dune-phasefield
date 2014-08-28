@@ -45,7 +45,7 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
     //IOTuple
   	//type of IOTuple 
     typedef typename BaseType::IOTupleType IOTupleType;
- 
+    typedef typename BaseType::DataWriterType DataWriterType;
     using BaseType::grid_;
     using BaseType::gridPart_;
     using BaseType::space_;
@@ -99,7 +99,8 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
     ThetaDiscreteSpaceType& thetaspace (){ return thetaSpace_;}
     
     DiscreteFunctionType* additionalVariables (){ return additionalVariables_;}
-    DiscreteThetaType*     theta (){ return theta_; }
+   	DiscreteSigmaType*    sigma() {return sigma_;}
+    DiscreteThetaType*    theta (){ return theta_; }
 
 
     IOTupleType getDataTuple()
@@ -126,18 +127,87 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
 			  			  int& ils_iterations,
 					  	  int& max_newton_iterations,
 				  		  int& max_ils_iterations)
-	    {
-        DiscreteFunctionType& U=solution();
-		    // reset overall timer
-        overallTimer_.reset(); 
-		    assert(odeSolver_);
+	  {
+       DiscreteFunctionType& U=solution();
+		   // reset overall timer
+       overallTimer_.reset(); 
+		   assert(odeSolver_);
 
         odeSolver_->solve( U, odeSolverMonitor_ );
-		    newton_iterations     = odeSolverMonitor_.newtonIterations_;
+        newton_iterations     = odeSolverMonitor_.newtonIterations_;
         ils_iterations        = odeSolverMonitor_.linearSolverIterations_;
         max_newton_iterations = odeSolverMonitor_.maxNewtonIterations_ ;
         max_ils_iterations    = odeSolverMonitor_.maxLinearSolverIterations_;
 	   }
+   
+   //! write data, if pointer to additionalVariables is true, they are calculated first 
+    virtual void writeData( DataWriterType& eocDataOutput,
+									TimeProviderType& timeProvider,
+                  const bool reallyWrite )
+	{
+    if( reallyWrite )
+		{
+				 
+      DiscreteFunctionType* addVariables = additionalVariables();
+      DiscreteSigmaType* gradient=sigma();
+      DiscreteThetaType* theta1=theta();
+  
+      // calculate DG-projection of additional variables
+			if ( addVariables && gradient)
+			{
+        gradient->clear();
+  
+        dgOperator_.gradient(solution(),*gradient);
+
+        if(theta1)
+        { 
+        
+          theta1->clear();
+          dgOperator_.theta(solution(),*theta1);
+
+        }
+
+        // calculate additional variables from the current num. solution
+        setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
+			}
+
+            
+    }
+	// write the data 
+		eocDataOutput.write( timeProvider );
+	}
+	
+	
+  
+    template<class Stream>
+    void writeEnergy( TimeProviderType& timeProvider,
+                      Stream& str)
+    {
+      DiscreteSigmaType* gradient = sigma();
+      DiscreteScalarType* totalenergy = energy();
+
+      if(gradient != nullptr  && totalenergy != nullptr)
+        { 
+          gradient->clear();
+      
+          dgOperator_.gradient(solution(),*gradient);
+  
+          totalenergy->clear();
+
+          double kineticEnergy;
+      
+#if WELLBALANCED    
+          double chemicalEnergy; 
+          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy);
+          str<<std::setprecision(20)<< timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
+#else
+          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
+          str<<std::setprecision(20)<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
+#endif
+
+    }
+  
+  }
  
 };
 }// end namespace Dune
