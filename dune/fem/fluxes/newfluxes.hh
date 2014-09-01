@@ -85,8 +85,8 @@ public:
 
     for(int i=0; i<dimDomain; i++)
     {
-      vLeft[i]  = uLeft[1+i]/rhoLeft;
-      vRight[i] = uRight[1+i]/rhoRight;
+      vLeft[i]  = uLeft[1+i];
+      vRight[i] = uRight[1+i];
     }
 
     
@@ -106,14 +106,13 @@ public:
     anaflux.umv( normal, gLeft );
 
   
- 
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
     model_.thetaSource( outside, time, faceQuadOuter.point( quadPoint ),
                  uRight,thetaFluxRight );
 
-
+ 
 
     double maxspeedl, maxspeedr, maxspeed;
     double viscparal, viscparar, viscpara;
@@ -128,9 +127,8 @@ public:
 
     maxspeed = (maxspeedl > maxspeedr) ? maxspeedl : maxspeedr;
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
-    viscpara=visc_;
+    viscpara*=visc_;
     visc = uRight;
-   
     visc -= uLeft;
 
     visc *= viscpara;
@@ -143,15 +141,14 @@ public:
      // \delta\mu  consider sign!!!!!!!!
     newvisc=thetaFluxRight;
     newvisc-=thetaFluxLeft;
-    newvisc*=alpha1_; 
+    newvisc*=viscpara*alpha1_; 
      
    gLeft[0]-=newvisc[0];
-
    gLeft *= 0.5*len; 
    gRight = gLeft;
  
-   RangeType nonConLeft{0.},nonConRight{0.};
-   
+   RangeType nonConLeft(0.),nonConRight(0.);
+  
    nonConFlux( normal,
                len,        
                rhoLeft,
@@ -164,10 +161,10 @@ public:
                phiRight,
                nonConLeft,
                nonConRight);
-   nonConLeft*=-1.; 
-   gLeft  += nonConLeft;
+   gLeft  -= nonConLeft;
    gRight += nonConRight;
-   return maxspeed * len;
+   
+ return maxspeed * len;
   }
 
 
@@ -184,21 +181,15 @@ public:
                           RangeType& nonConLeft,
                           RangeType& nonConRight) const
   {
-
       double tauLeft,tauRight;
       tauLeft  = thetaLeft[1];
       tauRight = thetaRight[1];
-
-
-      
       
       //[[\mu]]
       double jumpMu=thetaLeft[0]-thetaRight[0];
      
       //[\phi]
       double jumpPhi=phiLeft-phiRight;
-      //{{v}} 
-      double averageV[dimDomain];
       
       double vLeftNormal{0.},vRightNormal{0.};
 
