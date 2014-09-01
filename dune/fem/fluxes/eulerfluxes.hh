@@ -83,7 +83,7 @@ public:
 											uRight, anaflux );
    
     anaflux.umv( normal, gLeft );
-
+ 
     double maxspeedl, maxspeedr, maxspeed;
     double viscparal, viscparar, viscpara;
     
@@ -152,7 +152,7 @@ public:
 
   const Model& model() const { return model_; }
 
-  // Return value: maximum wavespeed*length of integrationOuterNormal
+  // Return value: maximum wavspeed*length of integrationOuterNormal
   // gLeft,gRight are fluxed * length of integrationOuterNormal
   template< class Intersection, class QuadratureImp >
   inline double numericalFlux(const Intersection& intersection,
@@ -206,15 +206,13 @@ public:
 											uRight, anaflux );
     //add F(uRight) 
     anaflux.umv( normal, gLeft );
-
-  
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
     model_.thetaSource( outside, time, faceQuadOuter.point( quadPoint ),
                       uRight,thetaFluxRight );
 
-
+ 
 
     double maxspeedl, maxspeedr, maxspeed;
     double viscparal, viscparar, viscpara;
@@ -229,13 +227,11 @@ public:
 
     maxspeed = (maxspeedl > maxspeedr) ? maxspeedl : maxspeedr;
     viscpara = (viscparal > viscparar) ? viscparal : viscparar;
-    viscpara=visc_;
+    viscpara*=visc_;
     visc = uRight;
-   
     visc -= uLeft;
 
     visc *= viscpara;
-
     for(int i=0; i<dimDomain+1;i++)
  		{
    		gLeft[i] -= visc[i];
@@ -245,16 +241,14 @@ public:
      // \delta\mu  consider sign!!!!!!!!
     newvisc=thetaFluxRight;
     newvisc-=thetaFluxLeft;
-    newvisc*=alpha1_; 
+    newvisc*=viscpara*alpha1_; 
  
- 		gLeft[0] -= newvisc[0];
-
-
-
-   gLeft *= 0.5*len; 
-   gRight = gLeft;
+    gLeft[0] -= newvisc[0];
+    gLeft *= 0.5*len; 
+    gRight = gLeft;
  
-   RangeType nonConLeft(0),nonConRight(0.);
+    RangeType nonConLeft(0.),nonConRight(0.);  
+   
 #if 1 
    nonConFlux( normal,
                len,        
@@ -272,6 +266,7 @@ public:
     gLeft -=nonConLeft;
     gRight+=nonConRight;
 #endif 
+   
    //   std::cout<<"NUmflux out "<<maxspeed << std::endl;
    return maxspeed * len;
   }
@@ -293,12 +288,9 @@ public:
       double tauLeft,tauRight;
       tauLeft  = thetaLeft[1];
       tauRight = thetaRight[1];
-
-
-      
       
       //[[\mu]]
-      double minusjumpMu=thetaRight[0]-thetaLeft[0];
+      double jumpMu=thetaLeft[0]-thetaRight[0];
      
       //[\phi]
       double jumpPhi=phiLeft-phiRight;
@@ -315,8 +307,8 @@ public:
     
       nonConRight=nonConLeft;
 
-      nonConLeft *=(-minusjumpMu*rhoLeft -jumpPhi*tauLeft);
-      nonConRight*=(-minusjumpMu*rhoRight-jumpPhi*tauRight);
+      nonConLeft *=(jumpMu*rhoLeft -jumpPhi*tauLeft);
+      nonConRight*=(jumpMu*rhoRight-jumpPhi*tauRight);
       
       nonConLeft*=0.5*length;
       nonConRight*=0.5*length;
