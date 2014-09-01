@@ -280,26 +280,23 @@ namespace Dune {
       
       tension*=0.5;
        
-
-				
   		model_.diffusion( inside, time, 
 												faceQuadInner.point( quadPoint ),
 												uLeft, sigmaLeft, diffmatrix);
 	
        // apply normal 
       diffmatrix.mv(normal, gLeft);
-      
 
 			model_.diffusion( outside, time, 
 		  									faceQuadOuter.point( quadPoint ),
 	  										uRight, sigmaRight, diffmatrix);
 
-     // apply normal 
+       // apply normal 
       diffmatrix.umv(normal, gLeft);
       gLeft*=0.5;  
       
-     tension.umv(normal,gLeft);
- 
+       tension.umv(normal,gLeft);
+   
       //////////////////////////////////////////////////////////
       //
       //  --Time step calculation 
@@ -335,15 +332,12 @@ namespace Dune {
 				{
 					// add penalty term ( enVolume() is available since we derive from
 					//    DiscreteModelDefaultWithInsideOutside)
-//					const double factor = penalty_ * diffTimeStep ;
-          const double h=0.5*(discreteModel.enVolume()+discreteModel.nbVolume());
-          const double factor = penalty_/h   ;
-
+					const double factor = penalty_ * diffTimeStep ;
+//          const double h=0.5*(discreteModel.enVolume()+discreteModel.nbVolume());
+  //        const double factor = penalty_/h   ;
 
 					RangeType jump( uLeft );
 					jump -= uRight;
-		      	
-          
        		gLeft.axpy(factor, jump);
 				}
 
