@@ -87,7 +87,7 @@ double energyconverter( const DiscreteFunctionType& dF,
       kineticEnergy+=kin*volume;
       thermodynamicEnergy+=therm*volume;
       integral+=total*volume;
-       
+      surfaceEnergy+=surf*quad.weight(qP)*volume;       
     }
   
   }
