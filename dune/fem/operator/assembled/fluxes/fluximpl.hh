@@ -160,7 +160,7 @@ double MixedFlux<Model>
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-    RangeType valEn,valNb,midEn,midNb,jump,mean,jumpOld;
+    RangeType valEn,valNb,midEn,midNb,jump,mean,jumpNew;
       valEn=vuEn;
       valNb=vuNb;
      
@@ -175,8 +175,8 @@ double MixedFlux<Model>
       mean = midEn ;
       mean+= midNb;
       mean*=0.5;
-      jumpOld=valEn;
-      jumpOld-=valNb;
+      jumpNew=valEn;
+      jumpNew-=valNb;
       //rho-------------------------------------------------------------
  
       double vNormalEn(0.),vNormalNb(0.);
@@ -208,14 +208,12 @@ double MixedFlux<Model>
         { 
           //F_2=F_{2.1}+F_{2.2}
           //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-          Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
-          Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midNb)*0.5;
+          Filter::velocity(gLeft,i)-=Filter::mu(jumpNew)*normal[i]*Filter::rho(midEn)*0.5;
+          Filter::velocity(gRight,i)-=Filter::mu(jumpNew)*normal[i]*Filter::rho(midNb)*0.5;
           
           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
-          //Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valEn)*0.5;
-          //Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valNb)*0.5;
-          Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
-          Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
+          Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valEn)*0.5;
+          Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valNb)*0.5;
        
         } 
       // std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
