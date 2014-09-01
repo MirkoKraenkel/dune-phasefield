@@ -15,12 +15,13 @@
 
 // local includes
 #include "projectiondiscretemodelcommon.hh"
+
+
 //*************************************************************
 namespace Dune {
 
   // GradientModel
-  //--------------
-  
+   // Discrete Model for firt approximating \sigma 
   template <class Model, class NumFlux, int polOrd, int passUId> 
   class GradientModel;
 
@@ -73,7 +74,6 @@ namespace Dune {
 
   public:
     typedef GradientTraits< Model, NumFlux, polOrd, passUId >           Traits;
-
     typedef FieldVector< double, Traits :: dimDomain >                  DomainType;
     typedef FieldVector< double, Traits :: dimDomain-1 >                FaceDomainType;
     typedef typename Traits :: RangeType                                RangeType;
@@ -283,7 +283,6 @@ namespace Dune {
 		using BaseType :: maxAdvTimeStep_ ;
 		using BaseType :: maxDiffTimeStep_ ;
 
-
 		integral_constant< int, passGradId> sigmaVar;
 
 		integral_constant< int, passProjId> thetaVar;
@@ -329,14 +328,9 @@ namespace Dune {
 				penalty_( 1.0 ),
         switch_(Fem::Parameter::getValue<double>("phasefield.thetaswitch")),
 				cflDiffinv_( 8.0 * ( polOrd + 1) )
-		{
-    }
+		{}
 	
-  void setTime (double setTime){}
-    
-    
-    
-    
+    void setTime (double setTime){}
     
     bool hasSource() const
 		{                
@@ -448,14 +442,22 @@ namespace Dune {
 		{
 
 			// advection
-			const double wave = BaseType ::boundaryFlux( it, time, faceQuadInner, quadPoint,
-											uLeft, jacLeft, gLeft, gDiffLeft );
+			const double wave = BaseType ::boundaryFlux( it, 
+                                                   time, 
+                                                   faceQuadInner, 
+                                                   quadPoint,
+											                             uLeft, 
+                                                   jacLeft, 
+                                                   gLeft, 
+                                                   gDiffLeft );
                                  
-		// diffusion
+		  // diffusion
       
 			double diffTimeStep = 0.0;
 
-			bool hasBoundaryValue = model_.hasBoundaryValue( it, time, faceQuadInner.localPoint(0) );
+			bool hasBoundaryValue = model_.hasBoundaryValue( it, 
+                                                       time, 
+                                                       faceQuadInner.localPoint(0) );
 	
       if( diffusion && hasBoundaryValue )
       {
