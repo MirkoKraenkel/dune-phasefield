@@ -119,8 +119,22 @@ double MixedFlux<Model>
 
     for(int i = 0; i<dimDomain;++i)
       {
-        laplaceFlux-=Filter::sigma(midEn,i)*normal[i];
-      }  
+#if RHOMODEL
+#if LANBDASCHEME
+        //(\lambda^+-\lambda^-)\cdot n * 0.5
+        laplaceFlux-=(Filter::alpha(midEn,i))*normal[i];
+        
+#else
+        //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
+       laplaceFlux-=Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))*normal[i];
+#endif
+
+#else
+         //F_{3.2}
+         //(\sigma^+-\sigma^-)\cdot n * 0.5
+          laplaceFlux-=Filter::sigma(midEn,i)*normal[i];
+#endif
+}  
   
     //----------------------------------------------------------------
 
@@ -212,8 +226,6 @@ double MixedFlux<Model>
           Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midNb)*0.5;
           
           //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
-          //Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valEn)*0.5;
-          //Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valNb)*0.5;
           Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
           Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
        
