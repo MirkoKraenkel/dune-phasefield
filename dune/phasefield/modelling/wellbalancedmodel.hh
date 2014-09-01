@@ -145,7 +145,7 @@ namespace Dune {
       DomainType xgl=en.geometry().global(x);
       
       phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
-      
+  
       //stheta[0]=dF/drho stheta[1]=dF/dphi
 
       s[0]=mu;
@@ -416,16 +416,6 @@ inline double PhaseModel< GridPartType, ProblemImp >
     std::cout<<"Wb model boundary flux\n";
    	DomainType xgl=it.geometry().global(x);
 		 abort();
-	const typename Traits :: DomainType normal = it.integrationOuterNormal(x); 
-		double p;
-		double T;
-		pressAndTemp( uLeft, p, T );
-		gLeft = 0;
-
-		// bnd. cond. from euler part
-		for (int i=0;i<dimDomain; ++i)
-			gLeft[i+1] = 0;
-
 
 		return 0.;
 	}
@@ -446,6 +436,7 @@ inline double PhaseModel< GridPartType, ProblemImp >
     RangeType uBnd;
     //problem_.evaluate(xgl,time, uRight);
 
+#if 1 
     //homogenuous dirichlet data for v
     for(int i=1;i<dimDomain+1;i++)
 			uRight[i]=0.;
@@ -453,7 +444,7 @@ inline double PhaseModel< GridPartType, ProblemImp >
 		//Neumann Boundary for \phi and \rho
 		uRight[0]=uLeft[0];
 		uRight[dimDomain+1]=uLeft[dimDomain+1];
- 
+ #endif
 	}
 
 } // end namespace Dune
