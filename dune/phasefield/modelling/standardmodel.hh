@@ -83,8 +83,8 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     PhaseModel( const ProblemType& problem ) 
       : problem_( problem ),
       phasefieldPhysics_( problem_.thermodynamics() )
-  {
-  }
+      {
+      }
 
     inline bool hasStiffSource() const { return true; }
 
@@ -100,9 +100,7 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
         RangeType & s) const
     {
       DomainType xgl = en.geometry().global( x );
-      return phasefieldPhysics_.stiffSource(xgl,time,u,du,s);
-
-      //   return stiffSource( en, time, x, u, s );
+     return phasefieldPhysics_.stiffSource(xgl,time,u,du,s);
     }
 
 
@@ -112,7 +110,9 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
         , const RangeType& u
         , RangeType& s ) const 
     {
-
+     abort();
+    #if 0
+  
       DomainType xgl = en.geometry().global( x );
       double deltainv=phasefieldPhysics_.deltaInv();
       double reaction,pressure;
@@ -123,10 +123,9 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
       s[0]=0.;
       for(int i=0;i<dimDomain;i++)
         s[i+1]=0;
-      abort();
-      s[dimDomain+1]=-reaction;
-
-      return deltainv;
+     s[dimDomain+1]=-reaction;
+#endif
+      return -1;
     }
 
 
@@ -174,16 +173,13 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     {
       // look at Ch. Merkle Diplom thesis, pg. 38
 
-      // get value of mu at temperature T
-      double p;
-      double T;
-      pressAndTemp( u, p, T );
       // get mu 
       const double mu = phasefieldPhysics_.mu1();
+      const double delta=phasefieldPhysics_.delta();
+      const double maxdiff=std::max(mu,delta);     
+     // ksi = 0.25 
 
-      // ksi = 0.25 
-
-      return mu * circumEstimate * 1 / (0.25 * u[0] * enVolume);
+      return maxdiff * circumEstimate * 1 / (0.25 * u[0] * enVolume);
     }
 
 
@@ -431,13 +427,14 @@ inline void PhaseModel< GridPartType, ProblemImp >
 {
 
   DomainType xgl = it.geometry().global( x );
-
-
+//  problem_.evaluate(xgl,time,uRight);
+#if 1  
   for(int i=0;i<dimDomain+1;i++)
     uRight[i]=0.;     
 
   uRight[0]=uLeft[0];
   uRight[dimDomain+1]= uLeft[dimDomain+1];
+#endif
 }
 
 } // end namespace Dune

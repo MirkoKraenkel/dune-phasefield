@@ -175,8 +175,10 @@ namespace Dune {
 																		 const RangeType& u ) const
 		{
       const double mu = phasefieldPhysics_.mu1();
-   
-      return mu * circumEstimate * 1 / (0.25 * u[0] * enVolume);
+      const double delta=phasefieldPhysics_.delta();
+      const double maxdiff=std::max(mu,delta);     
+    
+      return maxdiff * circumEstimate * 1 / (0.25 * u[0] * enVolume);
   	}
 
 
