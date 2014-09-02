@@ -94,7 +94,8 @@ typedef typename ModelType::JacobianRangeType JacobianRangeType;
 #endif
 
       model.conservativeToPrimitive( xgl, cons, prim );
-      prim[pressureId]-=model.delta()*0.5*gradphi*gradphi; 
+   //   prim[pressureId]-=model.delta()*0.5*gradphi*gradphi; 
+ 
       prim *=  quad.weight(qP);
       primLF.axpy( quad[qP] , prim );
     }
