@@ -267,9 +267,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double reaction=thermoDynamics_.reactionSource(rho,phi);
     f[0]=0;
     f[1]=0;
-    f[2]=-reaction;
+    f[2]=-reaction*thermoDynamics_.reactionFactor();
     
-    return 4*deltaInv()*deltaInv();
+    return 4*thermoDynamics_.reactionFactor()*deltaInv();
   }
 
   template< class Thermodynamics >
@@ -312,10 +312,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  
     const double muLoc = mu1 ();
     const double v   =  u[1]*rho_inv;
-    double phi =  u[2]*rho_inv;
+//    double phi =  u[2]*rho_inv;
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhou    = du[1][0]; //d(rho*v)/dx
-    thermoDynamics_.pressure( rho,phi);
   
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
 
@@ -341,7 +340,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  {
   assert(u[0] > MIN_RHO);
   double u_normal=u[1]*n[0]/u[0];
-  double c=thermoDynamics_.a(u[0],u[3]);   
+  double phi=u[2]/u[0];
+  double c=thermoDynamics_.a(u[0],phi);   
 
   return std::abs(u_normal)+sqrt(c);
  
@@ -360,7 +360,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
       
     const double phi =  u[dimDomain+1]*rho_inv;
     const double dxrho     = du[0][0]; //drho/dx
-    const double dxrhophi  = du[2][0]; //d(rho*phi)/dx
+    const double dxrhophi  = du[dimDomain+1][0]; //d(rho*phi)/dx
            
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
     double tension =delta()*(0.5*dxphi*dxphi);
