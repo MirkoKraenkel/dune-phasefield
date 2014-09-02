@@ -172,7 +172,7 @@ void Couplings< 1 >::makeElementCouplings ()
     elementCouplings_[ 16 ] = std::pair< int , int >( 4 , 2 );// tau phi
     elementCouplings_[ 17 ] = std::pair< int , int >( 4 , 4 );// tau tau
     elementCouplings_[ 18 ] = std::pair< int , int >( 4 , 5 );// tau sigma 
-    elementCouplings_[ 19 ] = std::pair< int , int >( 5 , 2 );// sigma phiv
+    elementCouplings_[ 19 ] = std::pair< int , int >( 5 , 2 );// sigma phi
     elementCouplings_[ 20 ] = std::pair< int , int >( 5 , 5 );// sigma sigma 
   }
 
