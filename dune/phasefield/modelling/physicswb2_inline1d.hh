@@ -310,8 +310,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  {
   assert(u[0] > 1e-20);
   double u_normal=(u[1]*n[0])/u[0];
-  double c=thermoDynamics_.a(u[0],u[2]);
-  return std::abs(u_normal)+c;
+  double c=thermoDynamics_.a( u[0] , u[2] );
+  return std::abs(u_normal)+sqrt(c);
  } 
 
 }//end namespace Dune
