@@ -90,7 +90,6 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       dgOperator_.setPreviousTimeStep(U);
       dgOperator_.setTime(time);
       dgOperator_.setDeltaT(deltaT);
-     
       NewtonSolverType invOp(dgOperator_); 
       start_.clear();
    
@@ -129,8 +128,10 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     { 
       double kineticEnergy;
       double chemicalEnergy; 
-      double energyIntegral =energyconverter(solution(),model(),*totalenergy,kineticEnergy,chemicalEnergy);
-      str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
+      double surfaceEnergy;
+      double energyIntegral =energyconverter(solution(),model(),*totalenergy,kineticEnergy,chemicalEnergy,surfaceEnergy);
+      str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
+
     } 
   }
  
