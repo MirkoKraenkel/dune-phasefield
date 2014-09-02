@@ -186,7 +186,7 @@ public:
     }
 
   //! destructor 
-  /*virtual*/ ~PhasefieldAlgorithmBase()
+  virtual ~PhasefieldAlgorithmBase()
   {
 		delete energy_;
 		energy_=0;
@@ -255,6 +255,7 @@ public:
      Uold.assign(U); 
   }
 
+  
   void step ( TimeProviderType& timeProvider,
 						  int& newton_iterations,
 						  int& ils_iterations,
@@ -267,7 +268,12 @@ public:
                             max_newton_iterations,
                             max_ils_iterations);
   }
-	
+
+  double timeStepEstimate()
+  {
+    return BaseType::asImp().timeStepEstimate();
+  }
+
 	//! estimate and mark solution 
   /*virtual*/ void estimateMarkAdapt( AdaptationManagerType& am ){};
 
@@ -440,13 +446,13 @@ public:
         abort();
 			}
 
-     double timeStepEstimate=0;//dgOperator_.timeStepEstimate();	
+     double timeStepEst=timeStepEstimate();//dgOperator_.timeStepEstimate();	
      
      if( (printCount > 0) && (counter % printCount == 0))
 			{
        // if( grid_.comm().rank() == 0 )
         {
-          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEstimate;
+          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEst;
           timeStepError=stepError(U,Uold);	
           timeStepError/=ldt;
           std::cout<< " ,Error between timesteps="<< timeStepError;
@@ -458,7 +464,7 @@ public:
         writeEnergy( timeProvider , energyfile);
      }
     writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
-    checkPointer.write(timeProvider);
+    //checkPointer.write(timeProvider);
     //statistics
     mindt = (ldt<mindt) ? ldt : mindt;
     maxdt = (ldt>maxdt) ? ldt : maxdt;
@@ -494,6 +500,8 @@ public:
                          TimeProviderType& timeProvider,
                          DataWriterType& eocDataOutput)
   {
+    BaseType::asImp().computeResidual( U,Uold,timeProvider,eocDataOutput);      
+ 
   }
   inline double error ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
