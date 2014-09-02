@@ -44,7 +44,7 @@ class PhasefieldPhysics<2,Thermodynamics>
   inline void totalEnergy( const RangeType& cons, 
                            const JacobianRangeImp& grad,
                            double& kin,
-                           double& free,
+                           double& chem,
                            double& total ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 

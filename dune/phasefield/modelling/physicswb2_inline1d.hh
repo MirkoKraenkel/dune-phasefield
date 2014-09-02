@@ -50,7 +50,8 @@ class PhasefieldPhysics<1,Thermodynamics>
                            const JacobianRangeImp& grad,
                            double& kin,
                            double& therm,
-                           double& total ) const;
+                           double& total,
+                           double& surf ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -144,7 +145,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                   const JacobianRangeImp& grad , 
                   double& kin, 
                   double& therm,
-                  double& total ) const
+                  double& total,
+                  double& surf ) const
   {
 	  double rho = cons[0];
     double rho_inv = 1./rho;
@@ -162,6 +164,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 	  therm +=surfaceEnergy;
     kin  = kineticEnergy;
     total = therm+kineticEnergy; 
+    surf = surfaceEnergy;
   }
 
   template< class Thermodynamics >

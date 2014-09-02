@@ -38,7 +38,7 @@ namespace Dune {
 		typedef FieldVector< double, dimThetaRange >              ThetaRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientType;
 		typedef FieldVector< double, dimThetaGradRange >          ThetaGradientRangeType;
-		
+		typedef FieldVector< double, 1 >                          ScalarType; 
 		typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientRangeType;
 		typedef FieldMatrix< double, dimRange, dimDomain >        JacobianRangeType;
@@ -90,7 +90,8 @@ namespace Dune {
 	
 		typedef typename Traits :: ThetaRangeType                 ThetaRangeType;
 		typedef typename Traits :: ThetaGradientRangeType         ThetaGradientRangeType;
-		typedef typename Traits :: ThetaJacobianRangeType         ThetaJacobianRangeType;
+		typedef typename Traits :: ScalarType                     ScalarType;
+    typedef typename Traits :: ThetaJacobianRangeType         ThetaJacobianRangeType;
 
 		typedef typename Traits :: JacobianFluxRangeType          JacobianFluxRangeType;
 
@@ -369,22 +370,24 @@ namespace Dune {
     inline void totalEnergy( const DomainType& xgl,
 														 const RangeType& cons, 
 														 const GradientRangeType& grad, 
-                             FieldVector<double,1>& kin, 
-                             FieldVector<double,1>& chemical,
-														 FieldVector<double,1>& total ) const
+                             ScalarType& kin, 
+                             ScalarType& chemical,
+														 ScalarType& total,
+                             ScalarType& surf ) const
 		{
 			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( grad);
-		  totalEnergy(cons,jac, kin, chemical, total);
+		  totalEnergy(cons,jac, kin, chemical , total , surf );
 		}
 
 	  template <class JacobianRangeImp>
 		inline void totalEnergy( const RangeType& cons, 
 														 const JacobianRangeImp& grad, 
-                             FieldVector<double,1>& kin, 
-														 FieldVector<double,1>& chemical,
-                             FieldVector<double,1>& total ) const
+                             ScalarType& kin, 
+														 ScalarType& chemical,
+                             ScalarType& total,
+                             ScalarType& surf) const
 		{
-		  phasefieldPhysics_.totalEnergy(cons,grad,kin[0],chemical[0],total[0] );
+		  phasefieldPhysics_.totalEnergy(cons,grad,kin[0],chemical[0],total[0],surf[0] );
 		}
 
  inline double delta()const

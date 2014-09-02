@@ -349,29 +349,31 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
 
 
     inline void conservativeToPrimitive( const DomainType& xgl,
-        const RangeType& cons, 
-        RangeType& prim ) const
+                                         const RangeType& cons,
+                                          RangeType& prim ) const
     {
       phasefieldPhysics_.conservativeToPrimitive( cons, prim );
     }
 
 
     inline void totalEnergy( const DomainType& xgl,
-        const RangeType& cons, 
-        const GradientRangeType& grad, 
-        FieldVector<double,1>& kin,
-        FieldVector<double,1>& total ) const
+                             const RangeType& cons,
+                             const GradientRangeType& grad,
+                             FieldVector<double,1>& kin,
+                             FieldVector<double,1>& total,
+                             FieldVector<double,1>& surf) const
     {
       Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( grad);
-      totalEnergy(cons, jac,kin,total );
+      totalEnergy(cons, jac,kin,total,surf );
     }
     template<class JacobianRangeImp>
-      inline void totalEnergy( const RangeType& cons, 
-          const JacobianRangeImp& grad, 
+      inline void totalEnergy( const RangeType& cons,
+          const JacobianRangeImp& grad,
           FieldVector<double,1>& kin,
-          FieldVector<double,1>& total ) const
+          FieldVector<double,1>& total,
+          FieldVector<double,1>& surf) const
       {
-        phasefieldPhysics_.totalEnergy(cons, grad,kin[0],total[0] );
+        phasefieldPhysics_.totalEnergy(cons, grad,kin[0],total[0],surf[0] );
       }
 
     inline double delta()const
