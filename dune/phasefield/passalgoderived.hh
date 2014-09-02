@@ -139,8 +139,25 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
         max_newton_iterations = odeSolverMonitor_.maxNewtonIterations_ ;
         max_ils_iterations    = odeSolverMonitor_.maxLinearSolverIterations_;
 	   }
-   
-   //! write data, if pointer to additionalVariables is true, they are calculated first 
+
+    double timeStepEstimate()
+    {
+      return dgOperator_.timeStepEstimate();
+    }
+
+    void computeResidual ( DiscreteFunctionType& U,
+                         DiscreteFunctionType& Uold,
+                         TimeProviderType& timeProvider,
+                         DataWriterType& eocDataOutput)
+    {
+      std::cout<<"Residual\n";
+      Uold.clear();
+      dgOperator_(U,Uold);
+      U.assign(Uold);
+      writeData(eocDataOutput ,timeProvider , eocDataOutput.willWrite( timeProvider ));
+    }
+
+    //! write data, if pointer to additionalVariables is true, they are calculated first 
     virtual void writeData( DataWriterType& eocDataOutput,
 									TimeProviderType& timeProvider,
                   const bool reallyWrite )
@@ -198,13 +215,13 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
       
 #if WELLBALANCED    
           double chemicalEnergy; 
-          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy);
-          str<<std::setprecision(20)<< timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\n";
+          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy,surfaceEnergy);
+          str<<std::setprecision(20)<< timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<"\n";
 #else
-          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy);
-          str<<std::setprecision(20)<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\n";
+          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,surfaceEnergy);
+          str<<std::setprecision(20)<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
 #endif
-
+       std::cout<<"energy="<<energyIntegral<<"\n";
     }
   
   }
