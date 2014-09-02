@@ -204,9 +204,10 @@ inline void PhasefieldModel< Grid, Problem>
               RangeFieldType rho,
               RangeFieldType& tau) const
 {
-  double diffphi=phi-phiOld;
-  if( std::abs(diffphi)<1e-8)
+//  double diffphi=phi-phiOld;
+//  if( std::abs(diffphi)<1e-8)
     tau=problem_.thermodynamics().reactionSource(rho,phiOld);
+/*
 else
   {
     double fnew,fold;
@@ -214,6 +215,7 @@ else
     fold=problem_.thermodynamics().helmholtz(rho,phiOld);
     tau=(fnew-fold)/(phi-phiOld);
   }
+  */
 }
 template< class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem>
