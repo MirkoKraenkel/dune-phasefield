@@ -210,9 +210,8 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
           dgOperator_.gradient(solution(),*gradient);
   
           totalenergy->clear();
-
           double kineticEnergy;
-      
+          double surfaceEnergy;
 #if WELLBALANCED    
           double chemicalEnergy; 
           double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy,surfaceEnergy);
