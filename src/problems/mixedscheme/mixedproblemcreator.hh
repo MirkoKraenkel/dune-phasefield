@@ -21,8 +21,11 @@
 
 //#include <dune/fem/operator/assembled/heatmodel.hh>
 #include <dune/fem/operator/assembled/models/phasefieldmodel.hh>
+#if IMPLICITTAU
+#include <dune/fem/operator/assembled/fluxes/fluximpl.hh>
+#else
 #include <dune/fem/operator/assembled/fluxes/flux.hh>
-//#endif
+#endif
 template< class GridType > 
 struct MixedProblemGenerator 
 {
