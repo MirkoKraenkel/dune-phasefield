@@ -61,8 +61,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
     //sum_j v_j( d_j v_i - d_i v_j)
     for(int jj = 0;jj < dimDomain ; ++jj)
-      sgradv+=Filter::velocity( vuMid , jj )*(Filter::dvelocity(duMid, ii , jj )
-          -Filter::dvelocity( duMid, jj , ii));
+      sgradv+=Filter::velocity( vuMid , jj )
+              *(Filter::dvelocity(duMid, ii , jj )-Filter::dvelocity( duMid, jj , ii));
 
     Filter::velocity( avu , ii )+=sgradv;
     Filter::velocity( avu , ii )+=Filter::dmu( du, ii);
@@ -71,7 +71,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     //-tau\nabla phi
     Filter::velocity( avu , ii )-=Filter::tau( vu )*Filter::dphi( duMid , ii );
 
-    //Filter::velocity( avu , ii )-=Filter::tau( vuMid )*Filter::dphi( duMid , ii );
+   
 
   }
   // A(dv) 
@@ -91,36 +91,19 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
   }
   Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vuMid )/Filter::rho(vuMid);
-  //Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vu )/Filter::rho(vuMid);
-
-  //tau---------------------------------------------------------------
-  // dF/dphi
-  double dFdphi;
-  model_.tauSource( Filter::phi(vuOld),
-      Filter::phi(vu),
-      Filter::rho(vuOld),
-      dFdphi);
-
- //Filter::tau( avu )=Filter::tau( vuMid );
-  Filter::tau( avu )=Filter::tau( vu );
-  Filter::tau( avu )-=dFdphi;
-
-  RangeFieldType divsigma(0.);
-
-  for( int ii = 0 ; ii < dimDomain ; ++ii) 
-    divsigma+=Filter::dsigma( duMid, ii , ii );
-
-  Filter::tau( avu )+=model_.delta()*divsigma;
-  //-------------------------------------------------------------------
-
   //mu-----------------------------------------------------------------
+  
   double dFdrho;
-  model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
+  //model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
+  //old version like Paris talk
+  //  model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
+  
+  model_.muSource(Filter::rho(vu),Filter::rho(vuOld),Filter::phi(vu),dFdrho);
 
 
   Filter::mu(avu)=Filter::mu( vu );
   Filter::mu(avu)-=dFdrho;
-  RangeFieldType usqr(0.),uOldsqr(0.);
+  RangeFieldType usqr(0.) , uOldsqr(0.) , sigmasqr(0.) , sigmaOldsqr(0.);
 
   for( int ii = 0; ii < dimDomain ; ++ii) 
   {
@@ -129,12 +112,61 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
     // |v^{n-1}|^2
     uOldsqr+=Filter::velocity( vuOld , ii )*Filter::velocity( vuOld , ii );
+#if RHOMODEL
+    //\sigma^n*\sigma^{n-1}
+    sigmasqr+=Filter::sigma( vu , ii )*Filter::sigma( vuOld , ii );
+#endif
   }
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
-  // Filter::mu(avu)*=deltaInv;
-
+#if RHOMODEL
+  //double rhodiff=(Filter::rho(vu)-Filter::rho(vuOld));
+//  if( std::abs(rhodiff)<1e-8)
+  Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
+//  else
+//    Filter::mu(avu)+=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
+#endif
   //------------------------------------------------------------------
+
+
+  //tau---------------------------------------------------------------
+  // dF/dphi
+  double dFdphi;
+  /*
+    model_.tauSource( Filter::phi(vuOld),
+                      Filter::phi(vu),
+                      Filter::rho(vuOld),
+                      dFdphi);
+   */
+  model_.tauSource( Filter::phi(vu),
+                    Filter::phi(vuOld),
+                    Filter::rho(vuOld),
+                    dFdphi);
+
+
+  Filter::tau( avu )=Filter::tau( vuMid );
+  Filter::tau( avu )-=dFdphi;
+
+  RangeFieldType divsigma(0.), gradrhosigma(0.);
+
+  for( int ii = 0 ; ii < dimDomain ; ++ii) 
+    {
+#if RHOMODEL
+#if LAMBDASCHEME 
+      divsigma+=Filter::dalpha( duMid, ii , ii );
+#else
+      divsigma+=Filter::dsigma( duMid, ii , ii ) * model_.h2( Filter::rho( vuMid ) );
+      gradrhosigma+=Filter::sigma( vuMid, ii )*Filter::drho( duMid, ii)* model_.h2prime( Filter::rho( vuMid ) );
+#endif
+#endif
+      divsigma+=Filter::dsigma( duMid, ii , ii );
+    }
+#if RHOMODEL && !LAMBDASCHEME
+  Filter::tau( avu )+=model_.delta()*(divsigma+gradrhosigma);
+#else
+  Filter::tau( avu )+=model_.delta()*divsigma;
+#endif
+  //-------------------------------------------------------------------
 
   //sigma--------------------------------------------------------------
   //\sigma-\nabla\phi
@@ -144,11 +176,13 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     Filter::sigma( avu , ii )=Filter::sigma( vu , ii );
     //\nabla\phi^n
     Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
-    //   Filter::sigma( avu, ii )*=deltaInv;
-  }
-
+#if RHOMODEL && LAMBDASCHEME
+    Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-model_.h2(Filter::rho(vuMid))*Filter::sigma(vuMid, ii);
+#endif
+ }
+  
   //------------------------------------------------------------------        
-
+  
   for(int ii = 0; ii < dimRange ; ii++)
   {
     assert( avu[ii]==avu[ii]) ;
@@ -165,7 +199,7 @@ template<class DiscreteFunction, class Model, class Flux>
 template< class IntersectionQuad>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::intersectionIntegral( const IntersectionType& intersection,
-                        const size_t pt,
+                        const size_t pt,  
                         const IntersectionQuad& quadInside,
                         const IntersectionQuad& quadOutside,
                         const RangeType& vuEn,
@@ -215,10 +249,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                               area,
                               vuEn,
                               vuNb,
-                              vuMidEn,
-                              vuMidNb,
+                              vuMidEn,  
+                              vuMidNb, 
                               avuLeft,
-                              avuRight);
+                              avuRight); 
  
   RangeType value(0);
   
@@ -241,7 +275,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 template<class DiscreteFunction, class Model, class Flux>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 ::boundaryIntegral( const IntersectionType& intersection,
-                    const size_t pt,
+                    const size_t pt,  
                     const FaceQuadratureType& quadInside,
                     const RangeType& vuEn,
                     const JacobianRangeType& duEn,
@@ -269,7 +303,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   // compute penalty factor
   const double intersectionArea = intersectionGeometry.volume();
-  const double penaltyFactor = intersectionArea /  areaEn_;
+  const double penaltyFactor = intersectionArea /  areaEn_; 
   const double area=areaEn_; 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
