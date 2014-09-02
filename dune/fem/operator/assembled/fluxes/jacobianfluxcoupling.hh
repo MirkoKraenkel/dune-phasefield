@@ -28,7 +28,8 @@ public:
     penalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.penalty" )),
     acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" )),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
-    numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0))  
+    numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0)),
+    imexFactor_(Dune::Fem::Parameter::getValue<double>("phasefield.IMEX"))
     {
     }
 
@@ -37,6 +38,8 @@ public:
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuNb,
+                        const RangeType& vuEnImEx,
+                        const RangeType& vuNbImEx,
                         FluxRangeType& gLeft,
                         FluxRangeType& gRight) const;
 
@@ -89,6 +92,7 @@ private:
   double acpenalty_;
   const int switchIP_; 
   const double numVisc_;
+  double imexFactor_;
 };
 
 
@@ -122,10 +126,12 @@ void  JacobianFlux<Model>
                 const double penaltyFactor,              
                 const RangeType& vuEnMid,
                 const RangeType& vuNbMid,
+                const RangeType& vuEnImEx,
+                const RangeType& vuNbImEx,
                 FluxRangeType& gLeft,
                 FluxRangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn(0.), midNb(0.),jump,mean, jumpPhi(0.);
+      RangeType valEn,valNb,midEn(0.), midNb(0.),jump,jumpImEx,mean, jumpPhi(0.);
       
       gLeft=0.;
       gRight=0.;
@@ -134,6 +140,9 @@ void  JacobianFlux<Model>
       midNb=vuNbMid;
       jump = midEn;
       jump-= midNb;
+      jumpImEx = vuEnImEx;
+      jumpImEx-= vuNbImEx;
+ 
       mean = midEn ;
       mean+= midNb;
       mean*=0.5;
@@ -165,16 +174,16 @@ void  JacobianFlux<Model>
     
       for(int ii = 0; ii < dimDomain ; ++ii )
         { 
-          //(\rho_j,\v_i)
-          gLeft[ 1 + ii ][ 0 ]=-0.5*jump[ dimDomain + 2 ]*normal[ ii ];
-          //(\mu_j,\v_i)
-          gLeft[ 1 + ii ][ dimDomain + 2 ]=-0.5*normal[ ii ]*midEn[ 0 ];
-          gRight[ 1 + ii ][ dimDomain + 2 ]=0.5*normal[ ii ]*midEn[ 0 ]; 
-         //(\tau_j,v_i)
-          gLeft[ 1 + ii ][ dimDomain + 3 ]=jump[ dimDomain + 1 ]*normal[ ii ]*0.5;
-          //(\phi_j,v_i)
-          gLeft[ 1 + ii ][ dimDomain + 1] =0.5*normal[ ii ]*midEn[ dimDomain + 3 ];
-          gRight[ 1 + ii ][ dimDomain + 1 ]=-0.5*normal[ ii ]*midEn[ dimDomain + 3 ];
+          //(\rho_j,\mu*,\v_i)
+          gLeft[ 1 + ii ][ 0 ]=-0.5*jumpImEx[ dimDomain + 2 ]*normal[ ii ];
+          //(\rho*,\mu_j,\v_i)
+          gLeft[ 1 + ii ][ dimDomain + 2 ]=-imexFactor_*normal[ ii ]*midEn[ 0 ];
+          gRight[ 1 + ii ][ dimDomain + 2 ]=imexFactor_*normal[ ii ]*midEn[ 0 ]; 
+          //(\phi*,\tau_j,v_i)
+          gLeft[ 1 + ii ][ dimDomain + 3 ]=jump[ dimDomain + 1 ]*normal[ ii ]*imexFactor_;
+          //(\phi_j,\tau*,v_i)
+          gLeft[ 1 + ii ][ dimDomain + 1] =0.5*normal[ ii ]*vuEnImEx[ dimDomain + 3 ];
+          gRight[ 1 + ii ][ dimDomain + 1 ]=-0.5*normal[ ii ]*vuEnImEx[ dimDomain + 3 ];
           
           gLeft[ 1 + ii ]*=0.5;
           gRight[ 1 + ii ]*=0.5;
