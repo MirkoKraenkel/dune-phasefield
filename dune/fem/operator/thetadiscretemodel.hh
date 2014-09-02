@@ -252,7 +252,7 @@ namespace Dune {
       gLeft*=0.5;
 #endif     
      gDiffLeft = 0;
-      gDiffRight = 0;     
+     gDiffRight = 0;     
 #if 1			
     const double faceLengthSqr=normal.two_norm2();
     const double h=sqrt(faceLengthSqr);
