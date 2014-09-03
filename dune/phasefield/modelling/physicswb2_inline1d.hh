@@ -114,8 +114,7 @@ public:
  	inline double mu2() const { return thermoDynamics_.mu2();}
 
 
-protected:
- };
+};
 
 
 
@@ -149,7 +148,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                   double& surf ) const
   {
 	  double rho = cons[0];
-    double rho_inv = 1./rho;
+	  double rho_inv = 1./rho;
 	  double phi = cons[phaseId];
     
     double kineticEnergy,surfaceEnergy;
@@ -160,7 +159,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
    
-	  therm = thermoDynamics_.helmholtz( cons[0], phi );
+	  therm = thermoDynamics_.helmholtz( rho, phi );
 	  therm +=surfaceEnergy;
     kin  = kineticEnergy;
     total = therm+kineticEnergy; 
@@ -178,7 +177,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		double rho=cons[0];
 		double phi=cons[phaseId];
    
-
+    
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
@@ -204,13 +203,13 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   inline void  PhasefieldPhysics< 1, Thermodynamics>
   ::analyticalFlux( const RangeType& u, JacobianRangeType& f ) const
   {
-		assert( u[0] > 1e-20 );
+		assert( u[0] > 1e-10 );
 		double rho_inv = 1. / u[0];
 		const double v = u[1]*rho_inv;
     
     f[0][0] = u[1];
     f[1][0] = v*u[1];
-    f[2][0] = 0.;
+    f[2][0] = u[2]*v;
   }
 
   template< class Thermodynamics > 
@@ -226,7 +225,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
-	::stiffSource(const DomainType& xglobal,
+	::stiffSource(const DomainType& xglobal, //model already gives globla coordinate
                 const double time,
                 const RangeType& u,
 								const GradientRangeType& du,
@@ -251,14 +250,14 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     f[phaseId]*=reactionFac;
     //nonconservative Discretization of transport term
     f[phaseId]-=v*dphi;
- 
+
     return 0.4*reactionFac*deltaInv(); 
   }
   
   template< class Thermodynamics >
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1 ,Thermodynamics >
- ::diffusion( const RangeType& u,
+  ::diffusion( const RangeType& u,
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
   {
@@ -278,9 +277,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                ThetaJacobianRangeType& diff ) const
   {
 	
-	 diff[0][0]=0.;
-   diff[1][0]=-delta()*thermoDynamics_.h2( u[0] )*du[2][0];
-
+    diff[0][0]=0.;
+    diff[1][0]=-delta()*thermoDynamics_.h2( u[0] )*du[2][0];
   }
 
   template< class Thermodynamics >
@@ -300,10 +298,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
-	
-	 diff[0][0]=0.;
-	 diff[1][0]=0.;
-
+	  diff[0][0]=0.;
+	  diff[1][0]=0.;
   }
 
 

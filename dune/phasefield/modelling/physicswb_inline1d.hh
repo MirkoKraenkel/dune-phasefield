@@ -225,7 +225,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     a[2][0] = u[2]/u[0];//(rho phi)/rho
 
   }
-	
+
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
 	::stiffSource(const DomainType& xglobal, //model already gives globla coordinate
@@ -250,7 +250,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     f[phaseId]=theta[1];
     f[phaseId]*=-1.;
   //  f[phaseId]*=rho_inv;
-    f[phaseId]*=reactionFac; 
+    f[phaseId]*=reactionFac;
     
 
 
@@ -260,7 +260,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   template< class Thermodynamics >
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1 ,Thermodynamics >
- ::diffusion( const RangeType& u,
+  ::diffusion( const RangeType& u,
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
   {
@@ -270,8 +270,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		diff[0][0]=0.;
 		diff[1][0]=muLoc*dxv;
   	diff[2][0]=0.;
-  
   }
+  
   template<class Thermodynamics>
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1, Thermodynamics>
@@ -280,12 +280,10 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                ThetaJacobianRangeType& diff ) const
   {
 	
-	 diff[0][0]=0.;
-   diff[1][0]=-delta()*thermoDynamics_.h2( u[0] )*du[2][0];
-
-
-
+    diff[0][0]=0.;
+    diff[1][0]=-delta()*thermoDynamics_.h2( u[0] )*du[2][0];
   }
+
   template< class Thermodynamics >
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 1 ,Thermodynamics >
@@ -304,9 +302,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                ThetaJacobianRangeType& diff ) const
   {
 	
-	 diff[0][0]=0.;
-	 diff[1][0]=0.;
-
+	  diff[0][0]=0.;
+	  diff[1][0]=0.;
   }
 
 
