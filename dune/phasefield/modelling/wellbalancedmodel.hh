@@ -38,7 +38,7 @@ namespace Dune {
 		typedef FieldVector< double, dimThetaRange >              ThetaRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientType;
 		typedef FieldVector< double, dimThetaGradRange >          ThetaGradientRangeType;
-		typedef FieldVector< double, 1 >                          ScalarType; 
+		typedef FieldVector< double, 1 >                          ScalarType;
 		typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
 		typedef FieldVector< double, dimGradRange >               GradientRangeType;
 		typedef FieldMatrix< double, dimRange, dimDomain >        JacobianRangeType;
@@ -370,7 +370,7 @@ namespace Dune {
     inline void totalEnergy( const DomainType& xgl,
 														 const RangeType& cons, 
 														 const GradientRangeType& grad, 
-                             ScalarType& kin, 
+                             ScalarType& kin,
                              ScalarType& chemical,
 														 ScalarType& total,
                              ScalarType& surf ) const
@@ -382,7 +382,7 @@ namespace Dune {
 	  template <class JacobianRangeImp>
 		inline void totalEnergy( const RangeType& cons, 
 														 const JacobianRangeImp& grad, 
-                             ScalarType& kin, 
+                             ScalarType& kin,
 														 ScalarType& chemical,
                              ScalarType& total,
                              ScalarType& surf) const
@@ -390,10 +390,10 @@ namespace Dune {
 		  phasefieldPhysics_.totalEnergy(cons,grad,kin[0],chemical[0],total[0],surf[0] );
 		}
 
- inline double delta()const
-  {
-    return phasefieldPhysics_.delta();
-  }
+    inline double delta()const
+    {
+      return phasefieldPhysics_.delta();
+    }
 
 
 //Data Members		
@@ -447,7 +447,7 @@ inline double PhaseModel< GridPartType, ProblemImp >
 			uRight[i]=0.;
 	
 		//Neumann Boundary for \phi and \rho
-		uRight[0]=uLeft[0];
+	  uRight[0]=uLeft[0];
 		uRight[dimDomain+1]=uLeft[dimDomain+1];
  #endif
 	}
