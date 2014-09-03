@@ -298,18 +298,6 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
         phasefieldPhysics_.boundarydiffusion( u, jac, diff );
       }
 
-
-    void tension( const EntityType& en,
-        const double time,
-        const DomainType& x,
-        const RangeType& u,
-        const GradientRangeType& v,
-        JacobianRangeType& diff )const
-    {    
-      Dune::Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( v );
-      diff=jac;
-    }
-
     void tension( const EntityType& en,
         const double time,
         const DomainType& x,
@@ -322,9 +310,9 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     }
 
     template <class JacobianRangeImp>
-      void tension( const RangeType& u,
-          const JacobianRangeImp& jac,
-          GradientRangeType& diff ) const
+    void tension( const RangeType& u,
+                    const JacobianRangeImp& jac,
+                    GradientRangeType& diff ) const
       { 
         phasefieldPhysics_.tension( u, jac, diff );
       }
@@ -367,11 +355,11 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
       totalEnergy(cons, jac,kin,total,surf );
     }
     template<class JacobianRangeImp>
-      inline void totalEnergy( const RangeType& cons,
-          const JacobianRangeImp& grad,
-          FieldVector<double,1>& kin,
-          FieldVector<double,1>& total,
-          FieldVector<double,1>& surf) const
+    inline void totalEnergy( const RangeType& cons,
+                            const JacobianRangeImp& grad,
+                            FieldVector<double,1>& kin,
+                            FieldVector<double,1>& total,
+                            FieldVector<double,1>& surf) const
       {
         phasefieldPhysics_.totalEnergy(cons, grad,kin[0],total[0],surf[0] );
       }
@@ -402,19 +390,6 @@ inline double PhaseModel< GridPartType, ProblemImp >
     , RangeType& gLeft ) const  
 {
   abort();
-  DomainType xgl=it.geometry().global(x);
-  const typename Traits :: DomainType normal = it.integrationOuterNormal(x); 
-  double p;
-  double T;
-  pressAndTemp( uLeft, p, T );
-  gLeft = 0;
-
-  // bnd. cond. from euler part
-  for (int i=0;i<dimDomain; ++i)
-    gLeft[i+1] = 0;
-
-
-  return 0.;
 }
 
 
