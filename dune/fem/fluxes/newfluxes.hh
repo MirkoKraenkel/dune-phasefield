@@ -79,14 +79,13 @@ public:
     double rhoRight = uRight[0];
     double phiLeft  = uLeft[dimDomain+1];
     double phiRight = uRight[dimDomain+1];
-    
-    
+
     double vLeft[dimDomain],vRight[dimDomain];
 
     for(int i=0; i<dimDomain; i++)
     {
-      vLeft[i]  = uLeft[1+i];
-      vRight[i] = uRight[1+i];
+      vLeft[i]  = uLeft[1+i]/rhoLeft;
+      vRight[i] = uRight[1+i]/rhoRight;
     }
 
     
@@ -105,7 +104,6 @@ public:
     //add F(uleft) 
     anaflux.umv( normal, gLeft );
 
-  
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
@@ -132,7 +130,7 @@ public:
     visc -= uLeft;
 
     visc *= viscpara;
-    for(int i=0; i<dimDomain;i++)
+    for(int i=1; i<dimDomain+1;i++)
  		{
      		gLeft[i] -= visc[i];
     }
@@ -161,10 +159,11 @@ public:
                phiRight,
                nonConLeft,
                nonConRight);
+
    gLeft  -= nonConLeft;
    gRight += nonConRight;
    
- return maxspeed * len;
+   return maxspeed * len;
   }
 
 
