@@ -259,7 +259,7 @@ namespace Dune {
      // add penalty term ( enVolume() is available since we derive from
 			//    DiscreteModelDefaultWithInsideOutside)
       //
-      //penalty is negative, becaus of the sign of the diffusion!!!!!!!!
+      //penalty is negative, because of the sign of the diffusion!!!!!!!!
       double factor = -1.*acpenalty_ ;
 
 	 		RangeType jmp(0);
