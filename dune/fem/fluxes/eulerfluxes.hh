@@ -195,17 +195,16 @@ public:
     RangeType visc;
 		ThetaRangeType newvisc,thetaFluxLeft,thetaFluxRight;
    	FluxRangeType anaflux;
-    //add F(uLeft)
     model_.advection( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, anaflux );
     // set gLeft 
     anaflux.mv( normal, gLeft );
-      
      
     model_.advection( outside, time, faceQuadOuter.point( quadPoint ),
 											uRight, anaflux );
     //add F(uRight) 
     anaflux.umv( normal, gLeft );
+
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
@@ -232,13 +231,12 @@ public:
     visc -= uLeft;
 
     visc *= viscpara;
-    for(int i=0; i<dimDomain+1;i++)
+    for(int i=1; i<dimDomain+1 ;i++)
  		{
    		gLeft[i] -= visc[i];
     }
 
-     
-     // \delta\mu  consider sign!!!!!!!!
+    // \delta\mu  consider sign!!!!!!!!
     newvisc=thetaFluxRight;
     newvisc-=thetaFluxLeft;
     newvisc*=viscpara*alpha1_; 
@@ -249,26 +247,23 @@ public:
  
     RangeType nonConLeft(0.),nonConRight(0.);  
    
-#if 1 
-   nonConFlux( normal,
-               len,        
-               rhoLeft,
-               rhoRight, 
-               vLeft,
-               vRight,
-               thetaLeft, 
-               thetaRight,
-               phiLeft,
-               phiRight,
-               nonConLeft,
-               nonConRight);
+    nonConFlux( normal,
+                len,
+                rhoLeft,
+                rhoRight,
+                vLeft,
+                vRight,
+                thetaLeft,
+                thetaRight,
+                phiLeft,
+                phiRight,
+                nonConLeft,
+                nonConRight);
  
     gLeft -=nonConLeft;
     gRight+=nonConRight;
-#endif 
    
-   //   std::cout<<"NUmflux out "<<maxspeed << std::endl;
-   return maxspeed * len;
+    return maxspeed * len;
   }
 
 
@@ -313,40 +308,7 @@ public:
       nonConLeft*=0.5*length;
       nonConRight*=0.5*length;
 
-#if 0
-    // {{rho}}
-      double averageRho=rhoLeft+rhoRight;
-      averageRho*=0.5;
-      
-      //[[\mu]]
-      double jumpMu=thetaLeft[0]-thetaRight[0];
-     
-      //{{\tau}}
-      double averageTau=thetaLeft[1]+thetaRight[1];
-      averageTau*=0.5;
- 
-      //[\phi]
-      double jumpPhi=phiLeft-phiRight;
-      //{{v}} 
-      double averageV[dimDomain];
-      
-      for(int i=0;i<dimDomain;i++)
-      {
-        averageV[i]=0.5*(vLeft[i]+vRight[i]);
-      }
-      
-      nonConProd=0.;
-      for(int i=0;i<dimDomain;i++)
-      {  
-        nonConProd[i+1]=normal[i];
-        nonConProd[i+1]*=averageRho*jumpMu-averageTau*jumpPhi;        
-    
-      }
-        
-
-        nonConProd*=0.5*length;
-#endif
-      }
+     }
                            
                            
 
