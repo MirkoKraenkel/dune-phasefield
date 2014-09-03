@@ -181,7 +181,6 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
         
           theta1->clear();
           dgOperator_.theta(solution(),*theta1);
-
         }
 
         // calculate additional variables from the current num. solution
@@ -215,7 +214,7 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
 #if WELLBALANCED    
           double chemicalEnergy; 
           double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy,surfaceEnergy);
-          str<<std::setprecision(20)<< timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<"\n";
+          str<<std::setprecision(20)<< timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
 #else
           double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,surfaceEnergy);
           str<<std::setprecision(20)<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
