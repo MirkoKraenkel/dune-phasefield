@@ -148,7 +148,7 @@ inline void HeatProblem<GridType,RangeProvider>
   // double rho=1.85*(-0.5*tanhr+0.5)+
   double rho=(1.845933854)*(-0.5*tanhr+0.5)+1.947734046;
   
-  double v=0;
+  double v=0;//0.1*sin(2*M_PI*arg[0]);
   //rho
   res[0]= rho;
  
@@ -208,8 +208,7 @@ inline void HeatProblem<GridType,RangeProvider>
 #else
 #if NONCONTRANS
 #else
-    res[1]*=res[0];
- res[2]*=res[0];
+    res[dimension+1]*=res[0];
 #endif
 #endif
 }
