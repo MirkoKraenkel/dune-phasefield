@@ -65,13 +65,13 @@ class PhasefieldPhysics<2,Thermodynamics>
   inline void jacobian( const RangeType& u, JacobianFluxRangeType& a) const;
 
   inline double maxSpeed( const DomainType& n, const RangeType& u ) const;
-  
+#if 0  
   inline double stiffSource(const RangeType& u,
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
 								            RangeType& f) const;
- 
+ #endif
   inline double stiffSource(const DomainType& xglobal,
                             const double time,
                             const RangeType& u,
@@ -258,18 +258,18 @@ template< class Thermodynamics >
 
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 2, Thermodynamics  >
-	::stiffSource(const RangeType& u,
+	::stiffSource(const DomainType& xglobal,
+                const double time,
+                const RangeType& u,
 								const GradientRangeType& du,
-								const ThetaRangeType& theta,
-								const ThetaJacobianRangeType& dtheta,
 								RangeType& f) const
 	{
 		double rho=u[0];
     double phi=u[phaseId];
     phi/=rho;
     double reaction=thermoDynamics_.reactionSource(rho,phi);
-    for( int ii = 0 ; i<=dimDomain ; ++ii)
-      f[i]=0;
+    for( int ii = 0 ; ii<=dimDomain ; ++ii)
+      f[ii]=0;
     
     f[ phaseId ]=-reaction*thermoDynamics_.reactionFactor();
     

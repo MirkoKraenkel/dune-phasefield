@@ -234,7 +234,7 @@ template< class Thermodynamics >
     a[7][1] = phi;
   }
 
-  }
+  
 
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 2, Thermodynamics  >

@@ -141,15 +141,14 @@ public:
                   const JacobianRangeImp& grad , 
                   double& kin,
                   double& therm,
-                  double& total ) const
+                  double& total,
+                  double& surf ) const
   {
-    assert( cons[0] > 0. );
 	  double rho = cons[0];
 	  double rho_inv = 1. /rho;
 	  double phi = cons[phaseId];
     FieldVector<RangeFieldType, dimDomain> v;
-    double kineticEnergy=0.;
-    double surfaceEnergy=0.;
+    double kineticEnergy,surfaceEnergy;
     
     for(int i=0;i<dimDomain;++i)
       kineticEnergy+=cons[i]*cons[i];
@@ -163,11 +162,10 @@ public:
 
  
 	  therm = thermoDynamics_.helmholtz( rho, phi );
-    therm+=surfaceEnergy;
-    
+    therm += surfaceEnergy;
     kin = kineticEnergy;
-	  
-    total = therm  + kineticEnergy;
+    total = therm+kineticEnergy;
+    surf = surfaceEnergy;
 
   }
 
@@ -213,6 +211,8 @@ public:
 	  f[1][1] = vx*u[2];  // \rho*vx*vy
     f[2][0] = vy*u[1];  // \rho*vy*vx
     f[2][1] = vy*u[2];  // \rho*vy*vy
+    f[phaseId][0]=0.;
+    f[phaseId][1]=0.;
   }
 
   template<class Thermodynamics> 
@@ -264,18 +264,19 @@ public:
     double dphiy=jacU[phaseId][1];
     double vx=u[1]*rho_inv;
     double vy=u[2]*rho_inv;
-
+    
+    double reactionFac=thermoDynamics_.reactionFactor();
+    
     f[0]=0;
      //-(\rho\nabla\mu-\tau\nabla\phi) 
-
     f[1]=-dtheta[0][0]*u[0]+dphix*theta[1];
 		f[2]=-dtheta[0][1]*u[0]+dphiy*theta[1];
-    
     f[phaseId]=theta[1]
-    f[phaseId]*=-1.*rho_inv;
+    f[phaseId]*=-reactionFac;
+    f[phaseId]*=rho_inv;
+    //nonconservative Discretization of transport term
     f[phaseId]-=vx*dphix+vy*dphiy;
-    f[phaseId]*=thermoDynamics_.reactionFactor( u[0] )
-    return deltaInv()*deltaInv();  
+    return 0.4*reactionFac*deltaInv();  
   }
 
   template<class Thermodynamics>
@@ -285,7 +286,7 @@ public:
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
   {
-    // du is grad(u) which is 4x2 matrix (for 2d case)
+    // du isd(u) which is 4x2 matrix (for 2d case)
     assert( u[0] > 1e-10 );
   
     const double muLoc = mu1();
@@ -309,13 +310,10 @@ public:
 
     // 1st row
     diff[0][0] = 0.;                   diff[0][1] = 0.;
-
     // 2nd row
     diff[1][0] = tau00;                diff[1][1] = tau01;
-
     // 3rd row
     diff[2][0] = tau10;                diff[2][1] = tau11;
-
     // 4th row
     diff[3][0] =0.;                diff[3][1] = 0.;
     
@@ -329,7 +327,6 @@ public:
                JacobianRangeType& diff) const
   {
     diff = 0.;                
-
     
   } 
 
