@@ -160,8 +160,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     surfaceEnergy*=delta()*0.5;
    
 	  therm = thermoDynamics_.helmholtz( rho, phi );
-	  therm +=surfaceEnergy;
-    kin  = kineticEnergy;
+	  therm += surfaceEnergy;
+    kin = kineticEnergy;
     total = therm+kineticEnergy; 
     surf = surfaceEnergy;
   }
@@ -209,7 +209,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     
     f[0][0] = u[1];
     f[1][0] = v*u[1];
-    f[2][0] = u[2]*v;
+    f[2][0] = 0.;
   }
 
   template< class Thermodynamics > 
@@ -245,9 +245,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     //-(\rho\nabla\mu-\tau\nabla\phi) 
     f[1]=-dtheta[0]*u[0]+dphi*theta[1];
     f[phaseId]=theta[1];
-    f[phaseId]*=-1.;
+    f[phaseId]*=-reactionFac;
     f[phaseId]*=rho_inv;
-    f[phaseId]*=reactionFac;
     //nonconservative Discretization of transport term
     f[phaseId]-=v*dphi;
 
