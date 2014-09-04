@@ -21,13 +21,6 @@
 #include <dune/fem/io/file/datawriter.hh>
 
 
-//! get memory in MB 
-inline double getMemoryUsage()
-{
-  struct rusage info;
-  getrusage( RUSAGE_SELF, &info );
-  return (info.ru_maxrss / 1024.0);
-}
 
 template< class HGridType >
 Dune::GridPtr< HGridType > initialize( const std::string& problemDescription )
