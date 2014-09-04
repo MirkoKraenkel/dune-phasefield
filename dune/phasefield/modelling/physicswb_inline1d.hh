@@ -8,13 +8,13 @@ namespace Dune{
 
 
 template<class Thermodynamics>
-class PhasefieldPhysics<1,Thermodynamics>
+class PhasefieldPhysics< 1,Thermodynamics>
 {
   typedef Thermodynamics ThermodynamicsType;
  
   public:
     enum{dimDomain=1};  
-    enum{ phaseId = dimDomain+1} ;
+    enum { phaseId = dimDomain+1} ;
     enum { dimRange = dimDomain + 2 };
     enum { dimThetaRange =  2 };
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
@@ -139,7 +139,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
  template< class Thermodynamics > 
  template<class JacobianRangeImp>   
- inline void PhasefieldPhysics<1,Thermodynamics >
+ inline void PhasefieldPhysics< 1,Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const JacobianRangeImp& grad , 
                   double& kin, 
@@ -168,7 +168,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   }
 
   template< class Thermodynamics >
-  inline void PhasefieldPhysics<1,Thermodynamics >
+  inline void PhasefieldPhysics< 1,Thermodynamics >
   ::chemPotAndReaction( const RangeType& cons, 
 												double& mu,
 												double& reaction ) const
@@ -184,22 +184,15 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   }
 
   template< class Thermodynamics >
-	inline void PhasefieldPhysics<1,Thermodynamics >
+	inline void PhasefieldPhysics< 1,Thermodynamics >
   ::pressureAndReaction( const RangeType& cons, 
                          double& p,
 												 double& reaction ) const
 	{
-		assert( cons[0] > 1e-20 );
-	  
-		double rho=cons[0];
-		double phi=cons[phaseId];
-		phi/=rho;
-		
-		p=thermoDynamics_.pressure(rho,phi);
-		reaction=thermoDynamics_.reactionSource(rho,phi); 
-			
-		assert( p > 1e-20 );
+    std::cout<<"Don't call this with WB\n";
 	}
+
+
 
   template< typename Thermodynamics >
   inline void  PhasefieldPhysics< 1, Thermodynamics>
@@ -219,7 +212,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   ::jacobian( const RangeType & u, JacobianFluxRangeType& a) const
   {
     //assert(u[0] > 1e-10);
-
+ 
     a[0][0] = u[0]; //rho
     a[1][0] = u[1]/u[0];//(rho v)/rho
     a[2][0] = u[2]/u[0];//(rho phi)/rho
@@ -249,11 +242,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     f[1]=-dtheta[0]*u[0]+dphi*theta[1];
     f[phaseId]=theta[1];
     f[phaseId]*=-1.;
-  //  f[phaseId]*=rho_inv;
     f[phaseId]*=reactionFac;
-    
-
-
     return 0.4*reactionFac*deltaInv(); 
   }
   
@@ -314,8 +303,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   assert(u[0] > 1e-20);
   double u_normal=(u[1]*n[0])/u[0];
   double phi=u[2]/u[0];
-  double c=thermoDynamics_.a( u[0] , phi );
-  return std::abs(u_normal)+sqrt(c);
+  double c = thermoDynamics_.a( u[0] , phi );
+  return std::abs(u_normal) + std::sqrt(c);
  } 
 
 }//end namespace Dune

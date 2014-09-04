@@ -1,10 +1,16 @@
-#ifndef PHYSICS_INLINE_HH
-#define PHYSICS_INLINE_HH
+#ifndef PHYSICSWB_INLINE2D_HH
+#define PHYSICSWB_INLINE2D_HH
 namespace Dune{
+//================================================
+//
+//
+//================================================
+
+
 template<class Thermodynamics>
 class PhasefieldPhysics<2,Thermodynamics>
 {
-   typedef Thermodynamics ThermodynamicsType;
+  typedef Thermodynamics ThermodynamicsType;
  
   public:
     enum { dimDomain = 2 };
@@ -26,26 +32,26 @@ class PhasefieldPhysics<2,Thermodynamics>
     typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
     typedef FieldVector< double, dimGradRange >               GradientRangeType;
 
-    typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
-    typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
-
+   typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
+   typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
   protected:
     const ThermodynamicsType thermoDynamics_;
-
   public:
   PhasefieldPhysics(const ThermodynamicsType& thermodyn):
     thermoDynamics_(thermodyn)
   {
-	}
  
+  }
+   
   inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
  
   template< class JacobianRangeImp >
   inline void totalEnergy( const RangeType& cons, 
                            const JacobianRangeImp& grad,
                            double& kin,
-                           double& free,
-                           double& total ) const;
+                           double& therm,
+                           double& total,
+                           double& surf ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -73,7 +79,7 @@ class PhasefieldPhysics<2,Thermodynamics>
 								            const GradientRangeType& du,
 								            const ThetaRangeType& theta,
 								            const ThetaJacobianRangeType& dtheta,
-								            const JacobianRangeType& jacU,
+	 							            const JacobianRangeType& uJac,
                             RangeType& f) const;
  
   template< class JacobianRangeImp >
@@ -95,76 +101,70 @@ class PhasefieldPhysics<2,Thermodynamics>
 	inline void boundaryallenCahn( const RangeType& u,
 												 const JacobianRangeImp& du,
 												 ThetaJacobianRangeType& f ) const;
-	
 
-
-public:
-	inline double delta()    const { return thermoDynamics_.delta(); }
-	inline double deltaInv() const { return thermoDynamics_.deltaInv();} 
-  inline double mu1()      const { return thermoDynamics_.mu1();}
- 	inline double mu2()      const { return thermoDynamics_.mu2();}
-
-
- };
-
-
-//================================================
-//
-//for all dim
-//
-//================================================
-  template< class Thermodynamics >
-  inline void PhasefieldPhysics<2,Thermodynamics>
-  :: conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
-  {
-  	assert( cons[0] > 0. );
+  inline double nstkSource(const DomainType xglobal, const double time) const ;  
+  inline double acSource(const DomainType xglobal, const double time) const ;
+ 
   
+public:
+
+	inline double delta()const  { return thermoDynamics_.delta(); }
+	inline double deltaInv()const{ return thermoDynamics_.deltaInv(); }
+  inline double mu1() const { return thermoDynamics_.mu1();}
+ 	inline double mu2() const { return thermoDynamics_.mu2();}
+
+
+};
+
+
+
+template< class Thermodynamics >
+  inline void PhasefieldPhysics<2,Thermodynamics>
+::conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
+ {
+  	assert( cons[0] > 0. );
   	double rho,rho_inv,phi;
   	rho=cons[0];
-    rho_inv=1./rho; 
+    rho_inv=1./rho;
     phi=cons[phaseId];
     phi*=rho_inv;
-    
-    //velocity
+    //velocity 
     prim[0] = cons[1]*rho_inv;
     prim[1] = cons[2]*rho_inv;
-    //pressure
+    //pressure  
   	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
-  	//phasefield
-    prim[phaseId]   = phi;
+    //phasefield
+    prim[phaseId] = phi;
   
   }
 
-  template< class Thermodynamics > 
-  template< class JacobianRangeImp >
+ template< class Thermodynamics > 
+ template<class JacobianRangeImp>   
   inline void PhasefieldPhysics< 2, Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const JacobianRangeImp& grad , 
-                  double& kin,
+                  double& kin, 
                   double& therm,
-                  double& total ) const
+                  double& total,
+                  double& surf ) const
   {
-    assert( cons[0] > 0. );
 	  double rho = cons[0];
-	  double rho_inv = 1. /rho;
+	  double rho_inv = 1./rho;
 	  double phi = cons[phaseId];
-    FieldVector<RangeFieldType, dimDomain> v;
-    double kineticEnergy,surfaceEnergy;
+    phi*=rho_inv;
     
+    double kineticEnergy,surfaceEnergy;
     kineticEnergy=cons[1]*cons[1]+cons[2]*cons[2];
     surfaceEnergy=grad[phaseId][0]*grad[phaseId][0]+grad[phaseId][1]*grad[phaseId][1];
-  
+    
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
-
- 
+   
 	  therm = thermoDynamics_.helmholtz( rho, phi );
-    therm+=surfaceEnergy;
-    
-    kin = kineticEnergy;
-	  
-    total = therm  + kineticEnergy;
-
+	  therm +=surfaceEnergy;
+    kin  = kineticEnergy;
+    total = therm+kineticEnergy; 
+    surf = surfaceEnergy;
   }
 
   template< class Thermodynamics >
@@ -174,16 +174,16 @@ public:
 												double& reaction ) const
 	{
 		assert( cons[0] > 1e-20 );
-		
+
 		double rho=cons[0];
 		double phi=cons[phaseId];
 		phi/=rho;
-		
-		mu=thermoDynamics_.chemicalPotential(rho,phi);
+    
+  	mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
 
-  template<class Thermodynamics>
+  template< class Thermodynamics >
 	inline void PhasefieldPhysics< 2,Thermodynamics >
   ::pressureAndReaction( const RangeType& cons, 
                          double& p,
@@ -211,10 +211,9 @@ public:
     f[2][1] = vy*u[2];  // \rho*vy*vy
     f[3][0] = phi*u[1]; // \phi*\rho*vx
     f[3][1] = phi*u[2]; // \phi*\rho*vy
-  
   }
 
-  template<class Thermodynamics> 
+  template< class Thermodynamics > 
   inline void PhasefieldPhysics< 2,Thermodynamics>
   ::jacobian( const RangeType & u, JacobianFluxRangeType& a) const
   {
@@ -235,61 +234,47 @@ public:
     a[7][1] = phi;
   }
 
-	template< class Thermodynamics >
- 	inline void   PhasefieldPhysics< 2, Thermodynamics >
-	::nonConProduct(const RangeType & uL, 
-									const RangeType & uR,
-									const ThetaRangeType& thetaL,
-									const ThetaRangeType& thetaR,
-									RangeType& ret) const
-	{
-	 abort();
   }
-	
-	template<class Thermodynamics>
+
+	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 2, Thermodynamics  >
 	::stiffSource(const DomainType& x,
                 const double time,
                 const RangeType& u,
 								const GradientRangeType& du,
-								const ThetaRangeType& theta,
+					  		const ThetaRangeType& theta,
 								const ThetaJacobianRangeType& dtheta,
 								const JacobianRangeType& jacU,
                 RangeType& f) const
-  {
-#if USEJACOBIAN
+	{
+    //dphi=1/rho*(d(rho*phi)-phi*drho)   
     double rho_inv=1./u[0];
     double phi=u[3]*rho_inv;
     double dphix=jacU[3][0]-phi*jacU[0][0];
     double dphiy=jacU[3][1]-phi*jacU[0][1];
-    dphix*=-rho_inv;
-    dphiy*=-rho_inv;
-#else
-    double dphix=du[6];
-    double dphiy=du[7];
-#endif
+    dphix*=rho_inv;
+    dphiy*=rho_inv;
+    double reactionFac=thermoDynamics_.reactionFactor();
 
     f[0]=0;
-		f[1]=-dtheta[0][0]*u[0]-dphix*theta[1];
-		f[2]=-dtheta[0][1]*u[0]-dphiy*theta[1];
-    f[3]=-theta[1]*deltaInv();
-
-    return deltaInv()*deltaInv();  
+    //-(\rho\nabla\mu-\tau\nabla\phi) 
+   	f[1]=-dtheta[0][0]*u[0]+dphix*theta[1];
+		f[2]=-dtheta[0][1]*u[0]+dphiy*theta[1];
+    f[phaseId]=theta[1];
+    f[phaseId]*=-1.;
+    f[phaseId]*=reactionFac;
+    return 0.4*reactionFac*deltaInv(); 
   }
-
-  template<class Thermodynamics>
+  
+  template< class Thermodynamics >
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 2, Thermodynamics >
   ::diffusion( const RangeType& u,
                const JacobianRangeImp& du,
                JacobianRangeType& diff) const
   {
-    // du is grad(u) which is 4x2 matrix (for 2d case)
     assert( u[0] > 1e-10 );
- //   double rho_inv = 1. / u[0];
-//    const double v[2] = { u[1]*rho_inv, u[2]*rho_inv };
-  
-    const double muLoc = mu1();
+		const double muLoc = mu1();
     const double lambdaLoc =mu2();
   
     // get dx_u, dz_u, dx_w, dz_w, dx_T, dz_T (in 2d case) for du
@@ -321,7 +306,7 @@ public:
     diff[3][0] =0.;                diff[3][1] = 0.;
     
   }
-
+  
   template<class Thermodynamics>
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 2, Thermodynamics >
@@ -348,18 +333,18 @@ public:
     diff[1][0]=-delta()*du[3][0];
     diff[1][1]=-delta()*du[3][1];
   }
-
-  template< class Thermodynamics >
+  
+  template<class Thermodynamics>
   template< class JacobianRangeImp >
   inline void PhasefieldPhysics< 2, Thermodynamics >
   ::boundaryallenCahn( const RangeType& u,
                const JacobianRangeImp& du,
                ThetaJacobianRangeType& diff ) const
   {
-	 
+	
 	  diff[0][0]=0.;
     diff[0][1]=0.;
-    diff[1][0]=0.;
+	  diff[1][0]=0.;
     diff[1][1]=0.;
   }
 
@@ -368,17 +353,12 @@ public:
  inline double PhasefieldPhysics< 2, Thermodynamics >
  ::maxSpeed( const DomainType& n, const RangeType& u) const
  {
-#if 1   
   assert( u[0] > 1e-10 );
   RangeFieldType u_normal = (u[1]*n[0]+u[2]*n[1]) / u[0];
-  RangeFieldType p = thermoDynamics_.a(u[0],u[2]/u[0]);
-  RangeFieldType c2 = p/ u[0] * n.two_norm2();
-  return std::abs(u_normal) + std::sqrt(c2);
-#endif
-  return 1;
+  double phi=u[phaseId]/u[0];
+  double c = thermoDynamics_.a( u[0] , phi );
+  return std::abs(u_normal) + std::sqrt(c);
  } 
-
-
 
 }//end namespace Dune
 #endif// PHYSICS_INLINE_HH
