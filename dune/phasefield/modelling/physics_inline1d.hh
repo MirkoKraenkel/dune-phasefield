@@ -9,7 +9,7 @@ namespace Dune{
 
 
 template<class Thermodynamics>
-class PhasefieldPhysics<1,Thermodynamics>
+class PhasefieldPhysics< 1,Thermodynamics>
 {
   typedef Thermodynamics ThermodynamicsType;
  
@@ -59,12 +59,6 @@ class PhasefieldPhysics<1,Thermodynamics>
 	inline void pressureAndReaction( const RangeType& cons, 
 																	 double& p,
 																	 double& reaction ) const;
-  inline void nonConProduct(const RangeType & uL, 
-														const RangeType & uR,
-														const ThetaRangeType& thetaL,
-														const ThetaRangeType& thetaR,
-														RangeType& ret) const;
-
  
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
   
@@ -114,13 +108,11 @@ class PhasefieldPhysics<1,Thermodynamics>
 
 public:
 
-	inline double delta()const {return thermoDynamics_.delta();}
-	inline double deltaInv()const{return thermoDynamics_.deltaInv();}
-	inline double mu1()const {return thermoDynamics_.mu1();}
-	inline double mu2(){return 1;}
-
-
-
+	inline double delta() const { return thermoDynamics_.delta(); }
+	inline double deltaInv() const { return thermoDynamics_.deltaInv(); }
+	inline double mu1() const { return thermoDynamics_.mu1(); }
+	inline double mu2() const { return thermoDynamics_.mu2(); }
+ 
  };
 
 
@@ -147,7 +139,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
   template< class Thermodynamics > 
   template< class JacobianRangeImp >
-  inline void PhasefieldPhysics<1,Thermodynamics >
+  inline void PhasefieldPhysics< 1,Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const JacobianRangeImp& grad , 
                   double& kin,
@@ -162,6 +154,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     
     double kineticEnergy,surfaceEnergy;
     kineticEnergy=cons[1]*cons[1];
+    kineticEnergy*=0.5*rho_inv;
     //recontsruction of gradphi
     double gradphi=grad[2][0];
     gradphi-=phi*grad[0][0];
@@ -169,17 +162,16 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
    
     surfaceEnergy=gradphi*gradphi;
   
-    kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
     kin = kineticEnergy;
 	  total = surfaceEnergy+freeEnergy+kineticEnergy;
-    surf= surfaceEnergy;
- }
+    surf = surfaceEnergy;
+  }
 
   template< class Thermodynamics >
-  inline void PhasefieldPhysics<1,Thermodynamics >
+  inline void PhasefieldPhysics< 1,Thermodynamics >
   ::chemPotAndReaction( const RangeType& cons, 
 												double& mu,
 												double& reaction ) const
@@ -192,11 +184,10 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		
 		mu=thermoDynamics_.chemicalPotential(rho,phi);
 		reaction=thermoDynamics_.reactionSource(rho,phi); 
-	  reaction*=1.;
   }
 
   template< class Thermodynamics >
-	inline void PhasefieldPhysics<1,Thermodynamics >
+	inline void PhasefieldPhysics< 1,Thermodynamics >
   ::pressureAndReaction( const RangeType& cons, 
                          double& p,
 												 double& reaction ) const
@@ -244,16 +235,6 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     a[2][0] = u[2];//(rho phi)
   }
 
-	template< class Thermodynamics >
- 	inline void   PhasefieldPhysics< 1, Thermodynamics >
-	::nonConProduct(const RangeType & uL, 
-									const RangeType & uR,
-									const ThetaRangeType& thetaL,
-									const ThetaRangeType& thetaR,
-									RangeType& ret) const
-	{
-  	abort();
- 	}
 	
 	template< class Thermodynamics >
 	inline double PhasefieldPhysics< 1, Thermodynamics  >
