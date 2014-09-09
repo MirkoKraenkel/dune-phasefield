@@ -26,7 +26,11 @@
 
 // problem dependent
 #warning "PROBCREATOR"
+#if NSK
+#include <src/problems/korteweg/nskproblemcreator.hh>
+#else
 #include <src/problems/passscheme/problemcreator.hh>
+#endif
 #include <src/problems/mixedscheme/mixedproblemcreator.hh>
 //#if MIXED
 #include <dune/phasefield/assembledalgoderived.hh>
