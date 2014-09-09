@@ -41,7 +41,10 @@ namespace Dune
     typedef UGrad    DiscreteGradientType;
     typedef typename DiscreteGradientType :: DiscreteFunctionSpaceType DiscreteGradientSpaceType;
     typedef typename DiscreteGradientType :: LocalFunctionType LocalGradientType;
-   
+    
+    typedef typename DiscreteGradientSpaceType :: RangeType GradientRangeType;
+
+
     typedef typename GridPartType :: GridType GridType;
     typedef typename GridPartType :: IndexSetType IndexSetType;
     typedef typename GridPartType :: IntersectionIteratorType IntersectionIteratorType;
@@ -53,7 +56,7 @@ namespace Dune
     typedef typename ElementType::Geometry GeometryType;
 
     static const int dimension = GridType :: dimension;
-    enum{ phaseId = dimension+1}
+    enum{ phaseId = dimension+1};
     typedef Fem::CachingQuadrature< GridPartType, 0 > ElementQuadratureType;
     typedef Fem::CachingQuadrature< GridPartType, 1 > FaceQuadratureType;
     typedef std :: vector< double > ErrorIndicatorType;
@@ -66,16 +69,18 @@ namespace Dune
     const IndexSetType &indexSet_;
     GridType &grid_;
     ErrorIndicatorType indicator_;
+    mutable ErrorIndicatorType refined_;
     double totalIndicator2_,maxIndicator_;
     const double theta_;
     int maxLevel_;
+    int minLevel_;
     const double coarsen_;
     const double tolfactor_;
     const double maxH_;
 
   public:
     explicit PassEstimator (const DiscreteFunctionType &uh,
-												    const DicsreteGradientType &sigmah, 
+												    const DiscreteGradientType &sigmah, 
                             GridType &grid ):
       uh_( uh ),
       sigmah_(sigmah),
@@ -87,10 +92,11 @@ namespace Dune
 			totalIndicator2_(0),
 			maxIndicator_(0),
 			theta_( Dune::Fem::Parameter::getValue("phasefield.adaptive.theta",0.) ),
-			maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
-			coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0))
+			maxLevel_( Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
+			minLevel_( Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
+      coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0)),
       tolfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.tolfactor",1) ),
-      maxH_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.maxh",0.03125 )),
+      maxH_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.maxh",0.03125 ))
       {
 		    clear();
       }
@@ -130,7 +136,6 @@ namespace Dune
         estimateLocal(entity, uLocal , sigmaLocal );
        }
  
-      }
       return computeIndicator();
     }
     
@@ -203,11 +208,6 @@ namespace Dune
             //std::cout<<"GF="<<gridFactor<<"->Coarsen?\n";
             if( entity.level()>minLevel_  /*&&  (refined_[indexSet_.index(entity)]!=1)*/ )
             { 
-		          if(refined_[index]==1)
-               refinedandcoarsened_[index]=2.;
-              else
-                refinedandcoarsened_[index]=1.;
-              
               grid_.mark(-1,entity);
             }
            }
@@ -235,7 +235,7 @@ protected:
     //! caclulate error on element 
     void estimateLocal ( const ElementType &entity,
                          const LocalFunctionType &uLocal,
-                         const LocalGradientType &simgaLocal)
+                         const LocalGradientType &sigmaLocal)
     {
       const typename ElementType :: Geometry &geometry = entity.geometry();
       const Dune::ReferenceElement< double, dimension > &refElement =
@@ -245,10 +245,9 @@ protected:
       double h2=std::sqrt(volume);
       const int index = indexSet_.index( entity );
       GradientRangeType sigmaval; 
-      JacobianRangeType graduval;
-      double sigmasquared=0.
-      sigmaLocal.evaluate( refElement.position( 0 , 0 ), sigmavla );
-      Dune::Fem::FieldMatrixConverter< GradientRangeType , JacobianRangeType > graduval(sigma(val)); 
+      double sigmasquared=0.;
+      sigmaLocal.evaluate( refElement.position( 0 , 0 ), sigmaval );
+      Dune::Fem::FieldMatrixConverter< GradientRangeType , JacobianRangeType > graduval(sigmaval); 
       for( int i = 0 ; i < dimension ; ++ i)
          sigmasquared+=graduval[phaseId][i]*graduval[phaseId][i]; 
       
