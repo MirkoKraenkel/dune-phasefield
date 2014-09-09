@@ -6,7 +6,7 @@
 //solver
 #include <dune/fem/util/phasefieldodesolver.hh>
 //adaptation
-#include <dune/fem/adaptation/estimator1.hh>
+#include <dune/fem/adaptation/passestimator.hh>
 #if WELLBALANCED
 #include <dune/phasefield/util/wb_energyconverter.hh>
 #else
@@ -41,7 +41,7 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
     typedef typename Traits::DiscreteSigmaType DiscreteSigmaType;
     typedef typename Traits::DiscreteThetaType DiscreteThetaType;
     //Adaptation 
-    typedef  Estimator1< DiscreteFunctionType > EstimatorType;
+    typedef  PassEstimator< DiscreteFunctionType , DiscreteSigmaType > EstimatorType;
     //IOTuple
   	//type of IOTuple 
     typedef typename BaseType::IOTupleType IOTupleType;
@@ -60,13 +60,13 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
     DiscreteOperatorType    dgOperator_;
     SigmaDiscreteSpaceType  sigmaSpace_;
     ThetaDiscreteSpaceType  thetaSpace_;
-    DiscreteSigmaType*      sigma_;
+    DiscreteSigmaType      sigma_;
 	  DiscreteThetaType*      theta_;
     DiscreteFunctionType*   additionalVariables_;
     OdeSolverType*          odeSolver_;
     OdeSolverMonitorType    odeSolverMonitor_;
     int                     odeSolverType_;
-  
+    EstimatorType           estimator_; 
   public:
     //Constructor
     PassAlgorithm( GridType& grid):
@@ -75,11 +75,12 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
  	    dgOperator_(grid,numericalFlux_),
       sigmaSpace_(gridPart_ ),
 	    thetaSpace_( gridPart_ ),
-      sigma_( Fem :: Parameter :: getValue< bool >("phasefield.sigma", false) ? new DiscreteSigmaType("sigma",sigmaspace()) : nullptr),
+      sigma_( "sigma",sigmaspace()),
 		  theta_( Fem :: Parameter :: getValue< bool >("phasefield.theta", false) ? new DiscreteThetaType("theta",thetaspace() ) : nullptr),
 		  additionalVariables_( Fem::Parameter :: getValue< bool >("phasefield.additionalvariables", false) ? 
 													new DiscreteFunctionType("additional", space() ) : 0 ),
-		  odeSolver_( 0 )
+		  odeSolver_( 0 ),
+      estimator_( solution_, sigma_, grid)
       {} 
     
     using BaseType::space;
@@ -99,7 +100,7 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
     ThetaDiscreteSpaceType& thetaspace (){ return thetaSpace_;}
     
     DiscreteFunctionType* additionalVariables (){ return additionalVariables_;}
-   	DiscreteSigmaType*    sigma() {return sigma_;}
+   	DiscreteSigmaType    sigma() {return sigma_;}
     DiscreteThetaType*    theta (){ return theta_; }
 
 
@@ -166,15 +167,15 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
 		{
 				 
       DiscreteFunctionType* addVariables = additionalVariables();
-      DiscreteSigmaType* gradient=sigma();
+      DiscreteSigmaType gradient=sigma();
       DiscreteThetaType* theta1=theta();
   
       // calculate DG-projection of additional variables
-			if ( addVariables && gradient)
+			if ( addVariables)
 			{
-        gradient->clear();
+        gradient.clear();
   
-        dgOperator_.gradient(solution(),*gradient);
+        dgOperator_.gradient(solution(),gradient);
 
         if(theta1)
         { 
@@ -184,7 +185,7 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
         }
 
         // calculate additional variables from the current num. solution
-        setupAdditionalVariables( solution(), *gradient,model(), *addVariables );
+        setupAdditionalVariables( solution(), gradient,model(), *addVariables );
 			}
 
             
@@ -193,30 +194,37 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
 		eocDataOutput.write( timeProvider );
 	}
 	
-	
+	void estimateMarkAdapt( AdaptationManagerType& am )
+  {
+//    EstimatorType estimator( solution_,grid_ );
+    estimator_.estimateAndMark(tolerance_);
+    am.adapt();
+  }
+
+
   
     template<class Stream>
     void writeEnergy( TimeProviderType& timeProvider,
                       Stream& str)
     {
-      DiscreteSigmaType* gradient = sigma();
+      DiscreteSigmaType gradient = sigma();
       DiscreteScalarType* totalenergy = energy();
 
-      if(gradient != nullptr  && totalenergy != nullptr)
+      if( totalenergy != nullptr)
         { 
-          gradient->clear();
+          gradient.clear();
       
-          dgOperator_.gradient(solution(),*gradient);
+          dgOperator_.gradient(solution(),gradient);
   
           totalenergy->clear();
           double kineticEnergy;
           double surfaceEnergy;
 #if WELLBALANCED    
           double chemicalEnergy; 
-          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy,surfaceEnergy);
+          double energyIntegral =energyconverter(solution(),gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy,surfaceEnergy);
           str<<std::setprecision(20)<< timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
 #else
-          double energyIntegral =energyconverter(solution(),*gradient,model(),*totalenergy,kineticEnergy,surfaceEnergy);
+          double energyIntegral =energyconverter(solution(),gradient,model(),*totalenergy,kineticEnergy,surfaceEnergy);
           str<<std::setprecision(20)<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
 #endif
        std::cout<<"energy="<<energyIntegral<<"\n";
