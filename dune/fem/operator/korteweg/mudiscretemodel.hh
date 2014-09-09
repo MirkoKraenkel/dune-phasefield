@@ -1,5 +1,5 @@
-#ifndef DUNE_PHASEFIELD_THETADISCREMODEL_HH
-#define DUNE_PHASEFIELD_THETADISCREMODEL_HH
+#ifndef DUNE_PHASEFIELD_MUDISCREMODEL_HH
+#define DUNE_PHASEFIELD_MUDISCREMODEL_HH
 #define SWITCH_LDG 1
 
 // Dune includes
@@ -184,7 +184,7 @@ namespace Dune {
 
 			JacobianRangeType diffmatL(0.);
  	
-		 	model_.boundaryallenCahnDiffusion(xgl,uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+		 	model_.boundaryKortewegDiffusion(xgl,uLeft[uVar],uLeft[sigmaVar] , diffmatL);
 		 	
 			diffmatL.mv(normal, gLeft);
       // gLeft=0;
@@ -202,7 +202,7 @@ namespace Dune {
 												const JacobianTuple& jac,
 												JacobianRangeType& f)
 		{
-      model_.allenCahnDiffusion(u[uVar],u[sigmaVar], f);
+      model_.KortewegDiffusion(u[uVar],u[sigmaVar], f);
     }
            
 		template< class QuadratureImp,
@@ -230,23 +230,21 @@ namespace Dune {
 			JacobianRangeType diffmatL(0.),diffmatR(0.);
       if(!determineDirection(normal))
       {
-         model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
+         model_.kortewegDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
          diffmatL.mv(normal, gLeft);
       }
       else
       {
-        model_.allenCahnDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
+        model_.kortewegDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
         diffmatR.mv(normal, gLeft);
       }	
 #else
  			JacobianRangeType diffmatL(0.),diffmatR(0.);
 
-      model_.allenCahnDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
-      //model_.allenCahnDiffusion(uLeft[uVar],jacLeft[uVar] , diffmatL);
+      model_.kortewegDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
       diffmatL.mv(normal, gLeft);
       
-      model_.allenCahnDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
-      // model_.allenCahnDiffusion(uRight[uVar],jacRight[uVar], diffmatR);
+      model_.kortewegDiffusion(uRight[uVar],uRight[sigmaVar], diffmatR);
       diffmatR.umv(normal, gLeft);
      
       gLeft*=0.5;
@@ -264,9 +262,9 @@ namespace Dune {
 
 	 		RangeType jmp(0);
       
-      jmp[1] = uLeft[uVar][dimDomain+1];
+      jmp[0] = uLeft[uVar][dimDomain+1];
 			
-      jmp[1]-= uRight[uVar][dimDomain+1];
+      jmp[0]-= uRight[uVar][dimDomain+1];
 		  
       factor/=h; 
        

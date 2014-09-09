@@ -37,7 +37,7 @@ namespace Dune {
     enum { dimRange  = ModelTraits::dimGradRange };
     enum { dimDomain = ModelTraits::dimDomain };
 
-    typedef MyPassTraits< Model, dimRange, polOrd >                    Traits;
+    typedef MyPassTraits< Model, dimRange, polOrd >                  Traits;
     typedef typename Traits :: FunctionSpaceType                     FunctionSpaceType;
 
     typedef typename Traits :: VolumeQuadratureType                  VolumeQuadratureType;
@@ -522,5 +522,5 @@ namespace Dune {
 	};                                              /*@LST0E@*/
 
 }
-#include "thetadiscretemodel.hh"
+#include "mudiscretemodel.hh"
 #endif

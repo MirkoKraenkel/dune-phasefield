@@ -8,6 +8,8 @@
 #include <dune/fem/solver/odesolver.hh>
 #if WELLBALANCED
 #include <dune/fem/operator/wellbalancedoperator.hh>
+#elif NSK
+#include <dune/fem/operator/korteweg/kortewegoperator.hh>
 #else
 #include <dune/fem/operator/fluxprojoperator.hh>
 #endif
