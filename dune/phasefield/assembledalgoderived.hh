@@ -6,8 +6,6 @@
 #include <dune/fem/solver/cginverseoperator.hh>
 #include <dune/fem/solver/oemsolver.hh>
 #include <dune/fem/solver/newtoninverseoperator.hh>
-//adaptation
-#include <dune/fem/adaptation/mixedestimator.hh>
 //post processing
 #include <dune/fem/operator/assembled/energyconverter.hh>
 #include <dune/phasefield/util/cons2prim.hh>
@@ -39,8 +37,10 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   typedef typename Traits :: LinearSolverType LinearSolverType;
   typedef typename Dune::Fem::NewtonInverseOperator< JacobianOperatorType, LinearSolverType > NewtonSolverType; 
   //adaptation
-  typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
-	typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
+  //typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
+	//typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
+  typedef typename Traits::EstimatorType EstimatorType;
+  typedef typename Traits::EstimatorDataType EstimatorDataType;
   typedef typename Traits::IOTupleType IOTupleType;
   
   using BaseType::grid_;
@@ -72,7 +72,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       start_.clear();
       }
 
-    IOTupleType getDataTuple (){ return IOTupleType( &solution(),&oldsolution(), this->energy());}
+    IOTupleType getDataTuple (){ return IOTupleType( &solution(), &estimatorData_, this->energy());}
     
     void initializeSolver(typename BaseType::TimeProviderType& timeProvider){};
 
@@ -106,9 +106,25 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 	  
   void estimateMarkAdapt( AdaptationManagerType& am)
   {
+    estimate();
+    adapt(am);
+  }
+  
+  void estimate()
+  {
     estimator_.estimateAndMark(tolerance_);
+  }    
+  
+  void adapt( AdaptationManagerType& am)
+  {
     am.adapt();
   }
+
+  double timeStepEstimate()
+  {
+    return 1e100;
+  }
+
   using BaseType::space;
   using BaseType::energyspace;
   using BaseType::gridSize;
@@ -119,6 +135,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   using BaseType::dataPrefix;
   using BaseType::problem;
   using BaseType::model;
+ 
+
 
   template<class Stream>
   void writeEnergy( TimeProviderType& timeProvider,
