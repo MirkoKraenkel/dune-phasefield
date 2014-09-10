@@ -47,8 +47,9 @@
 #endif
 #endif
 #endif
-
-
+//adaptation
+#include <dune/fem/adaptation/mixedestimator.hh>
+#
 template <class GridImp,
           class ProblemGeneratorImp,int polOrd>             
 struct MixedAlgorithmTraits 
@@ -121,9 +122,11 @@ enum{ dimRange = 2*dimDomain+5 };
   typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
 #endif
 #endif
-  //Pointers for (rho,v,phi,mu,tau,sigma) and (totalenergy)
-  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*, DiscreteScalarType*> IOTupleType; 
 
+  typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
+	typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
+//Pointers for (rho,v,phi,mu,tau,sigma) and (totalenergy)
+  typedef Dune::tuple< DiscreteFunctionType*,EstimatorDataType*, DiscreteScalarType*> IOTupleType; 
 
   // type of restriction/prolongation projection for adaptive simulations 
   typedef Dune :: Fem::RestrictProlongDefault< DiscreteFunctionType > RestrictionProlongationType;
