@@ -181,15 +181,13 @@ namespace Dune
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
-          const ElementType &entity = *it;
-          if(std::abs(indicator_[indexSet_.index(entity)]-0.5) < tolerance )
-	        {
-          
-	          if(entity.level()<maxLevel_)
-		        {
+         const ElementType &entity = *it;
+         if(std::abs(std::abs(indicator_[indexSet_.index(entity)]-0.5)-0.5) > tolerance )
+	          { 
                 
-              grid_.mark( 1, entity );
-		         
+	            if(entity.level()<maxLevel_)
+		          {
+                grid_.mark( 1, entity );
              
               IntersectionIteratorType end = gridPart_.iend( entity );
 		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
@@ -211,7 +209,7 @@ namespace Dune
 	          ++marked;
 		       }
 	        }
-          else if(std::abs(indicator_[indexSet_.index(entity)]-0.5) > tolerance )
+          else if((std::abs(indicator_[indexSet_.index(entity)]-0.5)-0.5) < tolerance )
 	        { 
 	          if(entity.level()>minLevel_)
 		        grid_.mark(-1,entity);
@@ -231,7 +229,7 @@ namespace Dune
     
     bool estimateAndMark(double tolerance)
     {
-    //  double esti=estimate();
+      double esti=estimate();
       return mark(tolerance);
     }
     
@@ -260,11 +258,12 @@ namespace Dune
 	
 	      double y=range[dimension+1];
 	      y/=range[0];
-
+        
 	      const DomainType global = geometry.global(quad.point(qp));
-	
-      	double weight = quad.weight(qp) * geometry.integrationElement( quad.point( qp )) ;
-	      weight/=volume;
+        //y=std::abs(y-0.5);	
+
+      	double weight = quad.weight(qp)* geometry.integrationElement( quad.point( qp ) );
+        weight/=volume;
 	     
         indicator_[ index ] += weight * y;
       }

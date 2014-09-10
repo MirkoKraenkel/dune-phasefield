@@ -82,7 +82,7 @@ namespace Dune
 				 maxIndicator_(0),
 				 theta_( Dune::Fem::Parameter::getValue("phasefield.adaptive.theta",0.) ),
 				 maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
-				 coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",1e-50))
+				 coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0))
     {
 			clear();
     }
@@ -172,7 +172,8 @@ namespace Dune
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
-          const ElementType &entity = *it;
+        const ElementType &entity = *it; 
+    
           // check local error indicator 
           if( (indicator_[ indexSet_.index( entity ) ] > localTol2 && theta_ == 0) ||
               (indicator_[ indexSet_.index( entity ) ] == -1 && theta_ > 0) )
@@ -209,7 +210,7 @@ namespace Dune
 		          
               }
 	          }
-  	        else if(indicator_[ indexSet_.index( entity ) ] < coarsen_ )
+  	        else if(indicator_[ indexSet_.index( entity ) ] < coarsen_*tolerance )
             {  
 	            
               if(entity.level()>0)
@@ -230,7 +231,6 @@ namespace Dune
     bool estimateAndMark(double tolerance)
     {
       double esti=estimate();
-      //  std::cout<<"EstimateValue="<<esti<<std::endl;
       return mark(tolerance);
     }
     
@@ -251,17 +251,20 @@ protected:
       for( int qp = 0; qp < numQuadraturePoints; ++qp )
       {
 	      
-        JacobianRangeType gradient;
-
+        JacobianRangeType gradient,gradphi(0.);
+        RangeType u;
+        uLocal.evaluate(quad[qp],u);
         uLocal.jacobian(quad[qp],gradient);
-	
+	      double phi=u[dimension+1]/u[0];
+        for(int i =  0 ; i < dimension ; ++i)
+          gradphi[dimension+1][i]=(gradient[dimension+1][i]-phi*gradient[0][i])/u[0];
         RangeType y(0.),tmp(0.);
 
 	      const DomainType global = geometry.global(quad.point(qp));
 	
 	      const double weight = quad.weight( qp ) * geometry.integrationElement( quad.point( qp ) );
 	
-  //    	indicator_[ index ] += h2*weight * (gradient[dimension+1] * gradient[dimension+1]);
+      	indicator_[ index ] += weight* (gradphi[dimension+1]*gradphi[dimension+1]);
       }
 
     }
