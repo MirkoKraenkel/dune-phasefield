@@ -51,6 +51,7 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
   ConsRangeType cons(0.0); 
   GradRangeType grad(0.0);
   EnergyRangeType kin(0.0);
+  EnergyRangeType chem(0.0);
   EnergyRangeType total(0.0);
   EnergyRangeType surf(0.0);
   kineticEnergy=0.;
@@ -80,7 +81,7 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
        
-      model.totalEnergy(xgl,cons,grad,kin,total,surf);
+      model.totalEnergy(xgl,cons,grad,kin,chem,total,surf);
       
       total*= quad.weight(qP);
       kin*=quad.weight(qP);
