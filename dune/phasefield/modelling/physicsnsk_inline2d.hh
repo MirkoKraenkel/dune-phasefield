@@ -125,7 +125,7 @@ public:
     phi=cons[phaseId];
     
     //velocity
-    for(int i=0;int<dimDomain;++i)
+    for(int i=0;i<dimDomain;++i)
       prim[i] = cons[i+1]*rho_inv;
     //pressure
   	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
@@ -371,7 +371,10 @@ public:
   RangeFieldType u_normal = (u[1]*n[0]+u[2]*n[1]) / u[0];
   RangeFieldType p = thermoDynamics_.a(u[0],u[2]/u[0]);
   RangeFieldType c2 = p/ u[0] * n.two_norm2();
-  return std::abs(u_normal) + std::sqrt(c2);
+  if( c2>0.)
+    return std::abs(u_normal) + std::sqrt(c2);
+  else
+    return std::abs(u_normal);
 #endif
   return 1;
  } 
