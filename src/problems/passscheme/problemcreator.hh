@@ -23,11 +23,7 @@
 #endif
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
 
-#if NONCON
-#include <dune/fem/operator/discretemodelcommon.hh>
-#else
 #include <dune/fem/operator/projectiondiscretemodelcommon.hh>
-#endif
 
 #include "problemtype.hh"
 
