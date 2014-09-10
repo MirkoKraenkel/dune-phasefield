@@ -16,7 +16,7 @@
 ///////////////////////////////////////
 #if PROBLEM==1
 #include "tanhproblem.hh"
-typedef TanhProblem< GridSelector:: GridType>  PhaseProblemType;
+typedef HeatProblem< GridSelector:: GridType>  PhaseProblemType;
  #else      
 #error "No valid problem number specified"
 #endif
