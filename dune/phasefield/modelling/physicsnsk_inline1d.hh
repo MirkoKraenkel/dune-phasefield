@@ -211,11 +211,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                 RangeType& f) const
 	{
     
-    const double rho_inv=1./u[0];
-    double drho=jacU[0][0];
   
     f[0]=0;
-    //-(\rho\nabla\mui) 
+    //-(\rho\nabla\mu) 
     f[1]=-dtheta[0]*u[0];
 
     return deltaInv(); 
@@ -275,7 +273,11 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   assert(u[0] > 1e-20);
   double u_normal=(u[1]*n[0])/u[0];
   double c=thermoDynamics_.a( u[0] );
+if(c>0 )
   return std::abs(u_normal)+sqrt(c);
+else
+  return std::abs(u_normal);
+  
  } 
 
 }//end namespace Dune
