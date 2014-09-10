@@ -1,6 +1,6 @@
 #ifndef DUNE_PHASEFIELD_MUDISCREMODEL_HH
 #define DUNE_PHASEFIELD_MUDISCREMODEL_HH
-#define SWITCH_LDG 1
+#define SWITCH_LDG 0 
 
 // Dune includes
 #include <dune/fem/gridpart/common/gridpart.hh>
@@ -227,7 +227,8 @@ namespace Dune {
       const DomainType normal = it.integrationOuterNormal(x);
 
 #if  SWITCH_LDG			
-			JacobianRangeType diffmatL(0.),diffmatR(0.);
+abort();
+JacobianRangeType diffmatL(0.),diffmatR(0.);
       if(!determineDirection(normal))
       {
          model_.kortewegDiffusion(uLeft[uVar],uLeft[sigmaVar] , diffmatL);
