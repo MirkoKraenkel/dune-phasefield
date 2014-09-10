@@ -336,7 +336,6 @@ template< class Thermodynamics >
     double rho_inv = 1. / u[0];
     const double v[2] = { u[1]*rho_inv, u[2]*rho_inv };
 
-    const double phi=u[3]*rho_inv;
 
     const double muLoc = mu1();
     const double lambdaLoc = mu2();
@@ -348,15 +347,11 @@ template< class Thermodynamics >
     const double du11=du[1][1];//dy rho*U_1
     const double du20=du[2][0];//dx rho*U_2
     const double du21=du[2][1];//dy rho*U_2
-    const double du30=du[3][0];//dx rho*phi
-    const double du31=du[3][1];;//dz rho*phi
  
     const double dxu = rho_inv*(du10 - v[0]*du00);//=1/rho(dx(rho*v1)-v1*dx(rho))=dx(v1);
     const double dzu = rho_inv*(du11 - v[0]*du01);
     const double dxw = rho_inv*(du20 - v[1]*du00);
     const double dzw = rho_inv*(du21 - v[1]*du01);
-    const double dxphi = rho_inv*( du30 - phi*du00); //dx(rho*phi)-phi*dx(rho)=rho*dx(phi);
-    const double dzphi = rho_inv*( du31 - phi*du01);
  
     const double tau00 = (2.*muLoc+lambdaLoc)*dxu + lambdaLoc*dzw;
     const double tau01 = muLoc*(dxw + dzu);
