@@ -17,14 +17,13 @@
 
 // local includes
 #include <dune/fem/fluxes/nskfluxes.hh>
-#endif
 #include <dune/fem-dg/operator/fluxes/diffusionflux.hh>
 
-#include <dune/fem/operator/discretemodelcommon.hh>
+#include <dune/fem/operator/projectiondiscretemodelcommon.hh>
 
 #include "problemtype.hh"
 
-#include <dune/phasefield/modelling/kortewgmodel.hh>
+#include <dune/phasefield/modelling/kortewegmodel.hh>
 
 
 template< class GridType > 
@@ -37,7 +36,7 @@ struct ProblemGenerator
   {
     typedef PhaseProblemType  InitialDataType;
 
-    typedef Dune::PhaseModel< GridPart, InitialDataType > ModelType;
+    typedef Dune::KortewegModel< GridPart, InitialDataType > ModelType;
     // choice of diffusion flux (see diffusionflux.hh for methods)
     static const Dune :: DGDiffusionFluxIdentifier PrimalDiffusionFluxId 
            = Dune :: method_general ;
