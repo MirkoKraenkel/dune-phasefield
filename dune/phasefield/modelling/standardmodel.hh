@@ -30,7 +30,6 @@ class PhaseModelTraits
     enum { dimRange = dimDomain + 2 };
     enum { dimScalGradRange = dimDomain };
     enum { dimGradRange = dimRange * dimDomain };
-    enum { dimGradient = dimDomain + 1 };
 
     typedef FieldVector< double, dimDomain >                  DomainType;
     typedef FieldVector< double, dimDomain - 1 >              FaceDomainType;
@@ -93,11 +92,11 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
     inline bool hasFlux() const { return true ; }
 
     inline double stiffSource( const EntityType& en,
-        const double time,
-        const DomainType& x,
-        const RangeType& u,
-        const GradientRangeType& du,
-        RangeType & s) const
+                               const double time,
+                               const DomainType& x,
+                               const RangeType& u,
+                               const GradientRangeType& du,
+                               RangeType & s) const
     {
       DomainType xgl = en.geometry().global( x );
      return phasefieldPhysics_.stiffSource(xgl,time,u,du,s);
