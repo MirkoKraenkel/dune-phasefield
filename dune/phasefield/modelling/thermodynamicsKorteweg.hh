@@ -25,43 +25,14 @@ class BalancedThermodynamics:
     BaseType(),
     delta_( Dune::Fem::Parameter::getValue<double>( "phasefield.delta" ) ),
     deltaInv_( 1./delta_ ),
-    epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
-    mu1_( epsilon_ ),
+    mu1_( Dune::Fem::Parameter::getValue<double>("phasefield.mu1") ),
     mu2_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2") ),
+    cst_( Dune::Fem::Parameter::getValue<double>("korteweg.c") ),
+    theta_( Dune::Fem::Parameter::getValue<double>( "korteweg.theta") ),
     reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
   {
   }
-
-  inline double helmholtz(double rho) const
-  {
-    return 0.;
-  }
-
-
-  inline double chemicalPotential(double rho) const
-  {
-    return 0.;
-  }
-
- inline double drhochemicalPotential(double rho) const
-  {
-   return 0;
-  }
-
-  inline double  pressure( double rho) const
-  {
-   return 0.;
-
-  }
-
-
-
-  inline double a(double rho) const
-  {
-    return 1.6;	
-  }
-
-
+#include "KortewegSources/maple.c"
 
   public:
 
@@ -69,13 +40,17 @@ class BalancedThermodynamics:
   inline double deltaInv() const { return deltaInv_; }
   inline double mu1()      const { return mu1_; }
   inline double mu2()      const { return mu2_; }
-
+  inline double theta()    const { return theta_;}
+  inline double cst()      const { return cst_;}
   private:
   mutable double  delta_;
   mutable double  deltaInv_;
   mutable double  epsilon_;
   mutable double  mu1_,mu2_;
-  mutable double reaction_;
+  mutable double cst_;
+  mutable double theta_;
+  mutable double  reaction_;
+
 };
 
 
