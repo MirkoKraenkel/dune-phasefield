@@ -62,10 +62,10 @@ class PhasefieldPhysics
                            double& total,
                            double& surf) const;
   
-  inline void chemPot( const RangeType& cons, 
+  inline void chemicalPotential( const RangeType& cons, 
 										   double& mu ) const;
 
-	inline void pressureAndReaction( const RangeType& cons, 
+	inline void pressure( const RangeType& cons, 
 																	 double& p ) const;
   
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
@@ -123,9 +123,9 @@ class PhasefieldPhysics
  };
 }
 
-#if WELLBALANCED
+#if NSK 
 #include "physicsnsk_inline1d.hh"
-#include "physicsnsk_inline2d.hh"
+//#include "physicsnsk_inline2d.hh"
 #else
 #error
 #endif

@@ -12,7 +12,7 @@
 
 
 
-#include "wellbalanceddiscretemodel.hh" 
+#include "kortewegdiscretemodel.hh" 
 
 #include <dune/fem-dg/pass/dgpass.hh>
 

@@ -15,7 +15,7 @@
 #include <dune/fem/misc/fmatrixconverter.hh>
 
 // local includes
-#include "projectiondiscretemodelcommon.hh"
+#include "../projectiondiscretemodelcommon.hh"
 namespace Dune {
   /*
    *  DiscreteModel for calculation the chemical potential and Allen-Cahn Resisduum
@@ -31,7 +31,7 @@ namespace Dune {
 		typedef typename Model :: Traits                                 ModelTraits;
 		typedef typename ModelTraits :: GridType                         GridType;
 
-		enum { dimRange = 2 };
+		enum { dimRange = 1 };
 		enum { dimDomain = ModelTraits::dimDomain };
 
 		typedef MyPassTraits< Model, dimRange, polOrd >                  Traits;
@@ -202,7 +202,7 @@ namespace Dune {
 												const JacobianTuple& jac,
 												JacobianRangeType& f)
 		{
-      model_.KortewegDiffusion(u[uVar],u[sigmaVar], f);
+      model_.kortewegDiffusion(u[uVar],u[sigmaVar], f);
     }
            
 		template< class QuadratureImp,

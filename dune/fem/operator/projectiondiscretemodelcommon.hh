@@ -18,7 +18,7 @@
 
 // local includes
 //#include <dune/fem-dg/operator/limiter/limiter.hh>
-#if WELLBALANCED
+#if WELLBALANCED || NSK
 #include <dune/fem/fluxes/meanfluxwellbalanced.hh>
 #else
 #include <dune/fem/fluxes/ldgfluxtheta.hh>
@@ -287,7 +287,7 @@ public:
 
     if( advection ) 
       {
-#if WELLBALANCED
+#if WELLBALANCED || NSK
 				double ldt = numflux_.numericalFlux(it, 
                                             this->inside(), 
                                             this->outside(),
@@ -356,7 +356,7 @@ public:
       if( hasBndValue )
 	    {
   	     RangeType gRight;
-#if WELLBALANCED
+#if WELLBALANCED || NSK
 	  		return numflux_.numericalFlux(it, this->inside(), this->inside(),
 																			time, faceQuadInner, faceQuadInner, quadPoint, 
 																			uLeft[ uVar ], uBnd_,uLeft[thetaVar],uLeft[thetaVar],gLeft, gRight);

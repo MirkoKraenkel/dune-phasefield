@@ -14,8 +14,8 @@ class PhasefieldPhysics<1,Thermodynamics>
  
   public:
     enum{dimDomain=1};  
-    enum { dimRange = dimDomain +  };
-    enum { dimThetaRange =  2 };
+    enum { dimRange = dimDomain+1 };
+    enum { dimThetaRange =  1};
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
     enum { dimGradRange = dimRange * dimDomain };
     
@@ -52,11 +52,11 @@ class PhasefieldPhysics<1,Thermodynamics>
                            double& total,
                            double& surf ) const;
 
-  inline void chemPotAndReaction( const RangeType& cons, 
+  inline void chemicalPotential( const RangeType& cons, 
 																	double& mu ) const;
 
-	inline void pressureAndReaction( const RangeType& cons, 
-																	 double& p),const;
+	inline void pressure( const RangeType& cons, 
+																	 double& p) const;
 
  
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
@@ -120,7 +120,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     //velocity 
     prim[0] = cons[1]*rho_inv;
     //pressure  
-  	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
+  	prim[dimDomain] = thermoDynamics_.pressure(rho);
   
   }
 
@@ -154,7 +154,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
   template< class Thermodynamics >
   inline void PhasefieldPhysics<1,Thermodynamics >
-  ::chemPotAndReaction( const RangeType& cons, 
+  ::chemicalPotential( const RangeType& cons, 
 												double& mu ) const
 	{
 		assert( cons[0] > 1e-20 );
@@ -166,9 +166,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
   template< class Thermodynamics >
 	inline void PhasefieldPhysics<1,Thermodynamics >
-  ::pressureAndReaction( const RangeType& cons, 
-                         double& p,
-												 double& reaction ) const
+  ::pressure( const RangeType& cons, 
+                         double& p ) const
 	{
 		assert( cons[0] > 1e-20 );
 	  
@@ -219,7 +218,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     //-(\rho\nabla\mui) 
     f[1]=-dtheta[0]*u[0];
 
-    return 0.4*reactionFac*deltaInv(); 
+    return deltaInv(); 
   }
   
   template< class Thermodynamics >

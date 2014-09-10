@@ -58,7 +58,7 @@ namespace Dune {
 
 
 	template< class GridPartType,class Problem>
-	class KortewegModel : public DefaultModel < PhaseModelTraits< GridPartType > >
+	class KortewegModel : public DefaultModel < KortewegModelTraits< GridPartType > >
 	{
   public:
 		typedef Problem                                         ProblemType;
@@ -143,7 +143,7 @@ namespace Dune {
 			double mu,reaction;
       DomainType xgl=en.geometry().global(x);
       
-      phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
+      phasefieldPhysics_.chemicalPotential(u,mu);
   
 
       s[0]=mu;
@@ -311,24 +311,24 @@ namespace Dune {
 		}
 	
 		
-  	inline void kortewegDiffusion(const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
+  	inline void kortewegDiffusion ( const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
 		{
 
       Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
-			KortewegDiffusion(u,jac,dv);
+			kortewegDiffusion(u,jac,dv);
 		}	
 
     
     template <class JacobianRangeImp>
-	  inline	void kortewegDiffusion(const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
+	  inline void kortewegDiffusion ( const RangeType& u,const JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
 
-      phasefieldPhysics_.Korteweg(u,du,dv);
+      phasefieldPhysics_.korteweg(u,du,dv);
 		}
 
 
 
-  	inline void boundaryKortewegDiffusion(const DomainType xgl,const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
+  	inline void boundaryKortewegDiffusion ( const DomainType xgl , const RangeType& u,const GradientRangeType& du,ThetaJacobianRangeType& dv ) const
 		{
 			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( du );
 			boundaryKortewegDiffusion(xgl,u,jac,dv);
@@ -338,7 +338,7 @@ namespace Dune {
     template <class JacobianRangeImp>
 	  inline	void boundaryKortewegDiffusion(const DomainType xgl,const RangeType& u, JacobianRangeImp& du,ThetaJacobianRangeType& dv ) const
 		{
-     phasefieldPhysics_.boundaryKorteweg(u,du,dv);
+     phasefieldPhysics_.boundarykorteweg(u,du,dv);
     }
 
 

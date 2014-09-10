@@ -14,7 +14,7 @@
 #include <dune/fem/misc/fmatrixconverter.hh>
 
 // local includes
-#include "projectiondiscretemodelcommon.hh"
+#include "../projectiondiscretemodelcommon.hh"
 
 
 //*************************************************************
