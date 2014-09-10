@@ -275,8 +275,14 @@ public:
   }
 
 	//! estimate and mark solution 
-  /*virtual*/ void estimateMarkAdapt( AdaptationManagerType& am ){};
-
+  void estimateMarkAdapt( AdaptationManagerType& am )
+  {
+    BaseType::asImp().estimateMarkAdapt( am ) ;
+  };
+  
+  void estimate(){ BaseType::asImp().estimate();}
+  void adapt( AdaptationManagerType& am ){BaseType::asImp().adapt( am );}
+  
   template<class Stream>
   void writeEnergy( TimeProviderType& timeProvider,Stream& str)
   { 
@@ -326,7 +332,6 @@ public:
     		adaptCount = Dune::Fem::Parameter::getValue<int>("fem.adaptation.adaptcount");
 	    	maxAdaptationLevel = Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel");
  		    startLevel = Dune::Fem::Parameter::getValue< int >("phasefield.startLevel",0);
-        maxAdaptationLevel-=startLevel;
       }
 	  
     double maxTimeStep =Dune::Fem::Parameter::getValue("phasefield.maxTimeStep", std::numeric_limits<double>::max());
@@ -379,7 +384,7 @@ public:
                                   timeProvider, 
                                   EocDataOutputParameters( loop_ , dataPrefix() ) );
     bool restart = Dune::Fem::Parameter::getValue<bool>("phasefield.restart",false);
-    
+   
     if(!restart)
     {
     	initializeStep( timeProvider );
@@ -388,16 +393,19 @@ public:
  
   		// adapt the grid to the initial data
 	  	int startCount = 0;
-		  
       if( adaptCount > 0 )
-      {
+      {      
+      
         while( startCount < maxAdaptationLevel )
 				{
-         // estimator_.estimateAndMark(tolerance_);
-          //writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
-          adaptManager.adapt();
-					if( verbose )
-						std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<<std::endl;
+          estimate();
+        //  estimateMarkAdapt(adaptManager);
+          initializeStep( timeProvider);
+          writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+         
+           adapt( adaptManager) ;
+				//if( verbose )
+					std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<<std::endl;
           ++startCount;
         }
       }
@@ -422,7 +430,7 @@ public:
     else
     for( ; timeProvider.time() < endTime && timeProvider.timeStep() < maximalTimeSteps ;  )   
 		{ 
-			const double tnow  = timeProvider.time();
+      const double tnow  = timeProvider.time();
 			const double ldt   = timeProvider.deltaT();
       int newton_iterations;
       int ils_iterations; 
@@ -543,7 +551,7 @@ public:
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 //		Fem::L2Norm<GridPartType> l2norm(gridPart_);
-    std::vector<unsigned int> comp{ dimDomain +2 , dimDomain+3 };
+    std::vector<unsigned int> comp{ 1 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
     return l2norm.distance(uOld, uNew);
