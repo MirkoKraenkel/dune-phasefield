@@ -33,23 +33,21 @@
 
 
 
-
 #if MATRIXFREE
 #include <dune/fem/operator/assembled/mixedoperator.hh>
-#else
-#if FD 
+#elif FD 
 #include <dune/fem/operator/assembled/localfdoperator.hh>
-#else
-#if COUPLING 
-#include <dune/fem/operator/assembled/mixedopcoupling.hh>
+#elif COUPLING 
+#include <dune/fem/operator/assembled/phasefieldmatrix.hh>
+#elif NSK
+#include <dune/fem/operator/assembled/nskmatrix.hh>
 #else
 #include <dune/fem/operator/assembled/mixedopjacobian.hh>
 #endif
-#endif
-#endif
+
 //adaptation
 #include <dune/fem/adaptation/mixedestimator.hh>
-#
+
 template <class GridImp,
           class ProblemGeneratorImp,int polOrd>             
 struct MixedAlgorithmTraits 
@@ -71,10 +69,6 @@ struct MixedAlgorithmTraits
   
   //(rho,v_1...v_n,phi,mu,tau,sigma_1...sigma_n)
   enum{ dimRange=ProblemGeneratorType::dimRange};
-#if 0
-enum{ dimRange = 2*dimDomain+5 };
-  enum{ dimRange = 2*dimDomain+4 };
-#endif
   // problem dependent types 
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: ModelType        ModelType;
@@ -93,12 +87,16 @@ enum{ dimRange = 2*dimDomain+5 };
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteScalarSpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
-
 #if FD 
   typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
 #else 
+#if NSK
+  typedef NSKJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+#else
   typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
 #endif
+#endif
+
 
 #if BICG
   typedef typename Dune::Fem::ISTLBICGSTABOp< DiscreteFunctionType, JacobianOperatorType > LinearSolverType; 
@@ -117,8 +115,12 @@ enum{ dimRange = 2*dimDomain+5 };
   typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
 #else 
   typedef Dune::Fem::SparseRowLinearOperator< DiscreteFunctionType, DiscreteFunctionType> JacobianOperatorType; 
-  typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-  //typedef Dune::Fem::UMFPACKOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
+  #if NSK
+typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+  #else
+typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+#endif
+//typedef Dune::Fem::UMFPACKOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
   typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
 #endif
 #endif
