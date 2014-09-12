@@ -44,15 +44,6 @@ struct RangeTypeProvider<dimension,false>
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
 #if PROBLEM==1
-#include "tanhproblembalanced.hh"
-typedef TanhProblem< GridSelector:: GridType>  PhaseProblemType;
-#elif PROBLEM==2
-#include "perfectgas_problem.hh"
-typedef PhaseProblem< GridSelector :: GridType >  PhaseProblemType;
-#elif PROBLEM==3
-#include "constantproblem.hh"
-typedef ConstantProblem< GridSelector:: GridType> PhaseProblemType;
-#elif PROBLEM==4
 #include "travellingwave.hh"
 #ifdef MIXED
 typedef TravelProblem< GridSelector :: GridType, 
@@ -63,25 +54,34 @@ typedef TravelProblem< GridSelector :: GridType,
  RangeTypeProvider<GridSelector::GridType::dimensionworld,false> 
  >  PhaseProblemType;
 #endif
-#elif PROBLEM==5
-#include "bubbleproblem.hh"
-typedef BubbleProblem< GridSelector:: GridType>  PhaseProblemType;
-#elif PROBLEM==7
+#elif PROBLEM==2
+#if MIXED
+#include "../mixedscheme/bubbleensemble.hh"
+typedef BubbleEnsemble< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        >PhaseProblemType;
+#else
+#include "../mixedscheme/bubbleensemble.hh"
+typedef BubbleEnsemble< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
+        >PhaseProblemType;
+#endif
+#elif PROBLEM==3
 #if MIXED
 #include "../mixedscheme/heatproblem.hh"
-typedef HeatProblem< GridSelector :: GridType,
+typedef MixProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else
 #include "../mixedscheme/heatproblem.hh"
-typedef HeatProblem< GridSelector :: GridType,
+typedef MixProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;
 #endif
-#elif PROBLEM==8
+#elif PROBLEM==4
 #include "../mixedscheme/tanhproblem.hh"
 #if MIXED
-typedef HeatProblem< GridSelector :: GridType,
+typedef Problem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else
