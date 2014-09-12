@@ -3,10 +3,10 @@ fem.resolvevariables: 1
 #order: 0
 # DATA WRITER
 #------------
-fem.prefix: ./data$(scheme) # specify directory for data output (is created if not exists)
+fem.prefix: ./$(path) # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 0.1 #save data every time interval 
-fem.io.savecount:      # save every i-th ste
+fem.io.savestep: 0.01 #save data every time interval 
+fem.io.savecount: 1      # save every i-th st
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
 # GRID SOLUTION
@@ -25,23 +25,28 @@ paramfile: ./paramFiles/paramBase
 
 # PROBLEM SETUP
 #--------------
-phasefield.calcresidual: false 
+phasefield.calcresidual: true 
 phasefield.interpolinitial: false 
 phasefield.diffusionTimeStep:1 
 phasefield.energy: true
 phasefield.additionalvariables: true  
 # PHYSICAL CONSTANTS
 phasefield.reactionrate: 1. 
-phasefield.addvisc: 0. 
+phasefield.addvisc: 1.
 phasefield.nonconvisc: 1. 
 phasefield.thetaswitch: -1.
 phasefield.delta: 0.025
 phasefield.radius: 0.3
-phasefield.mu1: 0.1
+phasefield.mu1: 0.1 
+phasefield.mu2: 0.1
 phasefield.rho0: 2.5
-phasefield.penalty: 0 
-phasefield.acpenalty: 0.
-c1:1
+phasefield.rho1: 1
+phasefield.rho2: 1
+phasefield.penalty: 10 
+phasefield.acpenalty: 10.
+cphasefield.numbubbles: 2
+phasefield.bubbles: 2bubbles.txt 
+p1:1
 c2:2
 phasefield.smear: 2.2
 phiscale: 0.99
@@ -53,13 +58,13 @@ phasefield.restart: false
 # DOMAIN
 #-------
 
-#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
-fem.io.macroGridFile_1d: ../macrogrids/1dtorus2.dgf
+fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
-##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
-fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
-#fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
+fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf
@@ -76,8 +81,8 @@ dgiffusionflux.upwind: -1 -3.141
 paramfile: ./paramFiles/paramSolver
 phasefield.maxTimeStep: 0.5
 fem.ode.tolerance: 1e-8
-#phasefield.maximaltimesteps: 1
-#phasefield.timesteptolerance: 
+#phasefield.maximaltimesteps: 5 
+phasefield.timesteptolerance: 01
 
 # Output
 #------------
