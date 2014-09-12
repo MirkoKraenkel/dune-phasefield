@@ -326,7 +326,6 @@ namespace Dune {
 			: BaseType( mod, numf ),
 				diffFlux_( diffflux ),
 				penalty_( 1.0 ),
-        switch_(Fem::Parameter::getValue<double>("phasefield.thetaswitch")),
 				cflDiffinv_( 8.0 * ( polOrd + 1) )
 		{}
 	
@@ -517,7 +516,6 @@ namespace Dune {
 	protected:
 	 DiffusionFluxType& diffFlux_;
 		const double penalty_;
-    const double switch_; 
     const double cflDiffinv_;
 	};                                              /*@LST0E@*/
 
