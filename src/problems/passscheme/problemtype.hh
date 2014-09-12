@@ -67,13 +67,12 @@ typedef BubbleEnsemble< GridSelector :: GridType,
         >PhaseProblemType;
 #endif
 #elif PROBLEM==3
+#include "../mixedscheme/mixproblem.hh"
 #if MIXED
-#include "../mixedscheme/heatproblem.hh"
 typedef MixProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else
-#include "../mixedscheme/heatproblem.hh"
 typedef MixProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;
@@ -81,11 +80,11 @@ typedef MixProblem< GridSelector :: GridType,
 #elif PROBLEM==4
 #include "../mixedscheme/tanhproblem.hh"
 #if MIXED
-typedef Problem< GridSelector :: GridType,
+typedef TanhProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else
-typedef HeatProblem< GridSelector :: GridType,
+typedef TanhProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;
 #endif
