@@ -137,7 +137,7 @@ inline void NSKModel< Grid, Problem >
              RangeFieldType& mu) const
 {
 
-  mu=problem_.thermodynamics().chemicalPotential(rhoOld);
+  mu=problem_.thermodynamics().chemicalPotential(rho);
 }
 template<class Grid, class Problem > 
 inline void NSKModel< Grid, Problem >
