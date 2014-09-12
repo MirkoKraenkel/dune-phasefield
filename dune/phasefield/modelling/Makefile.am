@@ -1,3 +1,3 @@
-modelingdir = $(includedir)/dune/phasefield/modeling
-modeling_HEADERS = physics.hh physics_inline.hh thermodynamics.hh wellbalancedmodel.hh physicswb_inline1d.hh physicswb2_inline1d.hh hysicswb_inline2d.hh
+modellingdir = $(includedir)/dune/phasefield/modelling
+modeling_HEADERS = physics.hh physics_inline1d.hh physics_inline2d thermodynamics.hh wellbalancedmodel.hh physicswb_inline1d.hh physicswb2_inline1d.hh physicswb_inline2d.hh
 include $(top_srcdir)/am/global-rules
