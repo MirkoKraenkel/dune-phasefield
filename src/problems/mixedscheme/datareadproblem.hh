@@ -79,7 +79,7 @@ public:
         }
      
       bubblefile.close();
-    
+      if(0)
       for( int i=0 ;(i+1)<points_.size();++i)
        {
         std::cout<<"x["<<i<<"]="<<points_[i]<<" , ";
@@ -91,8 +91,12 @@ public:
   inline int findpoint( double x) const
   {
     for( int i=0; (i+1)<points_.size();++i)
-       if( x <  points_[i])
+       if( x <  points_[i] && i>0)
         return i-1;
+     
+    std::cout<<"point not in data x must be in ( "<<points_[0]<<" , "<<points_[points_.size()-1]<<"\n";
+    abort();
+    return -1;
   } 
   
   inline double linearInterpolation(double x) const
@@ -104,7 +108,7 @@ public:
     double y2=values_[i+1];
     double h=x2-x1;
     return (x-x1)/h *y2 +(x2-x)/h*y1;
-    }
+   }
 
   // initialize A and B 
   double init(const bool returnA ) const ;
@@ -189,7 +193,7 @@ inline void DataReadProblem<GridType,RangeProvider>
    //double v=sinx*cost;
    double v=0;
    //rho
-   res[0]=linearInterpolation(x);
+   res[0]=2.5;
    //v
    for(int i=1;i<=dimension;i++)
    {
@@ -197,7 +201,7 @@ inline void DataReadProblem<GridType,RangeProvider>
    }
    if(dimension==2)
      res[2]=0;
-   double  phi=0.05*cosx+0.5;
+   double  phi=linearInterpolation(x);
    res[dimension+1]=phi;
    
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
@@ -206,9 +210,9 @@ inline void DataReadProblem<GridType,RangeProvider>
    if( dimRange > dimDomain+2)
     {
       //mu
-      res[dimension+2]=0.5*v*v+dFdrho;
+      res[dimension+2]=0;
       //tau
-      res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*cosx+dFdphi;
+      res[dimension+3]=0;
 
 
 #if SCHEME==DG
