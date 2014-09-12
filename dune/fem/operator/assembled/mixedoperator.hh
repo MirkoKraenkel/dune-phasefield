@@ -513,14 +513,15 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
 
-
-
+#if NSK
+#include "fulloperatorNSK.cc"
+#else
 #if IMPLICITTAU
 #include "fulloperatorimpl.cc"
 #else
 #include "fulloperator.cc"
 #endif
-
+#endif
 
 
 
