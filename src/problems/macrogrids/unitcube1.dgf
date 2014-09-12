@@ -3,7 +3,7 @@ DGF
 Interval
 0    % first corner
 1   % second corner
-20    % 1 cell in each direction (x, y)
+4    % 1 cell in each direction (x, y)
 # 
 
 BoundaryDomain
@@ -11,7 +11,7 @@ default 1    % all boundaries have id 1
 #
 
 GridParameter
-name 2d_Unit_Cube
+name 1d_Unit_Cube
 #
 
-# unitcube2.dgf
+# unitcube1.dgf
