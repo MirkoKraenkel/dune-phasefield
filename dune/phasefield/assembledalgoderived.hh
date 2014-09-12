@@ -122,7 +122,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 
   double timeStepEstimate()
   {
-    return 1e100;
+    return 1.;
   }
 
   using BaseType::space;
