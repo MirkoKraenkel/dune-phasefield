@@ -1,7 +1,9 @@
 import os,subprocess, sys
+folders = { 1:'../ConstRhoSources/' , 2:'../InvRhoSources/', 3:'../PhasefieldvanderWaalsSources/'}
+files = { 1:'balancedCODEGEN.mpl', 2:'balancedhmodelCODEGEN.mpl', 3:'phasefieldvanderWaalsCODEGEN.mpl'}
 namelist = [' helmholtz', ' reactionSource',' dphireactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential',' pressure', ' a']
-inputfile=sys.argv[1]
-print(inputfile)
+number=int(sys.argv[1])
+inputfile=folders[number]+files[number]
 subprocess.call( ['rm maple.c'],shell=True)
 subprocess.call( ['maple '+inputfile],shell=True )
 f=open( 'maple.c')
@@ -22,4 +24,5 @@ for line in f:
       flag=False
     else:
       fnew.write( newline )
-subprocess.call( ['mv maplenew.c maple.c'], shell=True)
+subprocess.call( ['mv maplenew.c '+folders[number]+'/maple.c'], shell=True)
+subprocess.call( ['rm maple.c'], shell=True)
