@@ -40,6 +40,7 @@ AC_CONFIG_FILES([
   src/problems/allencahn/Makefile
   src/problems/mixedscheme/Makefile
   src/problems/korteweg/Makefile
+  src/problems/kortewegmixed/Makefile
   src/problems/Makefile
   m4/Makefile
   dune-phasefield.pc
