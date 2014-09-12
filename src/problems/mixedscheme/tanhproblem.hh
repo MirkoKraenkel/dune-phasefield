@@ -9,8 +9,8 @@
 
 // local includes
 
-#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
-
+//#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
 //#include <dune/fem/probleminterfaces.hh>
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
@@ -19,7 +19,7 @@
 namespace Dune {
 
 template <class GridType, class RangeProvider>
-class HeatProblem : public EvolutionProblemInterface<
+class TanhProblem : public EvolutionProblemInterface<
                        Dune::Fem::FunctionSpace< double, double, GridType::dimension,RangeProvider::rangeDim >, true >
 {
  
@@ -40,12 +40,14 @@ public:
 //   typedef TestThermodynamics ThermodynamicsType;
   typedef BalancedThermodynamics ThermodynamicsType; 
 
-  HeatProblem() : 
+  TanhProblem() : 
     myName_( "Mixedtest Heatproblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
+    rho1_( Fem::Parameter::getValue<double> ("phasefield.rhomwp1")),
+    rho2_( Fem::Parameter::getValue<double> ("phasefield.rhomwp2")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
     thermodyn_()
@@ -110,7 +112,9 @@ public:
   const double endTime_;
   const double mu_;
   const double delta_;
-  double rho_;
+  double rho_; 
+  double rho1_;
+  double rho2_;
   const double phiscale_;
   const double radius_;
   const ThermodynamicsType thermodyn_;
@@ -119,7 +123,7 @@ public:
 
 
 template <class GridType,class RangeProvider>
-inline double HeatProblem<GridType,RangeProvider>
+inline double TanhProblem<GridType,RangeProvider>
 :: init(const bool returnA ) const 
 {
   return 0;
@@ -128,12 +132,12 @@ inline double HeatProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline void HeatProblem<GridType,RangeProvider>
+inline void TanhProblem<GridType,RangeProvider>
 :: printInitInfo() const
 {}
 
 template <class GridType,class RangeProvider>
-inline void HeatProblem<GridType,RangeProvider>
+inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double deltaInv=1./delta_;
@@ -146,7 +150,8 @@ inline void HeatProblem<GridType,RangeProvider>
   drdrtanhr*=-2*deltaInv;
  
   // double rho=1.85*(-0.5*tanhr+0.5)+
-  double rho=(1.845933854)*(-0.5*tanhr+0.5)+1.947734046;
+  double rhodiff=rho2_-rho1_;
+  double rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
   
   double v=0;//0.1*sin(2*M_PI*arg[0]);
   //rho
@@ -171,7 +176,7 @@ inline void HeatProblem<GridType,RangeProvider>
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
   double sigma=0.5*drtanhr;
-  double gradrho=-0.5*1.845933854*drtanhr;
+  double gradrho=-0.5*rhodiff*drtanhr;
   double rhoInv=1./rho;
   double hprime=-1./(rho*rho);
   double laplacePhi=0.5*drdrtanhr;
@@ -183,6 +188,7 @@ inline void HeatProblem<GridType,RangeProvider>
   res[dimension+3]=dFdphi-delta_*rhoInv*laplacePhi+hprime*gradrho*sigma;
   //sigma_x
   res[dimension+4]=sigma;
+
 #else
   //mu
   res[dimension+2]=0.5*v*v+dFdrho;
@@ -218,7 +224,7 @@ inline void HeatProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline std::string HeatProblem<GridType,RangeProvider>
+inline std::string TanhProblem<GridType,RangeProvider>
 :: description() const
 {
   std::ostringstream stream;

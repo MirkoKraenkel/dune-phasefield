@@ -1,5 +1,5 @@
-#ifndef HEATPROBLEM_HH
-#define HEATPROBLEM_HH
+#ifndef MIXPRONLEM_HH
+#define MIXPRONLEM_HH
 #include <dune/common/version.hh>
 
 // dune-fem includes
@@ -19,7 +19,7 @@
 namespace Dune {
 
 template <class GridType, class RangeProvider>
-class HeatProblem : public EvolutionProblemInterface<
+class MixProblem : public EvolutionProblemInterface<
                        Dune::Fem::FunctionSpace< double, double, GridType::dimension,RangeProvider::rangeDim >, true >
 {
  
@@ -40,7 +40,7 @@ public:
 //   typedef TestThermodynamics ThermodynamicsType;
   typedef BalancedThermodynamics ThermodynamicsType; 
 
-  HeatProblem() : 
+  MixProblem() : 
     myName_( "Mixedtest Heatproblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
@@ -107,7 +107,7 @@ public:
 
 
 template <class GridType,class RangeProvider>
-inline double HeatProblem<GridType,RangeProvider>
+inline double MixProblem<GridType,RangeProvider>
 :: init(const bool returnA ) const 
 {
   return 0;
@@ -116,12 +116,12 @@ inline double HeatProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline void HeatProblem<GridType,RangeProvider>
+inline void MixProblem<GridType,RangeProvider>
 :: printInitInfo() const
 {}
 
 template <class GridType,class RangeProvider>
-inline void HeatProblem<GridType,RangeProvider>
+inline void MixProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double x=arg[0];
@@ -194,7 +194,7 @@ inline void HeatProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline std::string HeatProblem<GridType,RangeProvider>
+inline std::string MixProblem<GridType,RangeProvider>
 :: description() const
 {
   std::ostringstream stream;
