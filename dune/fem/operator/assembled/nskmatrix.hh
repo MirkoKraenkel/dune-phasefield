@@ -10,10 +10,10 @@
 // local includes
 #include "mixedoperator.hh"
 #include "phasefieldfilter.hh"
-#include "fluxes/jacobianfluxcoupling.hh"
+#include "fluxes/nskjacobianflux.hh"
 #include "nskmatrixhelper.hh"
 template<class DiscreteFunction,class Model, class Flux, class Jacobian>
-class PhasefieldJacobianOperator
+class NSKJacobianOperator
 :public Dune::Fem::DifferentiableOperator < Jacobian >,
   protected DGPhasefieldOperator<DiscreteFunction,Model,Flux>
 {
@@ -67,7 +67,7 @@ class PhasefieldJacobianOperator
   typedef typename std::array<DomainType, dimDomain> DiffusionValueType;
 
   public: 
-  PhasefieldJacobianOperator(const ModelType &model,
+  NSKJacobianOperator(const ModelType &model,
       const DiscreteFunctionSpaceType &space,
       int volQuadOrder=-1)
     :MyOperatorType(model,space),
@@ -182,7 +182,7 @@ class PhasefieldJacobianOperator
 # if 0
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
 template< class RangeVector, class JacobianVector>
-void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
+void NSKJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 ::myaxpy( const size_t jj ,
           const RangeVector& phi,
           const JacobianVector& dphi,
@@ -212,7 +212,7 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
 template< class JacobianVector, class DiffusionTensor>
-void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
+void NSKJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 ::diffusionaxpy( const size_t local_i,
                  const size_t local_j,
                  const JacobianVector& dphi,
@@ -239,7 +239,7 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
 template< bool comforming >
-void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
+void NSKJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 ::computeIntersection ( const IntersectionType &intersection,
                         const GeometryType& geometry,
                         const GeometryType& geometryNb,
@@ -447,7 +447,7 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 }
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> void
-PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
+NSKJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 ::jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const
 {
   Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil(space(),space());
@@ -579,8 +579,9 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           
           //mu
           RangeFieldType drhomu(0.),dphimu(0.);
-          model_.drhomuSource( vu[ 0 ] , vu[ 0 ] , drhomu );
+          model_.drhomuSource( vu[ 0 ] ,vuOld[0], drhomu );
           
+          //zero if uOld is used in NSKModel::muSOurce!!!! 
           flux[ dimDomain+1 ][ 0 ]=-1*drhomu*phi[ jj ][ 0 ];
           
           //(mu, v_kk)
