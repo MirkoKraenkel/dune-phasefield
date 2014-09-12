@@ -19,7 +19,7 @@
 namespace Dune {
 
 template <class GridType, class RangeProvider>
-class HeatProblem : public EvolutionProblemInterface<
+class BubbleEnsemble : public EvolutionProblemInterface<
                        Dune::Fem::FunctionSpace< double, double, GridType::dimension,RangeProvider::rangeDim >, true >
 {
  
@@ -40,7 +40,7 @@ public:
 //   typedef TestThermodynamics ThermodynamicsType;
   typedef BalancedThermodynamics ThermodynamicsType; 
 
-  HeatProblem() : 
+  BubbleEnsemble() : 
     myName_( "Mixedtest Heatproblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
@@ -158,7 +158,7 @@ public:
 
 
 template <class GridType,class RangeProvider>
-inline double HeatProblem<GridType,RangeProvider>
+inline double BubbleEnsemble<GridType,RangeProvider>
 :: init(const bool returnA ) const 
 {
   return 0;
@@ -167,108 +167,105 @@ inline double HeatProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline void HeatProblem<GridType,RangeProvider>
+inline void BubbleEnsemble<GridType,RangeProvider>
 :: printInitInfo() const
 {}
 
 template <class GridType,class RangeProvider>
-inline void HeatProblem<GridType,RangeProvider>
+inline void BubbleEnsemble<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double deltaInv=1./delta_;
   double phi; 
-  double width=6*delta_;
+  double width=delta_;
   phi=0.;
-  
+  double rho=3;
+#if MIXED 
   res[dimension+4]=0.;
   res[dimension+5]=0.;
- 
-  double rho=3;
-  double dFdphi= thermodyn_.reactionSource(rho,phi); 
+
+ double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
-    
  //mu
  res[dimension+2]=dFdrho;
   //tau
  res[dimension+3]=dFdphi;
- 
+#endif 
  
 
   for( int i=0 ; i<(bubblevector_.size())/3 ;++i)
   { 
 
     
-  DomainType center;
-  center[0]=bubblevector_[i*3];
- 
-  center[1]=bubblevector_[1+(i*3)];
-  double radius=bubblevector_[2+(i*3)];
+    DomainType center;
+    center[0]=bubblevector_[i*3];
+    center[1]=bubblevector_[1+(i*3)];
+    double radius=bubblevector_[2+(i*3)];
   
-  DomainType vector=center;
-  vector-=arg;
-  double r=vector.two_norm();
-  double tanr=tan((radius-r) * ( M_PI / width ));
-  double tanhr=tanh(tanr);
-  double dtanr=1+tanr*tanr;
-  double dtanhr=1-tanhr*tanhr; 
-  double ddtanr=2*tanr*dtanr;
-  double ddtanhr=-2*tanhr*dtanhr;
+    DomainType vector=center;
+    vector-=arg;
+    double r=vector.two_norm();
+    double tanr=tan((radius-r) * ( M_PI / width ));
+    double tanhr=tanh(tanr);
+    double dtanr=1+tanr*tanr;
+    double dtanhr=1-tanhr*tanhr; 
+    double ddtanr=2*tanr*dtanr;
+    double ddtanhr=-2*tanhr*dtanhr;
  
   
-  if( r < radius+(0.5*width))
-   {
-      if( r < radius-(0.5*width))
+    if( r < radius+(0.5*width))
       {
-        phi=1.;
-        rho=2.;
-        dFdphi= thermodyn_.reactionSource(rho,phi); 
-        dFdrho=thermodyn_.chemicalPotential(rho, phi);
-     
-        //mu
-        res[dimension+2]=dFdrho;
-        //tau
-        res[dimension+3]=dFdphi;
- 
-     
-        continue;
+        if( r < radius-(0.5*width))
+          {
+            phi=1.;
+            rho=2.;
+#if MIXED
+            dFdphi= thermodyn_.reactionSource(rho,phi); 
+            dFdrho=thermodyn_.chemicalPotential(rho, phi);
+            //mu
+            res[dimension+2]=dFdrho;
+            //tau
+            res[dimension+3]=dFdphi;
+#endif 
+            continue;
+          }
+        else
+          {
+            phi=0.5*( tanhr )+0.5;
+            rho=-0.5*tanhr+2.5;
+#if MIXED
+            res[dimension+4]=-1.*dtanhr*dtanr*(M_PI/width)*dxr(arg);
+            res[dimension+5]=-1.*dtanhr*dtanr*(M_PI/width)*dyr(arg);
+            double laplacePhi=dtanhr*dtanr*(M_PI/width)*(dxdxr(arg)+dydyr(arg))
+              +(dtanhr*ddtanr +ddtanhr*dtanr*dtanr)*(M_PI/width)*(M_PI/width)*(dxr(arg)*dxr(arg)+dyr(arg)*dyr(arg));
+            laplacePhi*=0.5;
+            dFdphi= thermodyn_.reactionSource(rho,phi); 
+            dFdrho=thermodyn_.chemicalPotential(rho, phi);
+            //mu
+            res[dimension+2]=dFdrho;
+            //tau
+            res[dimension+3]=dFdphi-delta_*laplacePhi;
+#endif
+            continue;
+          }
+        }
       }
-      else
-      {
-        phi=0.5*( tanhr )+0.5;
-        rho=-0.5*tanhr+2.5;
-        res[dimension+4]=-1.*dtanhr*dtanr*(M_PI/width)*dxr(arg);
-        res[dimension+5]=-1.*dtanhr*dtanr*(M_PI/width)*dyr(arg);
-          double laplacePhi=dtanhr*dtanr*(M_PI/width)*(dxdxr(arg)+dydyr(arg))
-                    +(dtanhr*ddtanr +ddtanhr*dtanr*dtanr)*(M_PI/width)*(M_PI/width)*(dxr(arg)*dxr(arg)+dyr(arg)*dyr(arg));
-        laplacePhi*=0.5;
-         dFdphi= thermodyn_.reactionSource(rho,phi); 
-         dFdrho=thermodyn_.chemicalPotential(rho, phi);
-     
-         //mu
-        res[dimension+2]=dFdrho;
-        //tau
-        res[dimension+3]=dFdphi-delta_*laplacePhi;
- 
-        continue;
-      }
-    }
- 
-  }
       
-   
 
   double v=0;
   //rho
   res[0]= rho;
- 
+   
    for(int i=1;i<=dimension;i++)
    {
      res[i]=v;
    }
-
-   
   res[dimension+1]=phi;
-  
+
+#if MIXED || NONCONTRANS  
+#else
+  res[dimension+1]*=rho;
+#endif
  
     //sigma
  }
@@ -278,7 +275,7 @@ inline void HeatProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline std::string HeatProblem<GridType,RangeProvider>
+inline std::string BubbleEnsemble<GridType,RangeProvider>
 :: description() const
 {
   std::ostringstream stream;
