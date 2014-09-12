@@ -1,6 +1,6 @@
 import os,subprocess, sys
 namelist = [' helmholtz',' chemicalPotential',' drhochemicalPotential',' pressure', ' a']
-inputfile=sys.argv[1]
+inputfile='../KortewegSources/kortewegCODEGEN.mpl'
 print(inputfile)
 subprocess.call( ['rm maple.c'],shell=True)
 subprocess.call( ['maple '+inputfile],shell=True )
@@ -23,4 +23,5 @@ for line in f:
       flag=False
     else:
       fnew.write( newline )
-subprocess.call( ['mv maplenew.c maple.c'], shell=True)
+subprocess.call( ['mv maplenew.c ../KortewegSources/maple.c'], shell=True)
+subprocess.call( ['rm maple.c'], shell=True)
