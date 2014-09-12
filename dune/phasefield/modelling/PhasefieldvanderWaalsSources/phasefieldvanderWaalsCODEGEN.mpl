@@ -4,7 +4,7 @@ c := 4; theta := .9;
 p := proc (rho) options operator, arrow; rho^2*(diff(w(rho), rho)) end proc; pp := makeproc(p(rho), rho); gg := makeproc(g(rho), [rho]);
 sols := fsolve([p(x) = p(y), g(x) = g(y)], {x = 0 .. 1.5, y = 1.5 .. 3}); r1 := solve(sols[1]); r2 := solve(sols[2]);
 F1 := proc (rho) options operator, arrow; a2*rho*ln(rho)+(b2-a2)*rho+k end proc; G1 := proc (rho) options operator, arrow; diff(F1(rho), rho) end proc; gg1 := makeproc(G1(rho), rho); p1 := proc (rho) options operator, arrow; -F1(rho)+rho*gg1(rho) end proc; pp1 := makeproc(p1(rho), rho);
-F0 := proc (rho) options operator, arrow; a*rho*ln(rho)+(b-a)*rho end proc; G0 := D(F0);
+F0 := proc (rho) options operator, arrow; a*rho*ln(rho)+(b-a)*rho end proc; G0 := D(F0); p0 := proc (rho) options operator, arrow; -F1(rho)+rho*gg1(rho) end proc; pp0 := makeproc(p1(rho), rho);
 W := proc (rho) options operator, arrow; rho*w(rho) end proc; a := pp(r1)/r1; b := gg(r1)-a*ln(r1);
 a2 := (pp(r2)+k)/r2; b2 := gg(r2)-a2*ln(r2); k := 11;
 plot([W(x), F1(x), F0(x)], x = 0 .. 2.8);
