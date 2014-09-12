@@ -9,6 +9,26 @@
 #include <dune/grid/io/file/dgfparser/dgfgridtype.hh>
 #endif
 
+template< int dimension, bool mixed>
+struct NSKRangeTypeProvider;
+
+template< int dimension>
+struct NSKRangeTypeProvider<dimension,true>
+{
+  enum{ rangeDim=2*dimension+2 };
+};
+
+
+template< int dimension>
+struct NSKRangeTypeProvider<dimension,false>
+{
+  enum{ rangeDim=dimension+1};
+};
+
+
+
+
+
 
 
 ///////////////////////////////////////
@@ -16,8 +36,16 @@
 ///////////////////////////////////////
 #if PROBLEM==1
 #include "tanhproblem.hh"
-typedef HeatProblem< GridSelector:: GridType>  PhaseProblemType;
- #else      
+#if MIXED
+typedef TanhBubbleProblem< GridSelector:: GridType,
+        NSKRangeTypeProvider< GridSelector::GridType::dimensionworld , true >
+        >PhaseProblemType;
+#else
+typedef TanhBubbleProblem< GridSelector:: GridType,
+        NSKRangeTypeProvider< GridSelector::GridType::dimensionworld , false >
+        >  PhaseProblemType;
+#endif
+#else      
 #error "No valid problem number specified"
 #endif
 
