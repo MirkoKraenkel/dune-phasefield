@@ -1,0 +1,80 @@
+# OMP THREADS 
+#------------
+
+# number of threads used in OMP program
+fem.parallel.numberofthreads: 1
+
+# write diagnostics file (
+# 0 don't, 1 only speedup file, 2 write all runfiles 
+# 3 only write 0, others at end, 4 all files at end for scaling) 
+fem.parallel.runfile: 1
+
+
+
+# DATA WRITER
+#------------
+
+# toggle verbosity of on process 
+# (-1: off, p: process p is verbose, in general 0 is a good choice)
+fem.verboserank: 0 
+
+#fem.io.outputformat: gnuplot # binary, vtk-cell, vtk-vertex, gnuplot, sub-vtk-ce
+fem.io.outputformat:  vtk-cell #, gnuplot, sub-vtk-ce
+fem.io.subsamplinglevel: 3 
+fem.io.grapedisplay: 0 
+
+# add time stamp to eoc file name
+# to avoid overwriting the eoc files
+fem.io.eocFileTimeStamp: 1
+@phasefield.eocOutputPath: ./data
+
+
+# GRID SOLUTION 
+#--------------
+
+gridsol.writesolution: false
+gridsol.usegridsolution: false
+
+
+# GENERAL SETTINGS
+#-----------------
+
+phasefield.eocSteps: 1 
+phasefield.printCount: 10
+phasefield.verbose: 1 
+
+# create a file with sampled values of the numerical solution
+phasefield.sampleAlongLine: 0
+linesegmentsamplerresolution: 100.
+
+# GRID ADAPTATION
+#----------------
+
+fem.adaptation.method: none # none | generic | callback
+# specify refinement tolerance 
+fem.adaptation.refineTolerance: 0.01
+# percent of refinement tol used for coarsening 
+fem.adaptation.coarsenPercent: 0.99
+
+# coarsest level that should be present 
+# finest level that should be present
+fem.adaptation.coarsestLevel: 2 
+fem.adaptation.finestLevel: 7 
+phasefield.adaptTol: 0.15 
+# marking strategy 
+# shockind = shock indicator, 
+# apost    = aposteriori based indicator, 
+# grad     = gradient based indicator 
+fem.adaptation.markingStrategy: grad 
+
+fem.adaptation.adaptcount: 1 # after this many time step, 0 disables adaptation
+fem.loadbalancing.step:1
+
+ DOMAIN CONFIGURATION
+#---------------------
+#phasefield.startLevel: 5 
+
+
+phasefield.startTime: 0 
+#phasefield.endTime: 20 
+
