@@ -146,7 +146,7 @@ inline void TanhBubbleProblem<GridType, RangeProvider >
   drdrtanhr*=-2*deltaInv;
  
   // double rho=1.85*(-0.5*tanhr+0.5)+
-  double rho=(rho2_-rho1_)*(-0.5*tanhr+0.5)+rho1_;
+  double rho=(rho2_-rho1_)*(0.5*tanhr+0.5)+rho1_;
   
   double v=0;//0.1*sin(2*M_PI*arg[0]);
   //rho
@@ -166,8 +166,13 @@ inline void TanhBubbleProblem<GridType, RangeProvider >
   double gradrho=-0.5*(rho2_-rho1_)*drtanhr;
   double laplacePhi=0.5*drdrtanhr;
   if(arg[0]>0.5)
-     laplacePhi*=-1;
-
+    {
+      laplacePhi*=-1;
+    }
+  else
+    {
+      sigma*=-1.;
+    }
 
 
   //mu
