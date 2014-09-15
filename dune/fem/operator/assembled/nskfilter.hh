@@ -49,7 +49,7 @@ public:
     return du[0][j];
   }
 
-  }
+  
   
   static RangeFieldType& dmu( JacobianRangeType& du, int j)
   {
