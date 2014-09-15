@@ -46,8 +46,8 @@ public:
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
-    rho1_( Fem::Parameter::getValue<double> ("phasefield.rhomwp1")),
-    rho2_( Fem::Parameter::getValue<double> ("phasefield.rhomwp2")),
+    rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
+    rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
     thermodyn_()
@@ -141,8 +141,8 @@ inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double deltaInv=1./delta_;
-  double r=arg[0]-0.5;//std::abs( arg[0]-0.5);
-  double tanhr=tanh( ( r )*deltaInv ); 
+  double r=std::abs( arg[0]);
+  double tanhr=tanh( ( r-0.5 )*deltaInv ); 
   //(1-tanh^2)/delta
   double drtanhr=deltaInv*(1-tanhr*tanhr);
   double drdrtanhr=tanhr*drtanhr;
@@ -151,8 +151,7 @@ inline void TanhProblem<GridType,RangeProvider>
  
   // double rho=1.85*(-0.5*tanhr+0.5)+
   double rhodiff=rho2_-rho1_;
-  double rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
-  
+  double rho=(rhodiff)*(0.5*tanhr+0.5)+rho1_;
   double v=0;//0.1*sin(2*M_PI*arg[0]);
   //rho
   res[0]= rho;
@@ -170,9 +169,6 @@ inline void TanhProblem<GridType,RangeProvider>
    res[dimension+1]=phi;
  
 #if MIXED
-  // if(arg[0]>0.5)
- //   laplacePhi*=-1;
-
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
   double sigma=0.5*drtanhr;
@@ -180,6 +176,9 @@ inline void TanhProblem<GridType,RangeProvider>
   double rhoInv=1./rho;
   double hprime=-1./(rho*rho);
   double laplacePhi=0.5*drdrtanhr;
+  if(arg[0]>0.5)
+    laplacePhi*=-1;
+
 
 #if RHOMODEL     
   //mu
