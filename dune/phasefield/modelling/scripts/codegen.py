@@ -13,7 +13,8 @@ for line in f:
   if line[0]=='#':
     fnew.write('\n')
   else:
-    newline = line.replace('delta','delta_')
+    newline1 = line.replace('delta','delta_')
+    newline = newline1.replace('alpha','alpha_')
     for name in namelist:
       if newline.find( name ) != -1:
         flag=True
