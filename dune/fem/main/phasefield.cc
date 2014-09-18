@@ -32,7 +32,8 @@ int main(int argc, char ** argv, char ** envp) {
 
       // *** Initialization
      Dune::Fem::Parameter::append(argc,argv);                      
-      if (argc == 2) 
+    #if 0
+    if (argc == 2) 
       {
         Dune::Fem::Parameter::append(argv[1]);
       } 
@@ -40,8 +41,8 @@ int main(int argc, char ** argv, char ** envp) {
       {
         Dune::Fem::Parameter::append("parameter");                   
       }                                                     
-
-    // get number of desired threads (default is 1)
+    #endif
+   // get number of desired threads (default is 1)
     int numThreads = Dune::Fem::Parameter::getValue< int >("fem.parallel.numberofthreads", 1);
     Dune :: Fem :: ThreadManager :: setMaxNumberThreads( numThreads );
 
