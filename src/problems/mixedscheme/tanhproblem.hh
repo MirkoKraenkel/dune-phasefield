@@ -9,8 +9,8 @@
 
 // local includes
 
-//#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
-#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
+#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+//#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
 //#include <dune/fem/probleminterfaces.hh>
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
@@ -29,7 +29,6 @@ public:
   enum{ phasefieldId = dimension + 1 };
   enum{ dimRange=RangeProvider::rangeDim};
   typedef Fem::FunctionSpace<typename GridType::ctype, double, GridType::dimensionworld,dimRange > FunctionSpaceType ;
-  
 
 
   typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
@@ -38,7 +37,7 @@ public:
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
 //   typedef TestThermodynamics ThermodynamicsType;
-  typedef BalancedThermodynamics ThermodynamicsType; 
+  typedef BalancedThermodynamics ThermodynamicsType;
 
   TanhProblem() : 
     myName_( "Mixedtest Heatproblem" ),
@@ -151,7 +150,7 @@ inline void TanhProblem<GridType,RangeProvider>
  
   // double rho=1.85*(-0.5*tanhr+0.5)+
   double rhodiff=rho2_-rho1_;
-  double rho=(rhodiff)*(0.5*tanhr+0.5)+rho1_;
+  double rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
   double v=0;//0.1*sin(2*M_PI*arg[0]);
   //rho
   res[0]= rho;
@@ -162,7 +161,6 @@ inline void TanhProblem<GridType,RangeProvider>
    }
    if(dimension==2)
      res[2]=0;
-   //double  phi=0.5+0.05*sin(2*M_PI*arg[0]);
 
    double phi=0.5*tanhr+0.5;
    
