@@ -25,8 +25,8 @@ class BalancedThermodynamics:
     BaseType(),
     delta_( Dune::Fem::Parameter::getValue<double>( "phasefield.delta" ) ),
     deltaInv_( 1./delta_ ),
-    epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
-    mu1_( epsilon_ ),
+    alpha_(Dune::Fem::Parameter::getValue<double>("phasefield.alpha",0)),
+    mu1_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
     mu2_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2") ),
     reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
   {
@@ -82,9 +82,9 @@ class BalancedThermodynamics:
   private:
   mutable double  delta_;
   mutable double  deltaInv_;
-  mutable double  epsilon_;
+  mutable double  alpha_; 
   mutable double  mu1_,mu2_;
-  mutable double reaction_;
+  mutable double  reaction_;
 };
 
 
