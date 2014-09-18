@@ -262,11 +262,16 @@ namespace Dune {
       //penalty is negative, because of the sign of the diffusion!!!!!!!!
       double factor = -1.*acpenalty_ ;
 
+#if NONCONTRANS
+    double phiLeft= uLeft[uVar][dimDomain+1];
+    double phiRight=uRight[uVar][dimDomain+1];
+#else
+    double phiLeft= uLeft[uVar][dimDomain+1]/uLeft[uVar][0];
+    double phiRight=uRight[uVar][dimDomain+1]/uRight[uVar][0];
+#endif
 	 		RangeType jmp(0);
       
-      jmp[1] = uLeft[uVar][dimDomain+1];
-			
-      jmp[1]-= uRight[uVar][dimDomain+1];
+      jmp[1] = phiLeft-phiRight;
 		  
       factor/=h; 
        
