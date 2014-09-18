@@ -49,8 +49,9 @@ class PhasefieldPhysics< 1,Thermodynamics>
   inline void totalEnergy( const RangeType& cons, 
                            const JacobianRangeImp& grad,
                            double& kin,
-                           double& total,
-                           double& surf) const;
+                           double& term,
+                           double& surf,
+                           double& total) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -143,8 +144,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   :: totalEnergy( const RangeType& cons, 
                   const JacobianRangeImp& grad , 
                   double& kin,
-                  double& total,
-                  double& surf) const
+                  double& therm,
+                  double& surf,
+                  double& total) const
   {
     assert( cons[0] > 0. );
 	  double rho = cons[0];
@@ -166,7 +168,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
  
 	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
     kin = kineticEnergy;
-	  total = surfaceEnergy+freeEnergy+kineticEnergy;
+	  therm = freeEnergy+surfaceEnergy;
+    total = surfaceEnergy+freeEnergy+kineticEnergy;
     surf = surfaceEnergy;
   }
 

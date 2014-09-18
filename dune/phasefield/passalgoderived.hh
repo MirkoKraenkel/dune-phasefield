@@ -219,15 +219,16 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
           totalenergy->clear();
           double kineticEnergy;
           double surfaceEnergy;
-#if WELLBALANCED    
-          double chemicalEnergy; 
-          double energyIntegral =energyconverter(solution(),gradient,model(),*totalenergy,kineticEnergy,chemicalEnergy,surfaceEnergy);
-          str<<std::setprecision(20)<< timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
-#else
-          double energyIntegral =energyconverter(solution(),gradient,model(),*totalenergy,kineticEnergy,surfaceEnergy);
-          str<<std::setprecision(20)<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
-#endif
-       std::cout<<"energy="<<energyIntegral<<"\n";
+          double thermEnergy;
+          double energyIntegral = energyconverter(solution(),
+                                                  gradient,
+                                                  model(),
+                                                  *totalenergy,
+                                                  kineticEnergy,
+                                                  thermEnergy,
+                                                  surfaceEnergy);
+          str<<std::setprecision(20)<< timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<kineticEnergy<<"\t"<<thermEnergy<<"\t"<<surfaceEnergy<<"\n";
+          std::cout<<"energy="<<energyIntegral<<"\n";
     }
   
   }

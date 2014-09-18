@@ -60,8 +60,8 @@ class PhasefieldPhysics
                            const JacobianRangeImp& grad,
                            double& kin,
                            double& therm,
-                           double& total,
-                           double& surf) const;
+                           double& surf,
+                           double& total) const;
   
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,

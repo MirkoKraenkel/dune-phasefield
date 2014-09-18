@@ -371,23 +371,23 @@ namespace Dune {
 														 const RangeType& cons, 
 														 const GradientRangeType& grad, 
                              ScalarType& kin,
-                             ScalarType& chemical,
-														 ScalarType& total,
-                             ScalarType& surf ) const
+                             ScalarType& therm,
+														 ScalarType& surf,
+                             ScalarType& total ) const
 		{
 			Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( grad);
-		  totalEnergy(cons,jac, kin, chemical , total , surf );
+		  totalEnergy(cons,jac, kin, therm , surf,total );
 		}
 
 	  template <class JacobianRangeImp>
 		inline void totalEnergy( const RangeType& cons, 
 														 const JacobianRangeImp& grad, 
                              ScalarType& kin,
-														 ScalarType& chemical,
-                             ScalarType& total,
-                             ScalarType& surf) const
+														 ScalarType& therm,
+                             ScalarType& surf,
+                             ScalarType& total) const
 		{
-		  phasefieldPhysics_.totalEnergy(cons,grad,kin[0],chemical[0],total[0],surf[0] );
+		  phasefieldPhysics_.totalEnergy(cons,grad,kin[0],therm[0],surf[0],total[0] );
 		}
 
     inline double delta()const

@@ -69,7 +69,6 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
     // get entity 
     const Entity& entity = *it ;
     const Geometry& geo = entity.geometry(); 
-   
 		const double volume = geo.volume();
     // Get quadrature rule for L2 projection
     Dune::Fem::CachingQuadrature< GridPartType, 0 > quad( entity, 2*space.order()+1 );
@@ -86,15 +85,16 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
 
-			model.totalEnergy(xgl,cons,grad,kin,therm,total,surf);
+			model.totalEnergy(xgl,cons,grad,kin,therm,surf,total);
+     
       total*=  quad.weight(qP);
 			kin*=quad.weight(qP);
       energyLF.axpy(quad[qP],total);
       kineticEnergy+=kin*volume;
       thermodynamicEnergy+=therm*volume;
-      integral+=total*volume;
       surfaceEnergy+=surf*quad.weight(qP)*volume;
-
+      integral+=total*volume;
+     
     }
   
   }

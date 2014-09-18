@@ -347,20 +347,22 @@ class PhaseModel : public DefaultModel < PhaseModelTraits< GridPartType > >
                              const RangeType& cons,
                              const GradientRangeType& grad,
                              FieldVector<double,1>& kin,
-                             FieldVector<double,1>& total,
-                             FieldVector<double,1>& surf) const
+                             FieldVector<double,1>& therm,
+                             FieldVector<double,1>& surf,
+                             FieldVector<double,1>& total) const
     {
       Fem::FieldMatrixConverter< GradientRangeType, JacobianRangeType> jac( grad);
-      totalEnergy(cons, jac,kin,total,surf );
+      totalEnergy(cons,jac,kin,therm,surf,total );
     }
     template<class JacobianRangeImp>
     inline void totalEnergy( const RangeType& cons,
-                            const JacobianRangeImp& grad,
-                            FieldVector<double,1>& kin,
-                            FieldVector<double,1>& total,
-                            FieldVector<double,1>& surf) const
+                             const JacobianRangeImp& grad,
+                             FieldVector<double,1>& kin,
+                             FieldVector<double,1>& therm,
+                             FieldVector<double,1>& surf,
+                             FieldVector<double,1>& total) const
       {
-        phasefieldPhysics_.totalEnergy(cons, grad,kin[0],total[0],surf[0] );
+        phasefieldPhysics_.totalEnergy(cons, grad,kin[0],therm[0],surf[0],total[0] );
       }
 
     inline double delta()const

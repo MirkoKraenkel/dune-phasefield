@@ -22,6 +22,7 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
           	            const ModelType& model,
                         EnergyFunctionType& energyDF,
                         double& kineticEnergy,
+                        double& thermodynamicEnergy,
                         double& surfaceEnergy)
 {
   typedef typename ConsDiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
@@ -45,20 +46,24 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
   energyDF.clear();
   
   typedef typename ConsDiscreteFunctionType::LocalFunctionType ConsLocalFuncType;
-  typedef typename GradientFunctionType::LocalFunctionType GradLocalFuncType;
-  typedef typename EnergyFunctionType::LocalFunctionType EnergyLocalFuncType;
+typedef typename GradientFunctionType::LocalFunctionType GradLocalFuncType;
+    typedef typename EnergyFunctionType::LocalFunctionType EnergyLocalFuncType;
   
   ConsRangeType cons(0.0); 
   GradRangeType grad(0.0);
   EnergyRangeType kin(0.0);
-  EnergyRangeType chem(0.0);
+  EnergyRangeType therm(0.0);
   EnergyRangeType total(0.0);
   EnergyRangeType surf(0.0);
   kineticEnergy=0.;
+  thermodynamicEnergy=0.;
   double integral=0.;
+  
   Iterator it    = space.begin();
   Iterator endit = space.end();
+  
   // if empty grid, do nothing 
+  
   if( it == endit ) return -42. ;
   for( ; it != endit ; ++it) 
   {
@@ -81,14 +86,15 @@ double energyconverter( const ConsDiscreteFunctionType& consDF,
       consLF.evaluate( quad[qP], cons );
       gradLF.evaluate( quad[qP], grad );
        
-      model.totalEnergy(xgl,cons,grad,kin,chem,total,surf);
+      model.totalEnergy(xgl,cons,grad,kin,therm,surf,total);
       
       total*= quad.weight(qP);
       kin*=quad.weight(qP);
       energyLF.axpy(quad[qP],total);
-      integral+=total*volume;
       kineticEnergy+=kin*volume;
+      thermodynamicEnergy+=therm*volume;
       surfaceEnergy+=surf*quad.weight(qP)*volume;
+      integral+=total*volume;
     }
   
   }

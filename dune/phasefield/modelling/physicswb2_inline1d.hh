@@ -50,8 +50,8 @@ class PhasefieldPhysics<1,Thermodynamics>
                            const JacobianRangeImp& grad,
                            double& kin,
                            double& therm,
-                           double& total,
-                           double& surf ) const;
+                           double& surf,
+                           double& total ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
 																	double& mu,
@@ -144,8 +144,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                   const JacobianRangeImp& grad , 
                   double& kin, 
                   double& therm,
-                  double& total,
-                  double& surf ) const
+                  double& surf,
+                  double& total ) const
   {
 	  double rho = cons[0];
 	  double rho_inv = 1./rho;
