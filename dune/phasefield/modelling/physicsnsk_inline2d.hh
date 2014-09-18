@@ -45,6 +45,7 @@ class PhasefieldPhysics<2,Thermodynamics>
                            const JacobianRangeImp& grad,
                            double& kin,
                            double& chem,
+                           double& surf,
                            double& total ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
@@ -141,8 +142,8 @@ public:
                   const JacobianRangeImp& grad , 
                   double& kin,
                   double& therm,
-                  double& total,
-                  double& surf ) const
+                  double& surf
+                  double& total) const
   {
 	  double rho = cons[0];
 	  double rho_inv = 1. /rho;
@@ -155,13 +156,13 @@ public:
 
    
     for(int i=0;i<dimDomain;++i)
-      surfaceEnergy+=grad[phaseId][i]*grad[phaseId][i];
+      surfaceEnergy+=grad[0][i]*grad[0][i];
   
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
 
  
-	  therm = thermoDynamics_.helmholtz( rho, phi );
+	  therm = thermoDynamics_.helmholtz( rho );
     therm += surfaceEnergy;
     kin = kineticEnergy;
     total = therm+kineticEnergy;
