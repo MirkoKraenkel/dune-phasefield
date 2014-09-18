@@ -294,9 +294,6 @@ namespace Dune {
        // apply normal 
       diffmatrix.umv(normal, gLeft);
       gLeft*=0.5;  
-      
-       tension.umv(normal,gLeft);
-   
       //////////////////////////////////////////////////////////
       //
       //  --Time step calculation 
@@ -338,8 +335,10 @@ namespace Dune {
 
 					RangeType jump( uLeft );
 					jump -= uRight;
-       		gLeft.axpy(factor, jump);
+          for( int i = 1 ;i<dimDomain+1;++i)
+            gLeft[i]+=factor*jump[i];
 				}
+      tension.umv(normal,gLeft);
 
       gRight = gLeft ;
 
@@ -413,9 +412,6 @@ namespace Dune {
      
       
       diffmatrix.mv(normal, gLeft);
-      tension.umv(normal,gLeft);
-
-      
       //////////////////////////////////////////////////////////
       //
       //  --Time step calculation 
@@ -440,8 +436,11 @@ namespace Dune {
 
 					RangeType jump( uLeft );
 					jump -= uRight;
-					gLeft.axpy(factor, jump);
+          for( int i = 1 ;i<dimDomain+1;++i)
+            gLeft[i]+=factor*jump[i];
 				}
+        tension.umv(normal,gLeft);
+
 
       // gDiffLeft should be 0 in case of LDG
       gDiffLeft = 0;
