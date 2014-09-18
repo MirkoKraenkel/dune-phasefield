@@ -19,24 +19,25 @@ double evalRho(double x)
 inline double helmholtz ( double rho ,double phi ) const
 {
   double t1;
-  double t10;
-  double t11;
-  double t13;
+  double t15;
   double t16;
   double t17;
-  double t3;
-  double t8;
+  double t2;
+  double t20;
+  double t21;
+  double t5;
   {
     t1 = phi*phi;
-    t3 = pow(1.0-phi,2.0);
-    t8 = t1*t1;
-    t10 = 6.0*t8*phi;
-    t11 = 15.0*t8;
-    t13 = 10.0*t1*phi;
-    t16 = log(rho);
-    t17 = rho*t16;
-    return(2.0*t1*t3/delta_+(t10-t11+t13)*(-0.25E1*rho+0.15E1*t17+0.15E1)+(1.0-
-t10+t11-t13)*(-7.0*rho+3.0*t17+0.995940263E1));
+    t2 = t1*t1;
+    t5 = t1*phi;
+    t15 = 6.0*t2*phi;
+    t16 = 15.0*t2;
+    t17 = 10.0*t5;
+    t20 = log(rho);
+    t21 = rho*t20;
+    return((2.0*t2+2.0*(2.0*alpha_-2.0)*t5+2.0*(-3.0*alpha_+1.0)*t1+2.0*alpha_)/
+delta_+(t15-t16+t17)*(-0.25E1*rho+0.15E1*t21+0.15E1)+(1.0-t15+t16-t17)*(-7.0*rho
++3.0*t21+0.995940263E1));
   }
 }
 
@@ -44,24 +45,20 @@ t10+t11-t13)*(-7.0*rho+3.0*t17+0.995940263E1));
 inline double reactionSource ( double rho ,double phi ) const
 {
   double t1;
-  double t11;
-  double t16;
-  double t18;
+  double t15;
   double t19;
   double t2;
-  double t4;
-  double t7;
+  double t21;
+  double t22;
   {
-    t1 = 1.0-phi;
-    t2 = t1*t1;
-    t4 = 1/delta_;
-    t7 = phi*phi;
-    t11 = t7*t7;
-    t16 = 30.0*t11-60.0*t7*phi+30.0*t7;
-    t18 = log(rho);
-    t19 = rho*t18;
-    return(4.0*phi*t2*t4-4.0*t7*t1*t4+t16*(-0.25E1*rho+0.15E1*t19+0.15E1)-t16*(
--7.0*rho+3.0*t19+0.995940263E1));
+    t1 = phi*phi;
+    t2 = t1*phi;
+    t15 = t1*t1;
+    t19 = 30.0*t15-60.0*t2+30.0*t1;
+    t21 = log(rho);
+    t22 = rho*t21;
+    return((8.0*t2+6.0*(2.0*alpha_-2.0)*t1+4.0*(-3.0*alpha_+1.0)*phi)/delta_+t19*(
+-0.25E1*rho+0.15E1*t22+0.15E1)-t19*(-7.0*rho+3.0*t22+0.995940263E1));
   }
 }
 
@@ -69,22 +66,16 @@ inline double reactionSource ( double rho ,double phi ) const
 inline double dphireactionSource ( double rho ,double phi ) const
 {
   double t1;
-  double t16;
+  double t15;
+  double t17;
   double t18;
-  double t19;
-  double t2;
-  double t3;
-  double t9;
   {
-    t1 = 1.0-phi;
-    t2 = t1*t1;
-    t3 = 1/delta_;
-    t9 = phi*phi;
-    t16 = 120.0*t9*phi-180.0*t9+60.0*phi;
-    t18 = log(rho);
-    t19 = rho*t18;
-    return(4.0*t2*t3-16.0*phi*t1*t3+4.0*t9*t3+t16*(-0.25E1*rho+0.15E1*t19+
-0.15E1)-t16*(-7.0*rho+3.0*t19+0.995940263E1));
+    t1 = phi*phi;
+    t15 = 120.0*t1*phi-180.0*t1+60.0*phi;
+    t17 = log(rho);
+    t18 = rho*t17;
+    return((24.0*t1+12.0*(2.0*alpha_-2.0)*phi-12.0*alpha_+4.0)/delta_+t15*(-0.25E1
+*rho+0.15E1*t18+0.15E1)-t15*(-7.0*rho+3.0*t18+0.995940263E1));
   }
 }
 
@@ -141,22 +132,22 @@ inline double pressure ( double rho ,double phi ) const
   double t10;
   double t11;
   double t2;
-  double t27;
   double t4;
   double t5;
+  double t6;
   double t7;
   {
     t1 = phi*phi;
     t2 = t1*t1;
     t4 = 6.0*t2*phi;
     t5 = 15.0*t2;
-    t7 = 10.0*t1*phi;
+    t6 = t1*phi;
+    t7 = 10.0*t6;
     t10 = log(rho);
     t11 = rho*t10;
-    t27 = pow(1.0-phi,2.0);
     return((t4-t5+t7)*(0.25E1*rho-0.15E1*t11-0.15E1+rho*(-1.0+0.15E1*t10))+(1.0
--t4+t5-t7)*(7.0*rho-3.0*t11-0.995940263E1+rho*(-4.0+3.0*t10))-2.0*t1*t27/delta_
-);
+-t4+t5-t7)*(7.0*rho-3.0*t11-0.995940263E1+rho*(-4.0+3.0*t10))-(2.0*t2+2.0*(2.0*
+alpha_-2.0)*t6+2.0*(-3.0*alpha_+1.0)*t1+2.0*alpha_)/delta_);
   }
 }
 
