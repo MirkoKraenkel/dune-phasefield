@@ -88,6 +88,31 @@ typedef TanhProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;
 #endif
+#elif PROBLEM==5
+#include "../mixedscheme/datareadproblem.hh"
+#if MIXED
+typedef DataReadProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        >PhaseProblemType;
+#else
+typedef DatareadProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
+        >PhaseProblemType;
+#endif
+#elif PROBLEM==6
+#include "../mixedscheme/sourceproblem.hh"
+#if MIXED
+typedef SourceProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        >PhaseProblemType;
+#else
+typedef SourceProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
+        >PhaseProblemType;
+#endif
+
+
+
 #else      
 #error "No valid problem number specified"
 #endif
