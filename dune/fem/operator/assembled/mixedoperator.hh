@@ -512,26 +512,23 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
 
-
 #if NSK
-#include "fulloperatorNSK.cc"
+  #include "fulloperatorNSK.cc"
 #else
-#if IMPLICITTAU
-#include "fulloperatorimpl.cc"
-#else
-#if RHOMODEL 
-#if LAMBDASCHEME
-#include "fulloperatorRhoAlpha.cc"
-#else
-#include "fulloperatorRho.cc"
+  #if IMPLICITTAU
+    #include "fulloperatorimpl.cc"
+  #else
+    #if RHOMODEL 
+      #if LAMBDASCHEME
+        #include "fulloperatorRhoAlpha.cc"
+      #else
+        #include "fulloperatorRho.cc"
+      #endif
+    #else
+      #include "fulloperator.cc"
+    #endif
+  #endif
 #endif
-#else
-#include "fulloperator.cc"
-#endif
-#endif
-#endif
-#endif
-
 
 
 
