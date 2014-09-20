@@ -195,7 +195,7 @@ inline void TanhProblem<GridType,RangeProvider>
   res[dimension+4]=sigma;
 #endif
 #if LAMBDASCHEME
-  //alpha_x
+  //lambda_x
   res[dimension+4+dimension]=res[dimension+4]*rhoInv;
 #endif
   if(dimension==2)
