@@ -9,8 +9,9 @@
 
 // local includes
 
-//#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
-#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
+#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+//#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
+
 
 //#include <dune/fem/probleminterfaces.hh>
 
