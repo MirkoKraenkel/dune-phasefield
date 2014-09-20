@@ -20,7 +20,7 @@
 #include "../passscheme/problemtype.hh"
 
 //#include <dune/fem/operator/assembled/heatmodel.hh>
-#include <dune/fem/operator/assembled/models/phasefieldmodel.hh>
+#include <dune/fem/operator/assembled/models/phasefieldmodel_sources.hh>
 #if IMPLICITTAU
 #include <dune/fem/operator/assembled/fluxes/fluximpl.hh>
 #else
