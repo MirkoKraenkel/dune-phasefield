@@ -163,7 +163,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   {
     assert( avu[ii]==avu[ii]) ;
   }
-  //avu+=source;
+  avu+=source;
   avu*=weight;
   adu*=weight;
 
