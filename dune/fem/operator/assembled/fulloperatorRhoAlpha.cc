@@ -119,7 +119,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   }
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
-  Filter::mu(avu)+=0.5*model_.delta()*model_.h2prime(Filter::rho(vu))*sigmasqr;
+  Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vu))*sigmasqr;
   
   //------------------------------------------------------------------
 
@@ -162,6 +162,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   {
     assert( avu[ii]==avu[ii]) ;
   }
+  //source*=factorExp_;
   avu-=source;
   avu*=weight;
   adu*=weight;
