@@ -9,7 +9,7 @@ inline double rhosol ( double x) const
   double t8;
   {
     t3 = tanh(1/delta_*x);
-    t5 = 0.5+0.5*t3;
+    t5 = 0.5*t3+0.5;
     t6 = t5*t5;
     t7 = t6*t6;
     t8 = t5*t7;
@@ -39,7 +39,7 @@ inline double gradrho ( double x) const
   {
     t1 = 1/delta_;
     t3 = tanh(t1*x);
-    t5 = 0.5+0.5*t3;
+    t5 = 0.5*t3+0.5;
     t6 = t5*t5;
     t7 = t6*t6;
     t8 = t3*t3;
@@ -204,8 +204,9 @@ inline double musol ( double x) const
   double t29;
   double t3;
   double t37;
+  double t39;
   double t4;
-  double t40;
+  double t41;
   double t43;
   double t5;
   double t6;
@@ -228,10 +229,11 @@ inline double musol ( double x) const
     t26 = -0.9E1*t13+0.225E2*t12-0.15E2*t16+3.0;
     t29 = log(t22/t26);
     t37 = t3*t3;
-    t40 = t22*t22;
+    t39 = pow(1.0-t37,2.0);
+    t41 = t22*t22;
     t43 = t26*t26;
     return(2.0*t1*t6*t9+(t14-t15+t17)*(-1.0+0.15E1*t29)+(1.0-t14+t15-t17)*(-4.0
-+3.0*t29)-0.5*x*(1.0-t37)*t1/t40*t43);
++3.0*t29)-0.125*t1*t39/t41*t43);
   }
 }
 
@@ -239,10 +241,10 @@ inline double musol ( double x) const
 inline double veloSource ( double x) const
 {
   double t1;
-  double t104;
+  double t100;
   double t11;
-  double t116;
-  double t118;
+  double t112;
+  double t114;
   double t13;
   double t17;
   double t18;
@@ -273,11 +275,11 @@ inline double veloSource ( double x) const
   double t68;
   double t7;
   double t78;
-  double t79;
   double t8;
   double t80;
   double t81;
-  double t91;
+  double t82;
+  double t86;
   {
     t1 = 1/delta_;
     t3 = tanh(t1*x);
@@ -311,20 +313,19 @@ inline double veloSource ( double x) const
     t65 = t55*t18-t13/t57*t63;
     t67 = 1/t13;
     t68 = t67*t17;
-    t78 = t26*t1;
-    t79 = t13*t13;
-    t80 = 1/t79;
-    t81 = t80*t57;
-    t91 = x*t26*t1;
-    t104 = t1*t13;
-    t116 = 30.0*t7-60.0*t11+30.0*t6;
-    t118 = t19*t44;
+    t78 = t26*t26;
+    t80 = t13*t13;
+    t81 = 1/t80;
+    t82 = t81*t57;
+    t86 = t1*t78;
+    t100 = t1*t13;
+    t112 = 30.0*t7-60.0*t11+30.0*t6;
+    t114 = t19*t44;
     return(t19*(0.2E1*t21*t5*t24*t26-0.2E1*t21*t6*t23*t26+t43*(-1.0+0.15E1*t44)
-+0.15E1*(t48-t49+t50)*t65*t68-t43*(-4.0+3.0*t44)+3.0*(1.0-t48+t49-t50)*t65*t68
--0.5*t78*t81+0.1E1*x*t3*t26*t21*t80*t57+0.1E1*t91/t79/t13*t57*t55-0.1E1*t91*t80
-*t17*t63)-0.5*t78*(4.0*t104*t18*t5*t24-4.0*t104*t18*t6*t23+t116*(-0.25E1*t19+
-0.15E1*t118+1.0)-t116*(-7.0*t19+3.0*t118+0.945940263E1)+0.1E1*t1*t67*t17*t3*t26
-+0.5*t65*t26*t81));
++0.15E1*(t48-t49+t50)*t65*t68-t43*(-4.0+3.0*t44)+3.0*(1.0-t48+t49-t50)*t65*t68+
+0.5*t21*t78*t82*t3+0.25*t86/t80/t13*t57*t55-0.25*t86*t81*t17*t63)-0.5*t26*t1*(
+4.0*t100*t18*t5*t24-4.0*t100*t18*t6*t23+t112*(-0.25E1*t19+0.15E1*t114+1.0)-t112
+*(-7.0*t19+3.0*t114+0.945940263E1)+0.1E1*t1*t67*t17*t3*t26+0.5*t65*t26*t82));
   }
 }
 
