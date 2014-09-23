@@ -78,7 +78,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   //phi---------------------------------------------------------------
 
-  Filter::phi( avu )=Filter::phi( vu )-Filter::phi( vuOld );
+  Filter::phi( avu )=Filter::phi( vu );
+  Filter::phi( avu )=-Filter::phi( vuOld );
   Filter::phi( avu )*=deltaInv;
 
   RangeFieldType transport(0.);
@@ -92,11 +93,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   //mu-----------------------------------------------------------------
   
   double dFdrho;
-  //model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
+  model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
   //old version like Paris talk
   //  model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
   
-  model_.muSource(Filter::rho(vu),Filter::rho(vuOld),Filter::phi(vu),dFdrho);
 
 
   Filter::mu(avu)=Filter::mu( vuMid );
@@ -136,9 +136,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                       Filter::rho(vuOld),
                       dFdphi);
    */
-  model_.tauSource( Filter::phi(vu),
-                    Filter::phi(vuOld),
-                    Filter::rho(vuOld),
+  model_.tauSource( Filter::phi( vu ),
+                    Filter::phi( vuOld ),
+                    Filter::rho( vuOld ),
                     dFdphi);
 
 
@@ -185,7 +185,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   {
     assert( avu[ii]==avu[ii]) ;
   }
-  //avu+=source;
+  avu-=source;
   avu*=weight;
   adu*=weight;
 
@@ -245,6 +245,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   double fluxRet;
   fluxRet=flux_.numericalFlux( normal,
                               area,
+                              penaltyFactor,
                               vuEn,
                               vuNb,
                               vuMidEn,  
