@@ -34,6 +34,7 @@ public:
 
 
   double numericalFlux( const DomainType& normal, 
+                        const double area,
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
@@ -101,7 +102,6 @@ double MixedFlux<Model>
      }
 
     Filter::rho(gLeft)=-1*vNormalEn*Filter::rho(midEn);
- //  Filter::rho(gLeft)=0.;
   
     //----------------------------------------------------------------
     
@@ -123,18 +123,16 @@ double MixedFlux<Model>
 #if LANBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
         laplaceFlux-=(Filter::alpha(midEn,i))*normal[i];
-        
 #else
         //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
-       laplaceFlux-=Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))*normal[i];
+        laplaceFlux-=Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))*normal[i];
 #endif
-
 #else
-         //F_{3.2}
-         //(\sigma^+-\sigma^-)\cdot n * 0.5
-          laplaceFlux-=Filter::sigma(midEn,i)*normal[i];
+        //F_{3.2}
+        //(\sigma^+-\sigma^-)\cdot n * 0.5
+        laplaceFlux-=Filter::sigma(midEn,i)*normal[i];
 #endif
-}  
+      }  
   
     //----------------------------------------------------------------
 
@@ -167,6 +165,7 @@ template< class Model >
 double MixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double area,              
+                const double penaltyFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuEnMid,
@@ -175,113 +174,114 @@ double MixedFlux<Model>
                 RangeType& gRight) const
   {
     RangeType valEn,valNb,midEn,midNb,jump,mean,jumpOld;
-      valEn=vuEn;
-      valNb=vuNb;
-     
-      gLeft=0.;
-      gRight=0.;
-
-
-      midEn=vuEnMid;
-      midNb=vuNbMid;
-      jump = midEn;
-      jump-= midNb;
-      mean = midEn ;
-      mean+= midNb;
-      mean*=0.5;
-      jumpOld=valEn;
-      jumpOld-=valNb;
-      //rho-------------------------------------------------------------
+    valEn=vuEn;
+    valNb=vuNb;
+    double integrationElement=normal.two_norm();
  
-      double vNormalEn(0.),vNormalNb(0.);
+    gLeft=0.;
+    gRight=0.;
+
+    midEn=vuEnMid;
+    midNb=vuNbMid;
+    jump = midEn;
+    jump-= midNb;
+    mean = midEn ;
+    mean+= midNb;
+    mean*=0.5;
+    jumpOld=valEn;
+    jumpOld-=valNb;
+    //rho-------------------------------------------------------------
+ 
+    double vNormalEn(0.),vNormalNb(0.);
+   
+    for(int i = 0; i<dimDomain;++i)
+      {
+        //v^+\cdot n^+
+        vNormalEn+=Filter::velocity(midEn,i)*normal[i];
+        //v^-\cdot n^+
+        vNormalNb+=Filter::velocity(midNb,i)*normal[i];
+      }
     
-      for(int i = 0; i<dimDomain;++i)
-        {
-          //v^+\cdot n^+
-          vNormalEn+=Filter::velocity(midEn,i)*normal[i];
-          //v^-\cdot n^+
-          vNormalNb+=Filter::velocity(midNb,i)*normal[i];
-        }
-    
-      //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
-     //Filter::rho(gLeft)=vNormalEn-vNormalNb;
-      Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
-      Filter::rho(gLeft)*=-0.5;
+    //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
+    //Filter::rho(gLeft)=vNormalEn-vNormalNb;
+    Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
+    Filter::rho(gLeft)*=-0.5;
      
-     double viscold=Filter::rho(jump);
-     double visc=Filter::mu( jump );
-     Filter::rho(gLeft)+=numViscOld_*area*viscold;
-     Filter::rho(gLeft)+=numVisc_*area*visc;
-     Filter::rho( gRight )=Filter::rho( gLeft );
-    //  std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
-      //----------------------------------------------------------------
+    double viscold=Filter::rho(jump);
+    double visc=Filter::mu( jump );
+    Filter::rho(gLeft)+=numViscOld_*area*viscold;
+    Filter::rho(gLeft)+=numVisc_*area*visc;
+    Filter::rho( gRight )=Filter::rho( gLeft );
+    //----------------------------------------------------------------
     
-      //v---------------------------------------------------------------
+    //v---------------------------------------------------------------
     
-      for(int i = 0; i<dimDomain;++i)
-        { 
-          //F_2=F_{2.1}+F_{2.2}
-          //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-          Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
-          Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midNb)*0.5;
-          
-          //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
-          Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
-          Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
-       
-        } 
+    for(int i = 0; i<dimDomain;++i)
+      { 
+        //F_2=F_{2.1}+F_{2.2}
+        //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
+        Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midEn)*0.5;
+        Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(midNb)*0.5;
+
+        //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
+       Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn)*0.5;
+       Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb)*0.5;
+      } 
       // std::cout<<"Vals="<<gLeft<<" "<<gRight<<"\n";
     
-      //----------------------------------------------------------------
-      double laplaceFlux(0.);
-      //phi-------------------------------------------------------------
-      for(int i = 0; i<dimDomain;++i)
-        {
-          //F_{3.1}
-       
-          //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
-          Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
-          Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(midNb,i)*0.5;
-       
-          //tau 
-          //F_{3.2}
-    
+    //----------------------------------------------------------------
+    double laplaceFlux(0.);
+    //phi-------------------------------------------------------------
+    for(int i = 0; i<dimDomain;++i)
+      {
+        //F_{3.1}
+     
+        //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
+        Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
+        Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(midNb,i)*0.5;
+          
+        //tau 
+        //F_{3.2}
+  
 #if RHOMODEL
 #if LANBDASCHEME
-          //(\lambda^+-\lambda^-)\cdot n * 0.5
-          laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
-        
+        //(\lambda^+-\lambda^-)\cdot n * 0.5
+        laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
 #else
-          //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
-          laplaceFlux+=(Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))-Filter::sigma(midNb,i)*model_.h2(Filter::rho(midNb)))*normal[i]*0.5;
+        //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
+        laplaceFlux+=(Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))-Filter::sigma(midNb,i)*model_.h2(Filter::rho(midNb)))*normal[i]*0.5;
 #endif
-
 #else
-         //F_{3.2}
-         //(\sigma^+-\sigma^-)\cdot n * 0.5
-         laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
+        //F_{3.2}
+        //(\sigma^+-\sigma^-)\cdot n * 0.5
+        laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
 #endif        
-        } 
-    
-      //----------------------------------------------------------------
-      //tau-------------------------------------------------------------
-      Filter::tau(gLeft)-=model_.delta()*laplaceFlux;
-      Filter::tau(gRight)=Filter::tau( gLeft );
-     
-      //----------------------------------------------------------------
+      }  
+    //----------------------------------------------------------------
+    //tau-------------------------------------------------------------
+ 
+    double penaltyTerm=Filter::phi(jump);
+    penaltyTerm*=acpenalty_;
+    penaltyTerm*=penaltyFactor;
+    penaltyTerm*=integrationElement;
 
-      //sigma-----------------------------------------------------------
-      for(int i = 0; i<dimDomain;++i)
-        {  
-          //F_4
-          //(\phi^+-\phi^-)\normal*0.5
-          Filter::sigma(gLeft,i)=(Filter::phi(valEn)-Filter::phi(valNb))*normal[i]*0.5;
-          Filter::sigma(gRight,i)=Filter::sigma( gLeft,i);
-  
-        } 
-      //----------------------------------------------------------------
-    return 0.;
-  }
+    Filter::tau(gLeft)-=model_.delta()*laplaceFlux+penaltyTerm;
+    Filter::tau(gRight)=Filter::tau( gLeft );
+   
+    //----------------------------------------------------------------
+
+    //sigma-----------------------------------------------------------
+    for(int i = 0; i<dimDomain;++i)
+      {  
+        //F_4
+        //(\phi^+-\phi^-)\normal*0.5
+        Filter::sigma(gLeft,i)=(Filter::phi(valEn)-Filter::phi(valNb))*normal[i]*0.5;
+        Filter::sigma(gRight,i)=Filter::sigma( gLeft,i);
+
+      } 
+    //----------------------------------------------------------------
+  return 0.;
+}
 
 template< class Model >
 double MixedFlux<Model>
