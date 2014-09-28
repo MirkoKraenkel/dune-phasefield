@@ -82,10 +82,9 @@ class DGPhasefieldOperator
                         deltaT_(0.),
                         uOld_("uOld" , space ),
                         uOldLocal_(space),
-                        uOldNeighbor_(space)
-   {
+                        uOldNeighbor_(space),
+    {
       uOld_.clear();
-      assert(theta_>=0 && theta_<=1);
       factorImp_=0.5*(1+theta_);
       factorExp_=0.5*(1-theta_);
     }
@@ -279,6 +278,8 @@ class FDJacobianDGPhasefieldOperator
   using MyOperatorType::uOld_;
   using MyOperatorType::uOldLocal_; 
   using MyOperatorType::uOldNeighbor_; 
+  using MyOperatorType::debugmu_;
+  using MyOperatorType::debugtheta_;
   using MyOperatorType::areaEn_;
   using MyOperatorType::areaNb_;
 
@@ -472,8 +473,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   const QuadratureImp& quadInside=interQuad.inside();
   const QuadratureImp& quadOutside=interQuad.outside();
  
-//  FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
-//  FaceQuadratureType quadOutside( space().gridPart(), intersection, quadOrderNb, FaceQuadratureType::OUTSIDE );
 
 
   const size_t numQuadraturePoints = quadInside.nop();
@@ -518,16 +517,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   #if IMPLICITTAU
     #include "fulloperatorimpl.cc"
   #else
-    #if RHOMODEL 
-      #if LAMBDASCHEME
-        #include "fulloperatorRhoAlpha.cc"
-      #else
-        #include "fulloperatorRho.cc"
-      #endif
-    #else
-      #include "fulloperator.cc"
-    #endif
-  #endif
+    #include "fulloperator.cc"
+#endif
 #endif
 
 
