@@ -48,7 +48,7 @@ public:
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
     rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
     rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
-    phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+    lambda_(1.),
     radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
     thermodyn_()
     {
@@ -80,8 +80,13 @@ public:
   {
     evaluate( t, x, res );
   }
-#include "balancedh.c"
-  template< class DiscreteFunctionType >
+#if RHOMODEL
+#include "balancedhfull.c"
+#else
+#include "balanced.c"
+#endif
+
+template< class DiscreteFunctionType >
   void finalizeSimulation( DiscreteFunctionType& variablesToOutput,
                            const int eocloop) const
   {}
@@ -105,7 +110,7 @@ public:
   double rho_; 
   double rho1_;
   double rho2_;
-  const double phiscale_;
+  const double lambda_; 
   const double radius_;
   const ThermodynamicsType thermodyn_;
   
@@ -133,7 +138,8 @@ inline void SourceProblem<GridType,RangeProvider>
  double  velo_=0.; 
   double x=arg[0];
   double ksi=x-velo_*t;
-  double phi=0.5*tanh(ksi*deltaInv_)+0.5;
+  
+  double phi=0.5*tanh(ksi*lambda_*deltaInv_)+0.5;
   
   //rhoo
   res[0]=rhosol(ksi);
@@ -147,7 +153,7 @@ inline void SourceProblem<GridType,RangeProvider>
   res[4]=thetasol(ksi);
   //sigma
   res[5]=gradphi(ksi);
-  #if LAMBDASCHEME
+#if LAMBDASCHEME
   res[6]=res[5]/res[0];
 #endif
 }

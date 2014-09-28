@@ -15,8 +15,8 @@ GRIDTYPE = SPGRID
 #GRIDTYPE = ALUGRID_CONFORM
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM =  1 
-POLORDER = 1 
-PROBLEM = 3 # check ./problemtype.hh
+POLORDER = 1
+PROBLEM = 6 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
 AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
@@ -24,10 +24,14 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefieldcoupling phasefieldfd phasefieldfdrho phasefieldfdlambda phasefieldmfree phasefieldoem #phasefieldcoupling
+check_PROGRAMS = phasefield phasefieldcoupling phasefieldfd phasefieldfdrho phasefieldfdlambda  pflambdaimp #phasefieldcoupling
 
 phasefield_SOURCES = $(SOURCES) 
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL 
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL  
+
+
+
+
 
 phasefieldcoupling_SOURCES = $(SOURCES) 
 phasefieldcoupling_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DCOUPLING
@@ -37,16 +41,20 @@ phasefieldfd_SOURCES = $(SOURCES)
 phasefieldfd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD 
 
 phasefieldfdrho_SOURCES = $(SOURCES) 
-phasefieldfdrho_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL 
+phasefieldfdrho_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL  -DBICG
 
 phasefieldfdlambda_SOURCES = $(SOURCES) 
-phasefieldfdlambda_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DLAMBDASCHEME
+phasefieldfdlambda_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DLAMBDASCHEME 
 
-phasefieldmfree_SOURCES = $(SOURCES) 
-phasefieldmfree_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DMATRIXFREE 
+pflambdaimp_SOURCES = $(SOURCES) 
+pflambdaimp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DLAMBDASCHEME -DIMPLICITTAU
 
-phasefieldoem_SOURCES = $(SOURCES) 
-phasefieldoem_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  
+
+#phasefieldmfree_SOURCES = $(SOURCES) 
+#phasefieldmfree_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DMATRIXFREE 
+#
+#phasefieldoem_SOURCES = $(SOURCES) 
+#phasefieldoem_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED  
 
 
 
