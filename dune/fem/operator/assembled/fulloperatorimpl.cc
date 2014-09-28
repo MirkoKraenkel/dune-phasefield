@@ -90,7 +90,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   { 
     transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
   }
-  Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vuMid )/Filter::rho(vuMid);
+  Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vu )/Filter::rho(vuMid);
+
   //mu-----------------------------------------------------------------
   
   double dFdrho;
@@ -144,7 +145,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                     dFdphi);
 
 
-  Filter::tau( avu )=Filter::tau( vuMid );
+  Filter::tau( avu )=Filter::tau( vu );
   Filter::tau( avu )-=dFdphi;
 
   RangeFieldType divsigma(0.), gradrhosigma(0.);
@@ -158,9 +159,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       divsigma+=Filter::dsigma( duMid, ii , ii ) * model_.h2( Filter::rho( vuMid ) );
       gradrhosigma+=Filter::sigma( vuMid, ii )*Filter::drho( duMid, ii)* model_.h2prime( Filter::rho( vuMid ) );
 #endif
+#else
+     divsigma+=Filter::dsigma( duMid, ii , ii );
 #endif
-      divsigma+=Filter::dsigma( duMid, ii , ii );
-    }
+     }
 #if RHOMODEL && !LAMBDASCHEME
   Filter::tau( avu )+=model_.delta()*(divsigma+gradrhosigma);
 #else
@@ -187,8 +189,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   {
     assert( avu[ii]==avu[ii]) ;
   }
-  //avu+=source;
-  avu*=weight;
+  //std::cout<<"avu= "<<avu<<"\n";
+  avu-=source;
+ // std::cout<<"avu-s="<<avu<<"\n";
+avu*=weight;
   adu*=weight;
 
 }
@@ -247,6 +251,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   double fluxRet;
   fluxRet=flux_.numericalFlux( normal,
                               area,
+                              penaltyFactor,
                               vuEn,
                               vuNb,
                               vuMidEn,  

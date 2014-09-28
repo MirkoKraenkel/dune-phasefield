@@ -65,7 +65,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
               *(Filter::dvelocity(duMid, ii , jj )-Filter::dvelocity( duMid, jj , ii));
 
     Filter::velocity( avu , ii )+=sgradv;
+  
     Filter::velocity( avu , ii )+=Filter::dmu( duMid, ii);
+  
     Filter::velocity( avu , ii )*=Filter::rho( vuMid);
 
     //-tau\nabla phi
@@ -78,8 +80,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   //phi---------------------------------------------------------------
 
-  Filter::phi( avu )=Filter::phi( vu );
-  Filter::phi( avu )=-Filter::phi( vuOld );
+  Filter::phi( avu )=Filter::phi( vu );//-Filter::phi( vuOld );
+  Filter::phi( avu) -=Filter::phi( vuOld);
   Filter::phi( avu )*=deltaInv;
 
   RangeFieldType transport(0.);
@@ -117,12 +119,12 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   }
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
-#if RHOMODEL
-  //double rhodiff=(Filter::rho(vu)-Filter::rho(vuOld));
-//  if( std::abs(rhodiff)<1e-8)
-  Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
-//  else
-//    Filter::mu(avu)+=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
+#if  RHOMODEL
+ double rhodiff=(Filter::rho(vu)-Filter::rho(vuOld));
+  if( std::abs(rhodiff)<1e-8)
+    Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
+  else
+    Filter::mu(avu)-=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
 #endif
   //------------------------------------------------------------------
 
@@ -156,8 +158,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       divsigma+=Filter::dsigma( duMid, ii , ii ) * model_.h2( Filter::rho( vuMid ) );
       gradrhosigma+=Filter::sigma( vuMid, ii )*Filter::drho( duMid, ii)* model_.h2prime( Filter::rho( vuMid ) );
 #endif
-#endif
+#else
       divsigma+=Filter::dsigma( duMid, ii , ii );
+#endif
     }
 #if RHOMODEL && !LAMBDASCHEME
   Filter::tau( avu )+=model_.delta()*(divsigma+gradrhosigma);
