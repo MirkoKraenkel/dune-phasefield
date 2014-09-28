@@ -14,7 +14,7 @@ class PhasefieldMaker:
     messageframe=Frame(master)
     messageframe.pack(side=BOTTOM)
     self.cxxflags={ 'debug':'-Wfatal-errors -g -Wall' , 'full' :''}
-    self.compiled=[]
+    self.compiled=pickle.load(open("compiled.p","rb"))
     self.programms=[]
     progfile=open('progs.txt')
     for line in progfile:
@@ -53,9 +53,12 @@ class PhasefieldMaker:
       outfile=p+'_make.out'
       execstring= 'make '+flag+' POLORDER='+ str(polOrder)+' '+p+' &>'+outfile
       self.updateMsg(execstring)
+      subprocess.call(['make clean'],shell=True)
       compiled=self.makecall(( execstring , outfile ))
       if compiled == 0:
-        self.compiled.append( p ) 
+        realname=p+'_'+str( polOrder )
+        subprocess.call(['mv '+p+' '+realname],shell=True)
+        self.compiled.append( realname ) 
         self.updateMsg('succeeded')
     pickle.dump( self.compiled, open("compiled.p","wb"))
   def makecall(self, stringtuple):
@@ -77,6 +80,10 @@ class PhasefieldMaker:
   def clean(self):
     self.updateMsg('clean!')
     subprocess.call(['make clean'],shell=True)
+    todelete=pickle.load(open("compiled.p","rb"))
+    for p in todelete:
+      print(p)
+      subprocess.call(['rm '+p],shell=True)
     self.compiled=[]
     pickle.dump( self.compiled, open("compiled.p","wb"))
   def scanoutfile(self,filename):
