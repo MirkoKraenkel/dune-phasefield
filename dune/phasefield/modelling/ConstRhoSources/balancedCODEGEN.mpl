@@ -1,4 +1,4 @@
-restart; with(codegen);
+restart; with(codegen); alpha := 0;
 F1 := proc (rho) options operator, arrow; (b-c)*rho+c*rho*ln(rho)+c end proc; g1 := D(F1);
 F0 := proc (rho) options operator, arrow; (f-e)*rho+e*rho*ln(rho)+g end proc; g0 := D(F0); solve(g0(rho) = 0, rho);
 c := 1.5; b := -1; d := 1; e := 3; f := -4; z1 := solve(g1(rho) = 0, rho); z2 := solve(g0(rho) = 0.*rho); gg := F1(z1)-e*z2*ln(z2)-(f-e)*z2; g := gg; F1(z1); F0(z2);

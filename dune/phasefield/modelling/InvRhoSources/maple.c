@@ -19,49 +19,45 @@ double solproc1(double x)
 inline double helmholtz ( double rho ,double phi ) const
 {
   double t1;
-  double t11;
   double t12;
+  double t13;
   double t14;
   double t17;
   double t18;
+  double t2;
   double t4;
-  double t9;
   {
     t1 = phi*phi;
-    t4 = pow(1.0-phi,2.0);
-    t9 = t1*t1;
-    t11 = 6.0*t9*phi;
-    t12 = 15.0*t9;
-    t14 = 10.0*t1*phi;
+    t2 = t1*t1;
+    t4 = t1*phi;
+    t12 = 6.0*t2*phi;
+    t13 = 15.0*t2;
+    t14 = 10.0*t4;
     t17 = log(rho);
     t18 = rho*t17;
-    return(2.0*rho*t1*t4/delta_+(t11-t12+t14)*(-0.25E1*rho+0.15E1*t18+1.0)+(1.0-
-t11+t12-t14)*(-7.0*rho+3.0*t18+0.945940263E1));
+    return(rho*(2.0*t2-4.0*t4+2.0*t1)/delta_+(t12-t13+t14)*(-0.25E1*rho+0.15E1*
+t18+1.0)+(1.0-t12+t13-t14)*(-7.0*rho+3.0*t18+0.945940263E1));
   }
 }
 
 
 inline double reactionSource ( double rho ,double phi ) const
 {
-  double t13;
-  double t18;
+  double t1;
+  double t10;
+  double t14;
+  double t16;
+  double t17;
   double t2;
-  double t20;
-  double t21;
-  double t3;
-  double t4;
-  double t8;
   {
-    t2 = 1.0-phi;
-    t3 = t2*t2;
-    t4 = 1/delta_;
-    t8 = phi*phi;
-    t13 = t8*t8;
-    t18 = 30.0*t13-60.0*t8*phi+30.0*t8;
-    t20 = log(rho);
-    t21 = rho*t20;
-    return(4.0*rho*phi*t3*t4-4.0*rho*t8*t2*t4+t18*(1.0-0.25E1*rho+0.15E1*t21)-
-t18*(0.945940263E1-7.0*rho+3.0*t21));
+    t1 = phi*phi;
+    t2 = t1*phi;
+    t10 = t1*t1;
+    t14 = 30.0*t10-60.0*t2+30.0*t1;
+    t16 = log(rho);
+    t17 = rho*t16;
+    return(rho*(8.0*t2-12.0*t1+4.0*phi)/delta_+t14*(1.0-0.25E1*rho+0.15E1*t17)-
+t14*(0.945940263E1-7.0*rho+3.0*t17));
   }
 }
 
@@ -69,22 +65,16 @@ t18*(0.945940263E1-7.0*rho+3.0*t21));
 inline double dphireactionSource ( double rho ,double phi ) const
 {
   double t1;
-  double t11;
-  double t19;
-  double t2;
-  double t21;
-  double t22;
-  double t4;
+  double t12;
+  double t14;
+  double t15;
   {
-    t1 = 1.0-phi;
-    t2 = t1*t1;
-    t4 = 1/delta_;
-    t11 = phi*phi;
-    t19 = 120.0*t11*phi-180.0*t11+60.0*phi;
-    t21 = log(rho);
-    t22 = rho*t21;
-    return(4.0*rho*t2*t4-16.0*rho*phi*t1*t4+4.0*rho*t11*t4+t19*(-0.25E1*rho+
-0.15E1*t22+1.0)-t19*(-7.0*rho+3.0*t22+0.945940263E1));
+    t1 = phi*phi;
+    t12 = 120.0*t1*phi-180.0*t1+60.0*phi;
+    t14 = log(rho);
+    t15 = rho*t14;
+    return(rho*(24.0*t1-24.0*phi+4.0)/delta_+t12*(-0.25E1*rho+0.15E1*t15+1.0)-
+t12*(-7.0*rho+3.0*t15+0.945940263E1));
   }
 }
 
@@ -92,22 +82,22 @@ inline double dphireactionSource ( double rho ,double phi ) const
 inline double chemicalPotential ( double rho ,double phi ) const
 {
   double t1;
-  double t10;
   double t11;
+  double t12;
   double t13;
   double t15;
-  double t3;
-  double t8;
+  double t2;
+  double t4;
   {
     t1 = phi*phi;
-    t3 = pow(1.0-phi,2.0);
-    t8 = t1*t1;
-    t10 = 6.0*t8*phi;
-    t11 = 15.0*t8;
-    t13 = 10.0*t1*phi;
+    t2 = t1*t1;
+    t4 = t1*phi;
+    t11 = 6.0*t2*phi;
+    t12 = 15.0*t2;
+    t13 = 10.0*t4;
     t15 = log(rho);
-    return(2.0*t1*t3/delta_+(t10-t11+t13)*(-1.0+0.15E1*t15)+(1.0-t10+t11-t13)*(
--4.0+3.0*t15));
+    return((2.0*t2-4.0*t4+2.0*t1)/delta_+(t11-t12+t13)*(-1.0+0.15E1*t15)+(1.0-
+t11+t12-t13)*(-4.0+3.0*t15));
   }
 }
 
