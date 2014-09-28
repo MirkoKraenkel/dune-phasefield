@@ -222,8 +222,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
 
-  fluxRet=flux_.numericalFlux( normal,
+  fluxRet=flux_.numericalFlux(normal,
                               area,
+                              penaltyFactor,
                               vuEn,
                               vuNb,
                               vuMidEn,  
