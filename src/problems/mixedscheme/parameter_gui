@@ -1,10 +1,11 @@
 fem.resolvevariables: 1
 # DATA WRITER
 #------------
-fem.prefix: $(path) # specify directory for data output (is created if not exists)
+fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 0.1 #save data every time interval 
-fem.io.savecount: 0  # save every i-th ste
+fem.io.savestep: 1e-1 #save data every time interval 
+
+fem.io.savecount: 0   # save every i-th ste
 fem.io.checkpointstep:0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
@@ -24,25 +25,27 @@ paramfile: ./paramFiles/paramBase
 
 # PROBLEM SETUP
 #--------------
-phasefield.restart: false 
-phasefield.calcresidual: false 
+phasefield.restart: false
+phasefield.calcresidual: false
 phasefield.interpolinitial: false 
 phasefield.diffusionTimeStep:1 
 phasefield.energy: true
 phasefield.additionalvariables: true  
-phasefield.reactionrate: 0.5 
+phasefield.reactionrate: 1
 phasefield.addvisc: 0 
 phasefield.oldvisc: 0 
 phasefield.nonconvisc:0  
 phasefield.delta: $(delta) 
 phasefield.mu1: $(mu1) 
 phasefield.mu2: $(mu2)
-phasefield.rho0: 1. 
-phasefield.penalty: 1  
+phasefield.rho0: 2.5 
+phasefield.penalty: 10 
 #phasefield.mwp1: 0.4257416377 
-phasefield.mwp1: 0.4 
-phasefield.mwp2: 1.657270212
-phasefield.acpenalty: 10 
+#phasefield.mwp1: 0.4 
+#phasefield.mwp2: 1.657270212
+phasefield.mwp2:3.793667900 
+phasefield.mwp1:1.947734046
+phasefield.acpenalty: 0 
 phasefield.ipswitch: 1
 phasefield.smear: 1.
 phasefield.radius: 0.05
@@ -56,8 +59,9 @@ phasefield.adaptive.verbose: false
 # DOMAIN
 #-------
 
-#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
-fem.io.macroGridFile_1d: ../macrogrids/1dtorus2.dgf
+fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/1dtorus2.dgf
+##
 
 fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 ##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
@@ -88,8 +92,8 @@ fem.solver.newton.assemblesteps: 1
 fem.solver.newton.maxiterations: 100
 fem.differenceoperator.eps: 1 
 phasefield.fdjacobian.epsilon: 0
-#phasefield.maximaltimesteps: 100 
-phasefield.mixed.theta: 0. #0 if opcheck is used
+#phasefield.maximaltimesteps: 10
+phasefield.mixed.theta: 0 #0 if opcheck is used
 phasefield.maxTimeStep: 1e-3
 phasefield.IMEX: 0.5 
 
@@ -98,7 +102,7 @@ istl.preconditioning.method: ilu-0
 istl.gmres.restart: 100
 oemsolver.gmres.restart: 1000
 
-#phasefield.timesteptolerance: 
+phasefield.timesteptolerance: -1 
 
 # Output
 #------------

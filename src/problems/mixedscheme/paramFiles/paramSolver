@@ -22,7 +22,7 @@ fixedTimeStep: 1e-3 #when 0 then use dynamic time stepi
 
 
 
-fixedTimeStepEocLoopFactor: 2   # fixed time step is scaled with the inverse of this in each eoc loo
+fixedTimeStepEocLoopFactor: 1   # fixed time step is scaled with the inverse of this in each eoc loo
 
 dgdiffusionflux.method: CDG2 # diffusion flux: CDG2, CDG, BR2, IP, NIPG, BO
 phasefield.polynomialOrder: 1
