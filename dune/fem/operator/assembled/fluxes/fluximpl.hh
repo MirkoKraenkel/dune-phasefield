@@ -34,6 +34,7 @@ public:
 
 
   double numericalFlux( const DomainType& normal, 
+                        const double area,
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
@@ -119,8 +120,22 @@ double MixedFlux<Model>
 
     for(int i = 0; i<dimDomain;++i)
       {
-        laplaceFlux-=Filter::sigma(midEn,i)*normal[i];
-      }  
+#if RHOMODEL
+#if LANBDASCHEME
+        //(\lambda^+-\lambda^-)\cdot n * 0.5
+        laplaceFlux-=(Filter::alpha(midEn,i))*normal[i];
+        
+#else
+        //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
+       laplaceFlux-=Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))*normal[i];
+#endif
+
+#else
+         //F_{3.2}
+         //(\sigma^+-\sigma^-)\cdot n * 0.5
+          laplaceFlux-=Filter::sigma(midEn,i)*normal[i];
+#endif
+}  
   
     //----------------------------------------------------------------
 
@@ -153,6 +168,7 @@ template< class Model >
 double MixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double area,              
+                const double penaltyFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuEnMid,
@@ -161,9 +177,10 @@ double MixedFlux<Model>
                 RangeType& gRight) const
   {
     RangeType valEn,valNb,midEn,midNb,jump,mean,jumpNew;
-      valEn=vuEn;
-      valNb=vuNb;
-     
+    valEn=vuEn;
+    valNb=vuNb;
+    double integrationElement=normal.two_norm();
+ 
       gLeft=0.;
       gRight=0.;
 
@@ -231,14 +248,29 @@ double MixedFlux<Model>
        
           //tau 
           //F_{3.2}
+#if RHOMODEL
+#if LANBDASCHEME
+          //(\lambda^+-\lambda^-)\cdot n * 0.5
+          laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
+#else
+          //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
+          laplaceFlux+=(Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))-Filter::sigma(midNb,i)*model_.h2(Filter::rho(midNb)))*normal[i]*0.5;
+#endif
+#else
+         //F_{3.2}
          //(\sigma^+-\sigma^-)\cdot n * 0.5
          laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
-        
-        } 
+#endif        
+        }
     
       //----------------------------------------------------------------
       //tau-------------------------------------------------------------
-      Filter::tau(gLeft)-=model_.delta()*laplaceFlux;
+      double penaltyTerm=Filter::phi(jump);
+      penaltyTerm*=acpenalty_;
+      penaltyTerm*=penaltyFactor;
+      penaltyTerm*=integrationElement;
+
+      Filter::tau(gLeft)-=model_.delta()*laplaceFlux+penaltyTerm;
       Filter::tau(gRight)=Filter::tau( gLeft );
      
       //----------------------------------------------------------------
