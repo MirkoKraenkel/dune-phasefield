@@ -428,8 +428,8 @@ public:
       computeResidual( U,Uold,timeProvider,eocDataOutput);      
     }
     else
-    for( ; timeProvider.time() < endTime && timeProvider.timeStep() < maximalTimeSteps ;  )   
-		{ 
+    for( ; timeProvider.time() < endTime && timeProvider.timeStep()<maximalTimeSteps;  )
+    { 
       const double tnow  = timeProvider.time();
 			const double ldt   = timeProvider.deltaT();
       int newton_iterations;
@@ -455,15 +455,18 @@ public:
 			}
 
      double timeStepEst=timeStepEstimate();//dgOperator_.timeStepEstimate();	
-     
+     timeStepError=stepError(U,Uold);	
+     timeStepError/=ldt;
+      
+     if( timeStepError <= timeStepTolerance_)
+       break;
+      
      if( (printCount > 0) && (counter % printCount == 0))
 			{
        // if( grid_.comm().rank() == 0 )
         {
           std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEst;
-          timeStepError=stepError(U,Uold);	
-          timeStepError/=ldt;
-          std::cout<< " ,Error between timesteps="<< timeStepError;
+         std::cout<< " ,Error between timesteps="<< timeStepError;
           std::cout<<std::endl;
              
           std::cout<<" linearIterations: "<<ils_iterations<<" newtonIterations: "<<newton_iterations<<std::endl;
@@ -522,7 +525,7 @@ public:
   inline double densityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
-    std::vector<unsigned int> comp{0.};
+    std::vector<unsigned int> comp{ 0};
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
@@ -530,7 +533,7 @@ public:
   inline double phasefieldError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
-    std::vector<unsigned int> comp{ dimDomain +1 };
+    std::vector<unsigned int> comp{ 0 , 1, dimDomain +1 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
@@ -551,13 +554,13 @@ public:
 	{
 		typedef typename DiscreteFunctionType :: RangeType RangeType;
 //		Fem::L2Norm<GridPartType> l2norm(gridPart_);
-    std::vector<unsigned int> comp{ 1 };
+    std::vector<unsigned int> comp{ 1,2 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
     return l2norm.distance(uOld, uNew);
 	}
 
-	/*virtual*/ void finalizeStep(TimeProviderType& timeProvider)
+   void finalizeStep(TimeProviderType& timeProvider)
 	{ 
 		DiscreteFunctionType& u = solution();
 		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ );
