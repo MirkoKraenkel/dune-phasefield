@@ -18,8 +18,8 @@ class PhasefieldRunner:
     messageframe.pack(side=BOTTOM)
     self.programms=pickle.load(open("compiled.p","rb"))
     self.params=['phasefield.delta','phasefield.mu1','phasefield.mu2','phasefield.endTime', 'fixedTimeStep', 
-    'fem.prefix','phasefield.startLevel','phasefield.alpha','phasefield.lambda','phasefield.reactionrate','sourcefactor','fem.ode.odesolver']
-    self.defaults=['0.1','0.5','0.5','5','1e-3','','0','0', '1','1','1','IM']
+    'fem.prefix','phasefield.startLevel','phasefield.reactionrate','phasefield.alpha','phasefield.beta','fem.ode.odesolver']
+    self.defaults=['0.1','0.5','0.5','1','1e-3','','0','1','0.','1.','IM']
     self.paramEntries=self.makeform(paramframe,self.params)
     self.listbox = Listbox( listframe )
     self.listbox.pack(side=LEFT)
