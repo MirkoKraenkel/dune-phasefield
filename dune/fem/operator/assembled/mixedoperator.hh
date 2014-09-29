@@ -82,7 +82,7 @@ class DGPhasefieldOperator
                         deltaT_(0.),
                         uOld_("uOld" , space ),
                         uOldLocal_(space),
-                        uOldNeighbor_(space),
+                        uOldNeighbor_(space)
     {
       uOld_.clear();
       factorImp_=0.5*(1+theta_);
