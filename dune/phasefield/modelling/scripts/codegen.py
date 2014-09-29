@@ -6,6 +6,8 @@ namelist2 = [' rhosol', ' gradrho',' gradphi',' musol',' thetasol',' phiSource',
 models={ 1:'balanced',2:'balancedh'}
 number=int(sys.argv[1])
 inputfile=folders[number]+files[number]
+filename=models[number]+'.cc'
+subprocess.call( ['rm '+filename],shell=True)
 subprocess.call( ['rm maple.cc'],shell=True)
 subprocess.call( ['maple '+inputfile],shell=True )
 f=open( 'maple.cc')
@@ -16,7 +18,7 @@ for line in f:
     fnew.write('\n')
   else:
     newline1 = line.replace('delta','delta_')
-    newline2 = line.replace('beta', 'beta_') 
+    newline2 = newline1.replace('beta', 'beta_') 
     newline = newline2.replace('alpha','alpha_')
     for name in namelist:
       if newline.find( name ) != -1:
@@ -31,7 +33,6 @@ for line in f:
 subprocess.call( ['mv maplenew.cc '+folders[number]+'/maple.cc'], shell=True)
 subprocess.call( ['rm maple.cc'], shell=True )
 if number==1 or number==2:
-  filename=models[number]+'.cc'
   f=open(filename)
   fnew=open( 'maplenew.cc','w')
   flag = False
@@ -40,7 +41,7 @@ if number==1 or number==2:
       fnew.write('\n')
     else:
       newline1 = line.replace('delta','delta_')
-      newline2 = line.replace('beta', 'beta_') 
+      newline2 = newline1.replace('beta', 'beta_') 
       newline = newline2.replace('alpha','alpha_')
       for name in namelist2:
         if newline.find( name ) != -1:
@@ -55,3 +56,4 @@ if number==1 or number==2:
   fnew.close()
   f.close()
   subprocess.call( ['mv maplenew.cc ../../../../src/problems/mixedscheme/sourceprobCODEGEN/'+filename], shell=True)
+
