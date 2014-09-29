@@ -14,9 +14,9 @@ SOURCES = $(BASEDIR)/phasefield.cc
 GRIDTYPE = SPGRID
 #GRIDTYPE = ALUGRID_CONFORM
 #GRIDTYPE = ALBERTAGRID
-GRIDDIM =  1 
+GRIDDIM =  2 
 POLORDER = 1
-PROBLEM = 6 # check ./problemtype.hh
+PROBLEM = 4 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
 AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
@@ -24,13 +24,10 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefieldcoupling phasefieldfd phasefieldfdrho phasefieldfdlambda  pflambdaimp #phasefieldcoupling
+check_PROGRAMS = phasefield phasefieldcoupling phasefieldfd phasefieldfdrho phasefieldfdlambda pfimp pflambdaimp pfrhoimp #phasefieldcoupling
 
 phasefield_SOURCES = $(SOURCES) 
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL  
-
-
-
 
 
 phasefieldcoupling_SOURCES = $(SOURCES) 
@@ -45,6 +42,12 @@ phasefieldfdrho_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_
 
 phasefieldfdlambda_SOURCES = $(SOURCES) 
 phasefieldfdlambda_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DLAMBDASCHEME 
+
+pfimp_SOURCES = $(SOURCES) 
+pfimp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD  -DIMPLICITTAU
+
+pfrhoimp_SOURCES = $(SOURCES) 
+pfrhoimp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL  -DIMPLICITTAU
 
 pflambdaimp_SOURCES = $(SOURCES) 
 pflambdaimp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DLAMBDASCHEME -DIMPLICITTAU
