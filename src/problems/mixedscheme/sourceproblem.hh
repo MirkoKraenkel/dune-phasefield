@@ -45,6 +45,8 @@ public:
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     deltaInv_(1./delta_),
+    alpha_(Fem::Parameter::getValue<double>( "phasefield.alpha", 0 )),
+    beta_(Fem::Parameter::getValue<double>( "phasefield.beta",1 )),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
     rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
     rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
@@ -81,9 +83,9 @@ public:
     evaluate( t, x, res );
   }
 #if RHOMODEL
-#include "balancedhfull.c"
+#include "sourceprobCODEGEN/balancedh.cc"
 #else
-#include "balanced.c"
+#include "sourceprobCODEGEN/balanced.cc"
 #endif
 
 template< class DiscreteFunctionType >
@@ -107,6 +109,8 @@ template< class DiscreteFunctionType >
   const double mu_;
   const double delta_;
   const double deltaInv_;
+  const double alpha_;
+  const double beta_;
   double rho_; 
   double rho1_;
   double rho2_;
