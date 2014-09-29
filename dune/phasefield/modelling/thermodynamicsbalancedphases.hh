@@ -46,7 +46,7 @@ class BalancedThermodynamics:
   {
     return -1./(h(rho)*h(rho));
   }
-#include "InvRhoSources/maple.c"
+#include "InvRhoSources/maple.cc"
 #else
   inline double h( double rho ) const
   {
@@ -62,7 +62,7 @@ class BalancedThermodynamics:
   {
     return 0.;
   }
-#include "ConstRhoSources/maple.c"
+#include "ConstRhoSources/maple.cc"
 #endif
   inline double reactionFactor() const
   {
