@@ -36,7 +36,7 @@ inline double helmholtz ( double rho ,double phi ) const
     t20 = log(rho);
     t21 = rho*t20;
     return((2.0*t2+2.0*(2.0*alpha_-2.0)*t5+2.0*(-3.0*alpha_+1.0)*t1+2.0*alpha_)/
-delta+beta_*((t15-t16+t17)*(-0.25E1*rho+0.15E1*t21+0.15E1)+(1.0-t15+t16-t17)*(
+delta_+beta_*((t15-t16+t17)*(-0.25E1*rho+0.15E1*t21+0.15E1)+(1.0-t15+t16-t17)*(
 -7.0*rho+3.0*t21+0.995940263E1)));
   }
 }
@@ -57,7 +57,7 @@ inline double reactionSource ( double rho ,double phi ) const
     t19 = 30.0*t15-60.0*t2+30.0*t1;
     t21 = log(rho);
     t22 = rho*t21;
-    return((8.0*t2+6.0*(2.0*alpha_-2.0)*t1+4.0*(-3.0*alpha_+1.0)*phi)/delta+beta_*
+    return((8.0*t2+6.0*(2.0*alpha_-2.0)*t1+4.0*(-3.0*alpha_+1.0)*phi)/delta_+beta_*
 (t19*(-0.25E1*rho+0.15E1*t22+0.15E1)-t19*(-7.0*rho+3.0*t22+0.995940263E1)));
   }
 }
@@ -74,7 +74,7 @@ inline double dphireactionSource ( double rho ,double phi ) const
     t15 = 120.0*t1*phi-180.0*t1+60.0*phi;
     t17 = log(rho);
     t18 = rho*t17;
-    return((24.0*t1+12.0*(2.0*alpha_-2.0)*phi-12.0*alpha_+4.0)/delta+beta_*(t15*(
+    return((24.0*t1+12.0*(2.0*alpha_-2.0)*phi-12.0*alpha_+4.0)/delta_+beta_*(t15*(
 -0.25E1*rho+0.15E1*t18+0.15E1)-t15*(-7.0*rho+3.0*t18+0.995940263E1)));
   }
 }
@@ -165,7 +165,7 @@ inline double pressure ( double rho ,double phi ) const
     t12 = rho*t11;
     return(beta_*(t4-t5+t7)*(0.25E1*rho-0.15E1*t12-0.15E1+rho*(-1.0+0.15E1*t11))
 +(1.0-t4+t5-t7)*(7.0*rho-3.0*t12-0.995940263E1+rho*(-4.0+3.0*t11))-(2.0*t2+2.0*
-(2.0*alpha_-2.0)*t6+2.0*(-3.0*alpha_+1.0)*t1+2.0*alpha_)/delta);
+(2.0*alpha_-2.0)*t6+2.0*(-3.0*alpha_+1.0)*t1+2.0*alpha_)/delta_);
   }
 }
 

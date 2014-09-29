@@ -36,7 +36,7 @@ inline double helmholtz ( double rho ,double phi ) const
     t21 = log(rho);
     t22 = rho*t21;
     return(rho*(2.0*t2+2.0*(2.0*alpha_-2.0)*t5+2.0*(-3.0*alpha_+1.0)*t1+2.0*alpha_
-)/delta+beta_*((t16-t17+t18)*(-0.25E1*rho+0.15E1*t22+1.0)+(1.0-t16+t17-t18)*(
+)/delta_+beta_*((t16-t17+t18)*(-0.25E1*rho+0.15E1*t22+1.0)+(1.0-t16+t17-t18)*(
 -7.0*rho+3.0*t22+0.945940263E1)));
   }
 }
@@ -57,7 +57,7 @@ inline double reactionSource ( double rho ,double phi ) const
     t20 = 30.0*t16-60.0*t2+30.0*t1;
     t22 = log(rho);
     t23 = rho*t22;
-    return(rho*(8.0*t2+6.0*(2.0*alpha_-2.0)*t1+4.0*(-3.0*alpha_+1.0)*phi)/delta+
+    return(rho*(8.0*t2+6.0*(2.0*alpha_-2.0)*t1+4.0*(-3.0*alpha_+1.0)*phi)/delta_+
 beta_*(t20*(-0.25E1*rho+0.15E1*t23+1.0)-t20*(-7.0*rho+3.0*t23+0.945940263E1)));
   }
 }
@@ -74,7 +74,7 @@ inline double dphireactionSource ( double rho ,double phi ) const
     t16 = 120.0*t1*phi-180.0*t1+60.0*phi;
     t18 = log(rho);
     t19 = rho*t18;
-    return(rho*(24.0*t1+12.0*(2.0*alpha_-2.0)*phi-12.0*alpha_+4.0)/delta+beta_*(
+    return(rho*(24.0*t1+12.0*(2.0*alpha_-2.0)*phi-12.0*alpha_+4.0)/delta_+beta_*(
 t16*(-0.25E1*rho+0.15E1*t19+1.0)-t16*(-7.0*rho+3.0*t19+0.945940263E1)));
   }
 }
@@ -98,7 +98,7 @@ inline double chemicalPotential ( double rho ,double phi ) const
     t17 = 10.0*t5;
     t20 = log(rho);
     return((2.0*t2+2.0*(2.0*alpha_-2.0)*t5+2.0*(-3.0*alpha_+1.0)*t1+2.0*alpha_)/
-delta+beta_*(t15-t16+t17)*(-1.0+0.15E1*t20)+(1.0-t15+t16-t17)*(-4.0+3.0*t20));
+delta_+beta_*(t15-t16+t17)*(-1.0+0.15E1*t20)+(1.0-t15+t16-t17)*(-4.0+3.0*t20));
   }
 }
 
@@ -137,16 +137,16 @@ inline double dphichemicalPotential ( double rho ,double phi ) const
     t7 = t1*phi;
     t8 = beta_*t7;
     t11 = log(rho);
-    t12 = delta*t11;
+    t12 = delta_*t11;
     t15 = beta_*t1;
     t20 = beta_*phi;
-    t25 = t7*delta;
-    t29 = t1*delta;
-    t33 = phi*delta;
-    t37 = 8.0*t1+12.0*phi*alpha_-12.0*phi-12.0*alpha_+4.0-30.0*t8*delta+45.0*t8*
-t12+60.0*t15*delta-90.0*t15*t12-30.0*t20*delta+45.0*t20*t12+120.0*t25-90.0*t25*
+    t25 = t7*delta_;
+    t29 = t1*delta_;
+    t33 = phi*delta_;
+    t37 = 8.0*t1+12.0*phi*alpha_-12.0*phi-12.0*alpha_+4.0-30.0*t8*delta_+45.0*t8*
+t12+60.0*t15*delta_-90.0*t15*t12-30.0*t20*delta_+45.0*t20*t12+120.0*t25-90.0*t25*
 t11-240.0*t29+180.0*t29*t11+120.0*t33-90.0*t33*t11;
-    return(phi*t37/delta);
+    return(phi*t37/delta_);
   }
 }
 
