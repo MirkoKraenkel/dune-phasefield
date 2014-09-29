@@ -156,8 +156,10 @@ inline void PhasefieldModel< Grid,Problem>
 {
   double x=xgl[0];
   s=0.;
+#if PROBLEM==5 
   s[1]=problem_.veloSource(x);
   s[2]=problem_.phiSource(x);
+#endif
 }
 
 template<class Grid, class Problem > 
