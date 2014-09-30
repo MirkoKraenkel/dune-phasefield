@@ -97,7 +97,7 @@ namespace Dune
 	    minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
 	    coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1)),
       tolfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.tolfactor",1) ),
-      maxH_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.maxh",0.03125 )),
+      maxH_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.maxh",0.02 )),
       verbose_( Dune::Fem::Parameter::getValue<bool>("phasefield.adaptive.verbose",false) )
       {
         clear();
@@ -126,14 +126,14 @@ namespace Dune
   public:
     void clear ()
     {
-    std::cout<<"clear\n";
+      std::cout<<"clear\n";
       indicator_.resize( indexSet_.size( 0 ));
       refined_.resize( indexSet_.size( 0 ));
       refinedandcoarsened_.resize( indexSet_.size( 0 ));
       std::fill( indicator_.begin(), indicator_.end(), 0.);
       std::fill( refined_.begin(), refined_.end(), 0.);// std::numeric_limits<int>::min());
       std::fill( refined_.begin(), refined_.end(), 0.);
- }
+     }
     
     double estimate ( )
     {
@@ -216,25 +216,22 @@ namespace Dune
         const IteratorType end = dfSpace_.end();
         for( IteratorType it = dfSpace_.begin(); it != end; ++it )
         {
-      
           const ElementType &entity = *it;
-         int index=indexSet_.index(entity);
-         double gridFactor=indicator_[index];
-        if(verbose_ && (gridFactor > 1.001))
-          std::cout<<"gridFactor="<<refined_[index]<<"/ "<<indicator_[index]<<"="<<gridFactor<<"\n";
+          int index=indexSet_.index(entity);
+          double gridFactor=indicator_[index];
+          if(verbose_ && (gridFactor > 1.001))
+            std::cout<<"gridFactor="<<refined_[index]<<"/ "<<indicator_[index]<<"="<<gridFactor<<"\n";
          
          if( std::abs(gridFactor)> tolerance)
 	       {
 	        
           if(entity.level()<maxLevel_)
 		        {
-              
-           //  if( refined_[index]!=1)
-                {
+              if( refined_[index]<1)
+                {      
                   grid_.mark( 1, entity );
                   refined_[ index ] += 1;	
                 }
-#if 1 
               IntersectionIteratorType end = gridPart_.iend( entity );
 		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		          {
@@ -246,26 +243,27 @@ namespace Dune
                   int outsideIndex=indexSet_.index(outside);
                   if(outside.level()<maxLevel_ );
 			            {
-                    grid_.mark( 1, outside );
-                  //  if(refined_[outsideIndex]!=1)
-                    refined_[outsideIndex ] += 1;	
+                    if(refined_[outsideIndex]<1)
+                      { 
+                        grid_.mark( 1, outside );
+                        refined_[outsideIndex ] += 1;	
+                      }
                     ++marked;
                   }
                 }
 		          }
-#endif
             ++marked;
 		       }
 	        }
-          else if( gridFactor < coarsen_*tolerance )
+          else if( gridFactor < coarsen_ )
 	        {
             //std::cout<<"GF="<<gridFactor<<"->Coarsen?\n";
-            if( entity.level()>minLevel_  /*&&  (refined_[indexSet_.index(entity)]!=1)*/ )
+            if( entity.level()>minLevel_  &&  (refined_[indexSet_.index(entity)]!=1) )
             { 
 		          if(refined_[index]==1)
                refinedandcoarsened_[index]=2.;
               else
-                refinedandcoarsened_[index]=1.;
+               refinedandcoarsened_[index]=1.;
               
               grid_.mark(-1,entity);
             }
