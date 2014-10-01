@@ -51,6 +51,7 @@ double energyconverter( const DiscreteFunctionType& dF,
   EnergyRangeType surf(0.0);
   kineticEnergy=0.;
   thermodynamicEnergy=0;
+  surfaceEnergy=0;
   double integral=0.;
   
   Iterator it    = space.begin();
