@@ -2,8 +2,7 @@
 #define OEMWRAPPER_HH
 
 #include<dune/fem/operator/common/operator.hh>
-#include<dune/fem/operator/common/automaticdifferenceoperator.hh>
-
+#include "../operator/common/automaticdifferenceoperator.hh"
 #if DGSCHEME
 //#include<dune/fem/operator/assembled/mixedoperator.hh>
 #elif FEMSCHEME

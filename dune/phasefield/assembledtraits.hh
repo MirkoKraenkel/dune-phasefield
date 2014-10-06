@@ -12,8 +12,6 @@
 
 //include solvers
 #include <dune/fem/solver/oemsolver.hh>
-#include <dune/fem/util/oemwrapper.hh>
-
 #if HAVE_DUNE_ISTL
 #include <dune/fem/function/blockvectorfunction.hh>
 #include <dune/fem/operator/linear/istloperator.hh>
@@ -34,6 +32,7 @@
 
 
 #if MATRIXFREE
+#include <dune/fem/util/oemwrapper.hh>
 #include <dune/fem/operator/assembled/mixedoperator.hh>
 #elif FD 
 #include <dune/fem/operator/assembled/localfdoperator.hh>
