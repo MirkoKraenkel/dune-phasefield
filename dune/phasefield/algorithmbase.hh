@@ -284,9 +284,9 @@ public:
   void adapt( AdaptationManagerType& am ){BaseType::asImp().adapt( am );}
   
   template<class Stream>
-  void writeEnergy( TimeProviderType& timeProvider,Stream& str)
+  void writeEnergy( TimeProviderType& timeProvider,Stream& str, double& difference)
   { 
-    BaseType::asImp().writeEnergy( timeProvider, str);
+    BaseType::asImp().writeEnergy( timeProvider, str,difference);
   }
   
   //! write data, if pointer to additionalVariables is true, they are calculated first 
@@ -311,7 +311,7 @@ public:
   {
     BaseType::asImp().initializeSolver( timeProvider);
   }
-  /*virtual*/ void operator()(int loopNumber,double& averagedt, double& mindt, double& maxdt,
+  void operator()(int loopNumber,double& averagedt, double& mindt, double& maxdt,
                           size_t& counter, int& total_newton_iterations, int& total_ils_iterations,
                           int& max_newton_iterations, int& max_ils_iterations)
 	{	
@@ -399,7 +399,6 @@ public:
         while( startCount < maxAdaptationLevel )
 				{
           estimate();
-        //  estimateMarkAdapt(adaptManager);
           initializeStep( timeProvider);
           writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
          
@@ -422,7 +421,8 @@ public:
     {
       checkPointer.restoreData( grid_, "checkpoint" ); 
     }
-    
+    //difference of surfaceEnergy between timesteps
+    double surfacediff;
     if(computeResidual_)
     {
       computeResidual( U,Uold,timeProvider,eocDataOutput);      
@@ -431,7 +431,7 @@ public:
     for( ; timeProvider.time() < endTime && timeProvider.timeStep()<maximalTimeSteps;  )
     { 
       const double tnow  = timeProvider.time();
-			const double ldt   = timeProvider.deltaT();
+      const double ldt   = timeProvider.deltaT();
       int newton_iterations;
       int ils_iterations; 
       counter  = timeProvider.timeStep();
@@ -447,49 +447,49 @@ public:
    
       // Check that no NAN have been generated
 			if (! U.dofsValid()) 
-			{
-  			std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
-	   		eocDataOutput.write(timeProvider);
-        energyfile.close();
-        abort();
-			}
+			  {
+          std::cout << "Loop(" << loop_ << "): Invalid DOFs" << std::endl;
+          eocDataOutput.write(timeProvider);
+          energyfile.close();
+          abort();
+			  }
 
-     double timeStepEst=timeStepEstimate();//dgOperator_.timeStepEstimate();	
-     timeStepError=stepError(U,Uold);	
-     timeStepError/=ldt;
+      double timeStepEst=timeStepEstimate();//dgOperator_.timeStepEstimate();
+      timeStepError=stepError(U,Uold);
+      timeStepError/=ldt;
       
-     if( timeStepError <= timeStepTolerance_)
-       break;
-      
-     if( (printCount > 0) && (counter % printCount == 0))
-			{
-       // if( grid_.comm().rank() == 0 )
-        {
-          std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEst;
-         std::cout<< " ,Error between timesteps="<< timeStepError;
-          std::cout<<std::endl;
+      if( timeStepError <= timeStepTolerance_)
+        break;
+
+      if( (printCount > 0) && (counter % printCount == 0))
+			  {
+          if( grid_.comm().rank() == 0 )
+            {
+              std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEst;
+              std::cout<< " ,Error between timesteps="<< timeStepError;
+              std::cout<<std::endl;
              
-          std::cout<<" linearIterations: "<<ils_iterations<<" newtonIterations: "<<newton_iterations<<std::endl;
-        }
+            }
          
-        writeEnergy( timeProvider , energyfile);
-     }
-    writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
-    //checkPointer.write(timeProvider);
-    //statistics
-    mindt = (ldt<mindt) ? ldt : mindt;
-    maxdt = (ldt>maxdt) ? ldt : maxdt;
-    averagedt += ldt;
-    total_newton_iterations+=newton_iterations;
-    total_ils_iterations+=ils_iterations;
-  
-    // next time step is prescribed by fixedTimeStep
-    // it fixedTimeStep is not 0
-    if ( fixedTimeStep_ > 1e-20 )
-      timeProvider.next( fixedTimeStep_ );
-    else
-      timeProvider.next(); 
-    Uold.assign(U); 
+          writeEnergy( timeProvider , energyfile, surfacediff);
+        }
+
+        writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
+        //checkPointer.write(timeProvider);
+        //statistics
+        mindt = (ldt<mindt) ? ldt : mindt;
+        maxdt = (ldt>maxdt) ? ldt : maxdt;
+        averagedt += ldt;
+        total_newton_iterations+=newton_iterations;
+        total_ils_iterations+=ils_iterations;
+ 
+        // next time step is prescribed by fixedTimeStep if fixedTimeStep is not 0
+        if ( fixedTimeStep_ > 1e-20 )
+          timeProvider.next( fixedTimeStep_ );
+        else
+          timeProvider.next();
+
+        Uold.assign(U);
      
     }		/*end of timeloop*/
  
