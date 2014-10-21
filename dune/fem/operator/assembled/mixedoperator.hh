@@ -104,6 +104,7 @@ class DGPhasefieldOperator
   double getTime(){return time_;}
   void setDeltaT( const double deltat) { deltaT_=deltat;}
 
+  double getDeltaT() {return deltaT_;}
   void setPreviousTimeStep( DiscreteFunctionType& uOld)  { uOld_.assign(uOld);} 
   DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
 
