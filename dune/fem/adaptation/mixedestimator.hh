@@ -227,7 +227,7 @@ namespace Dune
 	        
           if(entity.level()<maxLevel_)
 		        {
-              if( refined_[index]<1)
+              //if( refined_[index]!=1)
                 {      
                   grid_.mark( 1, entity );
                   refined_[ index ] += 1;	
@@ -243,7 +243,7 @@ namespace Dune
                   int outsideIndex=indexSet_.index(outside);
                   if(outside.level()<maxLevel_ );
 			            {
-                    if(refined_[outsideIndex]<1)
+               //     if(refined_[outsideIndex]<1)
                       { 
                         grid_.mark( 1, outside );
                         refined_[outsideIndex ] += 1;	
@@ -258,7 +258,7 @@ namespace Dune
           else if( gridFactor < coarsen_ )
 	        {
             //std::cout<<"GF="<<gridFactor<<"->Coarsen?\n";
-            if( entity.level()>minLevel_  &&  (refined_[indexSet_.index(entity)]!=1) )
+            if( entity.level()>minLevel_ /* &&  (refined_[indexSet_.index(entity)]!=1)*/ )
             { 
 		          if(refined_[index]==1)
                refinedandcoarsened_[index]=2.;
@@ -270,7 +270,8 @@ namespace Dune
            }
 	        else
           {
-	        }
+	        
+          }
 	  
 
 	      }
