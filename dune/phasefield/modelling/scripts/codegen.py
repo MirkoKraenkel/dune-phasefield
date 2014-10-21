@@ -19,7 +19,8 @@ for line in f:
   else:
     newline1 = line.replace('delta','delta_')
     newline2 = newline1.replace('beta', 'beta_') 
-    newline = newline2.replace('alpha','alpha_')
+    newline3 = newline2.replace('A','A_')
+    newline = newline3.replace('alpha','alpha_')
     for name in namelist:
       if newline.find( name ) != -1:
         flag=True
@@ -42,7 +43,8 @@ if number==1 or number==2:
     else:
       newline1 = line.replace('delta','delta_')
       newline2 = newline1.replace('beta', 'beta_') 
-      newline = newline2.replace('alpha','alpha_')
+      newline3 = newline2.replace('A','A_')
+      newline = newline3.replace('alpha','alpha_')
       for name in namelist2:
         if newline.find( name ) != -1:
           flag=True
