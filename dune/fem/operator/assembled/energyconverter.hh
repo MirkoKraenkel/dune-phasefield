@@ -15,18 +15,20 @@
  *  \param[in] dF The discrete function of conservative variables
  *  \param[in] model The analytical model
  */
-template< class DiscreteFunctionType, class ModelType, class EnergyFunctionType >
+template< class DiscreteFunctionType, class ModelType, class ScalarFunctionType >
 double energyconverter( const DiscreteFunctionType& dF, 
           	            const ModelType& model,
-                        EnergyFunctionType& energyDF,
+                        ScalarFunctionType& energyDF,
+                        ScalarFunctionType& pressureDF,
                         double& kineticEnergy,
                         double& thermodynamicEnergy, 
                         double& surfaceEnergy)
 {
+ 
   typedef typename DiscreteFunctionType::Traits::DiscreteFunctionSpaceType 
     DiscreteFunctionSpaceType;
-  typedef typename EnergyFunctionType::Traits::DiscreteFunctionSpaceType 
-    EnergyFunctionSpaceType;
+  typedef typename ScalarFunctionType::Traits::DiscreteFunctionSpaceType
+    ScalarFunctionSpaceType;
   typedef typename DiscreteFunctionSpaceType::Traits::GridPartType GridPartType;
   typedef typename GridPartType::GridType GridType;
   typedef typename GridType :: template Codim<0> :: Entity   Entity;
@@ -35,20 +37,23 @@ double energyconverter( const DiscreteFunctionType& dF,
   
   typedef typename DiscreteFunctionSpaceType::DomainType DomainType;
   typedef typename DiscreteFunctionSpaceType::RangeType RangeType;
-  typedef typename EnergyFunctionSpaceType::RangeType EnergyRangeType;
-  
+  typedef typename ScalarFunctionSpaceType::RangeType ScalarRangeType;
+  enum{ dim=GridType::dimensionworld};
   const DiscreteFunctionSpaceType& space =  dF.space();
 	energyDF.clear();
-  
+  pressureDF.clear();
+
   typedef typename DiscreteFunctionType::LocalFunctionType LocalFuncType;
-  typedef typename EnergyFunctionType::LocalFunctionType EnergyLocalFuncType;
+  typedef typename ScalarFunctionType::LocalFunctionType ScalarLocalFuncType;
+
 
 
   RangeType vu(0.0);
-  EnergyRangeType total(0.0);  
-  EnergyRangeType kin(0.0);
-  EnergyRangeType therm(0.0); 
-  EnergyRangeType surf(0.0);
+  ScalarRangeType total(0.0);
+  ScalarRangeType kin(0.0);
+  ScalarRangeType therm(0.0);
+  ScalarRangeType surf(0.0);
+  ScalarRangeType press(0.);
   kineticEnergy=0.;
   thermodynamicEnergy=0;
   surfaceEnergy=0;
@@ -71,8 +76,8 @@ double energyconverter( const DiscreteFunctionType& dF,
     Dune::Fem::CachingQuadrature< GridPartType, 0 > quad( entity, 2*space.order()+1 );
   
     LocalFuncType   localU   = dF.localFunction( entity );
-		EnergyLocalFuncType energyLF = energyDF.localFunction( entity );
-
+		ScalarLocalFuncType energyLF = energyDF.localFunction( entity );
+    ScalarLocalFuncType pressureLF= pressureDF.localFunction( entity );
     const int quadNop = quad.nop();
     for(int qP = 0; qP < quadNop; ++qP) 
     {
@@ -81,10 +86,14 @@ double energyconverter( const DiscreteFunctionType& dF,
       localU.evaluate( quad[qP], vu );
 
 			model.totalEnergy(xgl,vu,kin[0],therm[0],total[0],surf[0]);
+      press[0] =model.pressure(vu[0],vu[dim+1]);
+
       total*= quad.weight(qP);
-			kin*=quad.weight(qP);
+			press*= quad.weight(qP);
+      kin*=quad.weight(qP);
       therm*=quad.weight(qP); 
       energyLF.axpy(quad[qP],total);
+      pressureLF.axpy(quad[qP],press);
       kineticEnergy+=kin*volume;
       thermodynamicEnergy+=therm*volume;
       integral+=total*volume;
