@@ -1,10 +1,10 @@
 restart; with(codegen); outstring2 := "balanced.cc"; outstring := "maple.cc";
-F1 := proc (rho) options operator, arrow; (b-c)*rho+c*rho*ln(rho)+c end proc; g1 := D(F1);
+F1 := proc (rho) options operator, arrow; (b-c)*rho+c*rho*ln(rho)+d end proc; g1 := D(F1);
 F0 := proc (rho) options operator, arrow; (f-e)*rho+e*rho*ln(rho)+g end proc; g0 := D(F0); solve(g0(rho) = 0, rho);
-c := 1.5; b := -1; d := 1; e := 3; f := -4; z1 := solve(g1(rho) = 0, rho); z2 := solve(g0(rho) = 0.*rho); gg := F1(z1)-e*z2*ln(z2)-(f-e)*z2; g := gg; F1(z1); F0(z2);
+c := 1.5; b := -1; d := 1; e := 3; f := -4; z1 := solve(g1(rho) = 0, rho); z2 := solve(g0(rho) = 0.*rho); gg := F1(z1)-e*z2*ln(z2)-(f-e)*z2; g := gg;
 G1 := D(F1); G0 := D(F0); p1 := proc (rho) options operator, arrow; -F1(rho)+rho*G1(rho) end proc; p0 := proc (rho) options operator, arrow; -F0(rho)+rho*G0(rho) end proc;
-sols := fsolve([p1(rho) = p0(x), G1(rho) = G0(x)], {rho = 0 .. 4, x = 0 .. 4}); sol1 := solve(sols[1]); sol2 := solve(sols[2]);
-nn := proc (phi) options operator, arrow; 6.*phi^5+(-1)*15.*phi^4+10.*phi^3 end proc; W := proc (phi) options operator, arrow; 2*phi^4+2*(2*alpha-2)*phi^3+2*(-3*alpha+1)*phi^2+2*alpha end proc; dW := D(W); F := proc (rho, phi) options operator, arrow; W(phi)/delta+beta*(nn(phi)*F1(rho)+(1-nn(phi))*F0(rho)) end proc; Pressure := proc (rho, phi) options operator, arrow; beta*nn(phi)*p1(rho)+(1-nn(phi))*p0(rho) end proc; Potential := proc (rho, phi) options operator, arrow; beta*nn(phi)*G1(rho)+(1-nn(phi))*G0(rho) end proc; P2 := proc (rho, phi) options operator, arrow; Pressure(rho, phi)-W(phi)/delta end proc;
+sols := fsolve([p1(rho) = p0(x), G1(rho) = G0(x)], {rho = 0 .. 4, x = 0 .. 4}); sol1 := solve(sols[1]); sol2 := solve(sols[2]); d := d-F1(sol1); g := g-F0(sol2);
+nn := proc (phi) options operator, arrow; 6.*phi^5+(-1)*15.*phi^4+10.*phi^3 end proc; W := proc (phi) options operator, arrow; 2*A*(phi^4+(2*alpha-2)*phi^3+(-3*alpha+1)*phi^2+alpha) end proc; dW := D(W); F := proc (rho, phi) options operator, arrow; W(phi)/delta+beta*(nn(phi)*F1(rho)+(1-nn(phi))*F0(rho)) end proc; Pressure := proc (rho, phi) options operator, arrow; beta*nn(phi)*p1(rho)+(1-nn(phi))*p0(rho) end proc; Potential := proc (rho, phi) options operator, arrow; beta*nn(phi)*G1(rho)+(1-nn(phi))*G0(rho) end proc; P2 := proc (rho, phi) options operator, arrow; Pressure(rho, phi)-W(phi)/delta end proc;
 solrho := proc (x) options operator, arrow; exp((Const-nn(x)*(b-f)-f)/(nn(x)*(c-e)+e)) end proc; Const := G1(sol1); solproc := makeproc(solrho(x), x); evalRho := optimize(solproc); C(evalRho, filename = outstring, ansi);
 
 Fproc := makeproc(F(rho, phi), [rho, phi]); helmholtz := optimize(Fproc); C(helmholtz, filename = outstring, ansi);
@@ -25,6 +25,7 @@ musol := makeproc(ms(x), x); musol := optimize(musol); C(musol, filename = outst
 dsolmu := proc (x) options operator, arrow; diff(musol(x), x) end proc; gradmu := makeproc(dsolmu(x), x); gradmu := optimize(gradmu);
 RsV := proc (x) options operator, arrow; -gradphi(x)*thetasol(x)+rhosol(x)*gradmu(x) end proc;
 veloSource := makeproc(RsV(x), x); veloSource := optimize(veloSource); C(veloSource, filename = outstring2, ansi);
+
 
 
 
