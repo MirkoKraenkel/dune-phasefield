@@ -86,7 +86,11 @@ class PhasefieldModel
     inline void scalar2vectorialDiffusion ( const JacobianVector& dphi , DiffusionTensorType& diffusion ) const; 
     inline void diffusion ( JacobianRangeType& vu,
                             JacobianRangeType& diffusion) const;
-    
+
+    inline RangeFieldType pressure (double rho , double phi) const
+    {
+      return problem_.thermodynamics().pressure( rho , phi );
+    }
     inline RangeFieldType h2 ( double rho ) const
     {
       return  problem_.thermodynamics().h2( rho );
