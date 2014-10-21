@@ -127,8 +127,8 @@ typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,Jacob
 
   typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
 	typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
-//Pointers for (rho,v,phi,mu,tau,sigma) and (totalenergy)
-  typedef Dune::tuple< DiscreteFunctionType*,EstimatorDataType*, DiscreteScalarType*> IOTupleType; 
+//Pointers for (rho,v,phi,mu,tau,sigma) and (pressure,totalenergy)
+  typedef Dune::tuple< DiscreteFunctionType*,EstimatorDataType*,DiscreteScalarType*, DiscreteScalarType*> IOTupleType; 
 
   // type of restriction/prolongation projection for adaptive simulations 
   typedef Dune :: Fem::RestrictProlongDefault< DiscreteFunctionType > RestrictionProlongationType;
