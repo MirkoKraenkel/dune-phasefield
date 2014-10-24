@@ -21,11 +21,11 @@ elemcouplings1d=[ ( rho , rho ), ( rho , v ),
             ( tau,rho),(tau,phi),(tau,tau),(tau,sigmax),
             (sigmax,phi),(sigmax,sigmax)
 ]
-interseccouplings1d=[  ( rho , rho ), ( rho , v ), 
+interseccouplings1d=[  ( rho , rho ), ( rho , v ),( rho , mu),
             ( v , rho ) ,( v , v), ( v, phi ),( v , mu ),( v , tau ),
            ( phi , v ), ( phi,phi),
-            (tau,tau),(tau,sigmax),<F2>
-            (sigmax,phi),(sigma,sigmax)
+            (tau,tau),(tau,sigmax),
+            (sigmax,phi),(sigmax,sigmax)
 ]
 f=open('elementCouplings1d_CODEGEN.c','w')
 i=0
