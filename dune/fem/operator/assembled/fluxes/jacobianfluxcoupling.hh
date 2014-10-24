@@ -35,7 +35,7 @@ public:
 
 
   void  numericalFlux ( const DomainType& normal,
-                        const double penaltyFactor,
+                        const double area,
                         const RangeType& vuEn,
                         const RangeType& vuNb,
                         const RangeType& vuEnImEx,
@@ -123,7 +123,7 @@ void JacobianFlux<Model>
 template< class Model >
 void  JacobianFlux<Model>
 ::numericalFlux( const DomainType& normal,
-                const double penaltyFactor,              
+                const double area,
                 const RangeType& vuEnMid,
                 const RangeType& vuNbMid,
                 const RangeType& vuEnImEx,
@@ -167,7 +167,9 @@ void  JacobianFlux<Model>
       gLeft[ 0 ][ 0 ]=-0.25*vNormalEn;
       //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5 
       gRight[ 0 ][ 0 ]=0.25*vNormalNb;
-
+      
+      gLeft[ 0 ][ dimDomain+2 ]=0.5*numVisc_*area;
+      gRight[ 0 ][ dimDomain+2 ]=-0.5*numVisc_*area;
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
