@@ -117,7 +117,7 @@ template< int dimRange>
 class Couplings
 {
   enum{ couplingSize = 10*dimRange+dimRange*dimRange+10};
-  enum{ intersectionCouplingSize = 9*dimRange+dimRange*dimRange+3 };
+  enum{ intersectionCouplingSize = 9*dimRange+dimRange*dimRange+3+1 };
   
   typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
   typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
@@ -153,6 +153,8 @@ class Couplings
 template<>
 void Couplings< 1 >::makeElementCouplings () 
   {   
+#include "./Codegen/elementCouplings1d_CODEGEN.c"
+#if 0
     elementCouplings_[  0 ] = std::pair< int , int >( 0 , 0 );// rho rho
     elementCouplings_[  1 ] = std::pair< int , int >( 0 , 1 );// rho v
     elementCouplings_[  2 ] = std::pair< int , int >( 1 , 0 );// v rho
@@ -174,11 +176,14 @@ void Couplings< 1 >::makeElementCouplings ()
     elementCouplings_[ 18 ] = std::pair< int , int >( 4 , 5 );// tau sigma 
     elementCouplings_[ 19 ] = std::pair< int , int >( 5 , 2 );// sigma phi
     elementCouplings_[ 20 ] = std::pair< int , int >( 5 , 5 );// sigma sigma 
-  }
+#endif
+}
 
 template<>
 void Couplings< 1 >::makeIntersectionCouplings () 
  { 
+#include "./Codegen/intersectionCouplings1d_CODEGEN.c"
+#if 0
    intersectionCouplings_[  0 ] = std::pair< int , int >( 0 , 0 );// rho rho
    intersectionCouplings_[  1 ] = std::pair< int , int >( 0 , 1 );// rho v
    intersectionCouplings_[  2 ] = std::pair< int , int >( 1 , 0 );// v rho
@@ -192,7 +197,8 @@ void Couplings< 1 >::makeIntersectionCouplings ()
    intersectionCouplings_[ 10 ] = std::pair< int , int >( 4 , 5 );// tau sigma 
    intersectionCouplings_[ 11 ] = std::pair< int , int >( 5 , 2 );// sigma phiv
    intersectionCouplings_[ 12 ] = std::pair< int , int >( 5 , 5 );// sigma sigma 
- }
+#endif
+}
 
 template<>
 void Couplings< 2 >::makeElementCouplings () 
