@@ -120,7 +120,7 @@ double MixedFlux<Model>
     for(int i = 0; i<dimDomain;++i)
       {
 #if RHOMODEL
-#if LANBDASCHEME
+#if LAMBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
         laplaceFlux-=(Filter::alpha(midEn,i))*normal[i];
 #else

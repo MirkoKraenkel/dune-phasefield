@@ -121,7 +121,7 @@ double MixedFlux<Model>
     for(int i = 0; i<dimDomain;++i)
       {
 #if RHOMODEL
-#if LANBDASCHEME
+#if LAMBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
         laplaceFlux-=(Filter::alpha(midEn,i))*normal[i];
         
@@ -249,7 +249,7 @@ double MixedFlux<Model>
           //tau 
           //F_{3.2}
 #if RHOMODEL
-#if LANBDASCHEME
+#if LAMBDASCHEME
           //(\lambda^+-\lambda^-)\cdot n * 0.5
           laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
 #else
@@ -270,7 +270,7 @@ double MixedFlux<Model>
       penaltyTerm*=penaltyFactor;
       penaltyTerm*=integrationElement;
 
-      Filter::tau(gLeft)-=model_.delta()*laplaceFlux+penaltyTerm;
+      Filter::tau(gLeft)-=model_.delta()*laplaceFlux;//+penaltyTerm;
       Filter::tau(gRight)=Filter::tau( gLeft );
      
       //----------------------------------------------------------------
