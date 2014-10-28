@@ -121,10 +121,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
 #if  RHOMODEL
  double rhodiff=(Filter::rho(vu)-Filter::rho(vuOld));
-  if( std::abs(rhodiff)<1e-8)
+//  if( std::abs(rhodiff)<1e-8)
     Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
-  else
-    Filter::mu(avu)-=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
+ // else
+   // Filter::mu(avu)-=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
 #endif
   //------------------------------------------------------------------
 
@@ -178,7 +178,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     //\nabla\phi^n
     Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
 #if RHOMODEL && LAMBDASCHEME
-    Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-model_.h2(Filter::rho(vuMid))*Filter::sigma(vuMid, ii);
+    Filter::alpha( avu, ii )=Filter::alpha(vu,ii)-model_.h2(Filter::rho(vu))*Filter::sigma(vu, ii);
 #endif
  }
   
