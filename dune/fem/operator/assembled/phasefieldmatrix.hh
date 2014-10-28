@@ -558,7 +558,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
               // rho*div phi_v +\nabla\rho\cdot\phi_v
               flux[ 0 ][ 1+kk ]=0.5*(vuMid[0]*dphi[ jj ][0 ][kk]+duMid[0][ kk ]*phi[ jj ][0]);
       
-              flux[1+kk][0] = (vu[ 1 + kk ]-vuOld[ 1 + kk ])*phi[ jj ][0]*0.5;
+              flux[1+kk][0] = (vu[ 1 + kk ]-vuOld[ 1 + kk ])*phi[ jj ][0]*0.5*deltaTInv;
               flux[1+kk][1+kk]=phi[ jj ][ 0 ]*vuMid[0]*deltaTInv;
    
               for( size_t ll = 0; ll<dimDomain; ++ll)
@@ -583,7 +583,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           //phi
           
           //( - tau phi_rho)/ rho*rho
-          flux[ dimDomain+1 ][ 0 ]-=0.5* vuMid[ dimDomain + 3 ]*phi[ jj ][ 0 ]/(vuMid[0]*vuMid[0]);
+          flux[ dimDomain+1 ][ 0 ]-=model_.reactionFactor()*0.5* vuMid[ dimDomain + 3 ]*phi[ jj ][ 0 ]/(vuMid[0]*vuMid[0]);
           // phi_phi/deltaT
           flux[ dimDomain+1 ][ dimDomain+1]=phi[jj][0]*deltaTInv;
           for( size_t kk = 0 ; kk < dimDomain ; ++kk )
@@ -594,18 +594,24 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
               flux[ dimDomain+1 ][ 1+kk ] +=0.5* duMid[dimDomain+1][kk]*phi[ jj ][0];
             }
           //(phi_tau rho)/ rho*rho
-          flux[ dimDomain+1 ][ dimDomain+3 ]=imexFactor_*phi[ jj ][ 0 ]*vuMid[ 0 ]/(vuMid[0]*vuMid[0]);
+          flux[ dimDomain+1 ][ dimDomain+3 ]=model_.reactionFactor()*imexFactor_*phi[ jj ][ 0 ]*vuMid[ 0 ]/(vuMid[0]*vuMid[0]);
           //mu
           RangeFieldType drhomu(0.),dphimu(0.);
-          //model_.drhomuSource( vu[ 0 ] , vu[ 0 ] , vu[ dimDomain + 1 ] , drhomu );
+          model_.drhomuSource( vu[ 0 ] , vu[ 0 ] , vu[ dimDomain + 1 ] , drhomu );
           model_.dphimuSource( vu[ 0 ] , vu[ 0 ] , vu[ dimDomain + 1 ] , dphimu );
-          
-          //flux[ dimDomain+2 ][ 0 ]=-1*drhomu*phi[ jj ][ 0 ];
-          
+#if !IMPLICITTAU
+          flux[ dimDomain+2 ][ 0 ]=-1*drhomu*phi[ jj ][ 0 ];
+#endif
           //(mu, v_kk)
           for( size_t kk = 0 ; kk < dimDomain ; ++kk )
-            flux[ dimDomain+2 ][ 1+kk]-=2*vu[ 1+kk ]*phi[ jj ][ 0 ]*0.25;
-      
+            {
+              //(mu,v_kk)
+              flux[ dimDomain+2 ][ 1+kk]-=2*vu[ 1+kk ]*phi[ jj ][ 0 ]*0.25;
+#if LAMBDASCHEME
+              //(mu , sigma_kk)
+              flux[ dimDomain+2 ][ dimDomain+4+kk]=-0.5*model_.delta()*model_.h2prime(vuOld[0])*vuOld[dimDomain+4+kk]*phi[jj][0];
+#endif
+            }
           //(mu,phi)
           flux[ dimDomain+2 ][ dimDomain+1 ]=-1*dphimu*phi[ jj ][ 0];
           //(mu,mu)
@@ -627,7 +633,17 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
               flux[ dimDomain+4+kk ][ dimDomain+1 ]-=dphi[ jj ][ 0 ][ kk ];
               //(sigma,sigma)
               flux[ dimDomain+4+kk ][ dimDomain+4+kk]=phi[ jj ][ 0 ];
-            }  
+#if LAMBDASCHEME
+              //(tau, gradlambda)
+              flux[ dimDomain+3 ][ 2*dimDomain+4+kk ]+=model_.delta()*0.5*dphi[ jj ][ 0 ][ kk ];
+              //(lambda,lambda)
+              flux[2*dimDomain+4+kk][ 2*dimDomain+4+kk]=phi[jj][0];
+              //(lambda,rho)=h2prime(\bar\rho)*\bar\sigma
+              flux[2*dimDomain+4+kk][0]=-model_.h2prime(vu[0])*phi[jj][0]*vu[ dimDomain+4+kk];
+              //(lambda,sigma)
+              flux[2*dimDomain+4+kk][ dimDomain+4+kk]=-model_.h2(vu[0])*phi[jj][0];
+#endif
+           }
           DiffusionType du;
         
           for(int i = 0;  i<dimDomain ; ++i)
@@ -649,7 +665,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             } 
       }
     } 
-   add(jLocal, realLocal);
+    add(jLocal, realLocal);
     //
     jLocal.clear();
     if (space().continuous() )
