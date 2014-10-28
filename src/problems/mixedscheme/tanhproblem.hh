@@ -44,7 +44,8 @@ public:
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
-    rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
+    A_(Fem::Parameter::getValue<double>("phasefield.A")),
+    rhofactor_( Fem::Parameter::getValue<double> ("phasefield.rhofactor")),
     rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
     rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
@@ -111,7 +112,8 @@ public:
   const double endTime_;
   const double mu_;
   const double delta_;
-  double rho_; 
+  double A_;
+  double rhofactor_; 
   double rho1_;
   double rho2_;
   const double phiscale_;
@@ -139,18 +141,20 @@ template <class GridType,class RangeProvider>
 inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-  double deltaInv=1./delta_;
+  double deltaInv=1./delta_*sqrt(A_);
   double r=std::abs( arg[0]);
-  double tanhr=tanh( ( r-0.5 )*deltaInv ); 
+  double tanhr=-tanh( ( r-0.5 )*deltaInv ); 
+  double tanhrho=-tanh( ( r-0.5 )*rhofactor_*deltaInv ); 
+
   //(1-tanh^2)/delta
-  double drtanhr=deltaInv*(1-tanhr*tanhr);
+  double drtanhr=-deltaInv*(1-tanhr*tanhr);
   double drdrtanhr=tanhr*drtanhr;
   //-2/delta^2 *(tanh*(1-tanh^2)
   drdrtanhr*=-2*deltaInv;
  
   // double rho=1.85*(-0.5*tanhr+0.5)+
   double rhodiff=rho2_-rho1_;
-  double rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
+  double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
   double v=0;//0.1*sin(2*M_PI*arg[0]);
   //rho
   res[0]= rho;
@@ -174,9 +178,10 @@ inline void TanhProblem<GridType,RangeProvider>
   double rhoInv=1./rho;
   double hprime=-1./(rho*rho);
   double laplacePhi=0.5*drdrtanhr;
-  if(arg[0]>0.5)
-    laplacePhi*=-1;
-
+  if(arg[0]<0.)
+    {
+      sigma*=-1;
+    }
 
 #if RHOMODEL     
   //mu
