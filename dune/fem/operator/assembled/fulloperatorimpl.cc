@@ -139,7 +139,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                       Filter::rho(vuOld),
                       dFdphi);
    */
-  model_.tauSource( Filter::phi(vu),
+  model_.tauSource( Filter::phi(vuOld),
                     Filter::phi(vuOld),
                     Filter::rho(vuOld),
                     dFdphi);
@@ -147,9 +147,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   Filter::tau( avu )=Filter::tau( vu );
   Filter::tau( avu )-=dFdphi;
-
   RangeFieldType divsigma(0.), gradrhosigma(0.);
-
   for( int ii = 0 ; ii < dimDomain ; ++ii) 
     {
 #if RHOMODEL
@@ -179,7 +177,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     //\nabla\phi^n
     Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
 #if RHOMODEL && LAMBDASCHEME
-    Filter::alpha( avu, ii )=Filter::alpha(vuMid,ii)-model_.h2(Filter::rho(vuMid))*Filter::sigma(vuMid, ii);
+    Filter::alpha( avu, ii )=Filter::alpha(vu,ii)-model_.h2(Filter::rho(vu))*Filter::sigma(vu, ii);
 #endif
  }
   
