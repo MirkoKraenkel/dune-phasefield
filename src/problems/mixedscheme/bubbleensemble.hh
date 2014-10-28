@@ -46,6 +46,8 @@ public:
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
+    rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
+    rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     bubblefilename_(Fem::Parameter::getValue<std::string>("phasefield.bubbles")),
     bubblevector_(0),
@@ -149,6 +151,8 @@ public:
   const double mu_;
   const double delta_;
   double rho_;
+  double rho1_;
+  double rho2_;
   const double phiscale_;
   std::string bubblefilename_; 
   std::vector<double> bubblevector_;
@@ -179,7 +183,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
   double phi; 
   double width=delta_;
   phi=0.;
-  double rho=3;
+  double rho=rho2_;
 #if MIXED 
   res[dimension+4]=0.;
   res[dimension+5]=0.;
@@ -216,9 +220,9 @@ inline void BubbleEnsemble<GridType,RangeProvider>
     if( r < radius+(0.5*width))
       {
         if( r < radius-(0.5*width))
-          {
+          {//Inside bubble
             phi=1.;
-            rho=2.;
+            rho=rho1_;
 #if MIXED
             dFdphi= thermodyn_.reactionSource(rho,phi); 
             dFdrho=thermodyn_.chemicalPotential(rho, phi);
@@ -232,7 +236,8 @@ inline void BubbleEnsemble<GridType,RangeProvider>
         else
           {
             phi=0.5*( tanhr )+0.5;
-            rho=-0.5*tanhr+2.5;
+            double rhodiff=rho2_-rho1_;
+            rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
 #if MIXED
             res[dimension+4]=-1.*dtanhr*dtanr*(M_PI/width)*dxr(arg);
             res[dimension+5]=-1.*dtanhr*dtanr*(M_PI/width)*dyr(arg);
