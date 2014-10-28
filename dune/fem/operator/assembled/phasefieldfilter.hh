@@ -83,14 +83,14 @@ public:
 #if RHOMODEL && LAMBDASCHEME
   static RangeFieldType& alpha( RangeType& u, int i)
   {
-    return u[dimDomain+5+i];
+    return u[2*dimDomain+4+i];
   }
   
   static RangeFieldType& dalpha( JacobianRangeType& du, int i, int j)
   {
    
    assert(i<dimDomain && j<dimDomain );
-   return du[dimDomain+5+i][j];
+   return du[2*dimDomain+4+i][j];
   }
 #elif LAMBDASCHEME
 #error "DON'T USE LAMBDASCHEME WITH CONSTANT MODELL"
