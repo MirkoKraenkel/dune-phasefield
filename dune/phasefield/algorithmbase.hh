@@ -284,9 +284,9 @@ public:
   void adapt( AdaptationManagerType& am ){BaseType::asImp().adapt( am );}
   
   template<class Stream>
-  void writeEnergy( TimeProviderType& timeProvider,Stream& str, double& difference)
+  void writeEnergy( TimeProviderType& timeProvider,Stream& str,int iter, double& difference)
   { 
-    BaseType::asImp().writeEnergy( timeProvider, str,difference);
+    BaseType::asImp().writeEnergy( timeProvider, str,iter,difference);
   }
   
   //! write data, if pointer to additionalVariables is true, they are calculated first 
@@ -408,7 +408,7 @@ public:
           ++startCount;
         }
       }
-      timeProvider.provideTimeStepEstimate(maxTimeStep);
+      timeProvider.provideTimeStepEstimate(1e-2);
     	// start first time step with prescribed fixed time step 
 	    // if it is not 0 otherwise use the internal estimate
 			if ( fixedTimeStep_ > 1e-20 )
@@ -466,12 +466,12 @@ public:
           if( grid_.comm().rank() == 0 )
             {
               std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEst;
-              std::cout<< " ,Error between timesteps="<< timeStepError;
+              std::cout<< " ,Error between timesteps="<< timeStepError<<" iterations"<<ils_iterations;
               std::cout<<std::endl;
              
             }
          
-          writeEnergy( timeProvider , energyfile, surfacediff);
+          writeEnergy( timeProvider , energyfile, ils_iterations, surfacediff);
         }
 
         writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
