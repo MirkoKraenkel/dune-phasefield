@@ -244,7 +244,7 @@ double MixedFlux<Model>
         //F_{3.2}
   
 #if RHOMODEL
-#if LANBDASCHEME
+#if LAMBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
         laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
 #else
