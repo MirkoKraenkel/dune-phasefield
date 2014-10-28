@@ -110,9 +110,14 @@ void JacobianFlux<Model>
       {
         vNormalEn+=midEn[1 + ii]*normal[ ii ];
         gLeft[ 0 ][ 1 + ii ] = -0.5*normal[ii]*midEn[0];
-        // F_{3.3}(\sigma^+)\cdot n
         laplaceFlux=normal[ ii ]*0.5;
+#if LAMBDASCHEME
+        // F_{3.3}(\lambda^+)\cdot n
+        gLeft[ dimDomain + 3 ][ 2*dimDomain + 4 +ii ]=-model_.delta()*laplaceFlux;
+#else
+        // F_{3.3}(\sigma^+)\cdot n
         gLeft[ dimDomain + 3 ][ dimDomain + 4 +ii ]=-model_.delta()*laplaceFlux;
+#endif
       } 
     gLeft[ 0 ][ 0 ]=-0.5*vNormalEn;
   }
@@ -210,10 +215,15 @@ void  JacobianFlux<Model>
           //(\sigma^+-\sigma^-)\cdot n * 0.5
           laplaceFluxLeft=normal[ ii ]*0.25;
           laplaceFluxRight=normal[ ii ]*-0.25;
-       //tau-------------------------------------------------------------
-      gLeft[ dimDomain + 3 ][ dimDomain + 4+ii ]=-model_.delta()*laplaceFluxLeft;
-      gRight[ dimDomain + 3 ][dimDomain + 4+ii ]=-model_.delta()*laplaceFluxRight;
-        } 
+          //tau-------------------------------------------------------------
+#if LAMBDASCHEME
+          gLeft[ dimDomain + 3 ][2*dimDomain + 4 + ii ]=-model_.delta()*laplaceFluxLeft;
+          gRight[ dimDomain + 3 ][2*dimDomain + 4 + ii ]=-model_.delta()*laplaceFluxRight;
+#else
+          gLeft[ dimDomain + 3 ][ dimDomain + 4+ii ]=-model_.delta()*laplaceFluxLeft;
+          gRight[ dimDomain + 3 ][dimDomain + 4+ii ]=-model_.delta()*laplaceFluxRight;
+#endif
+        }
     
       //----------------------------------------------------------------
      //----------------------------------------------------------------
