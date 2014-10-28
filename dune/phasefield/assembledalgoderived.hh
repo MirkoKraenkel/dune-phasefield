@@ -125,6 +125,10 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
           std::cout<<" - reduced Timestep="<<timeProvider.deltaT()<<"\n";
           U.assign(Uold);
         }
+      else if( ils_iterations < 10 && timeProvider.deltaT() < 1e-3)
+        {
+          timeProvider.provideTimeStepEstimate( 1.2*deltaT);
+        }
       else
         {
           timeProvider.provideTimeStepEstimate( deltaT);
@@ -167,6 +171,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   template<class Stream>
   void writeEnergy( TimeProviderType& timeProvider,
                     Stream& str,
+                    int iter,
                     double& difference)
   {
     DiscreteScalarType* totalenergy = energy();
@@ -176,7 +181,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       double chemicalEnergy; 
       double surfaceEnergy;
       double energyIntegral =energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
-      str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\n";
+      str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\t"<<iter<<"\n";
       difference=surfaceEnergy_-surfaceEnergy;
  //     std::cout<<"surfaceEnergy Change="<<surfaceEnergy_-surfaceEnergy<<"\n"; 
       surfaceEnergy_=surfaceEnergy;
