@@ -116,7 +116,11 @@ void axpyElement ( Couplings& couplings,
 template< int dimRange> 
 class Couplings
 {
+#if LAMBDASCHEME
+  enum{ couplingSize = 14*dimRange+dimRange*dimRange+10};
+#else
   enum{ couplingSize = 10*dimRange+dimRange*dimRange+10};
+#endif
   enum{ intersectionCouplingSize = 9*dimRange+dimRange*dimRange+3+1 };
   
   typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
@@ -153,7 +157,11 @@ class Couplings
 template<>
 void Couplings< 1 >::makeElementCouplings () 
   {   
+#if LAMBDASCHEME
+#include "./Codegen/elementCouplings1d_lambda_CODEGEN.c"
+#else
 #include "./Codegen/elementCouplings1d_CODEGEN.c"
+#endif
 #if 0
     elementCouplings_[  0 ] = std::pair< int , int >( 0 , 0 );// rho rho
     elementCouplings_[  1 ] = std::pair< int , int >( 0 , 1 );// rho v
@@ -182,7 +190,11 @@ void Couplings< 1 >::makeElementCouplings ()
 template<>
 void Couplings< 1 >::makeIntersectionCouplings () 
  { 
+#if LAMBDASCHEME
+#include "./Codegen/intersectionCouplings1d_lambda_CODEGEN.c"
+#else
 #include "./Codegen/intersectionCouplings1d_CODEGEN.c"
+#endif
 #if 0
    intersectionCouplings_[  0 ] = std::pair< int , int >( 0 , 0 );// rho rho
    intersectionCouplings_[  1 ] = std::pair< int , int >( 0 , 1 );// rho v
