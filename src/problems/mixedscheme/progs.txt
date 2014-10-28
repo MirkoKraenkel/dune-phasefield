@@ -1,6 +1,4 @@
-phasefield
-phasefieldcoupling
+phasefieldcp
 phasefieldfd
-phasefieldfdrho
-phasefieldfdlambda
-pflambdaimp
+phasefieldlambdacp
+phasefieldlambdafd
