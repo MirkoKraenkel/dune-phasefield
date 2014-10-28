@@ -205,11 +205,12 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
   
     template<class Stream>
     void writeEnergy( TimeProviderType& timeProvider,
-                      Stream& str)
+                      Stream& str,
+                      double& difference)
     {
       DiscreteSigmaType gradient = sigma();
       DiscreteScalarType* totalenergy = energy();
-
+      difference=1000000;
       if( totalenergy != nullptr)
         { 
           gradient.clear();
