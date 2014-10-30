@@ -132,20 +132,11 @@ namespace Dune {
 															 const GradientRangeType& du,
 															 ThetaRangeType & s) const
 		{
-			return thetaSource( en, time, x, u, s );
-		}
 
-
-		inline double thetaSource( const EntityType& en
-                               , const double time
-															 , const DomainType& x
-															 , const RangeType& u
-															 , ThetaRangeType& s ) const 
-		{
-			double mu,reaction;
+    	double mu,reaction;
       DomainType xgl=en.geometry().global(x);
-      
-      phasefieldPhysics_.chemPotAndReaction(u,mu,reaction);
+      Dune::Fem::FieldMatrixConverter<GradientRangeType,JacobianRangeType> jac(du);
+      phasefieldPhysics_.chemPotAndReaction(u,jac,mu,reaction);
   
       //stheta[0]=dF/drho stheta[1]=dF/dphi
 
@@ -155,9 +146,11 @@ namespace Dune {
     
       double deltaInv=phasefieldPhysics_.deltaInv();
 			return deltaInv*deltaInv*0.4;
-		}
 
-    
+    }
+
+
+	    
 		inline void advection( const EntityType& en,
 													 const double time,
 													 const DomainType& x,
