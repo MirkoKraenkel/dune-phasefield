@@ -7,6 +7,7 @@
 #include <dune/fem/util/phasefieldodesolver.hh>
 //adaptation
 #include <dune/fem/adaptation/passestimator.hh>
+#include <dune/phasefield/util/cons2prim.hh>
 #if WELLBALANCED
 #include <dune/phasefield/util/wb_energyconverter.hh>
 #else
@@ -206,6 +207,7 @@ class PassAlgorithm: public PhasefieldAlgorithmBase< GridImp, AlgorithmTraits, P
     template<class Stream>
     void writeEnergy( TimeProviderType& timeProvider,
                       Stream& str,
+                      int iter,
                       double& difference)
     {
       DiscreteSigmaType gradient = sigma();
