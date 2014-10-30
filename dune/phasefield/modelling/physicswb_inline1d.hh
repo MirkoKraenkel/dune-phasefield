@@ -54,7 +54,8 @@ class PhasefieldPhysics< 1,Thermodynamics>
                            double& total) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
-																	double& mu,
+																	const JacobianRangeType& du,
+                                  double& mu,
 																	double& reaction ) const;
 
 	inline void pressureAndReaction( const RangeType& cons, 
@@ -155,7 +156,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double kineticEnergy,surfaceEnergy;
     kineticEnergy=cons[1]*cons[1];
     double gradphi=grad[2][0];
-    surfaceEnergy=gradphi*gradphi;
+    surfaceEnergy=thermoDynamics_.h2(rho)*gradphi*gradphi;
     
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
@@ -170,7 +171,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   template< class Thermodynamics >
   inline void PhasefieldPhysics< 1,Thermodynamics >
   ::chemPotAndReaction( const RangeType& cons, 
-												double& mu,
+												const JacobianRangeType& du,
+                        double& mu,
 												double& reaction ) const
 	{
 		assert( cons[0] > 1e-20 );
@@ -178,9 +180,11 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		double rho=cons[0];
 		double phi=cons[phaseId];
 		phi/=rho;
-    
+   
+    double dxphi=du[2][0];
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
-		reaction=thermoDynamics_.reactionSource(rho,phi); 
+		mu+=thermoDynamics_.h2(rho)*0.5*dxphi*dxphi;
+    reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
 
   template< class Thermodynamics >

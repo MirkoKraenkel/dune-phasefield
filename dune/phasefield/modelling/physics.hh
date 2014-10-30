@@ -64,7 +64,8 @@ class PhasefieldPhysics
                            double& total) const;
   
   inline void chemPotAndReaction( const RangeType& cons, 
-																	double& mu,
+																	const JacobianRangeType& du,
+                                  double& mu,
 																	double& reaction ) const;
 
 	inline void pressureAndReaction( const RangeType& cons, 

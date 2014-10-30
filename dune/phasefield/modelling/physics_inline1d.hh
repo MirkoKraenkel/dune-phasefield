@@ -162,7 +162,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     gradphi-=phi*grad[0][0];
     gradphi*=rho_inv;
    
-    surfaceEnergy=gradphi*gradphi;
+    surfaceEnergy=thermoDynamics_.h2(rho)*gradphi*gradphi;
   
     surfaceEnergy*=delta()*0.5;
  
@@ -282,7 +282,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
-    diff[2][0]=delta()*dxphi;
+    diff[2][0]=delta()*thermoDynamics_.h2(rho)*dxphi;
     
   }
 
@@ -344,13 +344,14 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   { 
     assert( u[0] > 1e-10 );
     double rho_inv = 1. / u[0];
-      
+    double rho = u[0];  
     const double phi =  u[dimDomain+1]*rho_inv;
     const double dxrho     = du[0][0]; //drho/dx
     const double dxrhophi  = du[dimDomain+1][0]; //d(rho*phi)/dx
            
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
-    double tension =delta()*(0.5*dxphi*dxphi);
+    //1/2 ph2(rho)+h2(rho)=1/2 h2(rho)+rho h2prime(rho)
+    double tension =delta()*0.5*(rho*thermoDynamics_.h2prime(rho)+thermoDynamics_.h2(rho))*dxphi*dxphi;
                   
     diff[0]=0.;
     diff[1]=tension;

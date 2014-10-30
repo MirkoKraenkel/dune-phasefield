@@ -10,7 +10,7 @@ namespace Dune{
 template<class Thermodynamics>
 class PhasefieldPhysics<2,Thermodynamics>
 {
-  typedef Thermodynamics ThermodynamicsType;
+   typedef Thermodynamics ThermodynamicsType;
  
   public:
     enum { dimDomain = 2 };
@@ -32,8 +32,8 @@ class PhasefieldPhysics<2,Thermodynamics>
     typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
     typedef FieldVector< double, dimGradRange >               GradientRangeType;
 
-   typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
-   typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
+    typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
+    typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
   protected:
     const ThermodynamicsType thermoDynamics_;
   public:
@@ -54,7 +54,8 @@ class PhasefieldPhysics<2,Thermodynamics>
                            double& total ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
-																	double& mu,
+																	const JacobianRangeType& du,
+                                  double& mu,
 																	double& reaction ) const;
 
 	inline void pressureAndReaction( const RangeType& cons, 
@@ -152,13 +153,13 @@ template< class Thermodynamics >
 	  double rho_inv = 1./rho;
 	  double phi = cons[phaseId];
     phi*=rho_inv;
-    
+   
     double kineticEnergy,surfaceEnergy;
     kineticEnergy=cons[1]*cons[1]+cons[2]*cons[2];
     surfaceEnergy=grad[phaseId][0]*grad[phaseId][0]+grad[phaseId][1]*grad[phaseId][1];
     
     kineticEnergy*=0.5*rho_inv;
-    surfaceEnergy*=delta()*0.5;
+    surfaceEnergy*=delta()*0.5*thermoDynamics_.h2(rho);
    
 	  therm = thermoDynamics_.helmholtz( rho, phi );
 	  therm +=surfaceEnergy;
@@ -170,7 +171,8 @@ template< class Thermodynamics >
   template< class Thermodynamics >
   inline void PhasefieldPhysics< 2,Thermodynamics >
   ::chemPotAndReaction( const RangeType& cons, 
-												double& mu,
+												const JacobianRangeType& du,
+                        double& mu,
 												double& reaction ) const
 	{
 		assert( cons[0] > 1e-20 );
@@ -178,9 +180,12 @@ template< class Thermodynamics >
 		double rho=cons[0];
 		double phi=cons[phaseId];
 		phi/=rho;
-    
+    double dxphi=du[3][0];
+    double dyphi=du[3][1];
+
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
-		reaction=thermoDynamics_.reactionSource(rho,phi); 
+		mu+=thermoDynamics_.h2(rho)*0.5*(dxphi*dxphi+dyphi*dyphi);
+    reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
 
   template< class Thermodynamics >
@@ -202,7 +207,8 @@ template< class Thermodynamics >
 		const double rho_inv = 1. / u[0];
 		const double vx = u[1]*rho_inv;
 		const double vy = u[2]*rho_inv;
-    const double phi= u[3]*rho_inv;
+    const double phi= u[3];
+		
 		f[0][0] = u[1];  // \rho*vx
 	  f[0][1] = u[2];  // \rho*vy
     f[1][0] = vx*u[1];  // \rho*vx*vx
@@ -330,8 +336,9 @@ template< class Thermodynamics >
 	 
 	  diff[0][0]=0.;
     diff[0][1]=0.;
-    diff[1][0]=-delta()*du[3][0];
-    diff[1][1]=-delta()*du[3][1];
+    diff[1][0]=-delta()*thermoDynamics_.h2( u[0] )*du[3][0];
+    diff[1][1]=-delta()*thermoDynamics_.h2( u[0] )*du[3][1];
+    
   }
   
   template<class Thermodynamics>

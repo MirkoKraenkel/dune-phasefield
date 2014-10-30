@@ -390,6 +390,7 @@ template< class Thermodynamics >
             GradientRangeType& diff ) const
   { 
     assert( u[0] > 1e-10 );
+    double rho = u[0];
     double rho_inv = 1. / u[0];
   
     const double phi =  u[dimDomain+1]*rho_inv;
@@ -404,15 +405,15 @@ template< class Thermodynamics >
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
     const double dyphi = rho_inv*(dyrhophi - phi*dyrho);
                   
-    // |\nabla\phi|^2*0.5
-    double const gradphisquarehalf=0.5*(dxphi*dxphi+dyphi*dyphi);
-
+    //(-h_2+rho*h2prime)*|\nabla\phi|^2*0.5
+    double gradphisquarehalf=0.5*(dxphi*dxphi+dyphi*dyphi);
+    gradphisquarehalf*=rho*thermoDynamics_.h2prime(rho)-thermoDynamics_.h2(rho);
     diff[0]=0; 
     diff[1]=0;
-    diff[2]=dxphi*dxphi-gradphisquarehalf;
+    diff[2]=dxphi*dxphi+gradphisquarehalf;
     diff[3]=dyphi*dxphi;
     diff[4]=dyphi*dxphi;
-    diff[5]=dyphi*dyphi-gradphisquarehalf;
+    diff[5]=dyphi*dyphi+gradphisquarehalf;
     diff[6]=0;
     diff[7]=0;
     diff*=delta();

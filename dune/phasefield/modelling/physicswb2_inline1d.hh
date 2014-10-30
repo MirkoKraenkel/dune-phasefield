@@ -8,13 +8,13 @@ namespace Dune{
 
 
 template<class Thermodynamics>
-class PhasefieldPhysics<1,Thermodynamics>
+class PhasefieldPhysics< 1,Thermodynamics>
 {
   typedef Thermodynamics ThermodynamicsType;
  
   public:
     enum{dimDomain=1};  
-    enum{ phaseId = dimDomain+1} ;
+    enum { phaseId = dimDomain+1} ;
     enum { dimRange = dimDomain + 2 };
     enum { dimThetaRange =  2 };
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
@@ -51,10 +51,11 @@ class PhasefieldPhysics<1,Thermodynamics>
                            double& kin,
                            double& therm,
                            double& surf,
-                           double& total ) const;
+                           double& total) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
-																	double& mu,
+																  const JacobianRangeType& du,	
+                                  double& mu,
 																	double& reaction ) const;
 
 	inline void pressureAndReaction( const RangeType& cons, 
@@ -139,14 +140,14 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 
  template< class Thermodynamics > 
  template<class JacobianRangeImp>   
- inline void PhasefieldPhysics<1,Thermodynamics >
-  :: totalEnergy( const RangeType& cons, 
-                  const JacobianRangeImp& grad , 
-                  double& kin, 
-                  double& therm,
-                  double& surf,
-                  double& total ) const
-  {
+ inline void PhasefieldPhysics< 1,Thermodynamics >
+ :: totalEnergy( const RangeType& cons, 
+                 const JacobianRangeImp& grad , 
+                 double& kin, 
+                 double& therm,
+                 double& surf,
+                 double& total ) const
+ {
 	  double rho = cons[0];
 	  double rho_inv = 1./rho;
 	  double phi = cons[phaseId];
@@ -154,22 +155,23 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     double kineticEnergy,surfaceEnergy;
     kineticEnergy=cons[1]*cons[1];
     double gradphi=grad[2][0];
-    surfaceEnergy=gradphi*gradphi;
+    surfaceEnergy=thermoDynamics_.h2(rho)*gradphi*gradphi;
     
     kineticEnergy*=0.5*rho_inv;
     surfaceEnergy*=delta()*0.5;
    
 	  therm = thermoDynamics_.helmholtz( rho, phi );
-	  therm += surfaceEnergy;
-    kin = kineticEnergy;
+	  therm +=surfaceEnergy;
+    kin  = kineticEnergy;
     total = therm+kineticEnergy; 
     surf = surfaceEnergy;
   }
 
   template< class Thermodynamics >
-  inline void PhasefieldPhysics<1,Thermodynamics >
+  inline void PhasefieldPhysics< 1,Thermodynamics >
   ::chemPotAndReaction( const RangeType& cons, 
-												double& mu,
+												const JacobianRangeType& du,
+                        double& mu,
 												double& reaction ) const
 	{
 		assert( cons[0] > 1e-20 );
@@ -177,13 +179,14 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 		double rho=cons[0];
 		double phi=cons[phaseId];
    
-    
+    double dxphi=du[2][0];
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
-		reaction=thermoDynamics_.reactionSource(rho,phi); 
+		mu+=thermoDynamics_.h2(rho)*0.5*dxphi*dxphi;
+    reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
 
   template< class Thermodynamics >
-	inline void PhasefieldPhysics<1,Thermodynamics >
+	inline void PhasefieldPhysics< 1,Thermodynamics >
   ::pressureAndReaction( const RangeType& cons, 
                          double& p,
 												 double& reaction ) const
