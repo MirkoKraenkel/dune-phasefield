@@ -1,9 +1,9 @@
 import os,subprocess, sys
-folders = { 1:'../ConstRhoSources/' , 2:'../InvRhoSources/', 3:'../PhasefieldvanderWaalsSources/'}
-files = { 1:'balancedCODEGEN.mpl', 2:'balancedhmodelCODEGEN.mpl', 3:'phasefieldvanderWaalsCODEGEN.mpl'}
+folders = { 1:'../ConstRhoSources/' , 2:'../InvRhoSources/', 3:'../PhasefieldvanderWaalsSources/', 4:'../FreistuehlerSources/'}
+files = { 1:'balancedCODEGEN.mpl', 2:'balancedhmodelCODEGEN.mpl', 3:'phasefieldvanderWaalsCODEGEN.mpl',4:'freistuehlerCODEGEN.mpl'}
 namelist = [' helmholtz', ' reactionSource',' dphireactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential',' pressure', ' a']
 namelist2 = [' rhosol', ' gradrho',' gradphi',' musol',' thetasol',' phiSource',' veloSource']
-models={ 1:'balanced',2:'balancedh'}
+models={ 1:'balanced',2:'balancedh',3:'vdW', 4:'freistuehler'}
 number=int(sys.argv[1])
 inputfile=folders[number]+files[number]
 filename=models[number]+'.cc'
@@ -20,7 +20,8 @@ for line in f:
     newline1 = line.replace('delta','delta_')
     newline2 = newline1.replace('beta', 'beta_') 
     newline3 = newline2.replace('A','A_')
-    newline = newline3.replace('alpha','alpha_')
+    newline4 = newline3.replace('theta','theta_')
+    newline = newline4.replace('alpha','alpha_')
     for name in namelist:
       if newline.find( name ) != -1:
         flag=True
