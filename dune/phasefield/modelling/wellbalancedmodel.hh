@@ -9,7 +9,7 @@
 
 // local includes
 #include <dune/fem-dg/models/defaultmodel.hh>
-#include "physics.hh"
+#include <dune/phasefield/modelling/physics/physics.hh>
 
 namespace Dune {
 
