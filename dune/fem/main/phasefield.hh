@@ -29,14 +29,14 @@
 #include <src/problems/korteweg/nskproblemcreator.hh>
 #include <src/problems/kortewegmixed/mixednskproblemcreator.hh>
 #else
-#include <src/problems/passscheme/problemcreator.hh>
+#if MIXED
 #include <src/problems/mixedscheme/mixedproblemcreator.hh>
-#endif
-//#if MIXED
 #include <dune/phasefield/assembledalgoderived.hh>
-//#else
+#else
+#include <src/problems/passscheme/problemcreator.hh>
 #include <dune/phasefield/passalgoderived.hh> 
-//#endif
+#endif
+#endif
 #include <dune/fem/space/common/allgeomtypes.hh>
 
 
@@ -46,7 +46,7 @@ template< bool mixed,int Polorder,class GridImp>
 struct SchemeTraits
 {
 };
-
+#if MIXED
 template< int Polorder,class GridImp>
 struct SchemeTraits< true, Polorder, GridImp >
 {
@@ -55,7 +55,7 @@ struct SchemeTraits< true, Polorder, GridImp >
   typedef MixedAlgorithmTraits< GridType , ProblemGeneratorType ,Polorder> AlgorithmTraitsType;
   typedef AssembledAlgorithm< GridType,AlgorithmTraitsType> AlgorithmType;
 };
-
+#else
 template< int Polorder,class GridImp>
 struct SchemeTraits< false ,Polorder, GridImp >
 {
@@ -65,7 +65,7 @@ struct SchemeTraits< false ,Polorder, GridImp >
   typedef PassAlgorithm< GridType , AlgorithmTraitsType > AlgorithmType;
 };
 
-
+#endif
 
   void simulate()
   {
