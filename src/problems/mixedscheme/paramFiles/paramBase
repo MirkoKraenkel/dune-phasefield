@@ -54,15 +54,15 @@ fem.adaptation.method: generic # none | generic | callback
 # specify refinement tolerance 
 fem.adaptation.refineTolerance: 1.001
 # percent of refinement tol used for coarsening 
-fem.adaptation.coarsenPercent: 0.01
+fem.adaptation.coarsenPercent: 0.405
 
 # coarsest level that should be present 
 # finest level that should be present
 fem.adaptation.coarsestLevel: 0 
 fem.adaptation.finestLevel: 6 
 phasefield.adaptTol: 1.01 
-phasefield.adaptive.maxh: 0.08
-phasefield.adaptive.tolfactor: 4 
+phasefield.adaptive.maxh: 0.05
+phasefield.adaptive.tolfactor: 3  
 fem.adaptation.markingStrategy: grad 
 
 fem.adaptation.adaptcount: 2 # after this many time step, 0 disables adaptation
@@ -70,7 +70,7 @@ fem.loadbalancing.step:20
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 5 
+phasefield.startLevel: 0 
 
 
 phasefield.startTime: 0 
