@@ -270,7 +270,7 @@ double MixedFlux<Model>
       penaltyTerm*=penaltyFactor;
       penaltyTerm*=integrationElement;
 
-      Filter::tau(gLeft)-=model_.delta()*laplaceFlux;//+penaltyTerm;
+      Filter::tau(gLeft)-=model_.delta()*laplaceFlux+penaltyTerm;
       Filter::tau(gRight)=Filter::tau( gLeft );
      
       //----------------------------------------------------------------
