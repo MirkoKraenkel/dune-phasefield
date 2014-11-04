@@ -17,7 +17,8 @@
 #include <dune/fem/function/localfunction/temporary.hh>
 
 #include <dune/fem/operator/common/differentiableoperator.hh>
-#include <dune/fem/operator/common/automaticdifferenceoperator.hh>
+//#include <dune/fem/operator/common/automaticdifferenceoperator.hh>
+#include "../common/automaticdifferenceoperator.hh"
 #include <dune/fem/operator/common/stencil.hh>
 
 #include <dune/fem/gridpart/common/capabilities.hh>
