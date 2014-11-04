@@ -11,7 +11,6 @@
 // dune-fem include
 #include <dune/fem/io/parameter.hh>
 
-#include "thermodynamicsinterface.hh"
 
 namespace Dune{
 
