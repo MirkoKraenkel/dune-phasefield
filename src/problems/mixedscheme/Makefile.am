@@ -24,7 +24,7 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefieldcp phasefieldfd phasefieldlambdacp phasefieldlambdafd #pfimp pflambdaimp pfrhoimp #phasefieldcoupling
+check_PROGRAMS = phasefieldcp phasefieldfd phasefieldlambdacp phasefieldlambdafd phasefieldfdrho#pfimp pflambdaimp pfrhoimp #phasefieldcoupling
 
 phasefieldcp_SOURCES = $(SOURCES) 
 phasefieldcp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DCOUPLING  -DIMPLICITTAU -DBICG
@@ -38,8 +38,8 @@ phasefieldlambdacp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWA
 phasefieldlambdafd_SOURCES = $(SOURCES) 
 phasefieldlambdafd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DIMPLICITTAU -DLAMBDASCHEME  -DBICG
  
-#phasefieldfdrho_SOURCES = $(SOURCES) 
-#phasefieldfdrho_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL  -DBICG
+phasefieldfdrho_SOURCES = $(SOURCES) 
+phasefieldfdrho_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL  -DBICG
 
 
 
