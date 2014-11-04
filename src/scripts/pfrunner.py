@@ -18,8 +18,8 @@ class PhasefieldRunner:
     messageframe.pack(side=BOTTOM)
     self.programms=pickle.load(open("compiled.p","rb"))
     self.params=['phasefield.delta','phasefield.mu1','phasefield.mu2','phasefield.endTime', 'fixedTimeStep', 
-    'fem.prefix','phasefield.startLevel','phasefield.reactionrate','phasefield.alpha','phasefield.beta','fem.ode.odesolver']
-    self.defaults=['0.1','0.5','0.5','1','1e-3','','0','1','0.','1.','IM']
+    'fem.prefix','phasefield.startLevel','phasefield.reactionrate','phasefield.alpha','phasefield.beta','phasefield.A','phasefield.rhofactor','fem.ode.odesolver','phasefield.acpenalty']
+    self.defaults=['0.1','0.5','0.5','1','1e-4','','0','1','0.','1.','1.','3.5','IM',0]
     self.paramEntries=self.makeform(paramframe,self.params)
     self.listbox = Listbox( listframe )
     self.listbox.pack(side=LEFT)
@@ -56,7 +56,8 @@ class PhasefieldRunner:
         paramstring+=key+':'+outfile+'_'+p+' '
       else:
         paramstring+=key+':'+self.paramEntries[key].get()+' '
-    execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui '
+    execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui'
+    #execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+p+'.out'
     return ( execstring , outfile )
   def runcall(self, stringtuple):
     execstring=stringtuple[0]
@@ -68,7 +69,7 @@ class PhasefieldRunner:
       c = subprocess.call([execstring], shell=True)
     else:
       c = subprocess.call([terminal+' -e "screen '+execstring+'"'], shell=True)
-      subprocess.call(['screen -d'],shell=True)
+      #subprocess.call(['screen -d'],shell=True)
   def runit(self):
     self.runcall(self.composeString())
 
