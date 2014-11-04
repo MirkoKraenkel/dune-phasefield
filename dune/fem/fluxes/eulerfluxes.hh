@@ -204,14 +204,14 @@ public:
 											uRight, anaflux );
     //add F(uRight) 
     anaflux.umv( normal, gLeft );
-
+#if 0
     model_.thetaSource( inside, time, faceQuadInner.point( quadPoint ),
                       uLeft, thetaFluxLeft );
 
     model_.thetaSource( outside, time, faceQuadOuter.point( quadPoint ),
                       uRight,thetaFluxRight );
 
- 
+#endif
 
     double maxspeedl, maxspeedr, maxspeed;
     double viscparal, viscparar, viscpara;
@@ -237,8 +237,8 @@ public:
     }
 
     // \delta\mu  consider sign!!!!!!!!
-    newvisc=thetaFluxRight;
-    newvisc-=thetaFluxLeft;
+    newvisc=thetaRight[0];
+    newvisc-=thetaLeft[0];
     newvisc*=viscpara*alpha1_; 
  
     gLeft[0] -= newvisc[0];
