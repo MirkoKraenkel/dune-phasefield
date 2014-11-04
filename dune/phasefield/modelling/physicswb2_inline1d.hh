@@ -181,7 +181,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
    
     double dxphi=du[2][0];
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
-		mu+=thermoDynamics_.h2(rho)*0.5*dxphi*dxphi;
+		mu+=delta()*thermoDynamics_.h2prime(rho)*0.5*dxphi*dxphi;
     reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
 

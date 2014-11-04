@@ -184,7 +184,7 @@ template< class Thermodynamics >
     double dyphi=du[3][1];
 
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
-		mu+=thermoDynamics_.h2(rho)*0.5*(dxphi*dxphi+dyphi*dyphi);
+		mu+=delta()*thermoDynamics_.h2prime(rho)*0.5*(dxphi*dxphi+dyphi*dyphi);
     reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
 
