@@ -25,7 +25,7 @@
 
 #include <dune/fem/operator/projectiondiscretemodelcommon.hh>
 
-#include "problemtype.hh"
+#include "../problemtype.hh"
 
 #if WELLBALANCED
 #include <dune/phasefield/modelling/wellbalancedmodel.hh>

@@ -17,7 +17,7 @@
 
 
 
-#include "../passscheme/problemtype.hh"
+#include "../problemtype.hh"
 
 //#include <dune/fem/operator/assembled/heatmodel.hh>
 #include <dune/fem/operator/assembled/models/phasefieldmodel_sources.hh>
