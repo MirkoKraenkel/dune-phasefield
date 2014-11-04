@@ -2,3 +2,4 @@ phasefieldcp
 phasefieldfd
 phasefieldlambdacp
 phasefieldlambdafd
+phasefieldfdrho
