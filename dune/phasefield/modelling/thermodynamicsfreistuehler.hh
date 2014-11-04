@@ -29,101 +29,33 @@ class ThermodynamicsFreistuehler:
     epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
     mu1_( epsilon_ ),
     mu2_( epsilon_ )
-  {
-  }
-
-
-
-  inline void init() const 
-  {
-    abort();
-  }
-
-
-  inline double helmholtz(double& rho,double& phi) const
-  {
-    double t1;
-    double t3;
-    double t4;
-    double t6;
-    double t9;
-
-    t1 = log(phi);
-    t3 = 1.0-phi;
-    t4 = log(t3);
-    t6 = phi*phi;
-    t9 = log(rho);
-    return(phi*t1+t3*t4-t6/2.0+0.15E1*phi*rho*t9+3.0*t3*rho*t9);
-
-  }
-
-
-
-  inline double reactionSource(double& rho,double& phi) const
-  {
-    double t1;
-    double t3;
-    double t4;
+    reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate")),
+    theta_( Dune::Fem::Parameter::getValue<double>(" phasefield.criticalTemp", 0.21))
     {
-      t1 = log(phi);
-      t3 = log(1.0-phi);
-      t4 = log(rho);
-      return(t1-t3-phi-0.15E1*rho*t4);
+    }
+    
+  inline double h( double rho ) const
+    {
+      return rho;
+    }
+  
+  inline double h2( double rho) const
+    {
+      return  h(rho);
     }
 
-  }
+  inline double h2prime( double rho ) const
+    {
+      return 1;
+    }
 
-  inline double dphireactionSource( double &rho, double & phi)const
-  { 
-    std::cout<<"thermodynamicsfreistuehler.hh dphireactionSource not implemented!\n";
-    abort();
-  }
-
-  inline double chemicalPotential(double& rho,double& phi) const
+  
+  #include "FreistuehlerSources/maple.cc"
+  
+  inline double reactionFactor() const
   {
-    double t1;
-
-    t1 = log(rho);
-    return(-0.15E1*phi*t1-0.15E1*phi+3.0*t1+3.0);
-
-
+    return reaction_;
   }
-
-  inline double dphichemicalPotential(double& rho,double& phi) const
-  {
-    std::cout<<"thermodynamicsfreistuehler.hh dphichemicalPotential not implemented!\n";
-    abort();
-  }
-
-  inline double drhochemicalPotential(double& rho,double& phi) const
-  {
-    std::cout<<"thermodynamicsfreistuehler.hh dphichemicalPotential not implemented!\n";
-    abort();
-  }
-
-  inline double  pressure( double rho, double phi) const
-  {
-    return(-0.15E1*phi*rho+3.0*rho);
-  }
-
-
-
-  inline double a(double rho,double phi) const
-  {
-    return 1.6;	
-  }
-
-  private:
-  inline double h(double rho)const
-  {
-
-  }
-  inline double doubleWell(double phi) const
-  {
-    abort(); 
-  }
-
-
 
   public:
 
@@ -131,13 +63,14 @@ class ThermodynamicsFreistuehler:
   inline double deltaInv() const { return deltaInv_; }
   inline double mu1()      const { return mu2_; }
   inline double mu2()      const { return mu1_; }
-
+  
   private:
   mutable double  delta_;
   mutable double  deltaInv_;
   mutable double  epsilon_;
   mutable double  mu1_,mu2_;
-
+  mutable double  reaction_;
+  mutable double  theta_;
 };
 
 
