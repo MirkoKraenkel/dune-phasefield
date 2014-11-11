@@ -340,69 +340,59 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
           const EntityPointerType pOutside = intersection.outside(); // pointer to outside element.
           const EntityType &neighbor = *pOutside;
 
-          //evaluate additional quantities on neighbor
-          //penaltyfactor
           setNeighbor(neighbor);
-          // compute penalty factor
-
 
           LocalFunctionType uNeighbor=u.localFunction(neighbor);
 
-          
-
-         //const int quadOrderEn = uLocal.order() + wLocal.order();
-         //const int quadOrderNb = uNeighbor.order() + wLocal.order();
-
-         if( !Dune::Fem::GridPartCapabilities::isConforming< GridPartType >::v
-               && !intersection.conforming())
-         {
-          computeIntersection<false>(intersection,
-                              uLocal,
-                              uNeighbor,
-                              wLocal);
-         }
-         else
-         {
-          computeIntersection<true>(intersection,
-                              uLocal,
-                              uNeighbor,
-                              wLocal);
+          if( !Dune::Fem::GridPartCapabilities::isConforming< GridPartType >::v && !intersection.conforming())
+            {
+              computeIntersection<false>( intersection,
+                                          uLocal,
+                                          uNeighbor,
+                                          wLocal);
+            }
+          else
+            {
+              computeIntersection<true>(intersection,
+                                        uLocal,
+                                        uNeighbor,
+                                        wLocal);
          
-         }
+            }
 
-        }
+          }
         else if (  intersection.boundary())
-        {
-          //boundaryElement=true;
-          const int quadOrderEn = uLocal.order() + wLocal.order();
-
-          FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
-
-          const size_t numQuadraturePoints = quadInside.nop();
-
-
-          for( size_t pt=0; pt < numQuadraturePoints; ++pt )
           {
-            RangeType vuEn(0.),avuLeft(0.);
-            JacobianRangeType duEn{0.},aduLeft{0.};
-            uLocal.evaluate( quadInside[ pt ], vuEn);
-            uLocal.jacobian( quadInside[ pt ], duEn);
-            //const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
-            const double weight = quadInside.weight( pt );
+            //boundaryElement=true;
+            const int quadOrderEn = uLocal.order() + wLocal.order();
+
+            FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
+
+            const size_t numQuadraturePoints = quadInside.nop();
 
 
-            boundaryIntegral( intersection,
-                              pt,
-                              quadInside,
-                              vuEn,
-                              duEn,
-                              avuLeft,
-                              aduLeft);
+            for( size_t pt=0; pt < numQuadraturePoints; ++pt )
+              {
+                RangeType vuEn(0.),avuLeft(0.);
+                JacobianRangeType duEn{0.},aduLeft{0.};
+                uLocal.evaluate( quadInside[ pt ], vuEn);
+                uLocal.jacobian( quadInside[ pt ], duEn);
+                //const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
+                const double weight = quadInside.weight( pt );
 
-            avuLeft*=weight;
-            aduLeft*=weight;
 
-            wLocal.axpy( quadInside[ pt ] , avuLeft , aduLeft );
+                boundaryIntegral( intersection,
+                                  pt,
+                                  quadInside,
+                                  vuEn,
+                                  duEn,
+                                  avuLeft,
+                                  aduLeft);
+
+                avuLeft*=weight;
+                aduLeft*=weight;
+
+                wLocal.axpy( quadInside[ pt ] , avuLeft , aduLeft );
           }
         }
 
