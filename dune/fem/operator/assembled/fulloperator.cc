@@ -65,14 +65,11 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
               *(Filter::dvelocity(duMid, ii , jj )-Filter::dvelocity( duMid, jj , ii));
 
     Filter::velocity( avu , ii )+=sgradv;
-  
     Filter::velocity( avu , ii )+=Filter::dmu( duMid, ii);
-  
     Filter::velocity( avu , ii )*=Filter::rho( vuMid);
 
     //-tau\nabla phi
     Filter::velocity( avu , ii )-=Filter::tau( vuMid )*Filter::dphi( duMid , ii );
-
   }
   // A(dv) 
   model_.diffusion( duMid , adu );
@@ -80,8 +77,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   //phi---------------------------------------------------------------
 
-  Filter::phi( avu )=Filter::phi( vu );//-Filter::phi( vuOld );
-  Filter::phi( avu) -=Filter::phi( vuOld);
+  Filter::phi( avu )=Filter::phi( vu )-Filter::phi( vuOld );
   Filter::phi( avu )*=deltaInv;
 
   RangeFieldType transport(0.);
@@ -95,10 +91,10 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   //mu-----------------------------------------------------------------
   
   double dFdrho;
-  model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
+  //model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
   //old version like Paris talk
   //  model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
-  
+  model_.muSource(Filter::rho(vu),Filter::rho(vuOld),Filter::phi(vu),dFdrho);
 
 
   Filter::mu(avu)=Filter::mu( vuMid );
@@ -119,12 +115,12 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   }
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
-#if  RHOMODEL
- double rhodiff=(Filter::rho(vu)-Filter::rho(vuOld));
+#if RHOMODEL
+  //double rhodiff=(Filter::rho(vu)-Filter::rho(vuOld));
 //  if( std::abs(rhodiff)<1e-8)
-    Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
- // else
-   // Filter::mu(avu)-=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
+  Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
+//  else
+//    Filter::mu(avu)+=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
 #endif
   //------------------------------------------------------------------
 
@@ -204,7 +200,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                         const IntersectionQuad& quadInside,
                         const IntersectionQuad& quadOutside,
                         const RangeType& vuEn,
-                        const RangeType& vuNb, 
+                        const RangeType& vuNb,
                         const JacobianRangeType& duEn,
                         const JacobianRangeType& duNb,
                         RangeType& avuLeft,

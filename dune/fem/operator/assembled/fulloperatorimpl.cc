@@ -70,9 +70,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
     //-tau\nabla phi
     Filter::velocity( avu , ii )-=Filter::tau( vu )*Filter::dphi( duMid , ii );
-
-   
-
   }
   // A(dv) 
   model_.diffusion( duMid , adu );
@@ -91,14 +88,12 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
   }
   Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vu )/Filter::rho(vuMid);
-
   //mu-----------------------------------------------------------------
   
   double dFdrho;
   //model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
   //old version like Paris talk
   //  model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
-  
   model_.muSource(Filter::rho(vu),Filter::rho(vuOld),Filter::phi(vu),dFdrho);
 
 
@@ -139,7 +134,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                       Filter::rho(vuOld),
                       dFdphi);
    */
-  model_.tauSource( Filter::phi(vuOld),
+  model_.tauSource( Filter::phi(vu),
                     Filter::phi(vuOld),
                     Filter::rho(vuOld),
                     dFdphi);
@@ -147,7 +142,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   Filter::tau( avu )=Filter::tau( vu );
   Filter::tau( avu )-=dFdphi;
+
   RangeFieldType divsigma(0.), gradrhosigma(0.);
+
   for( int ii = 0 ; ii < dimDomain ; ++ii) 
     {
 #if RHOMODEL
@@ -158,9 +155,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
       gradrhosigma+=Filter::sigma( vuMid, ii )*Filter::drho( duMid, ii)* model_.h2prime( Filter::rho( vuMid ) );
 #endif
 #else
-     divsigma+=Filter::dsigma( duMid, ii , ii );
+      divsigma+=Filter::dsigma( duMid, ii , ii );
 #endif
-     }
+    }
 #if RHOMODEL && !LAMBDASCHEME
   Filter::tau( avu )+=model_.delta()*(divsigma+gradrhosigma);
 #else
@@ -187,10 +184,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   {
     assert( avu[ii]==avu[ii]) ;
   }
-  //std::cout<<"avu= "<<avu<<"\n";
   avu-=source;
- // std::cout<<"avu-s="<<avu<<"\n";
-avu*=weight;
+  avu*=weight;
   adu*=weight;
 
 }
@@ -243,7 +238,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
   const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
-  const double area=std::min(areaEn_,areaNb_); 
+  const double area=std::min(areaEn_,areaNb_)/intersectionArea; 
 
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
