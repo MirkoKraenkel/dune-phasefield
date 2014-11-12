@@ -29,6 +29,7 @@ public:
     acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" )),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0)),
+    numViscOld_(Dune::Fem::Parameter::getValue<double>("phasefield.oldvisc",0)),
     imexFactor_(Dune::Fem::Parameter::getValue<double>("phasefield.IMEX"))
     {
     }
@@ -36,6 +37,7 @@ public:
 
   void  numericalFlux ( const DomainType& normal,
                         const double area,
+                        const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuNb,
                         const RangeType& vuEnImEx,
@@ -92,6 +94,7 @@ private:
   double acpenalty_;
   const int switchIP_; 
   const double numVisc_;
+  const double numViscOld_;
   double imexFactor_;
 };
 
@@ -129,6 +132,7 @@ template< class Model >
 void  JacobianFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double area,
+                const double penaltyFactor,
                 const RangeType& vuEnMid,
                 const RangeType& vuNbMid,
                 const RangeType& vuEnImEx,
@@ -137,7 +141,8 @@ void  JacobianFlux<Model>
                 FluxRangeType& gRight) const
   {
       RangeType valEn,valNb,midEn(0.), midNb(0.),jump,jumpImEx,mean, jumpPhi(0.);
-      
+      double integrationElement=normal.two_norm();
+  
       gLeft=0.;
       gRight=0.;
 
@@ -175,6 +180,11 @@ void  JacobianFlux<Model>
       
       gLeft[ 0 ][ dimDomain+2 ]=0.5*numVisc_*area;
       gRight[ 0 ][ dimDomain+2 ]=-0.5*numVisc_*area;
+      //mu
+      //gLeft[ dimDomain +1 ]=0.5*numViscOld_*area;
+      //gRight[ dimDomain +1 ]=-0.5*numViscOld_*area;
+     
+        
       //----------------------------------------------------------------
     
       //v---------------------------------------------------------------
@@ -210,11 +220,16 @@ void  JacobianFlux<Model>
           gRight[ dimDomain + 1 ][ dimDomain +1 ]+=normal[ ii ]*midEn[ 1 + ii ]*0.25;
 
           gLeft[ dimDomain + 1 ][ 1 + ii ]=jump[ dimDomain + 1 ]*normal[ ii ]*-0.25;
-              //tau
+          //tau
           //F_{3.2}
           //(\sigma^+-\sigma^-)\cdot n * 0.5
           laplaceFluxLeft=normal[ ii ]*0.25;
           laplaceFluxRight=normal[ ii ]*-0.25;
+          
+          double penaltyTerm=acpenalty_;
+          penaltyTerm*=penaltyFactor;
+          penaltyTerm*=integrationElement;
+   
           //tau-------------------------------------------------------------
 #if LAMBDASCHEME
           gLeft[ dimDomain + 3 ][2*dimDomain + 4 + ii ]=-model_.delta()*laplaceFluxLeft;
@@ -223,6 +238,10 @@ void  JacobianFlux<Model>
           gLeft[ dimDomain + 3 ][ dimDomain + 4+ii ]=-model_.delta()*laplaceFluxLeft;
           gRight[ dimDomain + 3 ][dimDomain + 4+ii ]=-model_.delta()*laplaceFluxRight;
 #endif
+          //factor 0.5 comes from linerarization of 1/2(phi^(n+1)+phi^n)
+          gLeft[ dimDomain + 3 ][ dimDomain + 1]=-model_.delta()*0.5*penaltyTerm;
+          gRight[ dimDomain + 3 ][ dimDomain + 1]=model_.delta()*0.5*penaltyTerm; 
+          
         }
     
       //----------------------------------------------------------------
