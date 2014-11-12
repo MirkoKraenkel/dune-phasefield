@@ -41,12 +41,17 @@ class BalancedThermodynamics:
   
   inline double h2( double rho) const
   {
-    return  1./h(rho);
-  }
+    return  1./h(rho)+A_;
+   // return  1./sqrt(rho);
+    //return 1.;
+
+ }
 
   inline double h2prime( double rho ) const
   {
     return -1./(h(rho)*h(rho));
+   // double sqrtrhoinv=1./sqrt(rho);
+    //return -0.5*sqrtrhoinv*sqrtrhoinv*sqrtrhoinv;
   }
 #include "InvRhoSources/maple.cc"
 #else
