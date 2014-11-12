@@ -141,10 +141,10 @@ template <class GridType,class RangeProvider>
 inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-  double deltaInv=1./delta_*sqrt(A_);
+  double deltaInv=1./delta_;//*sqrt(A_);
   double r=std::abs( arg[0]);
-  double tanhr=-tanh( ( r-0.5 )*deltaInv ); 
-  double tanhrho=-tanh( ( r-0.5 )*rhofactor_*deltaInv ); 
+  double tanhr=-tanh( ( r-radius_ )*deltaInv ); 
+  double tanhrho=-tanh( ( r-radius_ )*rhofactor_*deltaInv ); 
 
   //(1-tanh^2)/delta
   double drtanhr=-deltaInv*(1-tanhr*tanhr);
@@ -175,8 +175,8 @@ inline void TanhProblem<GridType,RangeProvider>
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
   double sigma=0.5*drtanhr;
   double gradrho=-0.5*rhodiff*drtanhr;
-  double rhoInv=1./rho;
-  double hprime=-1./(rho*rho);
+  double rhoInv=thermodyn_.h2(rho);            //1./rho;
+  double hprime=thermodyn_.h2prime(rho);//-1./(rho*rho);
   double laplacePhi=0.5*drdrtanhr;
   if(arg[0]<0.)
     {
