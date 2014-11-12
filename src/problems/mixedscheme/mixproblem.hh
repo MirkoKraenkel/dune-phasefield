@@ -10,6 +10,7 @@
 // local includes
 
 #include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+//#include <dune/phasefield/modelling/thermodynamicsfreistuehler.hh>
 //#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
 
 
@@ -41,7 +42,7 @@ public:
 
 //   typedef TestThermodynamics ThermodynamicsType;
   typedef BalancedThermodynamics ThermodynamicsType; 
-
+//  typedef ThermodynamicsFreistuehler ThermodynamicsType;
   MixProblem() : 
     myName_( "Mixedtest Heatproblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
@@ -170,7 +171,7 @@ inline void MixProblem<GridType,RangeProvider>
 #endif
 #if LAMBDASCHEME 
   //alpha_x
-  res[dimension+4+dimension]=res[dimension+4]*rho_inv;
+  res[dimension+4+dimension]=res[dimension+4]*thermodyn_.h2(rho);
 #endif
   if(dimension==2)
     {
