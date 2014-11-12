@@ -320,7 +320,7 @@ public:
     //some setup stuff
 		const bool verbose = Dune::Fem::Parameter :: verbose ();
   	int printCount = Dune::Fem::Parameter::getValue<int>("phasefield.printCount", -1);
-    printCount+=loopNumber*printCount; 
+    //printCount+=loopNumber*printCount; 
 		int adaptCount = 0;
 		int maxAdaptationLevel = 0;
 		int startLevel = 0 ;
@@ -408,7 +408,8 @@ public:
           ++startCount;
         }
       }
-      timeProvider.provideTimeStepEstimate(1e-2);
+      double firstTimeStep=Dune::Fem::Parameter::getValue<double>("phasefield.firstStep",1e-6);
+      timeProvider.provideTimeStepEstimate(firstTimeStep);
     	// start first time step with prescribed fixed time step 
 	    // if it is not 0 otherwise use the internal estimate
 			if ( fixedTimeStep_ > 1e-20 )
@@ -465,13 +466,13 @@ public:
 			  {
           if( grid_.comm().rank() == 0 )
             {
-              std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<" ,timeStepEstimate " <<timeStepEst;
-              std::cout<< " ,Error between timesteps="<< timeStepError<<" iterations"<<ils_iterations;
+              std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<", timeStepEstimate " <<timeStepEst;
+              std::cout<< ", Error between timesteps="<< timeStepError<<" iterations "<<ils_iterations;
               std::cout<<std::endl;
              
             }
          
-          writeEnergy( timeProvider , energyfile, ils_iterations, surfacediff);
+          writeEnergy( timeProvider , energyfile, ldt, surfacediff);
         }
 
         writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
