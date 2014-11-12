@@ -28,7 +28,7 @@ public:
     acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" )),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0)),
-    numViscOld_(Dune::Fem::Parameter::getValue<double>("phasefield.oldvisc",0))
+    numViscMu_(Dune::Fem::Parameter::getValue<double>("phasefield.muvisc",0))
     {
     }
 
@@ -73,7 +73,7 @@ private:
   double acpenalty_;
   const int switchIP_; 
   const double numVisc_;
-  const double numViscOld_;
+  const double numViscMu_;
 };
 
 
@@ -97,9 +97,9 @@ double MixedFlux<Model>
     //rho-------------------------------------------------------------
   
     for(int i = 0; i<dimDomain;++i)
-     {
-         vNormalEn+=Filter::velocity(midEn,i)*normal[i];
-     }
+      {
+        vNormalEn+=Filter::velocity(midEn,i)*normal[i];
+      }
 
     Filter::rho(gLeft)=-1*vNormalEn*Filter::rho(midEn);
   
@@ -123,10 +123,12 @@ double MixedFlux<Model>
 #if LAMBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
         laplaceFlux-=(Filter::alpha(midEn,i))*normal[i];
+        
 #else
         //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
         laplaceFlux-=Filter::sigma(midEn,i)*model_.h2(Filter::rho(midEn))*normal[i];
 #endif
+
 #else
         //F_{3.2}
         //(\sigma^+-\sigma^-)\cdot n * 0.5
@@ -181,6 +183,7 @@ double MixedFlux<Model>
     gLeft=0.;
     gRight=0.;
 
+
     midEn=vuEnMid;
     midNb=vuNbMid;
     jump = midEn;
@@ -193,7 +196,7 @@ double MixedFlux<Model>
     //rho-------------------------------------------------------------
  
     double vNormalEn(0.),vNormalNb(0.);
-   
+    
     for(int i = 0; i<dimDomain;++i)
       {
         //v^+\cdot n^+
@@ -207,11 +210,14 @@ double MixedFlux<Model>
     Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
     Filter::rho(gLeft)*=-0.5;
      
-    double viscold=Filter::rho(jump);
-    double visc=Filter::mu( jump );
-    Filter::rho(gLeft)+=numViscOld_*area*viscold;
-    Filter::rho(gLeft)+=numVisc_*area*visc;
+    double viscmu=Filter::rho(jump);
+    double viscrho=Filter::mu( jump );
+    
+    Filter::rho( gLeft )+=numVisc_*area*viscrho;
     Filter::rho( gRight )=Filter::rho( gLeft );
+    
+    // Filter::mu( gLeft )+=numViscMu_*area*viscmu;
+    //Filter::mu( gRight )=Filter::mu( gLeft );
     //----------------------------------------------------------------
     
     //v---------------------------------------------------------------
@@ -242,7 +248,6 @@ double MixedFlux<Model>
           
         //tau 
         //F_{3.2}
-  
 #if RHOMODEL
 #if LAMBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
