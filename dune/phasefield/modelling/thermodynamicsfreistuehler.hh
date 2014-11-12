@@ -28,7 +28,7 @@ class ThermodynamicsFreistuehler:
     deltaInv_( 1./delta_ ),
     epsilon_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
     mu1_( epsilon_ ),
-    mu2_( epsilon_ )
+    mu2_( epsilon_ ),
     reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate")),
     theta_( Dune::Fem::Parameter::getValue<double>(" phasefield.criticalTemp", 0.21))
     {
@@ -63,7 +63,7 @@ class ThermodynamicsFreistuehler:
   inline double deltaInv() const { return deltaInv_; }
   inline double mu1()      const { return mu2_; }
   inline double mu2()      const { return mu1_; }
-  
+  inline double theta()    const { return theta_;} 
   private:
   mutable double  delta_;
   mutable double  deltaInv_;
