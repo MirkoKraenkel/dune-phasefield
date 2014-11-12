@@ -173,8 +173,18 @@ inline void PhasefieldModel< Grid, Problem >
              RangeFieldType phi,
              RangeFieldType& mu) const
 {
-
-  mu=problem_.thermodynamics().chemicalPotential(rhoOld,phi);
+//  double diffrho=rho-rhoOld;
+//  if( std::abs(diffrho)<1e-9)
+    mu=problem_.thermodynamics().chemicalPotential(rhoOld,phi);
+#if 0
+else
+    {
+      double fnew,fold;
+      fnew=problem_.thermodynamics().helmholtz(rho,phi);
+      fold=problem_.thermodynamics().helmholtz(rhoOld,phi);
+      mu=(fnew-fold)/(rho-rhoOld);
+    }
+#endif
 }
 template<class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem >
@@ -193,38 +203,27 @@ inline void PhasefieldModel< Grid, Problem >
                  RangeFieldType phi,
                  RangeFieldType& mu ) const
 {
-  double diffrho=rho-rhoOld;
-  if( std::abs(diffrho)<1e-8 )
-    mu=problem_.thermodynamics().dphichemicalPotential(rhoOld,phi);
-  else
-    {
-      double fnew,fold;
-      fnew=problem_.thermodynamics().helmholtz(rho,phi);
-      fold=problem_.thermodynamics().helmholtz(rhoOld,phi);
-      mu=(fnew-fold)/(diffrho);
-    }
-}
+  mu=problem_.thermodynamics().dphichemicalPotential(rhoOld,phi);
+} 
 
 
 template< class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem>
 ::tauSource ( RangeFieldType phi,
               RangeFieldType phiOld,
-              RangeFieldType rho,
+              RangeFieldType rhoOld,
               RangeFieldType& tau) const
 {
 //  double diffphi=phi-phiOld;
-//  if( std::abs(diffphi)<1e-8)
-    tau=problem_.thermodynamics().reactionSource(rho,phiOld);
-/*
-else
-  {
-    double fnew,fold;
-    fnew=problem_.thermodynamics().helmholtz(rho,phi);
-    fold=problem_.thermodynamics().helmholtz(rho,phiOld);
-    tau=(fnew-fold)/(phi-phiOld);
-  }
-  */
+  //if( std::abs(diffphi)<1e-9)
+    tau=problem_.thermodynamics().reactionSource(rhoOld,phiOld);
+//  else
+  //  {
+    //  double fnew,fold;
+ //     fnew=problem_.thermodynamics().helmholtz(rhoOld,phi);
+   //   fold=problem_.thermodynamics().helmholtz(rhoOld,phiOld);
+    //  tau=(fnew-fold)/(phi-phiOld);
+//    }
 }
 template< class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem>
@@ -233,7 +232,8 @@ inline void PhasefieldModel< Grid, Problem>
                   RangeFieldType rho,
                   RangeFieldType& tau) const
 {
-  tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
+ //abort();
+ tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
 }
 
 
