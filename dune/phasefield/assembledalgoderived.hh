@@ -45,6 +45,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   using BaseType::grid_;
   using BaseType::gridPart_;
   using BaseType::space_;
+  using BaseType::fixedTimeStep_;
   using BaseType::solution_;
   using BaseType::oldsolution_;
   using BaseType::energy_;
@@ -118,13 +119,19 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       max_newton_iterations = std::max(max_newton_iterations,newton_iterations);
       max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
 
+      
       if( !invOp.converged() || newton_iterations > maxNewtonIter_)
         {
-          std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<maxNewtonIter_<<" )  with deltaT="<<deltaT;
+          std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
           reduceTimeStep( timeProvider , deltaT );
           std::cout<<" - reduced Timestep="<<timeProvider.deltaT()<<"\n";
           U.assign(Uold);
-        }
+          if (fixedTimeStep_>1e-20)
+            { 
+             "no convergence!"
+              abort();
+            }
+         }
       else if( ils_iterations < 10 && timeProvider.deltaT() < 1e-3)
         {
           timeProvider.provideTimeStepEstimate( 1.2*deltaT);
