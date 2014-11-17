@@ -137,8 +137,8 @@ public:
 
     
      // \delta\mu  consider sign!!!!!!!!
-    newvisc=thetaLeft[0];
-    newvisc-=thetaRight[0];
+    newvisc=thetaRight[0];
+    newvisc-=thetaLeft[0];
     newvisc*=viscpara*alpha1_; 
      
    gLeft[0]-=newvisc[0];
@@ -159,7 +159,7 @@ public:
                phiRight,
                nonConLeft,
                nonConRight);
-
+    
    gLeft  -= nonConLeft;
    gRight += nonConRight;
    
@@ -201,7 +201,7 @@ public:
       }     
     
       nonConRight=nonConLeft;
-
+      
       nonConLeft *=(jumpMu*rhoLeft -jumpPhi*tauLeft);
       nonConRight*=(jumpMu*rhoRight-jumpPhi*tauRight);
       
