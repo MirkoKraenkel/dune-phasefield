@@ -272,20 +272,19 @@ namespace Dune {
 
       // take minimum to proceed 
       const double diffTimeStep = std::max( diffTimeLeft, diffTimeRight );
-#if 0
-#warning "RECONSIDER PENALTY TERM: {Du}[u]"
       if( penaltyTerm_ )
 				{ 
-					// add penalty term ( enVolume() is available since we derive from
-					//    DiscreteModelDefaultWithInsideOutside)
-          const double h=0.5*(discreteModel.enVolume()+discreteModel.nbVolume());
-          const double factor = penalty_/sqrt(h)   ;
-
-					RangeType jump( uLeft );
+					//add penalty term ( enVolume() is available since we derive from
+					//DiscreteModelDefaultWithInsideOutside)
+          //const double h=0.5*(discreteModel.enVolume()+discreteModel.nbVolume());
+          //const double factor = penalty_/sqrt(h)   ;
+          const double factor = penalty_*diffTimeStep;
+          RangeType jump( uLeft );
 					jump -= uRight;
-					gLeft.axpy(factor, jump);
+	        for( int i = 1; i<dimDomain+1;++i)
+            gLeft[i]+=factor*jump[i];
 				}
-#endif
+
       gRight = gLeft ;
       // gDiffLeft should be 0 in case of LDG
       gDiffLeft = 0;
@@ -374,22 +373,16 @@ namespace Dune {
       //  --Penalty Term
       //
       //////////////////////////////////////////////////////////
-#if 0
-#warning RECONSINDER PENALTY {D(u)}[u[]!!!!!!!!! 
       if( penaltyTerm_ ) 
 				{ 
 					// add penalty term
 					const double factor = penalty_ * diffTimeStep;
-
 					RangeType jump( uLeft );
-		      
-                 
-          jump -= uRight[i];
+          jump -= uRight;
             			
-        
-         gLeft.axpy(factor, jump);
-				}
-#endif
+          for( int i = 1 ;i<dimDomain+1;++i)
+            gLeft[i]+=factor*jump[i];
+          }
       // gDiffLeft should be 0 in case of LDG
       gDiffLeft = 0;
 
