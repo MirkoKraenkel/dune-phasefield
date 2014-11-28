@@ -29,7 +29,7 @@ print(len( elemcouplings1d))
 interseccouplings1d=[  ( rho , rho ), ( rho , v ),( rho , mu),
             ( v , rho ) ,( v , v), ( v, phi ),( v , mu ),( v , tau ),
             ( phi , v ), ( phi,phi),
-            (tau,tau),(tau,lambdax),
+            (tau,phi),(tau,tau),(tau,lambdax),
             (sigmax,phi),(sigmax,sigmax)
 ]
 f=open('elementCouplings1d_lambda_CODEGEN.c','w')
@@ -60,7 +60,7 @@ elemcouplings2d=[ ( rho , rho ),( rho , vx ),(rho,vy),
             ( vy , rho ),( vy , vx ),( vy , vy ), ( vy, phi ),( vy , mu ),( vy , tau ),
             ( phi , rho ),( phi , vx ),( phi , vy ), ( phi,phi),(phi,tau),
             ( mu, rho ),(mu,vx),(mu,vy),(mu,phi),(mu,mu),(mu,sigmax),(mu,sigmay),
-            ( tau,rho ),(tau,phi),(tau,tau),(tau,lambdax),(tau,lambday),
+            (tau,phi),(tau,tau),(tau,lambdax),(tau,lambday),
             (sigmax,phi),(sigmax,sigmax),
             (sigmay,phi),(sigmay,sigmay),
             (lambdax,rho),(lambdax,sigmax),(lambdax,lambdax),
@@ -70,7 +70,7 @@ interseccouplings2d=[  ( rho , rho ), ( rho , vx ),( rho , vy ),( rho , mu),
             ( vx , rho ),( vx , vx ),(vx,vy), ( vx, phi ),( vx , mu ),( vx , tau ),
             ( vy , rho ),( vy , vx ),(vy,vy), ( vy, phi ),( vy , mu ),( vy , tau ),
             ( phi , vx ),( phi , vy ), ( phi,phi),
-            (tau,tau),(tau,lambdax),(tau,lambday),
+            (tau,phi),(tau,tau),(tau,lambdax),(tau,lambday),
             (sigmax,phi),(sigmax,sigmax),
             (sigmay,phi),(sigmay,sigmay)
 ]
