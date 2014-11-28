@@ -117,7 +117,7 @@ namespace Dune
     
       ret[0] = indicator_[enIndex_];
       ret[1] = refined_[enIndex_];
-      ret[2] = grid_.getMark(*entity_);
+      ret[2] = refinedandcoarsened_[enIndex_];//grid_.getMark(*entity_);
    }
   private:
     const ElementType *entity_;
@@ -126,7 +126,6 @@ namespace Dune
   public:
     void clear ()
     {
-      std::cout<<"clear\n";
       indicator_.resize( indexSet_.size( 0 ));
       refined_.resize( indexSet_.size( 0 ));
       refinedandcoarsened_.resize( indexSet_.size( 0 ));
@@ -222,18 +221,21 @@ namespace Dune
           if(verbose_ && (gridFactor > 1.001))
             std::cout<<"gridFactor="<<refined_[index]<<"/ "<<indicator_[index]<<"="<<gridFactor<<"\n";
          
-         if( std::abs(gridFactor)> tolerance)
-	       {
+       //  if( std::abs(gridFactor)> tolerance)
+        if( gridFactor==-1)
+         {
 	        
           if(entity.level()<maxLevel_)
 		        {
               //if( refined_[index]!=1)
                 {      
                   grid_.mark( 1, entity );
-                  refined_[ index ] += 1;	
+            //      refined_[ index ] += 1;	
                 }
               IntersectionIteratorType end = gridPart_.iend( entity );
-		          for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
+		          
+             // if(0)
+              for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		          {
                 const IntersectionType &intersection = *inter;
                 if( intersection.neighbor() )
@@ -246,7 +248,7 @@ namespace Dune
                //     if(refined_[outsideIndex]<1)
                       { 
                         grid_.mark( 1, outside );
-                        refined_[outsideIndex ] += 1;	
+          //              refined_[outsideIndex ] += 1;	
                       }
                     ++marked;
                   }
@@ -255,15 +257,15 @@ namespace Dune
             ++marked;
 		       }
 	        }
-          else if( gridFactor < coarsen_ )
+          else if ( gridFactor==1)//else if( gridFactor < coarsen_ )
 	        {
             //std::cout<<"GF="<<gridFactor<<"->Coarsen?\n";
             if( entity.level()>minLevel_ /* &&  (refined_[indexSet_.index(entity)]!=1)*/ )
             { 
-		          if(refined_[index]==1)
-               refinedandcoarsened_[index]=2.;
-              else
-               refinedandcoarsened_[index]=1.;
+		       //   if(refined_[index]==1)
+           //    refinedandcoarsened_[index]=2.;
+           //   else
+           //    refinedandcoarsened_[index]=1.;
               
               grid_.mark(-1,entity);
             }
@@ -309,13 +311,13 @@ namespace Dune
       JacobianRangeType gradient;
       
       uLocal.evaluate( refElement.position(0 , 0),range );
-      for( int i=0 ; i < dimension ; ++ i)
-       sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
+ //     for( int i=0 ; i < dimension ; ++ i)
+   //    sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
 
 
       
-#if 0 
-  for( int qp = 0; qp < numQuadraturePoints; ++qp )
+#if 1 
+    for( int qp = 0; qp < numQuadraturePoints; ++qp )
         {
           JacobianRangeType gradient;
 	        RangeType range;
@@ -324,9 +326,8 @@ namespace Dune
 	        uLocal.evaluate(quad[qp],range);
           
           for(int i=0 ; i<dimension; ++i)
-            sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
+            sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i)*weight;
 
-         sigmasquared*=weight;
         // maxsigma=std::max(sigmasquared,maxsigma);
 
         }
@@ -334,7 +335,17 @@ namespace Dune
       //L2-Norm Sigma
       double normsigma=std::sqrt(sigmasquared);
       normsigma*=tolfactor_;
-      indicator_[ index ]=h2*(normsigma+(1./maxH_));
+      double indicatedsize=1/(normsigma+(1./maxH_)); 
+      refined_[ index ]=h2;//indicatedsize; 
+      refinedandcoarsened_[index]=indicatedsize;
+      #if 1 
+      if( indicatedsize < 0.4*h2)
+        indicator_[ index ]=-1;
+      else if( indicatedsize > h2)
+        indicator_[ index ]=1;
+      else
+        indicator_[index]=0;
+      #endif
       return normsigma;
     }
 
