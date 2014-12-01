@@ -8,7 +8,11 @@ template<class Range>
 struct PhasefieldFilter
 {
 public:
+#if RHOMODEL && LAMBDASCHEME
+  enum { dimDomain = (Range::dimension-4)/3 };
+#else 
   enum { dimDomain = (Range::dimension-4)/2 };
+#endif
   typedef Dune::FieldMatrix<double,Range::dimension,dimDomain> JacobianRangeType;
   typedef typename Range::field_type RangeFieldType;
   typedef Range RangeType;
