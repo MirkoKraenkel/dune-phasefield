@@ -128,7 +128,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
           U.assign(Uold);
           if (fixedTimeStep_>1e-20)
             { 
-             "no convergence!"
+              std::cout<<"no convergence!"<<"\n";
               abort();
             }
          }
