@@ -183,12 +183,15 @@ inline void MixProblem<GridType,RangeProvider>
 #endif
     }
 #else
-
+  for(int i=1;i<=dimension;i++)
+   {
+      res[i]*=res[0];
+   }
 #if NONCONTRANS
 #else
-      res[1]*=res[0];
-      res[2]*=res[0];
+      res[dimension+1]*=res[0];
 #endif
+
 #endif    
 }
 
