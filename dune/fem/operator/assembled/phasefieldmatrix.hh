@@ -61,7 +61,7 @@ class PhasefieldJacobianOperator
 
   typedef typename Dune::FieldMatrix<double,dimRange,dimRange> FluxRangeType;
   typedef typename Dune::FieldVector<double,1> ComponentRangeType;
-  typedef typename Dune::FieldMatrix<double,1,dimDomain> omponentJacobianType;
+  typedef typename Dune::FieldMatrix<double,1,dimDomain> ComponentJacobianType;
   typedef std::vector< ComponentRangeType> BasefunctionStorage;
   typedef std::vector< ComponentJacobianType> BaseJacobianStorage;
   typedef typename std::array<DomainType, dimDomain> DiffusionValueType;
@@ -183,12 +183,10 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
    //for each velocomponent
   for( size_t ii = 0 ; ii < dimDomain ; ++ii )
     { 
-      size_t global_i=local_i*dimRange + (1+ii);//veloDof( local_i, comp);
-      assert( global_i == DofAlignmentType::vectorialIndex( 1 + ii , local_i) ); 
+      size_t global_i= DofAlignmentType::vectorialIndex( 1 + ii , local_i); 
       for( size_t jj = 0 ; jj < dimDomain; ++jj )
         {
-          size_t global_j =  local_j*dimRange+(1+jj);//veloDof( local_j, comp);
-          assert( global_j == DofAlignmentType::vectorialIndex( 1 + jj , local_j) ); 
+          size_t global_j = DofAlignmentType::vectorialIndex( 1 + jj , local_j); 
           double  value(0);
           value=du[ jj ][ ii ]*dphi[ local_i ][ 0 ];         
                 
@@ -339,42 +337,43 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           for( size_t ii = 0; ii < numScalarBf ; ++ii )
           {
             MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                phi,
-                phi,
-                fluxLeft,
-                ii,
-                jj,
-                weightInside,
-                jLocal );
+                                                                phi,
+                                                                phi,
+                                                                fluxLeft,
+                                                                ii,
+                                                                jj,
+                                                                weightInside,
+                                                                jLocal );
 
             MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                phi,
-                phiNb,
-                fluxRight,
-                ii,
-                jj,
-                weightInside,
-                jLocalNbEn );
+                                                                phi,
+                                                                phiNb,
+                                                                fluxRight,
+                                                                ii,
+                                                                jj,
+                                                                weightInside,
+                                                                jLocalNbEn );
 #if 1 
             MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                phiNb,
-                phi,
-                fluxRightNeg,
-                ii,
-                jj,
-                weightOutside,
-                jLocalEnNb );
+                                                                phiNb,
+                                                                phi,
+                                                                fluxRightNeg,
+                                                                ii,
+                                                                jj,
+                                                                weightOutside,
+                                                                jLocalEnNb );
 
             MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
-                phiNb,
-                phiNb,
-                fluxLeftNeg,
-                ii,
-                jj,
-                weightOutside,
-                jLocalNbNb );
+                                                                phiNb,
+                                                                phiNb,
+                                                                fluxLeftNeg,
+                                                                ii,
+                                                                jj,
+                                                                weightOutside,
+                                                                jLocalNbNb );
 #endif
 #if 1
+// Adding DiffusionFluxTerms
             for(int i  = 0; i  < dimDomain ; ++i )
             {
               int global_i=ii*dimRange+1+i; 
