@@ -1,6 +1,6 @@
 #ifndef DUNE_PHASEFIELD_THETADISCREMODEL_HH
 #define DUNE_PHASEFIELD_THETADISCREMODEL_HH
-#define SWITCH_LDG 1
+#define SWITCH_LDG 0 
 
 // Dune includes
 #include <dune/fem/gridpart/common/gridpart.hh>
@@ -251,23 +251,23 @@ namespace Dune {
      
       gLeft*=0.5;
 #endif     
-     gDiffLeft = 0;
-     gDiffRight = 0;     
-#if 1			
-    const double faceLengthSqr=normal.two_norm2();
-    const double h=sqrt(faceLengthSqr);
-     // add penalty term ( enVolume() is available since we derive from
-			//    DiscreteModelDefaultWithInsideOutside)
-      //
+      gDiffLeft = 0;
+      gDiffRight = 0;     
+      
+      const double faceLengthSqr=normal.two_norm2();
+      const double h=sqrt(faceLengthSqr);
+      
+      //add penalty term ( enVolume() is available since we derive from
+  	  //DiscreteModelDefaultWithInsideOutside)
       //penalty is negative, because of the sign of the diffusion!!!!!!!!
       double factor = -1.*acpenalty_ ;
 
 #if NONCONTRANS
-    double phiLeft= uLeft[uVar][dimDomain+1];
-    double phiRight=uRight[uVar][dimDomain+1];
+      double phiLeft= uLeft[uVar][dimDomain+1];
+      double phiRight=uRight[uVar][dimDomain+1];
 #else
-    double phiLeft= uLeft[uVar][dimDomain+1]/uLeft[uVar][0];
-    double phiRight=uRight[uVar][dimDomain+1]/uRight[uVar][0];
+      double phiLeft= uLeft[uVar][dimDomain+1]/uLeft[uVar][0];
+      double phiRight=uRight[uVar][dimDomain+1]/uRight[uVar][0];
 #endif
 	 		RangeType jmp(0);
       
@@ -276,7 +276,6 @@ namespace Dune {
       factor/=h; 
        
 			gLeft.axpy(factor, jmp);
-#endif			
 
       gRight=gLeft;
  

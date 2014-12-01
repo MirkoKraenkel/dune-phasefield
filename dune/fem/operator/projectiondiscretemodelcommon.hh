@@ -350,20 +350,23 @@ public:
     // make sure user sets specific boundary implementation
     gLeft = std::numeric_limits< double >::quiet_NaN();
     gDiffLeft = 0;
- 
+
     if (advection)
-    { 
+    {
       if( hasBndValue )
-	    {
-  	     RangeType gRight;
+	    { 
+        RangeType gRight;
+        
 #if WELLBALANCED || NSK
-	  		return numflux_.numericalFlux(it, this->inside(), this->inside(),
-																			time, faceQuadInner, faceQuadInner, quadPoint, 
-																			uLeft[ uVar ], uBnd_,uLeft[thetaVar],uLeft[thetaVar],gLeft, gRight);
+        double fluxret=numflux_.numericalFlux(it, this->inside(), this->inside(),
+																		          time, faceQuadInner, faceQuadInner, quadPoint, 
+																			        uLeft[ uVar ], uBnd_,uLeft[thetaVar],uLeft[thetaVar],gLeft, gRight);
+        return fluxret;
 #else
-        return numflux_.numericalFlux(it, this->inside(), this->inside(),
-					                            time, faceQuadInner, faceQuadInner, quadPoint, 
-                                      uLeft[ uVar ], uBnd_, gLeft, gRight);
+        double fluxret=numflux_.numericalFlux(it, this->inside(), this->inside(),
+					                                    time, faceQuadInner, faceQuadInner, quadPoint, 
+                                              uLeft[ uVar ], uBnd_, gLeft, gRight);
+        return fluxret;
 #endif
       }
       else 
