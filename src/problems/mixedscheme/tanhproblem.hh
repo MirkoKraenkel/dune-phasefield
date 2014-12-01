@@ -10,8 +10,6 @@
 // local includes
 
 #include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
-//#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
-//#include <dune/fem/probleminterfaces.hh>
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
 
@@ -141,7 +139,7 @@ template <class GridType,class RangeProvider>
 inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-  double deltaInv=1./delta_;//*sqrt(A_);
+  double deltaInv=sqrt(A_)/delta_;
   double r=std::abs( arg[0]);
   double tanhr=-tanh( ( r-radius_ )*deltaInv ); 
   double tanhrho=-tanh( ( r-radius_ )*rhofactor_*deltaInv ); 
@@ -152,7 +150,6 @@ inline void TanhProblem<GridType,RangeProvider>
   //-2/delta^2 *(tanh*(1-tanh^2)
   drdrtanhr*=-2*deltaInv;
  
-  // double rho=1.85*(-0.5*tanhr+0.5)+
   double rhodiff=rho2_-rho1_;
   double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
   double v=0;//0.1*sin(2*M_PI*arg[0]);
