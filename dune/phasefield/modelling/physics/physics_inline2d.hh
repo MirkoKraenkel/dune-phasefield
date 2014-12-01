@@ -292,6 +292,8 @@ template< class Thermodynamics >
     const double v[2] = { u[1]*rho_inv, u[2]*rho_inv };
   
     const double phi = u[3]*rho_inv;
+    double reaction=thermoDynamics_.reactionSource(u[0],phi);
+ 
     const double muLoc = mu1();
     const double lambdaLoc = mu2();
   
@@ -324,7 +326,7 @@ template< class Thermodynamics >
     // 3rd row
     diff[2][0] = tau10;                diff[2][1] = tau11;
     // 4th row
-    diff[3][0] = delta()*dxphi;        diff[3][1] = delta()*dzphi;
+    diff[3][0] = reaction*delta()*dxphi;        diff[3][1] = reaction*delta()*dzphi;
     
    }
   template< class Thermodynamics >

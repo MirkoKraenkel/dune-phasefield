@@ -280,10 +280,11 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     const double dxv   = rho_inv*(dxrhou - v*dxrho);
     const double dxphi = rho_inv*(dxrhophi - phi*dxrho);
 
+    const double reactionfactor=thermoDynamics_.reactionFactor();
     diff[0][0]=0.;
     diff[1][0]=muLoc*dxv;
     diff[2][0]=delta()*thermoDynamics_.h2(rho)*dxphi;
-    
+    diff[2][0]*=reactionfactor;
   }
 
   template< class Thermodynamics >
