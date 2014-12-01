@@ -74,6 +74,11 @@ class PhasefieldModel
                                 const RangeFieldType rho,
                                 RangeFieldType& tau) const;
 
+    inline void maxSpeed( const DomainType& normal,
+                          const RangeType& u,
+                          double& advspeed) const ;
+    
+    
     inline void dirichletValue ( const double time,
                                  const DomainType& xglobal,
                                  RangeType& g) const;
@@ -146,9 +151,9 @@ inline void PhasefieldModel< Grid,Problem>
   surfaceEnergy*=problem_.thermodynamics().delta();
 
   therm=problem_.thermodynamics().helmholtz(rho,phi);
-  therm+=surfaceEnergy;
+  //therm+=surfaceEnergy;
 
-  total=therm+kin;
+  total=therm+kin+surfaceEnergy;
   surf=surfaceEnergy;
 }
 
@@ -236,6 +241,18 @@ inline void PhasefieldModel< Grid, Problem>
  tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
 }
 
+template< class Grid, class Problem >
+inline void PhasefieldModel< Grid, Problem>
+::maxSpeed( const DomainType& normal,
+            const RangeType& u,
+            double& advspeed) const
+{
+    double unormal;
+    for( int ii = 0 ; ii<dimDomain ; ++ii)
+      unormal=u[1+ii]*normal[ii];
+    double c=problem_.thermodynamics().a(u[0],u[dimDomain+1]);
+    return std::abs(unormal)+std::sqrt(c);
+}
 
 template< class Grid, class Problem>
 inline void PhasefieldModel< Grid,Problem>

@@ -74,6 +74,11 @@ class PhasefieldModel
                                 const RangeFieldType rho,
                                 RangeFieldType& tau) const;
 
+    inline void maxSpeed( const DomainType& normal,
+                          const RangeType& u,
+                          double& advspeed) const ;
+    
+    
     inline void dirichletValue ( const double time,
                                  const DomainType& xglobal,
                                  RangeType& g) const;
@@ -86,7 +91,11 @@ class PhasefieldModel
     inline void scalar2vectorialDiffusion ( const JacobianVector& dphi , DiffusionTensorType& diffusion ) const; 
     inline void diffusion ( JacobianRangeType& vu,
                             JacobianRangeType& diffusion) const;
-    
+
+    inline RangeFieldType pressure (double rho , double phi) const
+    {
+      return problem_.thermodynamics().pressure( rho , phi );
+    }
     inline RangeFieldType h2 ( double rho ) const
     {
       return  problem_.thermodynamics().h2( rho );
@@ -142,9 +151,9 @@ inline void PhasefieldModel< Grid,Problem>
   surfaceEnergy*=problem_.thermodynamics().delta();
 
   therm=problem_.thermodynamics().helmholtz(rho,phi);
-  therm+=surfaceEnergy;
+  //therm+=surfaceEnergy;
 
-  total=therm+kin;
+  total=therm+kin+surfaceEnergy;
   surf=surfaceEnergy;
 }
 
@@ -154,7 +163,12 @@ inline void PhasefieldModel< Grid,Problem>
                  const DomainType& xgl,
                  RangeType& s ) const
 {
+  double x=xgl[0];
   s=0.;
+#if PROBLEM==6 
+  s[1]=problem_.veloSource(x);
+  s[2]=problem_.phiSource(x);
+#endif
 }
 
 template<class Grid, class Problem > 
@@ -166,6 +180,7 @@ inline void PhasefieldModel< Grid, Problem >
 {
 
   mu=problem_.thermodynamics().chemicalPotential(rhoOld,phi);
+    mu=problem_.thermodynamics().chemicalPotential(rhoOld,phi);
 }
 template<class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem >
@@ -194,14 +209,14 @@ inline void PhasefieldModel< Grid, Problem >
       fold=problem_.thermodynamics().helmholtz(rhoOld,phi);
       mu=(fnew-fold)/(diffrho);
     }
-}
+} 
 
 
 template< class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem>
 ::tauSource ( RangeFieldType phi,
               RangeFieldType phiOld,
-              RangeFieldType rho,
+              RangeFieldType rhoOld,
               RangeFieldType& tau) const
 {
 //  double diffphi=phi-phiOld;
@@ -224,9 +239,21 @@ inline void PhasefieldModel< Grid, Problem>
                   RangeFieldType rho,
                   RangeFieldType& tau) const
 {
-  tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
+ tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
 }
 
+template< class Grid, class Problem >
+inline void PhasefieldModel< Grid, Problem>
+::maxSpeed( const DomainType& normal,
+            const RangeType& u,
+            double& advspeed) const
+{
+    double unormal;
+    for( int ii = 0 ; ii<dimDomain ; ++ii)
+      unormal=u[1+ii]*normal[ii];
+    double c=problem_.thermodynamics().a(u[0],u[dimDomain+1]);
+    return std::abs(unormal)+std::sqrt(c);
+}
 
 template< class Grid, class Problem>
 inline void PhasefieldModel< Grid,Problem>
