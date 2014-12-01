@@ -19,8 +19,8 @@ class PhasefieldRunner:
     self.programms=pickle.load(open("compiled.p","rb"))
     self.params=['phasefield.delta','phasefield.mu1','phasefield.mu2','phasefield.endTime', 'fixedTimeStep', 
     'fem.prefix','phasefield.startLevel','phasefield.reactionrate','phasefield.alpha','phasefield.beta','phasefield.A',
-    'phasefield.rhofactor','phasefield.addvisc','phasefield.acpenalty']
-    self.defaults=['0.025','0.1','0.1','0.5','1e-3','','0','1','0.','1.','0.','3.5',0,0]
+    'phasefield.rhofactor','phasefield.addvisc','phasefield.nonconvisc','phiscale']
+    self.defaults=['0.05','0.1','0.1','5','1e-3','','0','1','0.','1.','1.','2',0,0,1]
     self.paramEntries=self.makeform(paramframe,self.params)
     self.listbox = Listbox( listframe )
     self.listbox.pack(side=LEFT)
@@ -46,7 +46,7 @@ class PhasefieldRunner:
       count+=1
     return entries
   def composeString( self ):
-    myday=time.strftime("%d_%m_%Y") 
+    myday=time.strftime("%d_%m") 
     idxs = self.listbox.curselection()
     index=int(idxs[0])
     p=self.programms[index]
@@ -57,8 +57,8 @@ class PhasefieldRunner:
         paramstring+=key+':'+outfile+'_'+p+' '
       else:
         paramstring+=key+':'+self.paramEntries[key].get()+' '
-    execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui'
-    #execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+p+'.out'
+    #execstring ='nice -n19 ./'+p+' '+paramstring+'paramfile:parameter_gui'
+    execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+p+'.out'
     return ( execstring , outfile )
   def runcall(self, stringtuple):
     execstring=stringtuple[0]

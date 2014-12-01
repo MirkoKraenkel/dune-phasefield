@@ -51,7 +51,7 @@ class PhasefieldDeltaRunner:
     idxs = self.listbox.curselection()
     index=int(idxs[0])
     p=self.programms[index]
-    outfile='./Data'+myday+'deltarun/'+self.paramEntries['fem.prefix'].get()+'_'+str(mydelta)
+    outfile='./Data'+'_deltarun/'+self.paramEntries['fem.prefix'].get()+'_'+str(mydelta)
     paramstring=''
     for key in self.paramEntries:
       if key =='fem.prefix':
@@ -72,15 +72,17 @@ class PhasefieldDeltaRunner:
     if self.scrvar.get() == 0: 
       c = subprocess.call([execstring], shell=True)
     else:
+      print('call screen ')
       c = subprocess.call([terminal+' -e "screen '+execstring+'"'], shell=True)
       subprocess.call(['screen -d'],shell=True)
+      print('detached!!!')
   def runit(self):
     mydelta=float(self.paramEntries['phasefield.delta'].get())
     reac=1./mydelta
-    start=0
+    start=1
     printCount=100
     step=5e-4
-    runs=4
+    runs=3
     while runs>0: 
       runstring=self.composeString(mydelta,reac,start,printCount,step) 
       self.runcall(runstring)
@@ -88,6 +90,6 @@ class PhasefieldDeltaRunner:
       reac=reac*2
       start=start+1
       printCount=2*printCount
-      step=0.5*step
+      step=0.25*step
       runs=runs-1
 
