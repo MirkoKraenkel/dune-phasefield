@@ -389,9 +389,7 @@ public:
     {
     	initializeStep( timeProvider );
 	 		initializeSolver( timeProvider);
-      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
- 
-  		// adapt the grid to the initial data
+      // adapt the grid to the initial data
 	  	int startCount = 0;
       if( adaptCount > 0 )
       {      
@@ -402,12 +400,12 @@ public:
           initializeStep( timeProvider);
           writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
          
-           adapt( adaptManager) ;
-				//if( verbose )
+          adapt( adaptManager) ;
 					std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<<std::endl;
           ++startCount;
         }
       }
+      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
       double firstTimeStep=Dune::Fem::Parameter::getValue<double>("phasefield.firstStep",1e-6);
       timeProvider.provideTimeStepEstimate(firstTimeStep);
     	// start first time step with prescribed fixed time step 
@@ -416,7 +414,8 @@ public:
 			  timeProvider.init( fixedTimeStep_ );
 		  else
 			  timeProvider.init();
- 		  writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+
+      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
     else
     {
@@ -472,7 +471,7 @@ public:
              
             }
          
-          writeEnergy( timeProvider , energyfile, ldt, surfacediff);
+          writeEnergy( timeProvider , energyfile, ils_iterations, surfacediff);
         }
 
         writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
