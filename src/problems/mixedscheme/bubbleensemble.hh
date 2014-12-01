@@ -45,6 +45,7 @@ public:
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
+    A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
     rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
     rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
@@ -150,6 +151,7 @@ public:
   const double endTime_;
   const double mu_;
   const double delta_;
+  const double A_;
   double rho_;
   double rho1_;
   double rho2_;
@@ -179,9 +181,9 @@ template <class GridType,class RangeProvider>
 inline void BubbleEnsemble<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
-  double deltaInv=1./delta_;
   double phi; 
   double width=delta_;
+  width/=sqrt(A_);
   phi=0.;
   double rho=rho2_;
 #if MIXED 
