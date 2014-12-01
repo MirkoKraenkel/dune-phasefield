@@ -25,8 +25,8 @@ elemcouplings1d=[ ( rho , rho ), ( rho , v ),
 interseccouplings1d=[  ( rho , rho ), ( rho , v ),( rho , mu),
             ( v , rho ) ,( v , v), ( v, phi ),( v , mu ),( v , tau ),
            ( phi , v ), ( phi,phi),
-            (tau,tau),(tau,sigmax),
-            (sigmax,phi),(sigmax,sigmax)
+            (tau,phi),(tau,sigmax),
+            (sigmax,phi)
 ]
 f=open('elementCouplings1d_CODEGEN.c','w')
 i=0
@@ -52,7 +52,7 @@ varlist=list(variables2d.keys())
 varlist.sort()
 
 elemcouplings2d=[ ( rho , rho ),( rho , vx ),(rho,vy),
-            ( vx , rho ),( vx , vx ),( vx , vy ), ( vx, phi ),( vx , mu ),( vx , tau ),
+             (vx , rho ),( vx , vx ),( vx , vy ), ( vx, phi ),( vx , mu ),( vx , tau ),
             ( vy , rho ),( vy , vx ),( vy , vy ), ( vy, phi ),( vy , mu ),( vy , tau ),
             ( phi , rho ),( phi , vx ),( phi , vy ), ( phi,phi),(phi,tau),
             ( mu, rho),(mu,vx),(mu,vy),(mu,phi),(mu,mu),
@@ -64,9 +64,9 @@ interseccouplings2d=[  ( rho , rho ), ( rho , vx ),( rho , vy ),( rho , mu),
             ( vx , rho ),( vx , vx ),(vx,vy), ( vx, phi ),( vx , mu ),( vx , tau ),
             ( vy , rho ),( vy , vx ),(vy,vy), ( vy, phi ),( vy , mu ),( vy , tau ),
             ( phi , vx ),( phi , vy ), ( phi,phi),
-            (tau,tau),(tau,sigmax),(tau,sigmay),
-            (sigmax,phi),(sigmax,sigmax),
-            (sigmay,phi),(sigmay,sigmay)
+            (tau,phi),(tau,sigmax),(tau,sigmay),
+            (sigmax,phi),
+            (sigmay,phi)
 ]
 f=open('elementCouplings2d_CODEGEN.c','w')
 i=0
