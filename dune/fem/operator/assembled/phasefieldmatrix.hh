@@ -22,7 +22,7 @@ class PhasefieldJacobianOperator
 
   typedef Dune::Fem::DifferentiableOperator< Jacobian> BaseType;
 
-  enum{dimDomain=MyOperatorType::dimDomain};
+  enum{ dimDomain=MyOperatorType::dimDomain};
   
   enum{ dimRange=MyOperatorType::RangeType::dimension};
   
@@ -61,7 +61,7 @@ class PhasefieldJacobianOperator
 
   typedef typename Dune::FieldMatrix<double,dimRange,dimRange> FluxRangeType;
   typedef typename Dune::FieldVector<double,1> ComponentRangeType;
-  typedef typename Dune::FieldMatrix<double,1,dimDomain> ComponentJacobianType;
+  typedef typename Dune::FieldMatrix<double,1,dimDomain> omponentJacobianType;
   typedef std::vector< ComponentRangeType> BasefunctionStorage;
   typedef std::vector< ComponentJacobianType> BaseJacobianStorage;
   typedef typename std::array<DomainType, dimDomain> DiffusionValueType;
@@ -107,17 +107,7 @@ class PhasefieldJacobianOperator
 
 
   typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
-#if 0 
-  template< class RangeVector, class JacobianVector>
-  void myaxpy( const size_t jj,
-                const RangeVector& phi,
-                const JacobianVector& dphi,
-                const RangeType& factor,
-                const JacobianRangeType& jacobianFactor,
-                const double weight,
-                LocalMatrixType& jLocal) const;
-   #endif
-   template< class JacobianVector,class DiffusionTensor>
+  template< class JacobianVector,class DiffusionTensor>
    void diffusionaxpy( const size_t local_i,
                  const size_t local_j,
                  const JacobianVector& dphi,
@@ -179,36 +169,6 @@ class PhasefieldJacobianOperator
 
 // Implementation of LocalFDOperator
 // // ------------------------------------------------
-# if 0
-template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
-template< class RangeVector, class JacobianVector>
-void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
-::myaxpy( const size_t jj ,
-          const RangeVector& phi,
-          const JacobianVector& dphi,
-          const RangeType& factor,
-          const JacobianRangeType& jacobianFactor,
-          const double weight,
-          LocalMatrixType& jLocal) const
-{
- 
-  const unsigned int numBasisFunctions = jLocal.rows();
-  int scalarNumBasisFunctions=numBasisFunctions/RangeType::dimension;
-  int dim=RangeType::dimension; 
-  for( int i = 0;i < numBasisFunctions; ++i)
-   {
-     int range=i%dim;
-     int scalarbf=i/dim;
-     RangeFieldType value = factor[range]*phi[i][range];
-
-    for( int k = 0; k < jacobianFactor.rows; ++k )
-          value += jacobianFactor[ k ][range] * dphi[ i ][ k ][range];
-      
-     jLocal.add( i , jj , weight * value );
-   }
-}
-#endif
-
 
 template<class DiscreteFunction,class Model, class Flux, class Jacobian> 
 template< class JacobianVector, class DiffusionTensor>
@@ -473,10 +433,10 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
   
   const unsigned int scalarDofs=numDofs/dimRange;
 
-  std::vector< ComponentRangeType> phi( scalarDofs );
-  std::vector< ComponentJacobianType> dphi( scalarDofs );
-  std::vector< ComponentRangeType> phiNb( scalarDofs );
-  std::vector< ComponentJacobianType> dphiNb( scalarDofs );
+  BasefunctionStorage phi( scalarDofs );
+  BaseJacobianStorage dphi( scalarDofs );
+  BasefunctionStorage phiNb( scalarDofs );
+  BaseJacobianStorage dphiNb( scalarDofs );
  
  
   const IteratorType end = dfSpace.end();
@@ -566,7 +526,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
               for( size_t ll = 0; ll<dimDomain; ++ll)
                 { 
                   flux[ 1+kk ][ 0 ]+=0.5*(duMid[ 1 + kk ][ kk ] - duMid[ 1 + ll ][ kk ])*vuMid[ 1 + ll ]*phi[ jj ][ 0 ];
-                  flux[ 1+kk ][ 1+ll ]+=0.5*(duMid[ 1 + kk ][ kk ] - duMid[ 1 + ll ][ kk ])* phi[ jj ][ 0 ]*vuMid[0];
+                  flux[ 1+kk ][ 1+ll ]+=0.5*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])* phi[ jj ][ 0 ]*vuMid[0];
                   flux[ 1+kk ][ 1+kk ]+=0.5*( dphi[ jj ][ 0 ][ ll ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
                   flux[ 1+kk ][ 1+ll ]-=0.5*( dphi[ jj ][ 0 ][ kk ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
                 } 
@@ -629,14 +589,12 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           
           for( size_t kk = 0 ; kk < dimDomain ; ++kk )
             {
-              //(tau, gradsigma)
-              flux[ dimDomain+3 ][ dimDomain+4+kk ]+=model_.delta()*0.5*dphi[ jj ][ 0 ][ kk ];
-              //(sigma,gradphi)
+             //(sigma,gradphi)
               flux[ dimDomain+4+kk ][ dimDomain+1 ]-=dphi[ jj ][ 0 ][ kk ];
               //(sigma,sigma)
               flux[ dimDomain+4+kk ][ dimDomain+4+kk]=phi[ jj ][ 0 ];
 #if LAMBDASCHEME
-              //(tau, gradlambda)
+             //(tau, gradlambda)
               flux[ dimDomain+3 ][ 2*dimDomain+4+kk ]+=model_.delta()*0.5*dphi[ jj ][ 0 ][ kk ];
               //(lambda,lambda)
               flux[2*dimDomain+4+kk][ 2*dimDomain+4+kk]=phi[jj][0];
@@ -644,8 +602,11 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
               flux[2*dimDomain+4+kk][0]=-model_.h2prime(vu[0])*phi[jj][0]*vu[ dimDomain+4+kk];
               //(lambda,sigma)
               flux[2*dimDomain+4+kk][ dimDomain+4+kk]=-model_.h2(vu[0])*phi[jj][0];
+#else
+              //(tau, gradsigma)
+              flux[ dimDomain+3 ][ dimDomain+4+kk ]+=model_.delta()*0.5*dphi[ jj ][ 0 ][ kk ];
 #endif
-           }
+            }
           DiffusionType du;
         
           for(int i = 0;  i<dimDomain ; ++i)
