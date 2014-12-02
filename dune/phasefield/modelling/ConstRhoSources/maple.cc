@@ -85,24 +85,18 @@ t17*(-0.25E1*rho+0.15E1*t20+0.2921601062E1)-t17*(-7.0*rho+3.0*t20+
 inline double chemicalPotential ( double rho ,double phi ) const
 {
   double t1;
-  double t13;
-  double t14;
+  double t11;
   double t2;
   double t3;
-  double t4;
-  double t6;
-  double t9;
+  double t5;
   {
     t1 = phi*phi;
     t2 = t1*t1;
     t3 = t2*phi;
-    t4 = beta_*t3;
-    t6 = log(rho);
-    t9 = beta_*t2;
-    t13 = t1*phi;
-    t14 = beta_*t13;
-    return(-6.0*t4+9.0*t4*t6+15.0*t9-0.225E2*t9*t6-10.0*t14+15.0*t14*t6-4.0+3.0
-*t6+24.0*t3-18.0*t3*t6-60.0*t2+45.0*t2*t6+40.0*t13-30.0*t13*t6);
+    t5 = log(rho);
+    t11 = t1*phi;
+    return(-0.5*beta_*(-36.0*t3+18.0*t3*t5+90.0*t2-45.0*t2*t5-60.0*t11+30.0*t11*
+t5+8.0-6.0*t5));
   }
 }
 
@@ -110,15 +104,10 @@ inline double drhochemicalPotential ( double rho ,double phi ) const
 {
   double t1;
   double t2;
-  double t3;
-  double t8;
   {
     t1 = phi*phi;
     t2 = t1*t1;
-    t3 = t2*phi;
-    t8 = t1*phi;
-    return(0.15E1*(6.0*beta_*t3-15.0*beta_*t2+10.0*beta_*t8+2.0-12.0*t3+30.0*t2
--20.0*t8)/rho);
+    return(-0.15E1*beta_*(6.0*t2*phi-15.0*t2+10.0*t1*phi-2.0)/rho);
   }
 }
 
@@ -126,22 +115,11 @@ inline double drhochemicalPotential ( double rho ,double phi ) const
 inline double dphichemicalPotential ( double rho ,double phi ) const
 {
   double t1;
-  double t13;
-  double t2;
-  double t3;
-  double t5;
-  double t8;
-  double t9;
+  double t4;
   {
     t1 = phi*phi;
-    t2 = t1*t1;
-    t3 = beta_*t2;
-    t5 = log(rho);
-    t8 = t1*phi;
-    t9 = beta_*t8;
-    t13 = beta_*t1;
-    return(-30.0*t3+45.0*t3*t5+60.0*t9-90.0*t9*t5-30.0*t13+45.0*t13*t5+120.0*t2
--90.0*t2*t5-240.0*t8+180.0*t8*t5+120.0*t1-90.0*t1*t5);
+    t4 = log(rho);
+    return(-45.0*beta_*t1*(-2.0*t1+t1*t4+4.0*phi-2.0*phi*t4-2.0+t4));
   }
 }
 
@@ -149,8 +127,8 @@ inline double dphichemicalPotential ( double rho ,double phi ) const
 inline double pressure ( double rho ,double phi ) const
 {
   double t1;
+  double t10;
   double t11;
-  double t12;
   double t2;
   double t4;
   double t5;
@@ -163,11 +141,11 @@ inline double pressure ( double rho ,double phi ) const
     t5 = 15.0*t2;
     t6 = t1*phi;
     t7 = 10.0*t6;
-    t11 = log(rho);
-    t12 = rho*t11;
-    return(beta_*(t4-t5+t7)*(0.25E1*rho-0.15E1*t12-0.2921601062E1+rho*(-1.0+
-0.15E1*t11))+(1.0-t4+t5-t7)*(7.0*rho-3.0*t12-0.1138100368E2+rho*(-4.0+3.0*t11))
--2.0*A_*(t2+(2.0*alpha_-2.0)*t6+(-3.0*alpha_+1.0)*t1+alpha_)/delta_);
+    t10 = log(rho);
+    t11 = rho*t10;
+    return(beta_*((t4-t5+t7)*(0.25E1*rho-0.15E1*t11-0.2921601062E1+rho*(-1.0+
+0.15E1*t10))+(1.0-t4+t5-t7)*(7.0*rho-3.0*t11-0.1138100368E2+rho*(-4.0+3.0*t10))
+)-2.0*A_*(t2+(2.0*alpha_-2.0)*t6+(-3.0*alpha_+1.0)*t1+alpha_)/delta_);
   }
 }
 
@@ -175,18 +153,13 @@ inline double pressure ( double rho ,double phi ) const
 inline double a ( double rho ,double phi ) const
 {
   double t1;
-  double t15;
+  double t11;
   double t2;
-  double t3;
-  double t8;
   {
     t1 = phi*phi;
     t2 = t1*t1;
-    t3 = t2*phi;
-    t8 = t1*phi;
-    t15 = sqrt(36.0*beta_*t3-90.0*beta_*t2+60.0*beta_*t8+12.0-72.0*t3+180.0*t2
--120.0*t8);
-    return(0.5*t15);
+    t11 = sqrt(-1.0*beta_*(6.0*t2*phi-15.0*t2+10.0*t1*phi-2.0));
+    return(0.1224744871E1*t11);
   }
 }
 
