@@ -1,7 +1,6 @@
 #ifndef PHASE_MIXERDPOBLEMCREATOR_HH
 #define PHASE_MIXERDPOBLEMCREATOR_HH
 #include <config.h>
-#warning "MixedProblemCreator"
 // system includes
 #include <string>
 

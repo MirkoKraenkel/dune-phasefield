@@ -4,7 +4,6 @@
 #include <dune/common/fvector.hh>
 
 #include "../phasefieldfilter.hh"
-#warning "JACOBIANFLUX"
 template<class Model>
 class JacobianFlux
 {
@@ -160,7 +159,7 @@ void  JacobianFlux<Model>
       
       //rho-------------------------------------------------------------
  
-      double vNormalEn(0),testNormalEn(0.),vNormalNb(0.),testNormalNb(0.);
+      double vNormalEn(0),vNormalNb(0.);
     
       for(int ii = 0; ii < dimDomain ; ++ii )
         {

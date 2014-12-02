@@ -106,8 +106,12 @@ class DGPhasefieldOperator
   void setDeltaT( const double deltat) { deltaT_=deltat;}
 
   double getDeltaT() {return deltaT_;}
+
+  double timeStepEstimate() {return 1;}
+
   void setPreviousTimeStep( DiscreteFunctionType& uOld)  { uOld_.assign(uOld);} 
   DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
+
 
   protected:
   void setEntity( const EntityType& entity ) const
@@ -315,7 +319,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
     JacobianRangeType du{0.},adu{0.};
     
     LocalFunctionType wLocal = w.localFunction( entity );
-    const int quadOrder = uLocal.order() + wLocal.order();
+    const int quadOrder =2*space().order(entity);
     
     QuadratureType quadrature( entity, quadOrder );
     const size_t numQuadraturePoints = quadrature.nop();
@@ -456,8 +460,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                        const LocalFunctionType& uNeighbor,
                        LocalFunctionType& wLocal) const
 {
-  const int quadOrderEn = uLocal.order() + wLocal.order();
-//  const int quadOrderNb = uNeighbor.order() + wLocal.order();
+  const int quadOrderEn = 2*std::max(uLocal.order(), wLocal.order())+2;
   typedef Dune::Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
   typedef typename IntersectionQuadratureType::FaceQuadratureType QuadratureImp;
 

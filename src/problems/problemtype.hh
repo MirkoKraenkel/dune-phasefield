@@ -18,7 +18,6 @@ struct RangeTypeProvider<dimension,true>
 #if LAMBDASCHEME 
   enum{ rangeDim=3*dimension+4 };
 #else
-#warning "NOLAMBDASCHEME"
 enum{ rangeDim=2*dimension+4 };
 #endif
 

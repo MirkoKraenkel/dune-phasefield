@@ -163,9 +163,9 @@ inline void PhasefieldModel< Grid,Problem>
                  const DomainType& xgl,
                  RangeType& s ) const
 {
-  double x=xgl[0];
-  s=0.;
+ s=0.;
 #if PROBLEM==6 
+  double x=xgl[0];
   s[1]=problem_.veloSource(x);
   s[2]=problem_.phiSource(x);
 #endif
@@ -267,8 +267,10 @@ template< class JacobianVector>
 inline void PhasefieldModel< Grid, Problem>
 ::scalar2vectorialDiffusion( const JacobianVector& dphi,DiffusionTensorType& du) const
 {
-
+#if  LAPLACE
+#else
   double mu1=0.5*problem_.thermodynamics().mu1();
+#endif
   double mu2=problem_.thermodynamics().mu2();
   for( int ii=0 ; ii < dimDomain  ; ++ii)
     {

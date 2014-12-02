@@ -12,7 +12,7 @@
 #include <dune/fem/operator/common/spaceoperatorif.hh> 
 #include <dune/fem/operator/matrix/blockmatrix.hh>
 #include <dune/fem/space/discontinuousgalerkin.hh>
-#include <dune/fem/space/combinedspace.hh>
+//#include <dune/fem/space/combinedspace.hh>
 #include <dune/fem/quadrature/intersectionquadrature.hh>
 #include <dune/fem/misc/h1norm.hh>
 
@@ -134,7 +134,7 @@ namespace Dune
       std::fill( refined_.begin(), refined_.end(), 0.);
      }
     
-    double estimate ( )
+    void estimate ( )
     {
       clear();
  
@@ -144,7 +144,6 @@ namespace Dune
       {
       
         const ElementType &entity = *it;
-        int index=indexSet_.index(entity);
        
         std::vector<double> localIndicator; 
         double indicator;
@@ -178,7 +177,7 @@ namespace Dune
 #endif
       }
       
-      return computeIndicator();
+     // return computeIndicator();
     }
     
     double computeIndicator()
@@ -242,7 +241,7 @@ namespace Dune
 			          {
 			            const ElementPointerType pOutside = intersection.outside();
 			            const ElementType &outside = *pOutside;  
-                  int outsideIndex=indexSet_.index(outside);
+                  //int outsideIndex=indexSet_.index(outside);
                   if(outside.level()<maxLevel_ );
 			            {
                //     if(refined_[outsideIndex]<1)
@@ -285,7 +284,7 @@ namespace Dune
     
     bool estimateAndMark(double tolerance)
     {
-      double esti=estimate();
+      estimate();
       return mark(tolerance);
     }
     
@@ -306,7 +305,7 @@ namespace Dune
       ElementQuadratureType quad( entity, 2*(dfSpace_.order() )+1 );
       const int numQuadraturePoints = quad.nop();
       double sigmasquared=0.;
-      double maxsigma=0; 
+      //double maxsigma=0; 
       RangeType range;
       JacobianRangeType gradient;
       

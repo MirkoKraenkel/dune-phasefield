@@ -318,12 +318,10 @@ public:
 
     double timeStepError=std::numeric_limits<double>::max();
     //some setup stuff
-		const bool verbose = Dune::Fem::Parameter :: verbose ();
+		//const bool verbose = Dune::Fem::Parameter :: verbose ();
   	int printCount = Dune::Fem::Parameter::getValue<int>("phasefield.printCount", -1);
-    //printCount+=loopNumber*printCount; 
 		int adaptCount = 0;
 		int maxAdaptationLevel = 0;
-		int startLevel = 0 ;
         
      Dune::Fem::AdaptationMethod< GridType > am( grid_ );
 		
@@ -331,10 +329,8 @@ public:
 			{
     		adaptCount = Dune::Fem::Parameter::getValue<int>("fem.adaptation.adaptcount");
 	    	maxAdaptationLevel = Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel");
- 		    startLevel = Dune::Fem::Parameter::getValue< int >("phasefield.startLevel",0);
       }
 	  
-    double maxTimeStep =Dune::Fem::Parameter::getValue("phasefield.maxTimeStep", std::numeric_limits<double>::max());
 	  const double startTime = Dune::Fem::Parameter::getValue<double>("phasefield.startTime", 0.0);
 	  const double endTime   = Dune::Fem::Parameter::getValue<double>("phasefield.endTime",1.);	
     const int maximalTimeSteps =Dune::Fem::Parameter::getValue("phasefield.maximaltimesteps", std::numeric_limits<int>::max());

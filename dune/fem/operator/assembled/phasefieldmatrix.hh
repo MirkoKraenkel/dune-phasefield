@@ -155,8 +155,8 @@ class PhasefieldJacobianOperator
   
   private:
   const IndexSetType& indexSet_;
-  StencilType stencil_;
   mutable Dune::Fem::MutableArray<bool> visited_;
+  StencilType stencil_;
   const JacobianFluxType jacFlux_;
   mutable RangeVectorType uEn_,uNb_,uEnOld_,uNbOld_;
   mutable JacobianVectorType duEn_,duNb_,duEnOld_,duNbOld_;
@@ -215,8 +215,8 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                         LocalMatrixType&  jLocalNbNb)  const
 {  
   const unsigned int numScalarBf=baseSet.size()/dimRange;
-  const int quadOrderEn = 2*uLocal.order();
-  const int quadOrderNb = 2*uLocalNb.order();
+  const int quadOrderEn = 2*std::max(uLocal.order(),uLocalNb.order())+1;
+  const int quadOrderNb = quadOrderEn;
   const int maxOrder=std::max(quadOrderNb,quadOrderEn);
   typedef Dune::Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
   typedef typename IntersectionQuadratureType::FaceQuadratureType QuadratureImp;
@@ -458,7 +458,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
       
     const unsigned int numScalarBf = numBasisFunctions/dimRange;
 
-    QuadratureType quadrature( entity, 2*dfSpace.order() );
+    QuadratureType quadrature( entity, 2*dfSpace.order(entity) );
     const size_t numQuadraturePoints = quadrature.nop();
     
     uEn_.resize(numQuadraturePoints);
@@ -648,8 +648,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
             if( !visited_[ indexSet_.index( neighbor ) ])
               {
                 setNeighbor( neighbor );
-                typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-                const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
+                //const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
                 jLocal.clear();
                 LocalMatrixType jLocalNbEn( dfSpace,dfSpace);
                 jLocalNbEn.init( neighbor, entity);
@@ -669,7 +668,6 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                 const LocalFunctionType uLocalNb = u.localFunction(neighbor);
                 // get neighbor's base function set 
                 const BasisFunctionSetType &baseSetNb = jLocalNbEn.domainBasisFunctionSet();
-                //const unsigned int numBasisFunctionsNb = baseSetNb.size();
                 
                 if( !Dune::Fem::GridPartCapabilities::isConforming< GridPartType >::v
                     && !intersection.conforming())
@@ -723,7 +721,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
         }
         else if ( intersection.boundary() )
         {
-          const int quadOrderEn = 2*uLocal.order();
+          const int quadOrderEn = 2*uLocal.order()+1;
           typedef typename IntersectionType::Geometry  IntersectionGeometryType;
           const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
           jLocal.clear();
