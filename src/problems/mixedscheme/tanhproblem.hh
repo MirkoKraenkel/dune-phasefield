@@ -149,9 +149,12 @@ inline void TanhProblem<GridType,RangeProvider>
   double drdrtanhr=tanhr*drtanhr;
   //-2/delta^2 *(tanh*(1-tanh^2)
   drdrtanhr*=-2*deltaInv;
+    double phi=0.5*tanhr+0.5;
  
   double rhodiff=rho2_-rho1_;
-  double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
+  double rho=thermodyn_.evalRho(phi);
+  //double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
+  
   double v=0;//0.1*sin(2*M_PI*arg[0]);
   //rho
   res[0]= rho;
@@ -163,24 +166,23 @@ inline void TanhProblem<GridType,RangeProvider>
    if(dimension==2)
      res[2]=0;
 
-   double phi=0.5*tanhr+0.5;
-   
+  
    res[dimension+1]=phi;
  
 #if MIXED
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
   double sigma=0.5*drtanhr;
-  double gradrho=-0.5*rhodiff*drtanhr;
-  double rhoInv=thermodyn_.h2(rho);            //1./rho;
-  double hprime=thermodyn_.h2prime(rho);//-1./(rho*rho);
-  double laplacePhi=0.5*drdrtanhr;
+ double laplacePhi=0.5*drdrtanhr;
   if(arg[0]<0.)
     {
       sigma*=-1;
     }
 
 #if RHOMODEL     
+  double gradrho=-0.5*rhodiff*drtanhr;
+  double rhoInv=thermodyn_.h2(rho);            //1./rho;
+  double hprime=thermodyn_.h2prime(rho);//-1./(rho*rho);
   //mu
   res[dimension+2]=0.5*v*v+dFdrho-delta_*rhoInv *0.5*sigma*sigma;
   //tau
