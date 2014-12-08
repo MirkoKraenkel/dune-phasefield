@@ -1,5 +1,5 @@
 
-double evalRho(double x)
+inline double evalRho(double x) const
 {
   double t1;
   double t2;
