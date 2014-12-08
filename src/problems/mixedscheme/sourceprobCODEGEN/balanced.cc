@@ -41,7 +41,7 @@ inline double gradrho ( double x ) const
   double t9;
   {
     t1 = 1/delta_;
-    t3 = tanh(t1*x);
+    t3 = tanh(x*t1);
     t5 = 0.5*t3+0.5;
     t6 = t5*t5;
     t7 = t6*t6;
@@ -52,7 +52,7 @@ inline double gradrho ( double x ) const
     t15 = t13*t9*t1;
     t18 = t6*t9*t1;
     t21 = t7*t5;
-    t25 = 3.0-0.9E1*t21+0.225E2*t7-0.15E2*t13;
+    t25 = -0.9E1*t21+0.225E2*t7-0.15E2*t13+3.0;
     t26 = 1/t25;
     t31 = 0.4000000004E1-18.0*t21+45.0*t7-30.0*t13;
     t32 = t25*t25;
@@ -87,7 +87,7 @@ inline double thetasol ( double x ) const
   double t7;
   {
     t1 = 1/delta_;
-    t3 = tanh(t1*x);
+    t3 = tanh(x*t1);
     t5 = 0.5*t3+0.5;
     t6 = t5*t5;
     t7 = t6*t5;
@@ -129,7 +129,7 @@ inline double phiSource ( double x ) const
   double t8;
   {
     t1 = 1/delta_;
-    t3 = tanh(t1*x);
+    t3 = tanh(x*t1);
     t5 = 0.5*t3+0.5;
     t6 = t5*t5;
     t7 = t6*t6;
@@ -158,12 +158,10 @@ t40-0.15E2*t26+3.0));
 
 inline double musol ( double x ) const
 {
-  double t13;
+  double t12;
+  double t21;
   double t22;
-  double t23;
-  double t27;
   double t3;
-  double t31;
   double t5;
   double t6;
   double t7;
@@ -174,15 +172,12 @@ inline double musol ( double x ) const
     t6 = t5*t5;
     t7 = t6*t6;
     t8 = t7*t5;
-    t13 = t6*t5;
-    t22 = exp((0.4000000004E1-18.0*t8+45.0*t7-30.0*t13)/(-0.9E1*t8+0.225E2*t7
--0.15E2*t13+3.0));
-    t23 = log(t22);
-    t27 = beta_*t7;
-    t31 = beta_*t13;
-    return(-6.0*beta_*t8+9.0*t23*beta_*t8+15.0*t27-0.225E2*t27*t23-10.0*t31+15.0*
-t31*t23-4.0+3.0*t23+24.0*t8-18.0*t8*t23-60.0*t7+45.0*t7*t23+40.0*t13-30.0*t13*
-t23);
+    t12 = t6*t5;
+    t21 = exp((0.4000000004E1-18.0*t8+45.0*t7-30.0*t12)/(-0.9E1*t8+0.225E2*t7
+-0.15E2*t12+3.0));
+    t22 = log(t21);
+    return(-0.5*beta_*(-36.0*t8+18.0*t8*t22+90.0*t7-45.0*t7*t22-60.0*t12+30.0*
+t12*t22+8.0-6.0*t22));
   }
 }
 
@@ -191,7 +186,7 @@ inline double veloSource ( double x ) const
 {
   double t1;
   double t10;
-  double t124;
+  double t100;
   double t24;
   double t28;
   double t29;
@@ -204,20 +199,16 @@ inline double veloSource ( double x ) const
   double t42;
   double t43;
   double t5;
-  double t59;
   double t6;
-  double t63;
-  double t66;
-  double t69;
-  double t72;
-  double t73;
+  double t61;
+  double t68;
+  double t71;
+  double t74;
+  double t75;
   double t8;
-  double t80;
-  double t81;
-  double t88;
+  double t82;
+  double t83;
   double t9;
-  double t92;
-  double t97;
   {
     t1 = 1/delta_;
     t3 = tanh(x*t1);
@@ -236,24 +227,18 @@ inline double veloSource ( double x ) const
     t40 = exp(t33*t38);
     t42 = log(t40);
     t43 = t42*t40;
-    t59 = beta_*t24;
-    t63 = t24*t5*t1;
-    t66 = t10*t5*t1;
-    t69 = t9*t5*t1;
-    t72 = (-0.45E2*t63+0.9E2*t66-0.45E2*t69)*t38;
-    t73 = t37*t37;
-    t80 = t33/t73*(-0.225E2*t63+0.45E2*t66-0.225E2*t69);
-    t81 = t72-t80;
-    t88 = beta_*t10;
-    t92 = t42*t5*t1;
-    t97 = beta_*t9;
-    t124 = -0.15E2*t59*t6+9.0*t81*beta_*t29+0.225E2*t42*beta_*t63+0.3E2*t88*t6
--0.45E2*t88*t92-0.225E2*t59*t81-0.15E2*t97*t6+0.225E2*t97*t92+15.0*t88*t81+3.0*
-t72-3.0*t80+0.6E2*t63-0.45E2*t24*t42*t6-18.0*t29*t81-0.12E3*t66+0.9E2*t10*t42*
-t6+45.0*t24*t81+0.6E2*t69-0.45E2*t9*t42*t6-30.0*t10*t81;
+    t61 = t24*t5*t1;
+    t68 = t10*t5*t1;
+    t71 = t9*t5*t1;
+    t74 = (-0.45E2*t61+0.9E2*t68-0.45E2*t71)*t38;
+    t75 = t37*t37;
+    t82 = t33/t75*(-0.225E2*t61+0.45E2*t68-0.225E2*t71);
+    t83 = t74-t82;
+    t100 = -0.9E2*t61+0.45E2*t24*t42*t6+18.0*t29*t83+0.18E3*t68-0.9E2*t10*t42*
+t6-45.0*t24*t83-0.9E2*t71+0.45E2*t9*t42*t6+30.0*t10*t83-6.0*t74+6.0*t82;
     return(-0.5*t6*(2.0*A_*(4.0*t10+3.0*(2.0*alpha_-2.0)*t9+2.0*(-3.0*alpha_+1.0)*
 t8)*t1+beta_*(t28*(-0.25E1*t40+0.15E1*t43+0.2921601062E1)-t28*(-7.0*t40+3.0*t43+
-0.1138100368E2))+0.1E1*t1*t3*t5)+t40*t124);
+0.1138100368E2))+0.1E1*t1*t3*t5)-0.5*t40*beta_*t100);
   }
 }
 
