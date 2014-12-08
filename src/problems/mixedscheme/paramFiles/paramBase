@@ -39,8 +39,8 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-phasefield.eocSteps: 3 
-phasefield.printCount: 10 
+phasefield.eocSteps: 1 
+phasefield.printCount:10 
 phasefield.verbose: 1 
 
 # create a file with sampled values of the numerical solution
@@ -59,10 +59,10 @@ fem.adaptation.coarsenPercent: 0.405
 # coarsest level that should be present 
 # finest level that should be present
 fem.adaptation.coarsestLevel: 0 
-fem.adaptation.finestLevel: 6 
-phasefield.adaptTol: 1.01 
-phasefield.adaptive.maxh: 0.05
-phasefield.adaptive.tolfactor: 3  
+fem.adaptation.finestLevel: 10 
+phasefield.adaptTol: 1.5 
+phasefield.adaptive.maxh: 0.025
+phasefield.adaptive.tolfactor: 16  
 fem.adaptation.markingStrategy: grad 
 
 fem.adaptation.adaptcount: 2 # after this many time step, 0 disables adaptation

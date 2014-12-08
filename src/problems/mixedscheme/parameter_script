@@ -31,7 +31,7 @@ phasefield.diffusionTimeStep:1
 phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.reactionrate: 1. 
-phasefield.addvisc: 0 
+phasefield.addvisc: 1 
 phasefield.oldvisc: 0 
 phasefield.nonconvisc:0  
 phasefield.delta: 0.01 
