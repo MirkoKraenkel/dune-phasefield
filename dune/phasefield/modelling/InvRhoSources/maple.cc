@@ -1,5 +1,5 @@
 
-double solproc1(double x)
+inline double evalRho(double x) const
 {
   double t1;
   double t2;

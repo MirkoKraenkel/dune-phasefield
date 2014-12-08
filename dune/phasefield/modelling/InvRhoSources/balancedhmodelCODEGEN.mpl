@@ -6,7 +6,7 @@ G1 := D(F1); G0 := D(F0); p1 := proc (rho) options operator, arrow; -F1(rho)+rho
 fsolve([p1(rho) = p0(x), G1(rho) = G0(x)], {rho = 0 .. 4, x = 0 .. 4}); pconst := 1/2*(p1(1.947734046)+p0(3.793667900));
 nu := proc (phi) options operator, arrow; 6*phi^5-15*phi^4+10*phi^3 end proc; W := proc (phi) options operator, arrow; 2*A*(phi^4+(2*alpha-2)*phi^3+(-3*alpha+1)*phi^2+alpha) end proc; dW := D(W); F := proc (rho, phi) options operator, arrow; rho*W(phi)/delta+beta*(nu(phi)*F1(rho)+(1-nu(phi))*F0(rho)) end proc; Pressure := proc (rho, phi) options operator, arrow; beta*(nu(phi)*p1(rho)+(1-nu(phi))*p0(rho)) end proc; Potential := proc (rho, phi) options operator, arrow; W(phi)/delta+beta*(nu(phi)*G1(rho)+(1-nu(phi))*G0(rho)) end proc;
 S := proc (rho, phi) options operator, arrow; diff(F(rho, phi), phi) end proc;
-solrho := proc (x) options operator, arrow; (Const+nu(x)*(d-g)+g)/(nu(x)*(c-e)+e) end proc; Const := pconst; solproc := makeproc(solrho(x), x); solproc1 := optimize(solproc); C(solproc1, filename = outstring, ansi);
+solrho := proc (x) options operator, arrow; (Const+nu(x)*(d-g)+g)/(nu(x)*(c-e)+e) end proc; Const := pconst; solproc := makeproc(solrho(x), x); evalRho := optimize(solproc); C(evalRho, filename = outstring, ansi);
 Fproc := makeproc(F(rho, phi), [rho, phi]); helmholtz := optimize(Fproc); C(helmholtz, filename = outstring, ansi);
 S := proc (rho, phi) options operator, arrow; diff(F(rho, phi), phi) end proc; Sproc := makeproc(S(rho, phi), [rho, phi]); reactionSource := optimize(Sproc); C(reactionSource, filename = outstring, ansi);
 
