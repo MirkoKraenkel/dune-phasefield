@@ -25,14 +25,14 @@ paramfile: ./paramFiles/paramBase
 
 # PROBLEM SETUP
 #--------------
-phasefield.calcresidual: true 
+phasefield.calcresidual: false 
 phasefield.interpolinitial: false 
 phasefield.diffusionTimeStep:1 
 phasefield.energy: true
 phasefield.additionalvariables: true  
 # PHYSICAL CONSTANTS
-phasefield.reactionrate: 1. 
-phasefield.addvisc: 1.
+phasefield.reactionrate: 0. 
+phasefield.addvisc: 0.
 phasefield.nonconvisc: 1. 
 phasefield.thetaswitch: -1.
 phasefield.delta: 0.025
