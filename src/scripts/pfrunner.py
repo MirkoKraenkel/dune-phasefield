@@ -57,8 +57,8 @@ class PhasefieldRunner:
         paramstring+=key+':'+outfile+'_'+p+' '
       else:
         paramstring+=key+':'+self.paramEntries[key].get()+' '
-    #execstring ='nice -n19 ./'+p+' '+paramstring+'paramfile:parameter_gui'
-    execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+p+'.out'
+    execstring ='nice -n19 ./'+p+' '+paramstring+'paramfile:parameter_gui'
+    #execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+p+'.out'
     return ( execstring , outfile )
   def runcall(self, stringtuple):
     execstring=stringtuple[0]
