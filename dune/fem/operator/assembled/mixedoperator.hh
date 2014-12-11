@@ -504,7 +504,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   } 
 }
 
-
+#define DIFFQUOT 0 
 
 #if NSK
   #include "fulloperatorNSK.cc"

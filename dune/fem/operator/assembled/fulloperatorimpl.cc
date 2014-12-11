@@ -116,11 +116,16 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
 #if RHOMODEL
-  //double rhodiff=(Filter::rho(vu)-Filter::rho(vuOld));
-//  if( std::abs(rhodiff)<1e-8)
-  Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
-//  else
-//    Filter::mu(avu)+=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
+#if DIFFQUOT
+  double rhodiff=(Filter::rho(vu)-Filter::rho(vuOld));
+  
+  if( std::abs(rhodiff)<1e-9)
+    Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
+  else
+    Filter::mu(avu)+=0.5*model_.delta()*(1/rhodiff)*(model_.h2(Filter::rho(vu))-model_.h2(Filter::rho(vuOld)))*sigmasqr;
+#else
+    Filter::mu(avu)-=0.5*model_.delta()*model_.h2prime(Filter::rho(vuOld))*sigmasqr;
+#endif
 #endif
   //------------------------------------------------------------------
 
