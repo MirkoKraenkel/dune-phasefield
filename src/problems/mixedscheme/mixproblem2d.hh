@@ -128,10 +128,10 @@ inline void MixProblem<GridType,RangeProvider>
 {
   double x=arg[0];
   double y=arg[1];
-  double cosx=cos(0.5*M_PI*x);
-  double cosy=cos(0.5*M_PI*y);
-  double sinx=sin(0.5*M_PI*x);
-  double siny=sin(0.5*M_PI*y);
+  double cosx=cos(2*M_PI*x);
+  double cosy=cos(2*M_PI*y);
+  double sinx=sin(2*M_PI*x);
+  double siny=sin(2*M_PI*y);
   
   double rho=rho_;
   double rho_inv=1./rho_;
@@ -154,14 +154,15 @@ inline void MixProblem<GridType,RangeProvider>
 #if MIXED     
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
-//  double sigma=-2*M_PI*sinx*cost*0.05;
+  double sigma_x=-2*M_PI*sinx*0.05;
+  double sigma_y=-2*M_PI*siny*0.05;
 #if RHOMODEL
   //mu
-  res[dimension+2]=0.5*v*v+dFdrho-thermodyn_.delta()*rho_inv*rho_inv*sigma*sigma*0.5;
+  res[dimension+2]=0.5*v*v+dFdrho+thermodyn_.delta()*thermodyn_.h2prime(rho)*(sigma_x*sigma_x+sigma_y*sigma_y)*0.5;
   //tau
   res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*rho_inv*cosx+dFdphi;
   //sigma_x
-  res[dimension+4]=-M_PI*sinx*cosy*0.05;
+  res[dimension+4]=sigma_x;
 #else
   //mu
   res[dimension+2]=0.5*v*v+dFdrho;
@@ -172,15 +173,15 @@ inline void MixProblem<GridType,RangeProvider>
 #endif
 #if LAMBDASCHEME 
   //alpha_x
-  res[dimension+4+dimension]=res[dimension+4]*rho_inv;
+  res[dimension+4+dimension]=res[dimension+4]*thermodyn_.h2(rho);
 #endif
   if(dimension==2)
     {
       //sigma_y
-      res[dimension+5]=-M_PI*siny*cosx*0.05*0.5;
+      res[dimension+5]=sigma_y;
 #if LAMBDASCHEME
       //alpha_y
-      res[dimension+7]=0.;
+      res[dimension+7]=thermodyn_.h2(rho)*res[dimension+5];
 #endif
     }
 #else
