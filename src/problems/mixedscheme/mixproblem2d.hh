@@ -127,7 +127,9 @@ inline void MixProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double x=arg[0];
-  double y=arg[1];
+  double y=0;
+  if(dimension==2)
+    y=arg[1];
   double cosx=cos(2*M_PI*x);
   double cosy=cos(2*M_PI*y);
   double sinx=sin(2*M_PI*x);

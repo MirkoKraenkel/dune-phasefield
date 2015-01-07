@@ -152,8 +152,8 @@ inline void TanhProblem<GridType,RangeProvider>
     double phi=0.5*tanhr+0.5;
  
   double rhodiff=rho2_-rho1_;
-  double rho=thermodyn_.evalRho(phi);
-  //double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
+  //double rho=thermodyn_.evalRho(phi);
+  double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
   
   double v=0;//0.1*sin(2*M_PI*arg[0]);
   //rho
