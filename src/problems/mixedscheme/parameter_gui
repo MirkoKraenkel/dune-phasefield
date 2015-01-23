@@ -4,7 +4,7 @@ fem.resolvevariables: 1
 fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
 fem.io.savestep: 1e-2 #save data every time interval
-fem.io.savecount: 0     # save every i-th ste
+fem.io.savecount:   0   # save every i-th ste
 fem.io.checkpointstep: 1
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
@@ -32,25 +32,25 @@ phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.reactionrate: 1
 phasefield.criticalTemp: 0.12
-phasefield.addvisc: 0 
+phasefield.addvisc: 1 
 phasefield.oldvisc: 0 
-phasefield.nonconvisc:0  
+phasefield.nonconvisc:1  
 phasefield.delta: $(delta) 
 phasefield.mu1: $(mu1) 
 phasefield.mu2: $(mu2)
-phasefield.rho0: 1.5 
+phasefield.rho0: 2.7 
 phasefield.penalty: 10 
 #phasefield.mwp1: 0.4257416377 
 #phasefield.mwp2: 0.4 
 #phasefield.mwp2: 1.657270212
 phasefield.mwp2: 3.793667900 
-#phasefield.mwp1:1.947734046
-#phasefield.mwp2: 1
-phasefield.mwp1:1.6 
+phasefield.mwp1:1.947734046
+#phasefield.mwp2: 3.5
+#phasefield.mwp1: 2.4 
 #phasefield.mwp2: 5.639601753
 #phasefield.mwp1: 5.639601753
 
-phasefield.acpenalty: 10 
+phasefield.acpenalty: 0 
 phasefield.ipswitch: 1
 phasefield.smear: 1.
 phasefield.radius: 0.5
@@ -63,8 +63,8 @@ phasefield.adaptive.verbose: false
 # DOMAIN
 #-------
 
-fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
-#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
+fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
 #
 
 
@@ -102,7 +102,7 @@ fem.solver.newton.maxiterations: 10
 fem.solver.newton.maxlineariterations: 1000
 fem.differenceoperator.eps: 1 
 phasefield.fdjacobian.epsilon: 0
-#phasefield.maximaltimesteps: 10 
+#phasefield.maximaltimesteps: 0 
 phasefield.mixed.theta: 0 #0 if opcheck is used
 phasefield.maxTimeStep: 1e-3
 # IMEX=1 ->tau implicit IMEX=0.5->semi implicit
