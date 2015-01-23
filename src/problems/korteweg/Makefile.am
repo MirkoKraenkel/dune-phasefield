@@ -1,6 +1,6 @@
 # install these headers
 passschemedir=$(includedir)/src/problems/passscheme
-passscheme_HEADERS=  problemcreator.hh  problemtype.hh
+passscheme_HEADERS=  nskproblemcreator.hh  problemtype.hh
 
 #USE_OMP=-fopenmp
 
