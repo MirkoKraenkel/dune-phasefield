@@ -17,11 +17,14 @@ class PhasefieldDeltaRunner:
     messageframe=Frame(master)
     messageframe.pack(side=BOTTOM)
     self.programms=pickle.load(open("compiled.p","rb"))
-    self.params=['phasefield.delta','phasefield.mu1','phasefield.mu2','phasefield.endTime', 
+    self.params=['phasefield.mu1','phasefield.mu2','phasefield.endTime', 
     'fem.prefix','phasefield.alpha','phasefield.beta','phasefield.A',
-    'phasefield.rhofactor','fem.ode.odesolver','phasefield.acpenalty']
-    self.defaults=['0.1','0.1','0.1','10','','0.','1.','0.','3.5','IM',0]
-    self.paramEntries=self.makeform(paramframe,self.params)
+    'phasefield.rhofactor','fem.ode.odesolver']
+    self.defaults=['0.1','0.1','10','','0.','1.','1.','3.5','IM']
+    self.paramsdelta=['phasefield.delta','startLevel','timeStep','runs']
+    self.defaultsdelta=['0.1','1','1e-4','1']
+    self.paramEntriesDelta=self.makeform(paramframe,self.paramsdelta,self.defaultsdelta)
+    self.paramEntries=self.makeform(paramframe,self.params,self.defaults)
     self.listbox = Listbox( listframe )
     self.listbox.pack(side=LEFT)
     for item in self.programms:
@@ -31,7 +34,7 @@ class PhasefieldDeltaRunner:
     self.scrvar=IntVar()
     scr=Radiobutton(entryframe,text='screen',variable=self.scrvar,value=1).pack() 
     scr=Radiobutton(entryframe,text='show',variable=self.scrvar,value=0).pack() 
-  def makeform( self , root ,fields):
+  def makeform( self , root ,fields, defs):
     entries={}
     count=0
     for field in fields:
@@ -41,7 +44,7 @@ class PhasefieldDeltaRunner:
       row.pack(side=TOP,fill=X)
       lab.pack(side=LEFT)
       ent.pack(side=RIGHT,fill=X,expand=YES)
-      ent.insert(0,self.defaults[count])
+      ent.insert(0,defs[count])
       entries.update({field : ent})
       count+=1
     return entries
@@ -51,13 +54,11 @@ class PhasefieldDeltaRunner:
     idxs = self.listbox.curselection()
     index=int(idxs[0])
     p=self.programms[index]
-    outfile='./Data'+'_deltarun/'+self.paramEntries['fem.prefix'].get()+'_'+str(mydelta)
+    outfile='./Data'+'_deltarun'+myday+'/'+self.paramEntries['fem.prefix'].get()+'_'+str(mydelta)
     paramstring=''
     for key in self.paramEntries:
       if key =='fem.prefix':
         paramstring+=key+':'+outfile+'_'+p+'_'+str(mydelta)+' '
-      elif key == 'phasefield.delta':
-        paramstring+=''
       else:
         paramstring+=key+':'+self.paramEntries[key].get()+' '
     execstring ='./'+p+loopstring+' '+paramstring+'paramfile:parameter_gui'
@@ -77,19 +78,19 @@ class PhasefieldDeltaRunner:
       subprocess.call(['screen -d'],shell=True)
       print('detached!!!')
   def runit(self):
-    mydelta=float(self.paramEntries['phasefield.delta'].get())
+    mydelta=float(self.paramEntriesDelta['phasefield.delta'].get())
     reac=1./mydelta
-    start=1
+    start=int(self.paramEntriesDelta['startLevel'].get())
     printCount=100
-    step=5e-4
-    runs=3
+    step=float(self.paramEntriesDelta['timeStep'].get())
+    runs=int(self.paramEntriesDelta['runs'].get())
     while runs>0: 
       runstring=self.composeString(mydelta,reac,start,printCount,step) 
       self.runcall(runstring)
       mydelta=0.5*mydelta
-      reac=reac*2
+      reac=reac#*2
       start=start+1
       printCount=2*printCount
-      step=0.25*step
+      step=0.5*step
       runs=runs-1
 
