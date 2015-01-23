@@ -43,3 +43,5 @@ timer.out.0
 /src/problems/passscheme/DATA_ARCHIVE
 /src/problems/mixedscheme/DATA_ARCHIVE
 /src/problems/Data
+/src/problems/mixedscheme/Data*
+/src/probelems/RunFiles*
