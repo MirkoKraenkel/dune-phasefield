@@ -37,6 +37,7 @@ AC_CONFIG_FILES([
   dune/fem/operator/Makefile
   dune/fem/operator/korteweg/Makefile
   dune/fem/operator/assembled/Makefile
+  dune/fem/operator/assembled/fluxes/Makefile
   src/problems/passscheme/Makefile
   src/problems/allencahn/Makefile
   src/problems/mixedscheme/Makefile
