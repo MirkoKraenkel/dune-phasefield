@@ -8,7 +8,7 @@
 #include <dune/fem/misc/bartonnackmaninterface.hh>
 #include <dune/fem/io/file/datawriter.hh>
 #include <dune/fem/space/common/adaptmanager.hh>
-#include <dune/fem/base/base.hh>
+//#include <dune/fem/base/base.hh>
 #include <dune/fem/operator/common/automaticdifferenceoperator.hh>
 //Note Problen should be independent of Operator/Scheme
 //#include<dune/phasefield/assembledtraits.hh>
