@@ -8,6 +8,7 @@
 
 #include "../phasefieldfilter.hh"
 #define LAPLACE  1
+#define DIFFQUOT 0 
 template<class Grid, class Problem>
 class PhasefieldModel
 {
@@ -163,9 +164,9 @@ inline void PhasefieldModel< Grid,Problem>
                  const DomainType& xgl,
                  RangeType& s ) const
 {
-  double x=xgl[0];
-  s=0.;
+ s=0.;
 #if PROBLEM==6 
+  double x=xgl[0];
   s[1]=problem_.veloSource(x);
   s[2]=problem_.phiSource(x);
 #endif
@@ -178,9 +179,21 @@ inline void PhasefieldModel< Grid, Problem >
              RangeFieldType phi,
              RangeFieldType& mu) const
 {
-
-  mu=problem_.thermodynamics().chemicalPotential(rhoOld,phi);
+#if DIFFQUOT
+  double diffrho=rho-rhoOld;
+  if( std::abs(diffrho)<1e-9)
     mu=problem_.thermodynamics().chemicalPotential(rhoOld,phi);
+  else
+    {
+      double fnew,fold;
+      fnew=problem_.thermodynamics().helmholtz(rho,phi);
+      fold=problem_.thermodynamics().helmholtz(rhoOld,phi);
+      mu=(fnew-fold)/(rho-rhoOld);
+    }
+#else
+    mu=problem_.thermodynamics().chemicalPotential(rhoOld,phi);
+#endif
+
 }
 template<class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem >
@@ -199,16 +212,7 @@ inline void PhasefieldModel< Grid, Problem >
                  RangeFieldType phi,
                  RangeFieldType& mu ) const
 {
-  double diffrho=rho-rhoOld;
-  if( std::abs(diffrho)<1e-8 )
-    mu=problem_.thermodynamics().dphichemicalPotential(rhoOld,phi);
-  else
-    {
-      double fnew,fold;
-      fnew=problem_.thermodynamics().helmholtz(rho,phi);
-      fold=problem_.thermodynamics().helmholtz(rhoOld,phi);
-      mu=(fnew-fold)/(diffrho);
-    }
+  mu=problem_.thermodynamics().dphichemicalPotential(rhoOld,phi);
 } 
 
 
@@ -219,18 +223,20 @@ inline void PhasefieldModel< Grid, Problem>
               RangeFieldType rhoOld,
               RangeFieldType& tau) const
 {
-//  double diffphi=phi-phiOld;
-//  if( std::abs(diffphi)<1e-8)
-    tau=problem_.thermodynamics().reactionSource(rho,phiOld);
-/*
-else
+#if DIFFQUOT
+  double diffphi=phi-phiOld;
+  if( std::abs(diffphi)<1e-9)
+    tau=problem_.thermodynamics().reactionSource(rhoOld,phiOld);
+  else
   {
     double fnew,fold;
-    fnew=problem_.thermodynamics().helmholtz(rho,phi);
-    fold=problem_.thermodynamics().helmholtz(rho,phiOld);
+    fnew=problem_.thermodynamics().helmholtz(rhoOld,phi);
+    fold=problem_.thermodynamics().helmholtz(rhoOld,phiOld);
     tau=(fnew-fold)/(phi-phiOld);
   }
-  */
+#else
+   tau=problem_.thermodynamics().reactionSource(rhoOld,phiOld);
+#endif 
 }
 template< class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem>
@@ -239,6 +245,7 @@ inline void PhasefieldModel< Grid, Problem>
                   RangeFieldType rho,
                   RangeFieldType& tau) const
 {
+ //abort();
  tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
 }
 
@@ -268,8 +275,10 @@ template< class JacobianVector>
 inline void PhasefieldModel< Grid, Problem>
 ::scalar2vectorialDiffusion( const JacobianVector& dphi,DiffusionTensorType& du) const
 {
-
+#if  LAPLACE
+#else
   double mu1=0.5*problem_.thermodynamics().mu1();
+#endif
   double mu2=problem_.thermodynamics().mu2();
   for( int ii=0 ; ii < dimDomain  ; ++ii)
     {
