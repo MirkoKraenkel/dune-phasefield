@@ -11,7 +11,7 @@ assembled_HEADERS=  phasefieldfilter.hh \
 										nskmatrixhelper.hh \
 										nskmatrix.hh \
 										phasefieldjacobian.hh \
-										phasefieldmatrix.hh \
+										phasefieldmatrix.hh 
 
 
 #USE_OMP=-fopenmp

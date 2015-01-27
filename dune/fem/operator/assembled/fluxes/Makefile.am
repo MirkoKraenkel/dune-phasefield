@@ -4,5 +4,5 @@ fluxes_HEADERS =flux.hh \
 								jacobianfluxcoupling.hh \
 								jacobianflux.hh \
 								nskflux.hh \
-								nskjacobianflux.hh \
+								nskjacobianflux.hh 
 include $(top_srcdir)/am/global-rules
