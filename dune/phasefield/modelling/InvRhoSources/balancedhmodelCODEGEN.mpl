@@ -3,7 +3,7 @@ F1 := proc (rho) options operator, arrow; (b-c)*rho+c*rho*ln(rho)+d end proc; g1
 F0 := proc (rho) options operator, arrow; (f-e)*rho+e*rho*ln(rho)+g end proc; g0 := D(F0); solve(g0(rho) = 0, rho); simplify(-F0(rho)+rho*g0(rho));
 c := 1.5; b := -1; d := 1; e := 3; f := -4; z1 := solve(g1(rho) = 0, rho); z2 := solve(g0(rho) = 0.*rho); gg := F1(z1)-e*z2*ln(z2)-(f-e)*z2; g := gg; F1(z1); F0(z2);
 G1 := D(F1); G0 := D(F0); p1 := proc (rho) options operator, arrow; -F1(rho)+rho*G1(rho) end proc; p0 := proc (rho) options operator, arrow; -F0(rho)+rho*G0(rho) end proc;
-fsolve([p1(rho) = p0(x), G1(rho) = G0(x)], {rho = 0 .. 4, x = 0 .. 4}); pconst := 1/2*(p1(1.947734046)+p0(3.793667900));
+sols:=fsolve([p1(rho)=p0(x),G1(rho)=G0(x)],{rho=0..4,x=0..4}):pconst:= sol1:=solve(sols[1]):sol2:=solve(sols[2]):d:=d-F1(sol1):g:=g-F0(sol2):pconst:=1/(2)*( p1(sol1)+p0(sol2)):
 nu := proc (phi) options operator, arrow; 6*phi^5-15*phi^4+10*phi^3 end proc; W := proc (phi) options operator, arrow; 2*A*(phi^4+(2*alpha-2)*phi^3+(-3*alpha+1)*phi^2+alpha) end proc; dW := D(W); F := proc (rho, phi) options operator, arrow; rho*W(phi)/delta+beta*(nu(phi)*F1(rho)+(1-nu(phi))*F0(rho)) end proc; Pressure := proc (rho, phi) options operator, arrow; beta*(nu(phi)*p1(rho)+(1-nu(phi))*p0(rho)) end proc; Potential := proc (rho, phi) options operator, arrow; W(phi)/delta+beta*(nu(phi)*G1(rho)+(1-nu(phi))*G0(rho)) end proc;
 S := proc (rho, phi) options operator, arrow; diff(F(rho, phi), phi) end proc;
 solrho := proc (x) options operator, arrow; (Const+nu(x)*(d-g)+g)/(nu(x)*(c-e)+e) end proc; Const := pconst; solproc := makeproc(solrho(x), x); evalRho := optimize(solproc); C(evalRho, filename = outstring, ansi);

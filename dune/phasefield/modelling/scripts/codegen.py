@@ -1,9 +1,9 @@
 import os,subprocess, sys
-folders = { 1:'../ConstRhoSources/' , 2:'../InvRhoSources/', 3:'../PhasefieldvanderWaalsSources/', 4:'../ConstRhoSources/'}
-files = { 1:'balancedCODEGEN.mpl', 2:'balancedhmodelCODEGEN.mpl', 3:'phasefieldvanderWaalsCODEGEN.mpl',4:'balancedCoquelCODEGEN.mpl'}
+folders = { 1:'../ConstRhoSources/' , 2:'../InvRhoSources/', 3:'../PhasefieldvanderWaalsSources/', 4:'../ConstRhoSources/',5:'../InvRhoSources/'}
+files = { 1:'balancedCODEGEN.mpl', 2:'balancedhmodelCODEGEN.mpl', 3:'phasefieldvanderWaalsCODEGEN.mpl', 4:'balancedCoquelCODEGEN.mpl', 5:'balancedhmodelCoqCODEGEN.mpl'}
 namelist = [' helmholtz', ' reactionSource',' dphireactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential',' pressure', ' a']
 namelist2 = [' rhosol', ' gradrho',' gradphi',' musol',' thetasol',' phiSource',' veloSource']
-models={ 1:'balanced',2:'balancedh',3:'vdW', 4:'freistuehler'}
+models={ 1:'balanced',2:'balancedh',3:'vdW', 4:'balCoq',5:'balhcoq'}
 number=int(sys.argv[1])
 inputfile=folders[number]+files[number]
 filename=models[number]+'.cc'
