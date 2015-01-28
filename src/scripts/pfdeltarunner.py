@@ -20,7 +20,7 @@ class PhasefieldDeltaRunner:
     self.params=['phasefield.mu1','phasefield.mu2','phasefield.endTime', 
     'fem.prefix','phasefield.alpha','phasefield.beta','phasefield.A',
     'phasefield.rhofactor','fem.ode.odesolver']
-    self.defaults=['0.1','0.1','10','','0.','1.','1.','3.5','IM']
+    self.defaults=['0.1','0.1','1','','0.','1.','2.','3.5','IM']
     self.paramsdelta=['phasefield.delta','startLevel','timeStep','runs']
     self.defaultsdelta=['0.1','1','1e-4','1']
     self.paramEntriesDelta=self.makeform(paramframe,self.paramsdelta,self.defaultsdelta)
@@ -79,7 +79,7 @@ class PhasefieldDeltaRunner:
       print('detached!!!')
   def runit(self):
     mydelta=float(self.paramEntriesDelta['phasefield.delta'].get())
-    reac=1./mydelta
+    reac=1.
     start=int(self.paramEntriesDelta['startLevel'].get())
     printCount=100
     step=float(self.paramEntriesDelta['timeStep'].get())
@@ -88,9 +88,9 @@ class PhasefieldDeltaRunner:
       runstring=self.composeString(mydelta,reac,start,printCount,step) 
       self.runcall(runstring)
       mydelta=0.5*mydelta
-      reac=reac#*2
+      #reac=reac*2
       start=start+1
-      printCount=2*printCount
-      step=0.5*step
+      #printCount=4*printCount
+      #step=0.25*step
       runs=runs-1
 
