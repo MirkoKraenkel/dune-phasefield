@@ -8,8 +8,15 @@
 #include <dune/fem/space/common/functionspace.hh>
 
 // local includes
-
+// local includes
+#if SURFACE
+#include <dune/phasefield/modelling/thermodsurface.hh>
+#else
 #include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+#endif
+
+
+//#include <dune/phasefield/modelling/thermodynamicsfreistuehler.hh>
 //#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
 
 
@@ -47,6 +54,7 @@ public:
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
+    A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     thermodyn_()
@@ -95,12 +103,13 @@ public:
   std::string description() const;
  
   inline double mu() const { abort(); return mu_; }
-  inline double delta() const{return delta_;}
+  inline double delta() const{return thermodyn_.delta();}
   protected:
   const std::string myName_;
   const double endTime_;
   const double mu_;
   const double delta_;
+  double A_;
   double rho_;
   const double phiscale_;
   const ThermodynamicsType thermodyn_;

@@ -8,8 +8,11 @@
 #include <dune/fem/space/common/functionspace.hh>
 
 // local includes
-
+#if SURFACE
+#include <dune/phasefield/modelling/thermodsurface.hh>
+#else
 #include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+#endif
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
 
@@ -139,7 +142,11 @@ template <class GridType,class RangeProvider>
 inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
+#if SURFACE
+  double deltaInv=1/delta_;
+#else  
   double deltaInv=sqrt(A_)/delta_;
+#endif  
   double r=std::abs( arg[0]);
   double tanhr=-tanh( ( r-radius_ )*deltaInv ); 
   double tanhrho=-tanh( ( r-radius_ )*rhofactor_*deltaInv ); 

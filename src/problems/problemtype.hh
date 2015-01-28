@@ -66,7 +66,7 @@ typedef BubbleEnsemble< GridSelector :: GridType,
         >PhaseProblemType;
 #endif
 #elif PROBLEM==3
-#include "../mixedscheme/mixproblem2d.hh"
+#include "../mixedscheme/mixproblem.hh"
 #if MIXED
 typedef MixProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>

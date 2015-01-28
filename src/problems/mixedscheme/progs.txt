@@ -1,4 +1,5 @@
 phasefieldcp
+phasefieldcpsurface
 phasefieldfd
 phasefieldlambdacp
 phasefieldlambdafd
