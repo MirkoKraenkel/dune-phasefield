@@ -174,10 +174,11 @@ namespace Dune
       template< class Point >
       void evaluate ( const Point &x, RangeType &ret ) const
       {
+        ret=0;
         typename FunctionType::RangeType phi;
         function_.evaluate( x, phi );
-        //for( auto i : components_)
-          ret =phi[0]*phi[0];
+        for( auto i : components_)
+          ret +=phi[i]*phi[i];
       }
       
     private:
