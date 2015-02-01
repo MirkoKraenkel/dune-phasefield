@@ -1,5 +1,5 @@
-#ifndef MATRIXHELPER_HH
-#define MATRIXHELPER_HH
+#ifndef DUNE_PHASEFIELD_MATRIXHELPER_HH
+#define DUNE_PHASEFIELD_MATRIXHELPER_HH
 // C++ includes
 #include <cassert>
 #include <cstddef>

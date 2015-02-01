@@ -1,5 +1,5 @@
-#ifndef DUNE_FEM_DG_FLUXDISCRETEMODEL_HH
-#define DUNE_FEM_DG_FLUXDISCRETEMODEL_HH
+#ifndef DUNE_PHASFIELD__FLUXPROJDISCRETEMODEL_HH
+#define DUNE_PHASFIELD__FLUXPROJDISCRETEMODEL_HH
 
 // Dune includes
 #include <dune/fem/gridpart/common/gridpart.hh>

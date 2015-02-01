@@ -1,6 +1,7 @@
-#ifndef DUNE_FEM_DG_WELLBALOPERATOR_HH
-#define DUNE_FEM_DG_WELLBALOPERATOR_HH
-#warning "WELLBALANCEDOP"
+#ifndef DUNE_PHASEFIELD_ALLENCAHNOPERATOR_HH
+#define DUNE_PHASEFIELD_ALLENCAHNOPERATOR_HH
+
+#warning "ALLENCAHNOP"
 #include <string>
 
 // dune-fem includes
@@ -11,8 +12,6 @@
 #include <dune/fem/operator/common/spaceoperatorif.hh>
 
 #include <dune/fem/pass/insertfunction.hh>
-// dune-fem-dg includes
-//#include <dune/fem-dg/operator/limiter/limitpass.hh>
 
 
 #include "allencahndiscretemodel.hh" 

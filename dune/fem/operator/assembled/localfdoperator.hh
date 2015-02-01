@@ -1,5 +1,5 @@
-#ifndef LOCALFD_OPERATOR_HH
-#define LOCALFD_OPERATOR_HH
+#ifndef DUNE_PHASIELD_LOCALFDOPERATOR_HH
+#define DUNE_PHASIELD_LOCALFDOPERATOR_HH
 
 
 
@@ -383,4 +383,4 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
 
 
-#endif //LOCALFD_OPERATOR_HH
+#endif //DUNE_PHASEFIELD_MIXEDOPERATOR_HH
