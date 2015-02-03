@@ -559,7 +559,7 @@ public:
    void finalizeStep(TimeProviderType& timeProvider)
 	{ 
 		DiscreteFunctionType& u = solution();
-		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ );
+		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ i;
 
 		// ... and print the statistics out to a file
 		if( doFemEoc )
@@ -573,13 +573,13 @@ public:
 	/*virtual*/ void restoreFromCheckPoint(TimeProviderType& timeProvider) {} 
 
 	//! write a check point (overload to do something)
-	/*virtual*/ void writeCheckPoint(TimeProviderType& timeProvider,
+	void writeCheckPoint(TimeProviderType& timeProvider,
 															 AdaptationManagerType& am ) const {}
 
-	/*virtual*/ DiscreteFunctionType& solution () { return solution_; }
+	DiscreteFunctionType& solution () { return solution_; }
 
 
-	/*virtual*/ void finalize ( const int eocloop ) 
+	void finalize ( const int eocloop ) 
 	{
 		DiscreteFunctionType& U = solution(); 
 	
