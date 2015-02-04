@@ -183,6 +183,10 @@ public:
     computeResidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
     timeStepTolerance_( Fem :: Parameter :: getValue< double >( "phasefield.timesteptolerance",-1. ) )
     {
+      std::string eocDescription[]={"L2errorPf","L2errorVel","L2errorRho","Energy", "KinEnergy", "Surface"};
+      eocId_=Fem::FemEoc::addEntry( eocDescription, 6);
+      solution_.clear();
+      oldsolution_.clear();
     }
 
   //! destructor 
