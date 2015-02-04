@@ -143,9 +143,9 @@ inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
 #if SURFACE
-  double deltaInv=1/delta_;
+  double deltaInv=1/(delta_*phiscale_);
 #else  
-  double deltaInv=sqrt(A_)/delta_;
+  double deltaInv=sqrt(A_)/(delta_*phiscale_);
 #endif  
   double r=std::abs( arg[0]);
   double tanhr=-tanh( ( r-radius_ )*deltaInv ); 
