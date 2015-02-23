@@ -136,7 +136,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
     double epsInv=1./eps;
 
-    QuadratureType quadrature( entity, 2*dfSpace.order() );
+    QuadratureType quadrature( entity, 2*dfSpace.order()+1 );
     const size_t numQuadraturePoints = quadrature.nop();
 
     uValues.resize(numQuadraturePoints);
@@ -207,7 +207,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
         setNeighbor( neighbor );
         typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-        //const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
         // get local matrix for face entries 
         LocalMatrixType jLocalNb = jOp.localMatrix( neighbor,entity );
@@ -216,7 +215,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         const LocalFunctionType uLocalNb = u.localFunction(neighbor);
         // get neighbor's base function set 
         const BasisFunctionSetType &baseSetNb = jLocalNb.domainBasisFunctionSet();
-        //   const unsigned int numBasisFunctionsNb = baseSetNb.size();
 
         const int quadOrderEn = 2*uLocal.order()+1;
         const int quadOrderNb = 2*uLocalNb.order()+1;
