@@ -45,6 +45,7 @@
 #endif
 
 //adaptation
+//#include <dune/fem/adaptation/jumpestimator.hh>
 #include <dune/fem/adaptation/mixedestimator.hh>
 
 template <class GridImp,
@@ -124,9 +125,10 @@ typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,Jacob
 #endif
 #endif
 
-  typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
-	typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
-//Pointers for (rho,v,phi,mu,tau,sigma) and (pressure,totalenergy)
+  //typedef JumpEstimator<DiscreteFunctionType,ModelType> EstimatorType;
+	typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
+  typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
+  //Pointers for (rho,v,phi,mu,tau,sigma) and (pressure,totalenergy)
   typedef Dune::tuple< DiscreteFunctionType*,EstimatorDataType*,DiscreteScalarType*, DiscreteScalarType*> IOTupleType; 
 
   // type of restriction/prolongation projection for adaptive simulations 
