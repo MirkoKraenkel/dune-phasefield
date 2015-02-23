@@ -89,7 +89,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       {
         double factor=0.5;
         timeProvider.provideTimeStepEstimate( factor*ldt);
-        timeProvider.invalidateTimeStep();
+        //timeProvider.invalidateTimeStep();
       }
 
 
@@ -118,21 +118,28 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       ils_iterations        = invOp.linearIterations();;
       max_newton_iterations = std::max(max_newton_iterations,newton_iterations);
       max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
-
+          
+      if( !invOp.converged() )
+        {
+           std::cout<<"no convergence!"<<"\n";
+           std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
+           abort(); 
+        }
+     if (fixedTimeStep_>1e-20)
+      {
       
-      if( !invOp.converged() || newton_iterations > maxNewtonIter_)
+      }
+     else if( newton_iterations > 3  )
         {
           std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
           reduceTimeStep( timeProvider , deltaT );
-          std::cout<<" - reduced Timestep="<<timeProvider.deltaT()<<"\n";
-          U.assign(Uold);
-          if (fixedTimeStep_>1e-20)
-            { 
-              std::cout<<"no convergence!"<<"\n";
-              abort();
+        //  U.assign(Uold);
+           { 
+     //         std::cout<<"no convergence!"<<"\n";
+       //       abort();
             }
          }
-      else if( ils_iterations < 10 && timeProvider.deltaT() < 1e-3)
+     else if( newton_iterations < 4 && timeProvider.deltaT() < 1e-3)
         {
           timeProvider.provideTimeStepEstimate( 1.2*deltaT);
         }
