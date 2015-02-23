@@ -12,7 +12,6 @@
 #include <dune/fem/operator/common/spaceoperatorif.hh> 
 #include <dune/fem/operator/matrix/blockmatrix.hh>
 #include <dune/fem/space/discontinuousgalerkin.hh>
-//#include <dune/fem/space/combinedspace.hh>
 #include <dune/fem/quadrature/intersectionquadrature.hh>
 #include <dune/fem/misc/h1norm.hh>
 
@@ -64,19 +63,19 @@ namespace Dune
     const IndexSetType &indexSet_;
     GridType &grid_;
     ErrorIndicatorType indicator_;
-    mutable ErrorIndicatorType refined_;
-    mutable ErrorIndicatorType refinedandcoarsened_; 
-    const  ModelType& model_;
-    double totalIndicator2_,maxIndicator_;
+    mutable ErrorIndicatorType localsize_;
+    mutable ErrorIndicatorType mark_;
+    double totalIndicator_,maxIndicator_;
     const double theta_;
     int maxLevel_;
     int minLevel_;
     const double coarsen_;
-    const double tolfactor_;
+    const double ifelements_;
     const double maxH_;
+    const double localsizeFactor_;
     const bool verbose_;
-      // const ProblemType &problem_;
-
+    const bool secondNb_;
+    const bool maxSigma_;
   public:
     explicit MixedEstimator ( const DiscreteFunctionType &uh ,
                               GridType &grid,
@@ -85,23 +84,26 @@ namespace Dune
       beta_(1.),
       dfSpace_( uh.space() ),
       gridPart_( dfSpace_.gridPart() ),
-	    indexSet_( gridPart_.indexSet() ),
-	    grid_( grid ),
-	    indicator_( indexSet_.size( 0 )),
-	    refined_( indexSet_.size( 0 )), 
-      model_(model),
-      totalIndicator2_(0),
-	    maxIndicator_(0),
-	    theta_( Dune::Fem::Parameter::getValue("phasefield.adaptive.theta",0.) ),
-	    maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")), 
-	    minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
-	    coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1)),
-      tolfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.tolfactor",1) ),
+      indexSet_( gridPart_.indexSet() ),
+      grid_( grid ),
+      indicator_( indexSet_.size( 0 )),
+      localsize_( indexSet_.size( 0 )),
+      mark_( indexSet_.size( 0 )),
+      totalIndicator_(0),
+      maxIndicator_(0),
+      theta_( Dune::Fem::Parameter::getValue("phasefield.adaptive.theta",0.) ),
+      maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
+      minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
+      coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1)),
+      ifelements_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.tolfactor",1) ),
       maxH_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.maxh",0.02 )),
-      verbose_( Dune::Fem::Parameter::getValue<bool>("phasefield.adaptive.verbose",false) )
-      {
+      localsizeFactor_( Dune::Fem::Parameter::getValue<double>( "phasefield.adaptive.localsizefactor",0.4)),
+      verbose_( Dune::Fem::Parameter::getValue<bool>("phasefield.adaptive.verbose",false) ),
+      secondNb_( Dune::Fem::Parameter::getValue<bool>("phasefield.adaptive.secondneighbors",false)),
+      maxSigma_( Dune::Fem::Parameter::getValue<bool>("phasefield.adaptive.maxsigma",false))
+     {
         clear();
-      }  
+     }
     
     // make this class behave as required for a LocalFunctionAdapter
     typedef Fem::FunctionSpace< double, double, dimension, 3 > FunctionSpaceType;
@@ -115,9 +117,9 @@ namespace Dune
     void evaluate(const PointType& x,FieldVector<double,3> &ret)
     {
     
-      ret[0] = indicator_[enIndex_];
-      ret[1] = refined_[enIndex_];
-      ret[2] = refinedandcoarsened_[enIndex_];//grid_.getMark(*entity_);
+      ret[0] = indicator_[ enIndex_ ];
+      ret[1] = localsize_[ enIndex_ ];
+      ret[2] = mark_[ enIndex_ ];
    }
   private:
     const ElementType *entity_;
@@ -127,11 +129,11 @@ namespace Dune
     void clear ()
     {
       indicator_.resize( indexSet_.size( 0 ));
-      refined_.resize( indexSet_.size( 0 ));
-      refinedandcoarsened_.resize( indexSet_.size( 0 ));
+      localsize_.resize( indexSet_.size( 0 ));
+      mark_.resize( indexSet_.size( 0 ));
       std::fill( indicator_.begin(), indicator_.end(), 0.);
-      std::fill( refined_.begin(), refined_.end(), 0.);// std::numeric_limits<int>::min());
-      std::fill( refined_.begin(), refined_.end(), 0.);
+      std::fill( localsize_.begin(), localsize_.end(), 0.);
+      std::fill( mark_.begin(), mark_.end(), 0.);
      }
     
     void estimate ( )
@@ -152,45 +154,19 @@ namespace Dune
         indicator=estimateLocal(entity, uLocal );
         localIndicator.push_back( indicator);
         IntersectionIteratorType end = gridPart_.iend( entity );
-#if 0        
-        for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
-         {
-        
-           const IntersectionType &intersection = *inter;
-            
-           if( intersection.neighbor() )
-            {
-              const ElementPointerType pOutside = intersection.outside();
-              const ElementType &outside = *pOutside;
-              const LocalFunctionType uLocalNb = uh_.localFunction( outside);
-              indicator=estimateLocal( entity, uLocal );
-              localIndicator.push_back(indicator);
-            }
-         auto maxIndicator=std::max_element(localIndicator.begin(), localIndicator.end()); 
-           indicator_[ index ]=*maxIndicator;
- 
-   //   estimateIntersection( intersection, entity, uLocal );
-     //      else
-  //  ..       estimateBoundary( intersection,entity,uLocal);
-
-         }
-#endif
       }
-      
-     // return computeIndicator();
     }
     
     double computeIndicator()
     {
-      totalIndicator2_ = 0.0;
+      totalIndicator_ = 0.0;
   
         for (unsigned int i=0;i<indicator_.size();++i)
         {
-          totalIndicator2_ += indicator_[ i ];
+          totalIndicator_ += indicator_[ i ];
           maxIndicator_ = std::max(maxIndicator_,indicator_[i]);
         }
-        std::cout<<"MaxIndicator="<<maxIndicator_<<"\n";	
-	      return sqrt( totalIndicator2_ );
+	      return sqrt( totalIndicator_ );
     }
 
 
@@ -216,66 +192,72 @@ namespace Dune
         {
           const ElementType &entity = *it;
           int index=indexSet_.index(entity);
-          double gridFactor=indicator_[index];
-          if(verbose_ && (gridFactor > 1.001))
-            std::cout<<"gridFactor="<<refined_[index]<<"/ "<<indicator_[index]<<"="<<gridFactor<<"\n";
-         
-       //  if( std::abs(gridFactor)> tolerance)
-        if( gridFactor==-1)
-         {
-	        
-          if(entity.level()<maxLevel_)
-		        {
-              //if( refined_[index]!=1)
-                {      
-                  grid_.mark( 1, entity );
-            //      refined_[ index ] += 1;	
-                }
-              IntersectionIteratorType end = gridPart_.iend( entity );
-		          
-             // if(0)
-              for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
-		          {
-                const IntersectionType &intersection = *inter;
-                if( intersection.neighbor() )
-			          {
-			            const ElementPointerType pOutside = intersection.outside();
-			            const ElementType &outside = *pOutside;  
-                  //int outsideIndex=indexSet_.index(outside);
-                  if(outside.level()<maxLevel_ );
-			            {
-               //     if(refined_[outsideIndex]<1)
-                      { 
-                        grid_.mark( 1, outside );
-          //              refined_[outsideIndex ] += 1;	
-                      }
-                    ++marked;
-                  }
-                }
-		          }
-            ++marked;
-		       }
-	        }
-          else if ( gridFactor==1)//else if( gridFactor < coarsen_ )
-	        {
-            //std::cout<<"GF="<<gridFactor<<"->Coarsen?\n";
-            if( entity.level()>minLevel_ /* &&  (refined_[indexSet_.index(entity)]!=1)*/ )
-            { 
-		       //   if(refined_[index]==1)
-           //    refinedandcoarsened_[index]=2.;
-           //   else
-           //    refinedandcoarsened_[index]=1.;
-              
-              grid_.mark(-1,entity);
-            }
-           }
-	        else
+          double gridFactor = indicator_[index];
+
+          if( gridFactor < localsizeFactor_*localsize_[index])
           {
 	        
-          }
+            if(entity.level()<maxLevel_)
+		        {
+              grid_.mark( 1, entity );
+              mark_[index]=1;
+            }
+
+            IntersectionIteratorType end = gridPart_.iend( entity );
+		          
+            for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
+		        {
+              const IntersectionType &intersection = *inter;
+              if( intersection.neighbor() )
+			        {
+			          const ElementPointerType poutside = intersection.outside();
+			          const ElementType &outside = *poutside;
+                int indexnb=indexSet_.index(outside);
+                if(outside.level()<maxLevel_ );
+			          {
+                  grid_.mark( 1, outside );
+                  mark_[ indexnb ]=1;
+                  ++marked;
+                }
+
+                IntersectionIteratorType end = gridPart_.iend( outside );
+                if(secondNb_)
+                  for(IntersectionIteratorType inter2 = gridPart_.ibegin( outside ); inter2!=end; ++inter2)
+                  {
+                    const IntersectionType &intersection2=*inter2;
+
+                    if(intersection2.neighbor())
+                    {
+                      const ElementPointerType poutside2 = intersection2.outside();
+			                const ElementType &outside2 = *poutside2;
+                      int indexnb2 = indexSet_.index(outside2);
+                      if(outside.level()<maxLevel_ );
+			                {
+                        grid_.mark( 1, outside2 );
+                        mark_[ indexnb2 ]=1;
+                        ++marked;
+                      }
+                    }
+                  }
+		            }
+              }
+              ++marked;
+		        }
+            else if ( gridFactor > localsize_[index])
+	          {
+              if( entity.level()>minLevel_ )
+              {
+                grid_.mark(-1,entity);
+                mark_[ index ]=-1;
+              }
+            }
+	          else
+            {
+	            mark_[ index ]=0;
+            }
 	  
 
-	      }
+	        }
       }
       
       return (marked > 0);
@@ -302,49 +284,46 @@ namespace Dune
       double h2=std::sqrt(volume);
       const int index = indexSet_.index( entity );
      
-      ElementQuadratureType quad( entity, 2*(dfSpace_.order() )+1 );
+      ElementQuadratureType quad( entity, 2*(dfSpace_.order() ) );
       const int numQuadraturePoints = quad.nop();
       double sigmasquared=0.;
-      //double maxsigma=0; 
+      double maxsigma=0
       RangeType range;
       JacobianRangeType gradient;
       
       uLocal.evaluate( refElement.position(0 , 0),range );
- //     for( int i=0 ; i < dimension ; ++ i)
-   //    sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i);
-
 
       
-#if 1 
     for( int qp = 0; qp < numQuadraturePoints; ++qp )
         {
           JacobianRangeType gradient;
 	        RangeType range;
-          double weight = quad.weight(qp);// * geometry.integrationElement( quad.point( qp )) ;
+          double weight = quad.weight(qp);
 	  
 	        uLocal.evaluate(quad[qp],range);
-          
-          for(int i=0 ; i<dimension; ++i)
-            sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)*PhasefieldFilter<RangeType>::sigma(range,i)*weight;
+          if( maxSigma_)
+          {
+            sigmasquared=0;
+            for(int i=0 ; i<dimension; ++i)
+              sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)
+                            *PhasefieldFilter<RangeType>::sigma(range,i);
+            maxsigma=std::max(sigmasquared,maxsigma);
+          }
+          else
+          {
+            for(int i=0 ; i<dimension; ++i)
+              maxsigma+=PhasefieldFilter<RangeType>::sigma(range,i)
+                        *PhasefieldFilter<RangeType>::sigma(range,i)*weight;
+          }
 
-        // maxsigma=std::max(sigmasquared,maxsigma);
 
         }
-#endif
       //L2-Norm Sigma
-      double normsigma=std::sqrt(sigmasquared);
-      normsigma*=tolfactor_;
+      double normsigma=std::sqrt(maxsigma);
+      normsigma*=ifelements_;
       double indicatedsize=1/(normsigma+(1./maxH_)); 
-      refined_[ index ]=h2;//indicatedsize; 
-      refinedandcoarsened_[index]=indicatedsize;
-      #if 1 
-      if( indicatedsize < 0.4*h2)
-        indicator_[ index ]=-1;
-      else if( indicatedsize > h2)
-        indicator_[ index ]=1;
-      else
-        indicator_[index]=0;
-      #endif
+      localsize_[ index ]=h2;
+      indicator_[ index ]=indicatedsize;
       return normsigma;
     }
 
