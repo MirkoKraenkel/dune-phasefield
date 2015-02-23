@@ -289,13 +289,12 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
       // compute penalty factor
       const double intersectionArea = normal.two_norm();
-      const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
-      const double area=std::min(areaEn_,areaNb_); 
-
-
+      const double localwidth = std::min(areaEn_,areaNb_)/intersectionArea;
+      const double penaltyFactor = 1./localwidth;
+ 
 
       jacFlux_.numericalFlux( normal,
-                              area,
+                              localwidth,
                               penaltyFactor,
                               vuMidEn,
                               vuMidNb,
@@ -306,7 +305,7 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
       DomainType negnormal=normal;
       negnormal*=-1;
       jacFlux_.numericalFlux( negnormal,
-                              area,
+                              localwidth,
                               penaltyFactor,
                               vuMidNb,
                               vuMidEn,
@@ -353,7 +352,7 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                                                 jj,
                                                                 weightInside,
                                                                 jLocalNbEn );
-#if 1 
+
             MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
                                                                 phiNb,
                                                                 phi,
@@ -371,7 +370,7 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                                                 jj,
                                                                 weightOutside,
                                                                 jLocalNbNb );
-#endif
+
 #if 1
 // Adding DiffusionFluxTerms
             for(int i  = 0; i  < dimDomain ; ++i )
@@ -458,7 +457,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
       
     const unsigned int numScalarBf = numBasisFunctions/dimRange;
 
-    QuadratureType quadrature( entity, 2*dfSpace.order(entity) );
+    QuadratureType quadrature( entity, 2*dfSpace.order(entity)+1 );
     const size_t numQuadraturePoints = quadrature.nop();
     
     uEn_.resize(numQuadraturePoints);
@@ -765,11 +764,11 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
               // compute penalty factor
               const double intersectionArea = normal.two_norm();
-              const double penaltyFactor = intersectionArea /  areaEn_; 
-              const double area=areaEn_; 
-              
+              const double localwidth = areaEn / intersectionArea;
+              const double penaltyFactor = 1./localwidth;
+
               jacFlux_.boundaryFlux( normal,
-                                     area,
+                                     localwidth,
                                      vuMidEn,
                                      fluxLeft);
   
@@ -780,12 +779,12 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                   DiffusionType aLeft,aRight;
                   DiffusionValueType bLeft, bRight;
 
-                  jacFlux_.scalar2vectorialBoundaryFlux( normal,
-                                                          penaltyFactor,
-                                                          phi[ jj ],
-                                                          dphi[ jj ],
-                                                          aLeft,
-                                                          bLeft);
+                  jacFlux_.scalar2vectorialBoundaryFlux(normal,
+                                                        penaltyFactor,
+                                                        phi[ jj ],
+                                                        dphi[ jj ],
+                                                        aLeft,
+                                                        bLeft);
 
 
                   for( size_t ii = 0; ii < numScalarBf ; ++ii )
