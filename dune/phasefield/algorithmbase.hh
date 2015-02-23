@@ -150,7 +150,7 @@ protected:
   ModelType*              model_;
   AdaptationHandlerType*  adaptationHandler_;
   Timer                   overallTimer_;
-  const unsigned int      eocId_;
+  unsigned int      eocId_;
   double tolerance_;
   bool interpolateInitialData_;
   bool computeResidual_;
@@ -177,7 +177,7 @@ public:
     model_( new ModelType( problem() ) ),
     adaptationHandler_( 0 ),
     overallTimer_(),
-    eocId_( Fem::FemEoc::addEntry(std::string("L2error")) ),
+    eocId_( -1 ),
     tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
     interpolateInitialData_( Fem :: Parameter :: getValue< bool >("phasefield.interpolinitial" , false ) ),
     computeResidual_( Fem :: Parameter :: getValue< bool >("phasefield.calcresidual" , false ) ),
@@ -405,7 +405,7 @@ public:
           ++startCount;
         }
       }
-      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+    //  writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
       double firstTimeStep=Dune::Fem::Parameter::getValue<double>("phasefield.firstStep",1e-6);
       timeProvider.provideTimeStepEstimate(firstTimeStep);
     	// start first time step with prescribed fixed time step 
@@ -415,7 +415,7 @@ public:
 		  else
 			  timeProvider.init();
 
-      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+     writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
     else
     {
@@ -466,12 +466,12 @@ public:
           if( grid_.comm().rank() == 0 )
             {
               std::cout <<"step: " << counter << "  time = " << tnow << ", dt = " << ldt<<", timeStepEstimate " <<timeStepEst;
-              std::cout<< ", Error between timesteps="<< timeStepError<<" iterations "<<ils_iterations;
+              std::cout<< ", Error between timesteps="<< timeStepError<<" iterations "<<ils_iterations<< "newtoniter: "<<newton_iterations;
               std::cout<<std::endl;
              
             }
          
-          writeEnergy( timeProvider , energyfile, ils_iterations, surfacediff);
+          writeEnergy( timeProvider , energyfile, ils_iterations, timeStepError);
         }
 
         writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
@@ -563,7 +563,7 @@ public:
    void finalizeStep(TimeProviderType& timeProvider)
 	{ 
 		DiscreteFunctionType& u = solution();
-		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ i;
+		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ );
 
 		// ... and print the statistics out to a file
 		if( doFemEoc )
