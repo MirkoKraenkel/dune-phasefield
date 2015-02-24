@@ -134,8 +134,8 @@ namespace Dune
         linAbsTol_( parameter.linAbsTolParameter( tolerance_ ) ),
         linReduction_( parameter.linReductionParameter( tolerance_ ) ),
         verbose_( parameter.verbose() && MPIManager::rank () == 0 ),
-        matrixout_( parameter.matrixout()),
         linVerbose_( parameter.linearSolverVerbose() ),
+        matrixout_( parameter.matrixout()),
         maxIterations_( parameter.maxIterationsParameter() ),
         maxLinearIterations_( parameter.maxLinearIterationsParameter() )
       {}
@@ -152,8 +152,8 @@ namespace Dune
         linAbsTol_( parameter.linAbsTolParameter( tolerance_ ) ),
         linReduction_( parameter.linReductionParameter( tolerance_ ) ),
         verbose_( parameter.verbose() ),
-        matrixout_( parameter.matrixout()),
         linVerbose_( parameter.linearSolverVerbose() ),
+        matrixout_( parameter.matrixout()),
         maxIterations_( parameter.maxIterationsParameter() ),
         maxLinearIterations_( parameter.maxLinearIterationsParameter() )
       {}
