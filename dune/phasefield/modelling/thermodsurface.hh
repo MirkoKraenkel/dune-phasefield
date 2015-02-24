@@ -32,7 +32,7 @@ class BalancedThermodynamics:
     reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
   {
   }
-#if RHOMODEL
+#if RHO_H2CONSTMODEL
   inline double h( double rho ) const
   {
     return rho;
@@ -40,20 +40,16 @@ class BalancedThermodynamics:
   
   inline double h2( double rho) const
   {
-    //return  1./h(rho);//+A_;
-    // return  1./sqrt(rho);
     return 1.;
 
  }
 
   inline double h2prime( double rho ) const
   {
-    //return -1./(h(rho)*h(rho));
-   // double sqrtrhoinv=1./sqrt(rho);
-    //return -0.5*sqrtrhoinv*sqrtrhoinv*sqrtrhoinv;
     return 0;
   }
 #include "InvRhoSources/maple.cc"
+
 #else
   inline double h( double rho ) const
   {
@@ -69,7 +65,11 @@ class BalancedThermodynamics:
   {
     return 0.;
   }
-#include "ConstRhoSources/maple.cc"
+#if TAIT
+#include "TaitSources/maple.cc"
+#else
+#include "PhasefieldvanderWaalsSources/maple.cc"
+#endif
 #endif
   inline double reactionFactor() const
   {
@@ -81,7 +81,7 @@ class BalancedThermodynamics:
 
   public:
 
-  inline double delta()    const { return A_*delta_; }
+  inline double delta()    const { return beta_*delta_; }
   inline double deltaInv() const { return deltaInv_; }
   inline double mu1()      const { return mu1_; }
   inline double mu2()      const { return mu2_; }
