@@ -1,22 +1,18 @@
-restart; with(codegen);
-w := proc (rho) options operator, arrow; -3*rho+(8/3)*theta*log(rho/(3-rho))+c*theta*(1-log(theta)) end proc; g := proc (rho) options operator, arrow; diff(rho*w(rho), rho) end proc;
-c := 4; theta := .9;
-p := proc (rho) options operator, arrow; rho^2*(diff(w(rho), rho)) end proc; pp := makeproc(p(rho), rho); gg := makeproc(g(rho), [rho]);
-sols := fsolve([p(x) = p(y), g(x) = g(y)], {x = 0 .. 1.5, y = 1.5 .. 3}); r1 := solve(sols[1]); r2 := solve(sols[2]);
-F1 := proc (rho) options operator, arrow; a2*rho*ln(rho)+(b2-a2)*rho+k end proc; G1 := proc (rho) options operator, arrow; diff(F1(rho), rho) end proc; gg1 := makeproc(G1(rho), rho); p1 := proc (rho) options operator, arrow; -F1(rho)+rho*gg1(rho) end proc; pp1 := makeproc(p1(rho), rho);
-F0 := proc (rho) options operator, arrow; a*rho*ln(rho)+(b-a)*rho end proc; G0 := D(F0); p0 := proc (rho) options operator, arrow; -F1(rho)+rho*gg1(rho) end proc; pp0 := makeproc(p1(rho), rho);
-W := proc (rho) options operator, arrow; rho*w(rho) end proc; a := pp(r1)/r1; b := gg(r1)-a*ln(r1);
-a2 := (pp(r2)+k)/r2; b2 := gg(r2)-a2*ln(r2); k := 11;
-
-nn := proc (phi) options operator, arrow; 6.*phi^5+(-1)*15.*phi^4+10.*phi^3 end proc; W := proc (phi) options operator, arrow; 2.*(phi^2*(1-phi)^2) end proc; dW := D(W);
-F := proc (rho, phi) options operator, arrow; W(phi)/delta+nn(phi)*F1(rho)+(1-nn(phi))*F0(rho) end proc;
-Pressure := proc (rho, phi) options operator, arrow; nn(phi)*p1(rho)+(1-nn(phi))*p0(rho) end proc;
-P2 := proc (rho, phi) options operator, arrow; Pressure(rho, phi)-W(phi)/delta end proc;
-Potential := proc (rho, phi) options operator, arrow; nn(phi)*G1(rho)+(1-nn(phi))*G0(rho) end proc;
-
-outstring := "maple.cc";
-
-solrho := proc (x) options operator, arrow; 0 end proc; solproc := makeproc(solrho(x), x); evalRho := optimize(solproc); C(evalRho, filename = outstring, ansi);
+restart; with(codegen); outstring2 := "balanced.cc"; outstring := "maple.cc";
+FvdW := proc (rho) options operator, arrow; rho*(-rho+(8/27)*theta*log(rho/(1-rho))) end proc; theta := .85;
+gvdW := proc (rho) options operator, arrow; diff(FvdW(rho), rho) end proc; pp := proc (rho) options operator, arrow; -FvdW(rho)+rho*gvdW(rho) end proc; pvdW := makeproc(pp(rho), rho); GvdW := makeproc(gvdW(rho), rho);
+sols := fsolve([pvdW(x) = pvdW(y), gvdW(x) = gvdW(y)], {x = 0 .. 3, y = .4 .. 1}); r1 := solve(sols[1]); r2 := solve(sols[2]); dpvdW := proc (rho) options operator, arrow; diff(pvdW(rho), rho) end proc; mwg := proc (rho) options operator, arrow; GvdW(r1)*rho-pvdW(r2) end proc; F2 := proc (rho) options operator, arrow; FvdW(rho)-mwg(rho) end proc;
+psols := solve(dpvdW(x), x); pp1 := psols[1]; pp2 := psols[2]; Gv2 := D(F2); p2 := proc (rho) options operator, arrow; -F2(rho)+rho*Gv2(rho) end proc;
+F1 := proc (rho) options operator, arrow; a*rho*log(rho)+b*rho+K end proc; F1(x); g1 := D(F1); g1(r2); g1(pp2); p1 := proc (rho) options operator, arrow; -F1(rho)+rho*g1(rho) end proc; G1 := makeproc(g1(x), x); G1(r2);
+a := 2;
+koeffs := fsolve({G1(r2) = Gv2(r2), p1(r2) = p2(r2)});
+K := solve(koeffs[1]); b := solve(koeffs[2]);
+F0 := proc (rho) options operator, arrow; av*rho*log(rho)+(bv-av)*rho+cv end proc; g0 := D(F0); p0 := proc (rho) options operator, arrow; -F0(rho)+rho*g0(rho) end proc; G0 := makeproc(g0(x), x); cv := limit(F2(x), x = 0);
+koeffs2 := solve({G0(r1) = Gv2(r1), p0(r1) = p2(r1)});
+av := solve(koeffs2[1]); bv := solve(koeffs2[2]);
+plot([F2(rho), F0(rho), F1(rho)], rho = 0 .. .99);
+nn := proc (phi) options operator, arrow; 6.*phi^5+(-1)*15.*phi^4+10.*phi^3 end proc; W := proc (phi) options operator, arrow; 2*A*(phi^4+(2*alpha-2)*phi^3+(-3*alpha+1)*phi^2+alpha) end proc; dW := D(W); F := proc (rho, phi) options operator, arrow; W(phi)/delta+nn(phi)*F1(rho)+(1-nn(phi))*F0(rho) end proc; Pressure := proc (rho, phi) options operator, arrow; nn(phi)*p1(rho)+(1-nn(phi))*p0(rho) end proc; Potential := proc (rho, phi) options operator, arrow; nn(phi)*G1(rho)+(1-nn(phi))*G0(rho) end proc; P2 := proc (rho, phi) options operator, arrow; Pressure(rho, phi)-W(phi)/delta end proc;
+solrho := proc (x) options operator, arrow; (r2-r1)*x+r1 end proc; Const := G1(sol1); solproc := makeproc(solrho(x), x); evalRho := optimize(solproc); C(evalRho, filename = outstring, ansi);
 Fproc := makeproc(F(rho, phi), [rho, phi]); helmholtz := optimize(Fproc); C(helmholtz, filename = outstring, ansi);
 S := proc (rho, phi) options operator, arrow; diff(F(rho, phi), phi) end proc; Sproc := makeproc(S(rho, phi), [rho, phi]); reactionSource := optimize(Sproc); C(reactionSource, filename = outstring, ansi);
 dphiS := proc (rho, phi) options operator, arrow; diff(S(rho, phi), phi) end proc; dphiSproc := makeproc(dphiS(rho, phi), [rho, phi]); dphireactionSource := optimize(dphiSproc); C(dphireactionSource, filename = outstring, ansi);
@@ -24,7 +20,16 @@ CProc := makeproc(simplify(Potential(rho, phi)), [rho, phi]); chemicalPotential 
 drhoPotential := proc (rho, phi) options operator, arrow; diff(Potential(rho, phi), rho) end proc; drhomuproc := makeproc(simplify(drhoPotential(rho, phi)), [rho, phi]); drhochemicalPotential := optimize(drhomuproc); C(drhochemicalPotential, filename = outstring, ansi);
 dphiPotential := proc (rho, phi) options operator, arrow; diff(Potential(rho, phi), phi) end proc; dphimuproc := makeproc(simplify(dphiPotential(rho, phi)), [rho, phi]); dphichemicalPotential := optimize(dphimuproc); C(dphichemicalPotential, filename = outstring, ansi);
 Pproc := makeproc(P2(rho, phi), [rho, phi]); pressure := optimize(Pproc); C(pressure, filename = outstring, ansi);
-wavespeed := proc (rho, phi) options operator, arrow; sqrt(diff(Pproc(rho, phi), rho)) end proc; wproc := makeproc(simplify(wavespeed(rho, phi)), [rho, phi]); a := optimize(wproc); C(a, filename = outstring, ansi);
+wavespeed := proc (rho, phi) options operator, arrow; sqrt(diff(Pressure(rho, phi), rho)) end proc; wproc := makeproc(simplify(wavespeed(rho, phi)), [rho, phi]); a := optimize(wproc); C(a, filename = outstring, ansi);
+solphi := proc (x) options operator, arrow; .5*tanh(x/delta)+.5 end proc; rs := proc (x) options operator, arrow; solrho(solphi(x)) end proc; rhosol := makeproc(rs(x), x); rhosol := optimize(rhosol); gr := proc (x) options operator, arrow; diff(rhosol(x), x) end proc; gradrho := makeproc(gr(x), x); gradrho := optimize(gradrho); C(rhosol, filename = outstring2, ansi); C(gradrho, filename = outstring2, ansi);
+gp := D(solphi); gradphi := makeproc(gp(x), x); C(gradphi, filename = outstring2, ansi);
+lp := D(gradphi); laplacephi := makeproc(lp(x), x);
+tht := proc (x) options operator, arrow; reactionSource(rhosol(x), solphi(x))-delta*laplacephi(x) end proc; thetasol := makeproc(tht(x), x); thetasol := optimize(thetasol); C(thetasol, filename = outstring2, ansi);
+RsP := proc (x) options operator, arrow; thetasol(rhosol(x), solphi(x))/rhosol(x) end proc; phiSource := makeproc(RsP(x), x); phiSource := optimize(phiSource); C(phiSource, filename = outstring2, ansi);
+ms := proc (x) options operator, arrow; chemicalPotential(rhosol(x), solphi(x)) end proc;
+musol := makeproc(ms(x), x); musol := optimize(musol); C(musol, filename = outstring2, ansi);
+dsolmu := proc (x) options operator, arrow; diff(musol(x), x) end proc; gradmu := makeproc(dsolmu(x), x); gradmu := optimize(gradmu);
+RsV := proc (x) options operator, arrow; -gradphi(x)*thetasol(x)+rhosol(x)*gradmu(x) end proc;
+veloSource := makeproc(RsV(x), x); veloSource := optimize(veloSource); C(veloSource, filename = outstring2, ansi);
 
 
-# 
