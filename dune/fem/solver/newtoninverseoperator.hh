@@ -178,7 +178,6 @@ namespace Dune
       const bool matrixout_;
       const int maxIterations_;
       const int maxLinearIterations_;
-
       mutable DomainFieldType delta_;
       mutable int iterations_;
       mutable int linearIterations_;
@@ -199,12 +198,14 @@ namespace Dune
       RangeFunctionType dw( w );
       RangeFunctionType wbacktrack( w );
       JacobianOperatorType jOp( "jacobianOperator", dw.space(), u.space() );
-      double oldDelta;
+      //double oldDelta;
+      
       // compute initial residual
       op_( w, residual );
       residual -= u;
       delta_ = std::sqrt( residual.scalarProductDofs( residual ) );
-      oldDelta=delta_;
+      //oldDelta=delta_;
+  
       for( iterations_ = 0, linearIterations_ = 0; converged() && (delta_ > tolerance_); ++iterations_ )
       {
         if( verbose_ )
@@ -243,11 +244,11 @@ if( matrixout_ )
 #endif
         linearIterations_ += jInv.iterations();
         w -= dw;
-        double damping=0.5;
         op_( w, residual );
         residual -= u;
         delta_ = std::sqrt( residual.scalarProductDofs( residual ) );
 #if   0
+        double damping=0.5;
         if( iterations_ > 0)    
         {      
           while( delta_>oldDelta)
