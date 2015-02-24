@@ -764,7 +764,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
               // compute penalty factor
               const double intersectionArea = normal.two_norm();
-              const double localwidth = areaEn / intersectionArea;
+              const double localwidth = areaEn_ / intersectionArea;
               const double penaltyFactor = 1./localwidth;
 
               jacFlux_.boundaryFlux( normal,
