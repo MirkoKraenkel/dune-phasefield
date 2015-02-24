@@ -10,7 +10,7 @@ K := solve(koeffs[1]); b := solve(koeffs[2]);
 F0 := proc (rho) options operator, arrow; av*rho*log(rho)+(bv-av)*rho+cv end proc; g0 := D(F0); p0 := proc (rho) options operator, arrow; -F0(rho)+rho*g0(rho) end proc; G0 := makeproc(g0(x), x); cv := limit(F2(x), x = 0);
 koeffs2 := solve({G0(r1) = Gv2(r1), p0(r1) = p2(r1)});
 av := solve(koeffs2[1]); bv := solve(koeffs2[2]);
-plot([F2(rho), F0(rho), F1(rho)], rho = 0 .. .9);
+
 nn := proc (phi) options operator, arrow; 6.*phi^5+(-1)*15.*phi^4+10.*phi^3 end proc; W := proc (phi) options operator, arrow; 2*A*(phi^4+(2*alpha-2)*phi^3+(-3*alpha+1)*phi^2+alpha) end proc; dW := D(W); F := proc (rho, phi) options operator, arrow; W(phi)/delta+nn(phi)*F1(rho)+(1-nn(phi))*F0(rho) end proc; Pressure := proc (rho, phi) options operator, arrow; nn(phi)*p1(rho)+(1-nn(phi))*p0(rho) end proc; Potential := proc (rho, phi) options operator, arrow; nn(phi)*G1(rho)+(1-nn(phi))*G0(rho) end proc; P2 := proc (rho, phi) options operator, arrow; Pressure(rho, phi)-W(phi)/delta end proc;
 solrho := proc (x) options operator, arrow; (r2-r1)*x+r1 end proc; Const := G1(sol1); solproc := makeproc(solrho(x), x); evalRho := optimize(solproc); C(evalRho, filename = outstring, ansi);
 Fproc := makeproc(F(rho, phi), [rho, phi]); helmholtz := optimize(Fproc); C(helmholtz, filename = outstring, ansi);
