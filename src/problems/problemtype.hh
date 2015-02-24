@@ -60,7 +60,7 @@ typedef BubbleEnsemble< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else
-#include "../mixedscheme/bubbleensemble.hh"
+#include "../mixedscheme/bubbleensemble2.hh"
 typedef BubbleEnsemble< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;
