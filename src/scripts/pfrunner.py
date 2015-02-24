@@ -20,7 +20,7 @@ class PhasefieldRunner:
     self.params=['phasefield.delta','phasefield.mu1','phasefield.mu2','phasefield.endTime', 'fixedTimeStep', 
     'fem.prefix','phasefield.startLevel','phasefield.reactionrate','phasefield.alpha','phasefield.beta','phasefield.A',
     'phasefield.rhofactor','phasefield.addvisc','phasefield.nonconvisc','phasefield.acpenalty','phiscale']
-    self.defaults=['0.01','0.1','0.1','5','1e-3','','0','1','0.','1.','0.01','2',1,0,0,1]
+    self.defaults=['0.05','0.1','0.1','1e-3','0','','0','1','0.','1.','1','2',1,0,1,1]
     self.paramEntries=self.makeform(paramframe,self.params)
     self.listbox = Listbox( listframe )
     self.listbox.pack(side=LEFT)
@@ -50,7 +50,7 @@ class PhasefieldRunner:
     idxs = self.listbox.curselection()
     index=int(idxs[0])
     p=self.programms[index]
-    outfile='./Data'+myday+'/'+self.paramEntries['fem.prefix'].get()
+    outfile='/disk1/Data2D'+myday+'/'+self.paramEntries['fem.prefix'].get()
     paramstring=''
     for key in self.paramEntries:
       if key =='fem.prefix':
@@ -58,7 +58,7 @@ class PhasefieldRunner:
       else:
         paramstring+=key+':'+self.paramEntries[key].get()+' '
     execstring ='nice -n19 ./'+p+' '+paramstring+'paramfile:parameter_gui'
-    #execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+p+'.out'
+    #execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+outfile+p+'.out'
     return ( execstring , outfile )
   def runcall(self, stringtuple):
     execstring=stringtuple[0]
