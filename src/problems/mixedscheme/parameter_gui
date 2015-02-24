@@ -4,8 +4,8 @@ fem.resolvevariables: 1
 fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
 fem.io.savestep: 1e-1 #save data every time interval
-fem.io.savecount:   0   # save every i-th ste
-fem.io.checkpointstep: 1
+fem.io.savecount: 0   # save every i-th ste
+fem.io.checkpointstep: 0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
 # GRID SOLUTION
@@ -38,24 +38,26 @@ phasefield.nonconvisc:1
 phasefield.delta: $(delta) 
 phasefield.mu1: $(mu1) 
 phasefield.mu2: $(mu2)
-phasefield.rho0: 1.5 
+#phasefield.rho0: 1.393098150
+phasefield.rho0: 0.4 
 phasefield.penalty: 10 
-#phasefield.mwp1: 0.4257416377 
-#phasefield.mwp2: 0.4 
+#phasefield.mwp1: 1.6
+#phasefield.mwp2: 1.2
 #phasefield.mwp2: 1.657270212
 #phasefield.mwp2: 3.793667900 
 #phasefield.mwp1: 1.947734046
 #phasefield.mwp2: 3.5
 #phasefield.mwp1: 2.4 
-phasefield.mwp2: 2
-phasefield.mwp1: 1
+phasefield.mwp2: 0.1 
+phasefield.mwp1: 0.6
+
 
 phasefield.acpenalty: 0 
 phasefield.ipswitch: 1
 phasefield.smear: 1.
 phasefield.radius: 0.5
-phasefield.bubbles: 2bubbles.txt 
-phiscale: 0.6
+phasefield.bubbles: 1bubble.txt 
+phiscale: 0.6 
 pressure: 1
 gamma: 1. 
 
@@ -77,6 +79,7 @@ fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 
+
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitgrid2d_unstr_2.dgf
@@ -92,22 +95,22 @@ dgiffusionflux.upwind: -1 -3.141
 paramfile: ./paramFiles/paramSolver
 phasefield.maxTimeStep: 0.5
 fem.ode.tolerance: 1e-54
-fem.solver.matrixout: false 
+fem.solver.matrixout:  false 
 fem.solver.newton.tolerance: 1e-6
 fem.solver.tolerance: 1e-8
 fem.solver.verbose: false 
 fem.solver.newton.verbose: false 
-fem.solver.newton.assemblesteps: 1 
-fem.solver.newton.maxiterations: 10
-fem.solver.newton.maxlineariterations: 1000
+fem.solver.newton.assemblesteps: 2 
+fem.solver.newton.maxiterations: 50 
+fem.solver.newton.maxlineariterations: 10000
 fem.differenceoperator.eps: 1 
-phasefield.fdjacobian.epsilon: 0
-#phasefield.maximaltimesteps: 0 
+phasefield.fdjacobian.epsilon: 0 
+#phasefield.maximaltimesteps: 0
 phasefield.mixed.theta: 0 #0 if opcheck is used
 phasefield.maxTimeStep: 1e-3
 # IMEX=1 ->tau implicit IMEX=0.5->semi implicit
 phasefield.IMEX: 1 
-phasefield.firstStep: 1e-5
+phasefield.firstStep: 1e-4
 
 istl.preconditioning.method: ilu-0 
 istl.gmres.restart: 100
