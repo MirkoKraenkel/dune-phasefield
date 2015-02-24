@@ -102,7 +102,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       const double time=timeProvider.time();
       const double deltaT=timeProvider.deltaT();
       DiscreteFunctionType& U=solution();
-      DiscreteFunctionType& Uold=oldsolution();
+      //DiscreteFunctionType& Uold=oldsolution();
       dgOperator_.setPreviousTimeStep(U);
       dgOperator_.setTime(time);
       dgOperator_.setDeltaT(deltaT);
