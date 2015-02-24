@@ -12,7 +12,7 @@ double solproc1(double x)
     t4 = 0.3E1*t2*x;
     t5 = 0.75E1*t2;
     t7 = 0.5E1*t1*x;
-    return((0.2E1-t4+t5-t7)/(t4-t5+t7+1.0));
+    return((0.2E1-t4+t5-t7)/(1.0+t4-t5+t7));
   }
 }
 
@@ -26,6 +26,7 @@ inline double helmholtz ( double rho ,double phi ) const
   double t21;
   double t24;
   double t25;
+  double t28;
   double t3;
   double t6;
   {
@@ -38,9 +39,10 @@ inline double helmholtz ( double rho ,double phi ) const
     t21 = log(2.0);
     t24 = log(rho);
     t25 = rho*t24;
+    t28 = (t21-0.15E-9)*rho;
     return(2.0*rho*A_*(t3+(2.0*alpha_-2.0)*t6+(-3.0*alpha_+1.0)*t2+alpha_)/delta_+
-beta_*((t17-t18+t19)*((t21-0.15E1)*rho+0.15E1*t25)+(1.0-t17+t18-t19)*(-rho+t25+
-0.5)));
+beta_*((t17-t18+t19)*((t21-0.15E1)*rho+0.15E1*t25-t28+0.15E1)+(1.0-t17+t18-t19)*
+(-rho+t25+0.2E1-t28)));
   }
 }
 
@@ -54,6 +56,7 @@ inline double reactionSource ( double rho ,double phi ) const
   double t26;
   double t27;
   double t3;
+  double t30;
   {
     t2 = phi*phi;
     t3 = t2*phi;
@@ -62,8 +65,10 @@ inline double reactionSource ( double rho ,double phi ) const
     t23 = log(2.0);
     t26 = log(rho);
     t27 = rho*t26;
+    t30 = (t23-0.15E-9)*rho;
     return(2.0*rho*A_*(4.0*t3+3.0*(2.0*alpha_-2.0)*t2+2.0*(-3.0*alpha_+1.0)*phi)/
-delta_+beta_*(t22*((t23-0.15E1)*rho+0.15E1*t27)-t22*(-rho+t27+0.5)));
+delta_+beta_*(t22*((t23-0.15E1)*rho+0.15E1*t27-t30+0.15E1)-t22*(-rho+t27+0.2E1-
+t30)));
   }
 }
 
@@ -75,14 +80,16 @@ inline double dphireactionSource ( double rho ,double phi ) const
   double t2;
   double t22;
   double t23;
+  double t26;
   {
     t2 = phi*phi;
     t18 = 120.0*t2*phi-180.0*t2+60.0*phi;
     t19 = log(2.0);
     t22 = log(rho);
     t23 = rho*t22;
+    t26 = (t19-0.15E-9)*rho;
     return(2.0*rho*A_*(12.0*t2+6.0*(2.0*alpha_-2.0)*phi-6.0*alpha_+2.0)/delta_+beta_
-*(t18*((t19-0.15E1)*rho+0.15E1*t23)-t18*(-rho+t23+0.5)));
+*(t18*((t19-0.15E1)*rho+0.15E1*t23-t26+0.15E1)-t18*(-rho+t23+0.2E1-t26)));
   }
 }
 
@@ -173,7 +180,7 @@ inline double a ( double rho ,double phi ) const
   {
     t1 = phi*phi;
     t2 = t1*t1;
-    t10 = sqrt(beta_*(2.0+6.0*t2*phi-15.0*t2+10.0*t1*phi));
+    t10 = sqrt(beta_*(6.0*t2*phi-15.0*t2+10.0*t1*phi+2.0));
     return(0.7071067812*t10);
   }
 }

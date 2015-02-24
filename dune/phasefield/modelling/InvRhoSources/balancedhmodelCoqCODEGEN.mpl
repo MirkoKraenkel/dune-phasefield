@@ -1,9 +1,9 @@
 restart; with(codegen); outstring := "maple.cc"; outstring2 := "balancedh.cc";
-F1 := proc (rho) options operator, arrow; (b-c)*rho+c*rho*ln(rho)+d end proc; g1 := D(F1); simplify(-F1(rho)+rho*g1(rho));
-F0 := proc (rho) options operator, arrow; (f-e)*rho+e*rho*ln(rho)+g end proc; g0 := D(F0); solve(g0(rho) = 0, rho); simplify(-F0(rho)+rho*g0(rho));
+F11 := proc (rho) options operator, arrow; (b-c)*rho+c*rho*ln(rho)+d end proc; g1 := D(F11);
+F00 := proc (rho) options operator, arrow; (f-e)*rho+e*rho*ln(rho)+g end proc; g0 := D(F00);
 c := 1.5; b := log(2); d := 0; e := 1; f := 0; z1 := solve(g1(rho) = 0, rho); z2 := solve(g0(rho) = 0.*rho); gg := F1(z1)-e*z2*ln(z2)-(f-e)*z2; g := .5;
-G1 := D(F1); G0 := D(F0); p1 := proc (rho) options operator, arrow; -F1(rho)+rho*G1(rho) end proc; p0 := proc (rho) options operator, arrow; -F0(rho)+rho*G0(rho) end proc;
-sols := fsolve([p1(rho) = p0(x), G1(rho) = G0(x)], {rho = 0 .. 4, x = 0 .. 4}); sol1 := solve(sols[1]); sol2 := solve(sols[2]); pconst := 1/2*(p1(sol1)+p0(sol2));
+G1 := D(F11); G0 := D(F00); p1 := proc (rho) options operator, arrow; -F11(rho)+rho*G1(rho) end proc; p0 := proc (rho) options operator, arrow; -F00(rho)+rho*G0(rho) end proc;
+sols := fsolve([p1(rho) = p0(x), G1(rho) = G0(x)], {rho = 0 .. 4, x = 0 .. 4}); sol1 := solve(sols[1]); sol2 := solve(sols[2]); pconst := 1/2*(p1(sol1)+p0(sol2)); mwg := proc (rho) options operator, arrow; G1(sol1)*rho-p1(sol1) end proc; F1 := F11-mwg; F0 := F00-mwg;
 nu := proc (phi) options operator, arrow; 6*phi^5-15*phi^4+10*phi^3 end proc; W := proc (phi) options operator, arrow; 2*A*(phi^4+(2*alpha-2)*phi^3+(-3*alpha+1)*phi^2+alpha) end proc; dW := D(W); F := proc (rho, phi) options operator, arrow; rho*W(phi)/delta+beta*(nu(phi)*F1(rho)+(1-nu(phi))*F0(rho)) end proc; Pressure := proc (rho, phi) options operator, arrow; beta*(nu(phi)*p1(rho)+(1-nu(phi))*p0(rho)) end proc; Potential := proc (rho, phi) options operator, arrow; W(phi)/delta+beta*(nu(phi)*G1(rho)+(1-nu(phi))*G0(rho)) end proc;
 S := proc (rho, phi) options operator, arrow; diff(F(rho, phi), phi) end proc;
 solrho := proc (x) options operator, arrow; (Const+nu(x)*(d-g)+g)/(nu(x)*(c-e)+e) end proc; Const := pconst; solproc := makeproc(solrho(x), x); solproc1 := optimize(solproc); C(solproc1, filename = outstring, ansi);
