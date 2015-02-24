@@ -214,7 +214,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 	    double kineticEnergy;
       double chemicalEnergy;
       double surfaceEnergy;
-      double energyIntegral = energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
+      //double energyIntegral = 
+      energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
    }
 	 // write the data
    eocDataOutput.write( timeProvider );

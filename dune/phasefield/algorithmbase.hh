@@ -421,8 +421,7 @@ public:
     {
       checkPointer.restoreData( grid_, "checkpoint" ); 
     }
-    //difference of surfaceEnergy between timesteps
-    double surfacediff;
+
     if(computeResidual_)
     {
       computeResidual( U,Uold,timeProvider,eocDataOutput);      

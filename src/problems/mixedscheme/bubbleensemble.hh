@@ -199,7 +199,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 #endif 
  
 
-  for( int i=0 ; i<(bubblevector_.size())/3 ;++i)
+  for(size_t i=0 ; i<(bubblevector_.size())/3 ;++i)
   { 
 
     
