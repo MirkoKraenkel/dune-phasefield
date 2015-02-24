@@ -2,12 +2,12 @@ DGF
 
 INTERVAL
 0 0             % lower left corner
-1 1             % upper right corner
-20 20                % number of cells in each direction
+1 0.1             % upper right corner
+20 2                % number of cells in each direction
 #
 
 PERIODICFACETRANSFORMATION
-1 0, 0 1 + 0 1   % make periodic in y-direction
+1 0, 0 1 + 0 0.1   % make periodic in y-direction
 #1 0, 0 1 + 4 0  % make periodic in x-direction
 #
 
