@@ -12,8 +12,8 @@ double evalRho(double x)
     t3 = t2*t2;
     t4 = t3*x;
     t7 = t2*x;
-    return(exp((t1-0.15E-9-(6.0*t4-15.0*t3+10.0*t7)*t1)/(0.3E1*t4-0.75E1*t3+
-0.5E1*t7+1.0)));
+    return(exp((-0.15E-9+t1-(6.0*t4-15.0*t3+10.0*t7)*t1)/(1.0+0.3E1*t4-0.75E1*
+t3+0.5E1*t7)));
   }
 }
 
@@ -28,6 +28,7 @@ inline double helmholtz ( double rho ,double phi ) const
   double t20;
   double t23;
   double t24;
+  double t27;
   double t5;
   {
     t1 = phi*phi;
@@ -39,8 +40,10 @@ inline double helmholtz ( double rho ,double phi ) const
     t20 = log(2.0);
     t23 = log(rho);
     t24 = rho*t23;
+    t27 = (t20-0.15E-9)*rho;
     return(2.0*A_*(t2+(2.0*alpha_-2.0)*t5+(-3.0*alpha_+1.0)*t1+alpha_)/delta_+beta_*(
-(t16-t17+t18)*((t20-0.15E1)*rho+0.15E1*t24)+(1.0-t16+t17-t18)*(-rho+t24+0.5)));
+(t16-t17+t18)*((t20-0.15E1)*rho+0.15E1*t24-t27+0.15E1)+(1.0-t16+t17-t18)*(-rho+
+t24+0.2E1-t27)));
   }
 }
 
@@ -54,6 +57,7 @@ inline double reactionSource ( double rho ,double phi ) const
   double t22;
   double t25;
   double t26;
+  double t29;
   {
     t1 = phi*phi;
     t2 = t1*phi;
@@ -62,8 +66,9 @@ inline double reactionSource ( double rho ,double phi ) const
     t22 = log(2.0);
     t25 = log(rho);
     t26 = rho*t25;
+    t29 = (t22-0.15E-9)*rho;
     return(2.0*A_*(4.0*t2+3.0*(2.0*alpha_-2.0)*t1+2.0*(-3.0*alpha_+1.0)*phi)/delta_
-+beta_*(t21*((t22-0.15E1)*rho+0.15E1*t26)-t21*(-rho+t26+0.5)));
++beta_*(t21*((t22-0.15E1)*rho+0.15E1*t26-t29+0.15E1)-t21*(-rho+t26+0.2E1-t29)));
   }
 }
 
@@ -75,14 +80,16 @@ inline double dphireactionSource ( double rho ,double phi ) const
   double t18;
   double t21;
   double t22;
+  double t25;
   {
     t1 = phi*phi;
     t17 = 120.0*t1*phi-180.0*t1+60.0*phi;
     t18 = log(2.0);
     t21 = log(rho);
     t22 = rho*t21;
+    t25 = (t18-0.15E-9)*rho;
     return(2.0*A_*(12.0*t1+6.0*(2.0*alpha_-2.0)*phi-6.0*alpha_+2.0)/delta_+beta_*(
-t17*((t18-0.15E1)*rho+0.15E1*t22)-t17*(-rho+t22+0.5)));
+t17*((t18-0.15E1)*rho+0.15E1*t22-t25+0.15E1)-t17*(-rho+t22+0.2E1-t25)));
   }
 }
 
