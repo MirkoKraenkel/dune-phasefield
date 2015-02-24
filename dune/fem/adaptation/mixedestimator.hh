@@ -287,7 +287,7 @@ namespace Dune
       ElementQuadratureType quad( entity, 2*(dfSpace_.order() ) );
       const int numQuadraturePoints = quad.nop();
       double sigmasquared=0.;
-      double maxsigma=0
+      double maxsigma=0;
       RangeType range;
       JacobianRangeType gradient;
       
