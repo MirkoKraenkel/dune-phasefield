@@ -14,9 +14,9 @@ SOURCES = $(BASEDIR)/phasefield.cc
 GRIDTYPE = SPGRID
 #GRIDTYPE = ALUGRID_CONFORM
 #GRIDTYPE = ALBERTAGRID
-GRIDDIM = 1
+GRIDDIM = 2
 POLORDER = 1 
-PROBLEM = 4 # check ./problemtype.hh
+PROBLEM = 2 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
 AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
@@ -24,20 +24,20 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefieldcp phasefieldcpsurface phasefieldfd phasefieldlambdacp phasefieldlambdafd phasefieldfdrho#pfimp pflambdaimp pfrhoimp #phasefieldcoupling
+check_PROGRAMS = phasefieldcp phasefieldcptait phasefieldfd phasefieldlambdacp phasefieldlambdafd phasefieldfdrho#pfimp pflambdaimp pfrhoimp #phasefieldcoupling
 
 phasefieldcp_SOURCES = $(SOURCES) 
-phasefieldcp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DCOUPLING  -DIMPLICITTAU 
+phasefieldcp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING  -DIMPLICITTAU 
 
-phasefieldcpsurface_SOURCES = $(SOURCES)
-phasefieldcpsurface_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DSURFACE -DWANT_ISTL -DCOUPLING  -DIMPLICITTAU
+phasefieldcptait_SOURCES = $(SOURCES)
+phasefieldcptait_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DTAIT -DCOUPLING  -DIMPLICITTAU
 
 
 phasefieldfd_SOURCES = $(SOURCES) 
 phasefieldfd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DIMPLICITTAU   
 
 phasefieldlambdacp_SOURCES = $(SOURCES) 
-phasefieldlambdacp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DCOUPLING -DRHOMODEL -DIMPLICITTAU -DLAMBDASCHEME  -DBICG
+phasefieldlambdacp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING -DRHO_H2CONSTMODEL -DIMPLICITTAU 
 
 phasefieldlambdafd_SOURCES = $(SOURCES) 
 phasefieldlambdafd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DIMPLICITTAU -DLAMBDASCHEME  -DBICG
