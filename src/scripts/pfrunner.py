@@ -70,7 +70,7 @@ class PhasefieldRunner:
     idxs = self.listbox.curselection()
     index=int(idxs[0])
     p=self.programms[index]
-    outfile='/disk1/Data2D'+myday+'/'+self.paramEntries['fem.prefix'].get()
+    outfile='/disk1/Data'+myday+'/'+self.paramEntries['fem.prefix'].get()
     paramstring=''
     
     for key in self.paramEntries:
