@@ -55,9 +55,8 @@ namespace Dune
     typedef Fem::CachingQuadrature< GridPartType, 1 > FaceQuadratureType;
     typedef std :: vector< double > ErrorIndicatorType;
     
-  protected:
+  private:
     const DiscreteFunctionType &uh_;
-    const double &beta_;
     const DiscreteFunctionSpaceType &dfSpace_;
     const GridPartType &gridPart_;
     const IndexSetType &indexSet_;
@@ -66,7 +65,6 @@ namespace Dune
     mutable ErrorIndicatorType localsize_;
     mutable ErrorIndicatorType mark_;
     double totalIndicator_,maxIndicator_;
-    const double theta_;
     int maxLevel_;
     int minLevel_;
     const double coarsen_;
@@ -76,12 +74,14 @@ namespace Dune
     const bool verbose_;
     const bool secondNb_;
     const bool maxSigma_;
-  public:
+    const ElementType *entity_;
+    int enIndex_;
+
+ public:
     explicit MixedEstimator ( const DiscreteFunctionType &uh ,
                               GridType &grid,
                               const  ModelType& model):
       uh_( uh ),
-      beta_(1.),
       dfSpace_( uh.space() ),
       gridPart_( dfSpace_.gridPart() ),
       indexSet_( gridPart_.indexSet() ),
@@ -91,7 +91,6 @@ namespace Dune
       mark_( indexSet_.size( 0 )),
       totalIndicator_(0),
       maxIndicator_(0),
-      theta_( Dune::Fem::Parameter::getValue("phasefield.adaptive.theta",0.) ),
       maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
       minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
       coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1)),
@@ -120,11 +119,7 @@ namespace Dune
       ret[0] = indicator_[ enIndex_ ];
       ret[1] = localsize_[ enIndex_ ];
       ret[2] = mark_[ enIndex_ ];
-   }
-  private:
-    const ElementType *entity_;
-    int enIndex_;
-
+    }
   public:
     void clear ()
     {
@@ -150,10 +145,9 @@ namespace Dune
         std::vector<double> localIndicator; 
         double indicator;
         const LocalFunctionType uLocal = uh_.localFunction( entity );
-  
+        
         indicator=estimateLocal(entity, uLocal );
         localIndicator.push_back( indicator);
-        IntersectionIteratorType end = gridPart_.iend( entity );
       }
     }
     
@@ -208,6 +202,7 @@ namespace Dune
             for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		        {
               const IntersectionType &intersection = *inter;
+              
               if( intersection.neighbor() )
 			        {
 			          const ElementPointerType poutside = intersection.outside();
@@ -215,8 +210,8 @@ namespace Dune
                 int indexnb=indexSet_.index(outside);
                 if(outside.level()<maxLevel_ );
 			          {
-                  grid_.mark( 1, outside );
-                  mark_[ indexnb ]=1;
+                  grid_.mark( 1 , outside );
+                  mark_[ indexnb ] = 1;
                   ++marked;
                 }
 
@@ -233,8 +228,8 @@ namespace Dune
                       int indexnb2 = indexSet_.index(outside2);
                       if(outside.level()<maxLevel_ );
 			                {
-                        grid_.mark( 1, outside2 );
-                        mark_[ indexnb2 ]=1;
+                        grid_.mark( 1 , outside2 );
+                        mark_[ indexnb2 ] = 1;
                         ++marked;
                       }
                     }
@@ -247,13 +242,14 @@ namespace Dune
 	          {
               if( entity.level()>minLevel_ )
               {
-                grid_.mark(-1,entity);
-                mark_[ index ]=-1;
+                grid_.mark( -1 , entity );
+                mark_[ index ] = -1;
               }
             }
 	          else
             {
-	            mark_[ index ]=0;
+	            grid_.mark( 0 , entity );
+              mark_[ index ] = 0;
             }
 	  
 
@@ -307,7 +303,8 @@ namespace Dune
             for(int i=0 ; i<dimension; ++i)
               sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)
                             *PhasefieldFilter<RangeType>::sigma(range,i);
-            maxsigma=std::max(sigmasquared,maxsigma);
+              
+              maxsigma=std::max(sigmasquared,maxsigma);
           }
           else
           {
@@ -318,6 +315,7 @@ namespace Dune
 
 
         }
+      
       //L2-Norm Sigma
       double normsigma=std::sqrt(maxsigma);
       normsigma*=ifelements_;
