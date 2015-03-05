@@ -79,7 +79,7 @@ class PhasefieldModel
                              const RangeType& u) const ;
     
     // this gives an estimation of the lipschitz constant of the rhs of the phasefield equation
-    inline double allenCahnConstant() const
+    inline double lipschitzC() const
     {
       return problem_.thermodynamics().lipschitzC();
     }

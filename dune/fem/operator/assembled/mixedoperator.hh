@@ -110,9 +110,14 @@ class DGPhasefieldOperator
 
   double getDeltaT() {return deltaT_;}
 
-  double timeStepEstimate() { return  maxSpeed_;}
+  double timeStepEstimate() { return  std::min( minArea_/maxSpeed_,lipschitzC());}
+
+  double maxSpeed() { return maxSpeed_; }
+  
+  double lipschitzC() { return model_.lipschitzC(); }
 
   void setPreviousTimeStep( DiscreteFunctionType& uOld)  { uOld_.assign(uOld);} 
+  
   DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
 
 
@@ -269,6 +274,8 @@ class FDJacobianDGPhasefieldOperator
   using MyOperatorType::setPreviousTimeStep;
   using MyOperatorType::getPreviousTimeStep;
   using MyOperatorType::timeStepEstimate;
+  using MyOperatorType::maxSpeed;
+  using MyOperatorType::lipschitzC;
   protected:
 
   using MyOperatorType::localIntegral;

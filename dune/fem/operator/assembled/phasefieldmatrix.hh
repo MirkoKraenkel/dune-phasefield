@@ -89,6 +89,9 @@ class PhasefieldJacobianOperator
   using MyOperatorType::setTime;
   using MyOperatorType::getTime;
   using MyOperatorType::setDeltaT;
+  using MyOperatorType::timeStepEstimate;
+  using MyOperatorType::maxSpeed;
+  using MyOperatorType::lipschitzC;
   using MyOperatorType::setPreviousTimeStep;
   using MyOperatorType::getPreviousTimeStep; 
   using MyOperatorType::space;
