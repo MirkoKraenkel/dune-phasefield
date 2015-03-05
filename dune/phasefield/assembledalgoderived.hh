@@ -129,7 +129,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       {
       
       }
-     else if( newton_iterations > 3  )
+     else if( newton_iterations >  100 )
         {
           std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
           reduceTimeStep( timeProvider , deltaT );
@@ -145,7 +145,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
         }
       else
         {
-          timeProvider.provideTimeStepEstimate( deltaT);
+          timeProvider.provideTimeStepEstimate( deltaT );
+    //       timeProvider.provideTimeStepEstimate( dgOperator_.timeStepEstimate());
         }
     }
 	  
@@ -158,7 +159,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   void estimate()
   {
     estimator_.estimateAndMark(tolerance_);
-  }    
+  }
   
   void adapt( AdaptationManagerType& am)
   {
@@ -167,7 +168,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 
   double timeStepEstimate()
   {
-    return 1.;
+    return dgOperator_.timeStepEstimate();
   }
 
   using BaseType::space;
