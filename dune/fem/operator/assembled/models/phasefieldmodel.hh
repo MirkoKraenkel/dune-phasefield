@@ -75,11 +75,15 @@ class PhasefieldModel
                                 const RangeFieldType rho,
                                 RangeFieldType& tau) const;
 
-    inline void maxSpeed( const DomainType& normal,
-                          const RangeType& u,
-                          double& advspeed) const ;
+    inline double maxSpeed( const DomainType& normal,
+                             const RangeType& u) const ;
     
-    
+    // this gives an estimation of the lipschitz constant of the rhs of the phasefield equation
+    inline double allenCahnConstant() const
+    {
+      return problem_.thermodynamics().lipschitzC();
+    }
+
     inline void dirichletValue ( const double time,
                                  const DomainType& xglobal,
                                  RangeType& g) const;
@@ -250,15 +254,15 @@ inline void PhasefieldModel< Grid, Problem>
 }
 
 template< class Grid, class Problem >
-inline void PhasefieldModel< Grid, Problem>
+inline double PhasefieldModel< Grid, Problem>
 ::maxSpeed( const DomainType& normal,
-            const RangeType& u,
-            double& advspeed) const
+            const RangeType& u) const
 {
-    double unormal;
+    double unormal(0.);
     for( int ii = 0 ; ii<dimDomain ; ++ii)
-      unormal=u[1+ii]*normal[ii];
+      unormal+=u[1+ii]*normal[ii];
     double c=problem_.thermodynamics().a(u[0],u[dimDomain+1]);
+
     return std::abs(unormal)+std::sqrt(c);
 }
 
