@@ -1,5 +1,5 @@
-phasefieldcp
-phasefieldcptait
+phasefieldRcp
+phasefieldRcptait
 phasefieldfd
 phasefieldlambdacp
 phasefieldlambdafd

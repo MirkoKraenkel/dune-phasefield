@@ -24,13 +24,13 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefieldcp phasefieldcptait phasefieldfd phasefieldlambdacp phasefieldlambdafd phasefieldfdrho#pfimp pflambdaimp pfrhoimp #phasefieldcoupling
+check_PROGRAMS = phasefieldRcp phasefieldRcptait phasefieldfd phasefieldlambdacp phasefieldlambdafd phasefieldfdrho#pfimp pflambdaimp pfrhoimp #phasefieldcoupling
 
-phasefieldcp_SOURCES = $(SOURCES) 
-phasefieldcp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING  -DIMPLICITTAU 
+phasefieldRcp_SOURCES = $(SOURCES) 
+phasefieldRcp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING  -DIMPLICITTAU 
 
-phasefieldcptait_SOURCES = $(SOURCES)
-phasefieldcptait_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DTAIT -DCOUPLING  -DIMPLICITTAU
+phasefieldRcptait_SOURCES = $(SOURCES)
+phasefieldRcptait_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL  -DTAIT -DCOUPLING  -DIMPLICITTAU
 
 
 phasefieldfd_SOURCES = $(SOURCES) 
