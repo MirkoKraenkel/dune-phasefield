@@ -40,13 +40,17 @@ public:
   {
     return asImp().h2prime( rho );
   }
-  
+
   inline double reactionFactor() const 
   {
     return asImp().reationFacor();
   }
 
-  
+  inline double lipschitzC() const
+  {
+    return asImp().lipschitzC();
+  }
+
   //free EnergyPart without gradients used for monitoring the free energy
   inline double helmholtz( double rho , double phi ) const
   { 

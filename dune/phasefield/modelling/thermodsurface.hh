@@ -31,6 +31,7 @@ class BalancedThermodynamics:
     mu2_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2") ),
     reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
   {
+    lipschitzC_=2*delta_/(reaction_*A_);
   }
 #if RHO_H2CONSTMODEL
   inline double h( double rho ) const
@@ -53,7 +54,7 @@ class BalancedThermodynamics:
 #else
   inline double h( double rho ) const
   {
-    return 1.;
+    return rho;
   }
   
   inline double h2( double rho) const
@@ -71,16 +72,11 @@ class BalancedThermodynamics:
 #include "PhasefieldvanderWaalsSources/maple.cc"
 #endif
 #endif
-  inline double reactionFactor() const
-  {
-    return reaction_;
-  }
-
-  
-
 
   public:
 
+  inline double reactionFactor() const { return reaction_; }
+  inline double lipschitzC() const { return lipschitzC_; }
   inline double delta()    const { return beta_*delta_; }
   inline double deltaInv() const { return deltaInv_; }
   inline double mu1()      const { return mu1_; }
@@ -94,6 +90,7 @@ class BalancedThermodynamics:
   mutable double  A_;
   mutable double  mu1_,mu2_;
   mutable double  reaction_;
+  mutable double  lipschitzC_;
 };
 
 
