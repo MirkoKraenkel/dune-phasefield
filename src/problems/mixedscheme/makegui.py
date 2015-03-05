@@ -2,7 +2,7 @@
 import subprocess,sys,Tkinter
 sys.path.append('../../scripts/')
 from Tkinter import *
-from pfmaker_2 import *
+from pfmaker import *
 
 root=Tk()
 app=PhasefieldMaker( root )
