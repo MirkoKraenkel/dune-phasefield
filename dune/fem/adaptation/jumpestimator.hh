@@ -62,7 +62,7 @@ namespace Dune
     const IndexSetType &indexSet_;
     GridType &grid_;
     ErrorIndicatorType indicator_;
-    mutable ErrorIndicatorType refined_;
+    mutable ErrorIndicatorType mark_;
    
     const  ModelType& model_;
     double totalIndicator_,maxIndicator_;
@@ -83,7 +83,7 @@ namespace Dune
       indexSet_( gridPart_.indexSet() ),
       grid_( grid ),
       indicator_( indexSet_.size( 0 )),
-	    refined_( indexSet_.size( 0 )), 
+	    mark_( indexSet_.size( 0 )),
       model_(model),
       totalIndicator_(0),
       maxIndicator_(0),
@@ -107,16 +107,16 @@ namespace Dune
     void evaluate(const PointType& x,FieldVector<double,2> &ret)
     {
       ret[0] = indicator_[enIndex_];
-      ret[1] = refined_[enIndex_];
+      ret[1] = mark_[enIndex_];
     }
 
   public:
     void clear ()
     {
       indicator_.resize( indexSet_.size( 0 ));
-      refined_.resize( indexSet_.size( 0 ));
+      mark_.resize( indexSet_.size( 0 ));
       std::fill( indicator_.begin(), indicator_.end(), 0.);
-      std::fill( refined_.begin(), refined_.end(), std::numeric_limits<int>::min());
+      std::fill( mark_.begin(), refined_.end(), std::numeric_limits<int>::min());
      }
     
     void estimate ( )
@@ -169,13 +169,15 @@ namespace Dune
           const ElementType &entity = *it;
           int index=indexSet_.index(entity);
          
+          // if( refine( index ) )
           if( indicator_[ index ] > tolerance)
           {
 	        
             if(entity.level()<maxLevel_)
 		        {
               grid_.mark( 1, entity );
-              refined_[ index ] = 1;	
+              mark_[ index ] = 1;
+              ++marked;
             }
             
             IntersectionIteratorType end = gridPart_.iend( entity );
@@ -192,39 +194,53 @@ namespace Dune
                 if(outside.level()<maxLevel_)
 			          {
                   grid_.mark( 1 , outside );
-			            refined_[ indexnb ] = 1;
+			            mark_[ indexnb ] = 1;
                   ++marked;
                 }
-              }
-             }
-              
-              ++marked;
-            
-            }
-            else if ( indicator_[ index ] > coarsen_*tolerance )
-	          {
-              //coarsen element
-              if( entity.level()>minLevel_ )
-              {
-                grid_.mark( -1 , entity );
-                refined_[ index ] = -1;
-              }
-            }
-	          else
-            {
-              grid_.mark( 0 , entity );
-              refined_[index] = 0 ;
-            }
-	  
+              // loop over second neighbors
+              IntersectionIteratorType end = gridPart_.iend( outside );
+              if(secondNb_)
+                for(IntersectionIteratorType inter2 = gridPart_.ibegin( outside ); inter2!=end; ++inter2)
+                {
+                  const IntersectionType &intersection2=*inter2;
 
-	        }
+                  if(intersection2.neighbor())
+                  {
+                    const ElementPointerType poutside2 = intersection2.outside();
+			              const ElementType &outside2 = *poutside2;
+                    int indexnb2 = indexSet_.index(outside2);
+                    if(outside.level()<maxLevel_ );
+			              {
+                      grid_.mark( 1 , outside2 );
+                      mark_[ indexnb2 ] = 1;
+                      ++marked;
+                    }
+                  }
+                }
+// loop over second neighbors
+		          }
+            }
+          }
+          else if ( indicator_[ index ] > coarsen_*tolerance /*coarsen( index )*/)
+	        {
+            if( entity.level()>minLevel_ )
+            {
+              grid_.mark( -1 , entity );
+              mark_[ index ] = -1;
+            }
+          }
+	        else
+          {
+            grid_.mark( 0 , entity );
+            mark_[index] = 0 ;
+          }
+	      }
       }
       
       return (marked > 0);
-    
     }
     
-    bool estimateAndMark(double tolerance)
+    bool estimateAndMark ( double tolerance )
     {
       estimate();
       return mark(tolerance);
@@ -235,19 +251,18 @@ namespace Dune
     //! caclulate error on element 
     void estimateLocal ( const ElementType &entity )
     {
-      
       const int insideIndex = indexSet_.index( entity );    
  
       const typename ElementType :: Geometry &geometry = entity.geometry();
       const Dune::ReferenceElement< double, dimension > &refElement =
       Dune::ReferenceElements< double, dimension >::general( entity.type() );
+
       const LocalFunctionType uLocal = uh_.localFunction( entity );
  
       const double volume = geometry.volume();
-      double h2 = (dimension == 2 ? volume : std :: pow( volume, 2.0 / (double)dimension ));  
-      //double h2=std::sqrt(volume);
-      const int index = indexSet_.index( entity );
-     
+      //double h2 = (dimension == 2 ? volume : std :: pow( volume, 2.0 / (double)dimension ));
+      //double localh = std::sqrt(volume);
+
       ElementQuadratureType quad( entity, 2*(dfSpace_.order() )+1 );
       const int numQuadraturePoints = quad.nop();
       double sigmasquared=0.;
