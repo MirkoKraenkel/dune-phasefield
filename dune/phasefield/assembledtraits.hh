@@ -46,7 +46,8 @@
 
 //adaptation
 //#include <dune/fem/adaptation/jumpestimator.hh>
-#include <dune/fem/adaptation/mixedestimator.hh>
+#include <dune/fem/adaptation/rhosigmaestimator.hh>
+//#include <dune/fem/adaptation/mixedestimator.hh>
 
 template <class GridImp,
           class ProblemGeneratorImp,int polOrd>             
