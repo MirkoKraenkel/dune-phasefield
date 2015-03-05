@@ -3,7 +3,6 @@
 
 //- Dune includes
 // #include <dune/grid/common/referenceelements.hh>
-
 #include <cmath>
 
 //- Dune-fem includes 
@@ -134,8 +133,9 @@ namespace Dune
     void estimate ( )
     {
       clear();
- 
-      const IteratorType end = dfSpace_.end();
+      EstimateFunctor f(*this);
+      dfSpace_.forEach( f );
+/*      const IteratorType end = dfSpace_.end();
       
       for( IteratorType it = dfSpace_.begin(); it != end; ++it )
       {
@@ -149,6 +149,7 @@ namespace Dune
         indicator=estimateLocal(entity, uLocal );
         localIndicator.push_back( indicator);
       }
+*/
     }
     
     double computeIndicator()
@@ -188,13 +189,15 @@ namespace Dune
           int index=indexSet_.index(entity);
           double gridFactor = indicator_[index];
 
+          // if( refine( index ) )
           if( gridFactor < localsizeFactor_*localsize_[index])
           {
 	        
             if(entity.level()<maxLevel_)
 		        {
-              grid_.mark( 1, entity );
-              mark_[index]=1;
+              grid_.mark( 1 , entity );
+              mark_[ index ] = 1;
+              ++marked;
             }
 
             IntersectionIteratorType end = gridPart_.iend( entity );
@@ -214,7 +217,7 @@ namespace Dune
                   mark_[ indexnb ] = 1;
                   ++marked;
                 }
-
+// loop over second neigbors
                 IntersectionIteratorType end = gridPart_.iend( outside );
                 if(secondNb_)
                   for(IntersectionIteratorType inter2 = gridPart_.ibegin( outside ); inter2!=end; ++inter2)
@@ -234,11 +237,11 @@ namespace Dune
                       }
                     }
                   }
-		            }
+// loop over second neighbors
+                }
               }
-              ++marked;
 		        }
-            else if ( gridFactor > localsize_[index])
+            else if ( gridFactor > localsize_[index]/*coarsen( index )*/)
 	          {
               if( entity.level()>minLevel_ )
               {
@@ -251,16 +254,13 @@ namespace Dune
 	            grid_.mark( 0 , entity );
               mark_[ index ] = 0;
             }
-	  
-
 	        }
-      }
+        }
       
-      return (marked > 0);
-    
+        return (marked > 0);
     }
     
-    bool estimateAndMark(double tolerance)
+    bool estimateAndMark ( double tolerance )
     {
       estimate();
       return mark(tolerance);
@@ -269,17 +269,20 @@ namespace Dune
 
   protected:
     //! caclulate error on element 
-    double estimateLocal ( const ElementType &entity,
-                           const LocalFunctionType &uLocal )
+    double estimateLocal ( const ElementType &entity, const LocalFunctionType &uLocal )
     {
+      const int index = indexSet_.index( entity );
+
       const typename ElementType :: Geometry &geometry = entity.geometry();
       const Dune::ReferenceElement< double, dimension > &refElement =
       Dune::ReferenceElements< double, dimension >::general( entity.type() );
  
+      //const LocalFunctionType uLocal = uh_.localFunction( entity );
+
       const double volume = geometry.volume();
-      double h2=std::sqrt(volume);
-      const int index = indexSet_.index( entity );
-     
+      //double h2 = (dimension == 2 ? volume : std :: pow( volume, 2.0 / (double)dimension ));
+      double localh = std::sqrt(volume);
+
       ElementQuadratureType quad( entity, 2*(dfSpace_.order() ) );
       const int numQuadraturePoints = quad.nop();
       double sigmasquared=0.;
@@ -290,45 +293,58 @@ namespace Dune
       uLocal.evaluate( refElement.position(0 , 0),range );
 
       
-    for( int qp = 0; qp < numQuadraturePoints; ++qp )
-        {
-          JacobianRangeType gradient;
-	        RangeType range;
-          double weight = quad.weight(qp);
+      for( int qp = 0; qp < numQuadraturePoints; ++qp )
+      {
+        JacobianRangeType gradient;
+	      RangeType range;
+        double weight = quad.weight(qp);
 	  
-	        uLocal.evaluate(quad[qp],range);
-          if( maxSigma_)
-          {
-            sigmasquared=0;
-            for(int i=0 ; i<dimension; ++i)
-              sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)
-                            *PhasefieldFilter<RangeType>::sigma(range,i);
+	      uLocal.evaluate(quad[qp],range);
+        if( maxSigma_)
+        {
+          sigmasquared=0;
+          for(int i=0 ; i<dimension; ++i)
+            sigmasquared+=PhasefieldFilter<RangeType>::sigma(range,i)
+                          *PhasefieldFilter<RangeType>::sigma(range,i);
               
-              maxsigma=std::max(sigmasquared,maxsigma);
-          }
-          else
-          {
-            for(int i=0 ; i<dimension; ++i)
-              maxsigma+=PhasefieldFilter<RangeType>::sigma(range,i)
-                        *PhasefieldFilter<RangeType>::sigma(range,i)*weight;
-          }
-
-
+            maxsigma=std::max(sigmasquared,maxsigma);
         }
+        else
+        {
+          for(int i=0 ; i<dimension; ++i)
+            maxsigma+=PhasefieldFilter<RangeType>::sigma(range,i)
+                      *PhasefieldFilter<RangeType>::sigma(range,i)*weight;
+        }
+
+
+      }
       
       //L2-Norm Sigma
       double normsigma=std::sqrt(maxsigma);
       normsigma*=ifelements_;
       double indicatedsize=1/(normsigma+(1./maxH_)); 
-      localsize_[ index ]=h2;
+      localsize_[ index ]=localh;
       indicator_[ index ]=indicatedsize;
       return normsigma;
     }
 
-    
-    
-   
-     
+  private:
+    class EstimateFunctor
+    {
+      ThisType& parent_;
+
+    public:
+      EstimateFunctor(ThisType& parent):parent_(parent)
+      {}
+
+      double operator()( const ElementType& e ) const
+      {
+        const LocalFunctionType& uLocal=parent_.uh_.localFunction( e );
+        parent_.estimateLocal( e, uLocal );
+      }
+ 
+
+    };
   
   };
 }
