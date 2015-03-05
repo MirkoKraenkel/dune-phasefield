@@ -245,6 +245,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
   const double area=std::min(areaEn_,areaNb_)/intersectionArea; 
 
+  maxSpeed_ = std::max( std::max( model_.maxSpeed(normal,vuOldEn), model_.maxSpeed(normal,vuOldNb)),maxSpeed_);
+
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
   fluxRet=flux_.numericalFlux( normal,

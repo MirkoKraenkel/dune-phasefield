@@ -81,9 +81,11 @@ class DGPhasefieldOperator
                         theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
                         time_(0.),
                         deltaT_(0.),
+                        maxSpeed_(0.),
                         uOld_("uOld" , space ),
                         uOldLocal_(space),
-                        uOldNeighbor_(space)
+                        uOldNeighbor_(space),
+                        minArea_( std::numeric_limits<double>::max() )
     {
       uOld_.clear();
       factorImp_=0.5*(1+theta_);
@@ -103,11 +105,12 @@ class DGPhasefieldOperator
   void setTime(const double time)  {time_=time;}
 
   double getTime(){return time_;}
+
   void setDeltaT( const double deltat) { deltaT_=deltat;}
 
   double getDeltaT() {return deltaT_;}
 
-  double timeStepEstimate() {return 1;}
+  double timeStepEstimate() { return  maxSpeed_;}
 
   void setPreviousTimeStep( DiscreteFunctionType& uOld)  { uOld_.assign(uOld);} 
   DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
@@ -119,6 +122,7 @@ class DGPhasefieldOperator
     uOldLocal_.init(entity);
     uOldLocal_.assign(uOld_.localFunction( entity ));
     areaEn_=entity.geometry().volume();
+    minArea_=std::min( areaEn_ , minArea_ );
   }
 
   void setNeighbor( const EntityType& entity ) const
@@ -126,6 +130,7 @@ class DGPhasefieldOperator
     uOldNeighbor_.init(entity);
     uOldNeighbor_.assign(uOld_.localFunction( entity ));
     areaNb_=entity.geometry().volume();
+    minArea_=std::min( areaNb_ , minArea_ ); 
   }
 
 
@@ -187,6 +192,7 @@ class DGPhasefieldOperator
   const double  theta_;
   double time_;
   double deltaT_;
+  mutable double maxSpeed_;
   double factorImp_;
   double factorExp_;
   mutable DiscreteFunctionType uOld_;
@@ -194,6 +200,7 @@ class DGPhasefieldOperator
   mutable TemporaryLocalType uOldNeighbor_; 
   mutable double areaEn_;
   mutable double areaNb_;
+  mutable double minArea_;
 };
 
 
@@ -261,7 +268,7 @@ class FDJacobianDGPhasefieldOperator
   using MyOperatorType::setDeltaT;
   using MyOperatorType::setPreviousTimeStep;
   using MyOperatorType::getPreviousTimeStep;
-
+  using MyOperatorType::timeStepEstimate;
   protected:
 
   using MyOperatorType::localIntegral;
@@ -278,6 +285,7 @@ class FDJacobianDGPhasefieldOperator
   using MyOperatorType::flux_;
   using MyOperatorType::time_;
   using MyOperatorType::deltaT_;
+  using MyOperatorType::maxSpeed_;
   using MyOperatorType::theta_;
   using MyOperatorType::factorImp_;
   using MyOperatorType::factorExp_;
@@ -296,7 +304,7 @@ template<class DiscreteFunction, class Model, class Flux>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
 {
-
+  maxSpeed_=0;
 
   // clear destination 
   w.clear();
