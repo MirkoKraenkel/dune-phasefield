@@ -3,7 +3,7 @@ fem.resolvevariables: 1
 #------------
 fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-1 #save data every time interval
+fem.io.savestep: 1e-3 #save data every time interval
 fem.io.savecount: 0   # save every i-th ste
 fem.io.checkpointstep: 0
 phasefield.eocOutputPath: $(fem.prefix)
@@ -49,7 +49,7 @@ phasefield.penalty: 10
 #phasefield.mwp2: 3.5
 #phasefield.mwp1: 2.4 
 phasefield.mwp2: 0.1 
-phasefield.mwp1: 0.6
+phasefield.mwp1: 0.8
 
 
 phasefield.acpenalty: 0 
