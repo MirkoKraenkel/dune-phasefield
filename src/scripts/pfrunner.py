@@ -29,7 +29,7 @@ class PhasefieldRunner:
     
     self.paramEntries=self.makeform(paramframe,self.params)
     
-    self.listbox = Listbox( listframe )
+    self.listbox = Listbox( listframe, width=30 )
     self.listbox.pack(side=LEFT)
     
     self.programms=pickle.load(open("compiled.p","rb"))
@@ -70,7 +70,7 @@ class PhasefieldRunner:
     idxs = self.listbox.curselection()
     index=int(idxs[0])
     p=self.programms[index]
-    outfile='/disk1/Data'+myday+'/'+self.paramEntries['fem.prefix'].get()
+    outfile='./Data'+myday+'/'+self.paramEntries['fem.prefix'].get()
     paramstring=''
     
     for key in self.paramEntries:
