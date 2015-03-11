@@ -243,7 +243,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
   const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
-  const double area=std::min(areaEn_,areaNb_)/intersectionArea; 
+  const double area=lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea; 
 
   maxSpeed_ = std::max( std::max( model_.maxSpeed(normal,vuOldEn), model_.maxSpeed(normal,vuOldNb)),maxSpeed_);
 
@@ -309,7 +309,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   // compute penalty factor
   const double intersectionArea = intersectionGeometry.volume();
   const double penaltyFactor = intersectionArea /  areaEn_; 
-  const double area=areaEn_; 
+  const double area=lastSpeed_*areaEn_/intersectionArea; 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
   const DomainType xgl = intersectionGeometry.global(x);
