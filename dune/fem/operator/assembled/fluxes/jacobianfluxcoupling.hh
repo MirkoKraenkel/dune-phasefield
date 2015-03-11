@@ -28,7 +28,7 @@ public:
     acpenalty_( Dune::Fem::Parameter::getValue< double >( "phasefield.acpenalty" )),
     switchIP_(Dune::Fem::Parameter::getValue<int>("phasefield.ipswitch",1)),
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0)),
-    numViscOld_(Dune::Fem::Parameter::getValue<double>("phasefield.oldvisc",0)),
+    numViscMu_(Dune::Fem::Parameter::getValue<double>("phasefield.muvisc",0)),
     imexFactor_(Dune::Fem::Parameter::getValue<double>("phasefield.IMEX"))
     {
     }
@@ -93,7 +93,7 @@ private:
   double acpenalty_;
   const int switchIP_; 
   const double numVisc_;
-  const double numViscOld_;
+  const double numViscMu_;
   double imexFactor_;
 };
 
@@ -176,12 +176,12 @@ void  JacobianFlux<Model>
       gLeft[ 0 ][ 0 ]=-0.25*vNormalEn;
       //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5 
       gRight[ 0 ][ 0 ]=0.25*vNormalNb;
-      
-      gLeft[ 0 ][ dimDomain+2 ]=0.5*numVisc_*area;
-      gRight[ 0 ][ dimDomain+2 ]=-0.5*numVisc_*area;
-      //mu
-      //gLeft[ dimDomain +1 ]=0.5*numViscOld_*area;
-      //gRight[ dimDomain +1 ]=-0.5*numViscOld_*area;
+       //[[mu]]
+      gLeft[ 0 ][ dimDomain+2 ]=0.5*numViscMu_*area;
+      gRight[ 0 ][ dimDomain+2 ]=-0.5*numViscMu_*area;
+      //[[rho]]
+      gLeft[ 0 ][ dimDomain +1 ]=0.5*numVisc_*area;
+      gRight[ 0 ][ dimDomain +1 ]=-0.5*numVisc_*area;
      
         
       //----------------------------------------------------------------

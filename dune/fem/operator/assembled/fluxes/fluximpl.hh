@@ -211,14 +211,14 @@ double MixedFlux<Model>
     Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
     Filter::rho(gLeft)*=-0.5;
      
-    //double viscmu=Filter::rho(jump);
+    double viscmu=Filter::rho(jump);
     double viscrho=Filter::mu( jump );
     
     Filter::rho( gLeft )+=numVisc_*area*viscrho;
     Filter::rho( gRight )=Filter::rho( gLeft );
     
-    //Filter::mu( gLeft )+=numViscMu_*area*viscmu;
-    //Filter::mu( gRight )=Filter::mu( gLeft );
+    Filter::rho( gLeft )+=numViscMu_*area*viscmu;
+    Filter::rho( gRight )=Filter::mu( gLeft );
     //----------------------------------------------------------------
     
     //v---------------------------------------------------------------
