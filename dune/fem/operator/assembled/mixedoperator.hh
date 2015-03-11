@@ -82,6 +82,7 @@ class DGPhasefieldOperator
                         time_(0.),
                         deltaT_(0.),
                         maxSpeed_(0.),
+                        lastSpeed_(1.),
                         uOld_("uOld" , space ),
                         uOldLocal_(space),
                         uOldNeighbor_(space),
@@ -110,7 +111,7 @@ class DGPhasefieldOperator
 
   double getDeltaT() {return deltaT_;}
 
-  double timeStepEstimate() { return  std::min( minArea_/maxSpeed_,lipschitzC());}
+  double timeStepEstimate() { return 0.1* std::min( minArea_/maxSpeed_,lipschitzC());}
 
   double maxSpeed() { return maxSpeed_; }
   
@@ -198,6 +199,7 @@ class DGPhasefieldOperator
   double time_;
   double deltaT_;
   mutable double maxSpeed_;
+  mutable double lastSpeed_;
   double factorImp_;
   double factorExp_;
   mutable DiscreteFunctionType uOld_;
@@ -293,6 +295,7 @@ class FDJacobianDGPhasefieldOperator
   using MyOperatorType::time_;
   using MyOperatorType::deltaT_;
   using MyOperatorType::maxSpeed_;
+  using MyOperatorType::lastSpeed_;
   using MyOperatorType::theta_;
   using MyOperatorType::factorImp_;
   using MyOperatorType::factorExp_;
@@ -311,6 +314,7 @@ template<class DiscreteFunction, class Model, class Flux>
 void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
 {
+  double lastSpeed=maxSpeed_;
   maxSpeed_=0;
 
   // clear destination 
