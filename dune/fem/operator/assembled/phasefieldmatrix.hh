@@ -91,6 +91,7 @@ class PhasefieldJacobianOperator
   using MyOperatorType::setDeltaT;
   using MyOperatorType::timeStepEstimate;
   using MyOperatorType::maxSpeed;
+  using MyOperatorType::lastSpeed_;
   using MyOperatorType::lipschitzC;
   using MyOperatorType::setPreviousTimeStep;
   using MyOperatorType::getPreviousTimeStep; 
@@ -292,7 +293,7 @@ void PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
       // compute penalty factor
       const double intersectionArea = normal.two_norm();
-      const double localwidth = std::min(areaEn_,areaNb_)/intersectionArea;
+      const double localwidth = lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea;
       const double penaltyFactor = 1./localwidth;
  
 
@@ -767,7 +768,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
               // compute penalty factor
               const double intersectionArea = normal.two_norm();
-              const double localwidth = areaEn_ / intersectionArea;
+              const double localwidth = lastSpeed_*areaEn_ / intersectionArea;
               const double penaltyFactor = 1./localwidth;
 
               jacFlux_.boundaryFlux( normal,
