@@ -1,0 +1,17 @@
+(dp0
+S'GRIDTYPE'
+p1
+S'ALUGRID_CUBE'
+p2
+sS'PROBLEM'
+p3
+S'2'
+p4
+sS'GRIDDIM'
+p5
+g4
+sS'POLORDER'
+p6
+S'1'
+p7
+s.
