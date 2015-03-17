@@ -288,7 +288,7 @@ public:
   void adapt( AdaptationManagerType& am ){BaseType::asImp().adapt( am );}
   
   template<class Stream>
-  void writeEnergy( TimeProviderType& timeProvider,Stream& str,int iter, double& difference)
+  void writeEnergy( TimeProviderType& timeProvider,Stream& str,int iter, double difference)
   { 
     BaseType::asImp().writeEnergy( timeProvider, str,iter,difference);
   }
@@ -393,7 +393,6 @@ public:
 	  	int startCount = 0;
       if( adaptCount > 0 )
       {      
-      
         while( startCount < maxAdaptationLevel )
 				{
           estimate();
@@ -401,7 +400,7 @@ public:
           writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
          
           adapt( adaptManager) ;
-					std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<<std::endl;
+          std::cout << "start: " << startCount << " grid size: " << grid_.size(0)<<std::endl;
           ++startCount;
         }
       }
@@ -456,7 +455,7 @@ public:
       double timeStepEst=timeStepEstimate();//dgOperator_.timeStepEstimate();
       timeStepError=stepError(U,Uold);
       timeStepError/=ldt;
-      
+
       if( timeStepError <= timeStepTolerance_)
         break;
 
@@ -470,7 +469,7 @@ public:
              
             }
          
-          writeEnergy( timeProvider , energyfile, ils_iterations, timeStepError);
+          writeEnergy( timeProvider , energyfile, ils_iterations, ldt);
         }
 
         writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
@@ -515,7 +514,6 @@ public:
   }
   inline double error ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-		typedef typename DiscreteFunctionType :: RangeType RangeType;
     Fem::L2Norm< GridPartType > l2norm(gridPart_);
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
@@ -523,7 +521,6 @@ public:
   
   inline double densityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-		typedef typename DiscreteFunctionType :: RangeType RangeType;
     std::vector<unsigned int> comp{ 0};
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
@@ -531,7 +528,6 @@ public:
 	}
   inline double phasefieldError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-		typedef typename DiscreteFunctionType :: RangeType RangeType;
     std::vector<unsigned int> comp{ 0 , 1, dimDomain +1 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
@@ -539,7 +535,6 @@ public:
 	}
   inline double velocityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-		typedef typename DiscreteFunctionType :: RangeType RangeType;
     std::vector<unsigned int> comp;
     for (int i = 0 ; i < dimDomain ; ++i)
       comp.push_back(1+i);
@@ -551,8 +546,6 @@ public:
   //compute Error between old and NewTimeStep
   inline double stepError(DiscreteFunctionType uOld, DiscreteFunctionType& uNew)
 	{
-		typedef typename DiscreteFunctionType :: RangeType RangeType;
-//		Fem::L2Norm<GridPartType> l2norm(gridPart_);
     std::vector<unsigned int> comp{ 1,2 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
