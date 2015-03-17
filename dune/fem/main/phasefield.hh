@@ -79,14 +79,16 @@ struct SchemeTraits< false ,Polorder, GridImp >
 #if PARAGRID 
    typedef Dune::GridSelector :: GridType HostGridType;
    typedef MixedProblemGenerator< HostGridType > ProblemGeneratorType;
-
-    // use problem specific initialize method since some problems do different things
+      // use problem specific initialize method since some problems do different things
     // there, e.g. poisson 
 		const std::string Flux="Phasefieldflux";
     Dune::GridPtr<HostGridType> gridptr = ProblemGeneratorType :: initializeGrid( Flux );
-
+    
     // get grid reference 
     typedef ParallelGrid< HostGridType > GridType;
+    typedef MixedAlgorithmTraits< GridType , ProblemGeneratorType ,POLORDER> AlgorithmTraitsType;
+    typedef AssembledAlgorithm< GridType,AlgorithmTraitsType> AlgorithmType;
+
     GridType grid( *gridptr );
     grid.loadBalance();
 #else
