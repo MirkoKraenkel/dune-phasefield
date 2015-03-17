@@ -55,7 +55,7 @@ typedef TravelProblem< GridSelector :: GridType,
 #endif
 #elif PROBLEM==2
 #if MIXED
-#include "../mixedscheme/bubbleensemble2.hh"
+#include "../mixedscheme/bubbleensemble1.hh"
 typedef BubbleEnsemble< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
