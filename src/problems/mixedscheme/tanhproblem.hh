@@ -51,6 +51,8 @@ public:
     rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
+    veloright_(Fem::Parameter::getValue<double>("phasefield.veloright")),
+    veloleft_(Fem::Parameter::getValue<double>("phasefield.veloleft")),
     thermodyn_()
     {
     }
@@ -119,6 +121,8 @@ public:
   double rho2_;
   const double phiscale_;
   const double radius_;
+  const double veloright_;
+  const double veloleft_;
   const ThermodynamicsType thermodyn_;
   
 };
@@ -157,12 +161,14 @@ inline void TanhProblem<GridType,RangeProvider>
   //-2/delta^2 *(tanh*(1-tanh^2)
   drdrtanhr*=-2*deltaInv;
     double phi=0.5*tanhr+0.5;
- 
+
+  
+
   double rhodiff=rho2_-rho1_;
   //double rho=thermodyn_.evalRho(phi);
   double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
   
-  double v=0;//0.1*sin(2*M_PI*arg[0]);
+  double v=(veloleft_-veloright_)*(-0.5*tanhr+0.5)+veloright_;
   //rho
   res[0]= rho;
  
@@ -196,7 +202,6 @@ inline void TanhProblem<GridType,RangeProvider>
   res[dimension+3]=dFdphi-delta_*rhoInv*laplacePhi+hprime*gradrho*sigma;
   //sigma_x
   res[dimension+4]=sigma;
-
 #else
   //mu
   res[dimension+2]=0.5*v*v+dFdrho;
