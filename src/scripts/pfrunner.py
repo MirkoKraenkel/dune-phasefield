@@ -24,8 +24,8 @@ class PhasefieldRunner:
     
     self.params=[ 'phasefield.delta','phasefield.mu1','phasefield.mu2','phasefield.endTime', 'fixedTimeStep', 
                   'fem.prefix','phasefield.startLevel','phasefield.reactionrate','phasefield.alpha','phasefield.beta','phasefield.A',
-                  'phasefield.rhofactor','phasefield.addvisc','phasefield.nonconvisc','phasefield.acpenalty','phiscale']
-    self.defaults=[ '0.05','0.1','0.1','1e-3','0','','0','1','0.','1.','1','2',1,0,1,1 ]
+                  'phasefield.rhofactor','phasefield.addvisc','phasefield.muvisc','phasefield.acpenalty','phiscale','phasefield.veloleft','phasefield.veloright']
+    self.defaults=[ '0.05','0.1','0.1','1e-3','0','','0','1','0.','1.','1','2',1,0,1,1,0 ,0]
     
     self.paramEntries=self.makeform(paramframe,self.params)
     
@@ -83,7 +83,7 @@ class PhasefieldRunner:
        
        paramstring+=key+':'+self.paramEntries[key].get()+' '
     
-    execstring ='nice -n19 ./'+p+' '+paramstring+'paramfile:parameter_gui'
+    execstring ='/opt/openmpi/bin/mpiexec -n 1  xterm -e gdb --args '+p+' '+paramstring+'paramfile:parameter_gui'
     #execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+outfile+p+'.out'
     return ( execstring , outfile )
   
