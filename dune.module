@@ -8,4 +8,4 @@ Version: 0.0
 Maintainer: kraenkel@mathematik.uni-freiburg.de
 #depending on 
 Depends: dune-common dune-geometry dune-grid dune-istl dune-localfunctions dune-fem dune-fem-dg
-Suggests: dune-spgrid
+Suggests: dune-spgrid dune-metagrid
