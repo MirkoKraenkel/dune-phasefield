@@ -40,7 +40,7 @@ gridsol.usegridsolution: false
 #-----------------
 
 phasefield.eocSteps: 1 
-phasefield.printCount: 100 
+phasefield.printCount: 10000 
 phasefield.verbose: 1 
 
 # create a file with sampled values of the numerical solution
@@ -60,7 +60,7 @@ fem.adaptation.coarsenPercent: 0.2
 # coarsest level that should be present 
 # finest level that should be present
 fem.adaptation.coarsestLevel: 0 
-fem.adaptation.finestLevel: 8 
+fem.adaptation.finestLevel: 2 
 phasefield.adaptTol: 0.5 
 phasefield.adaptive.maxh: 0.0125
 phasefield.adaptive.tolfactor: 4 
@@ -69,7 +69,7 @@ phasefield.adaptive.secondneighbors: true
 phasefield.adaptive.maxsigma: true 
 #refine if indicator> localsizefactor*localsize
 phasefield.adaptive.localsizefactor: 0.4
-phasefield.adaptive.rhoTol: -0.075
+phasefield.adaptive.rhoTol: 0.075
 
 fem.adaptation.adaptcount: 2 # after this many time step, 0 disables adaptation
 fem.loadbalancing.step:20

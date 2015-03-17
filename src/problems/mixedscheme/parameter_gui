@@ -3,8 +3,8 @@ fem.resolvevariables: 1
 #------------
 fem.prefix: ./data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-3 #save data every time interval
-fem.io.savecount: 0   # save every i-th ste
+fem.io.savestep: 1 #save data every time interval
+fem.io.savecount: 1   # save every i-th ste
 fem.io.checkpointstep: 0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
@@ -48,15 +48,15 @@ phasefield.penalty: 10
 #phasefield.mwp1: 1.947734046
 #phasefield.mwp2: 3.5
 #phasefield.mwp1: 2.4 
-phasefield.mwp2: 0.1 
-phasefield.mwp1: 0.8
+phasefield.mwp1: 0.62 
+phasefield.mwp2: 0.1
 
 
 phasefield.acpenalty: 0 
 phasefield.ipswitch: 1
 phasefield.smear: 1.
 phasefield.radius: 0.5
-phasefield.bubbles: 1bubble.txt 
+phasefield.bubbles: 2bubbles.txt 
 phiscale: 0.6 
 pressure: 1
 gamma: 1. 
@@ -65,19 +65,19 @@ phasefield.adaptive.verbose: false
 # DOMAIN
 #-------
 
-#fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
-fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
+
+#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
 #
 
 
 #fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
-##
 
-fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
-##fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
-#fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
+fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 
 
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
@@ -105,14 +105,14 @@ fem.solver.newton.maxiterations: 50
 fem.solver.newton.maxlineariterations: 10000
 fem.differenceoperator.eps: 1 
 phasefield.fdjacobian.epsilon: 0 
-#phasefield.maximaltimesteps: 0
+phasefield.maximaltimesteps: 0
 phasefield.mixed.theta: 0 #0 if opcheck is used
 phasefield.maxTimeStep: 1e-3
 # IMEX=1 ->tau implicit IMEX=0.5->semi implicit
 phasefield.IMEX: 1 
 phasefield.firstStep: 1e-4
 
-istl.preconditioning.method: ilu-0 
+istl.preconditioning.method: jacobi 
 istl.gmres.restart: 100
 istl.preconditioning.iterations: 1 
 istl.preconditioning.relaxation: 1.1
