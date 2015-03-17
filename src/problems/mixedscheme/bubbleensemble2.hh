@@ -187,7 +187,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double phi; 
-  double width=phiscale_*delta_;
+  double width=6*delta_;
   double width2=delta_;
 #if SURFACE
 #else
@@ -250,8 +250,8 @@ inline void BubbleEnsemble<GridType,RangeProvider>
             double rhodiff=rho2_-rho1_;
             rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
 #if MIXED
-            res[dimension+4]=-0.5*dtanhr*(1/width2)*dxr(vector);
-            res[dimension+5]=-0.5*dtanhr*(1/width2)*dyr(vector);
+            res[dimension+4]=0.5*dtanhr*(1/width2)*dxr(vector);
+            res[dimension+5]=0.5*dtanhr*(1/width2)*dyr(vector);
             double laplacePhi=dtanhr*dtanr*(M_PI/width)*(dxdxr(arg)+dydyr(arg))
               +(dtanhr*ddtanr +ddtanhr*dtanr*dtanr)*(M_PI/width)*(M_PI/width)*(dxr(arg)*dxr(arg)+dyr(arg)*dyr(arg));
             laplacePhi*=0.5;
