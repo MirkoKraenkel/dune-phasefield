@@ -63,7 +63,7 @@ struct MixedAlgorithmTraits
   typedef ProblemGeneratorImp                      ProblemGeneratorType;
 
  // Choose a suitable GridView
-  typedef Dune :: Fem::DGAdaptiveLeafGridPart< GridType >       GridPartType;
+  typedef Dune :: Fem::DGAdaptiveLeafGridPart< GridType, All_Partition >       GridPartType;
   typedef Dune :: Fem::AdaptiveLeafGridPart< GridType >         LagrangeGridPartType;
   
   enum{ dimDomain = GridType::dimensionworld };
