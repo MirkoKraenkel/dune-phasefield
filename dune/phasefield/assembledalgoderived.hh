@@ -88,7 +88,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     void reduceTimeStep( TimeProviderType& timeProvider, double ldt)
       {
         double factor=0.5;
-        timeProvider.provideTimeStepEstimate( factor*ldt);
+        double newtime=std::min(factor*ldt,dgOperator_.timeStepEstimate());
+        timeProvider.provideTimeStepEstimate( newtime);
         //timeProvider.invalidateTimeStep();
       }
 
@@ -129,30 +130,26 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       {
       
       }
-     else if( newton_iterations >  100 )
+     else if( newton_iterations >  3 )
         {
           std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
           reduceTimeStep( timeProvider , deltaT );
-        //  U.assign(Uold);
-           { 
-     //         std::cout<<"no convergence!"<<"\n";
-       //       abort();
-            }
          }
-     else if( newton_iterations < 4 && timeProvider.deltaT() < 1e-3)
+     else if( newton_iterations < 2 && timeProvider.deltaT() < dgOperator_.timeStepEstimate())
         {
           timeProvider.provideTimeStepEstimate( 1.2*deltaT);
         }
       else
         {
-          timeProvider.provideTimeStepEstimate( deltaT );
-    //       timeProvider.provideTimeStepEstimate( dgOperator_.timeStepEstimate());
+    //      timeProvider.provideTimeStepEstimate( deltaT );
+          timeProvider.provideTimeStepEstimate( dgOperator_.timeStepEstimate());
         }
     }
 	  
   void estimateMarkAdapt( AdaptationManagerType& am)
   {
     estimate();
+    
     adapt(am);
   }
   
@@ -187,7 +184,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   void writeEnergy( TimeProviderType& timeProvider,
                     Stream& str,
                     int iter,
-                    double& difference)
+                    double dt)
   {
     DiscreteScalarType* totalenergy = energy();
     DiscreteScalarType&  pressure=getpressure();
@@ -196,10 +193,13 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       double chemicalEnergy; 
       double surfaceEnergy;
       double energyIntegral =energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
-      str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"<<energyIntegral<<"\t"<<chemicalEnergy<<"\t"<<kineticEnergy<<"\t"<<surfaceEnergy<<"\t"<<iter<<"\n";
-      difference=surfaceEnergy_-surfaceEnergy;
- //     std::cout<<"surfaceEnergy Change="<<surfaceEnergy_-surfaceEnergy<<"\n"; 
-      surfaceEnergy_=surfaceEnergy;
+      str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"
+        <<energyIntegral<<"\t"
+        <<chemicalEnergy<<"\t"
+        <<kineticEnergy<<"\t"
+        <<surfaceEnergy<<"\t"
+        <<iter<<"\t"
+        <<dt<<"\n";
     } 
   }
  
