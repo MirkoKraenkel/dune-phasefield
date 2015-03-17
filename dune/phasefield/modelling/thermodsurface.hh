@@ -31,7 +31,7 @@ class BalancedThermodynamics:
     mu2_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2") ),
     reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
   {
-    lipschitzC_=2*delta_/(reaction_*A_);
+    lipschitzC_=1/(4*A_*reaction_/(delta_));
   }
 #if RHO_H2CONSTMODEL
   inline double h( double rho ) const
@@ -54,8 +54,12 @@ class BalancedThermodynamics:
 #else
   inline double h( double rho ) const
   {
-    return rho;
-  }
+#if TAIT
+return 1;
+#else
+   return rho;
+#endif
+}
   
   inline double h2( double rho) const
   {
@@ -69,7 +73,7 @@ class BalancedThermodynamics:
 #if TAIT
 #include "TaitSources/maple.cc"
 #else
-#include "PhasefieldvanderWaalsSources/maple.cc"
+#include "RhoTaitSources/maple.cc"
 #endif
 #endif
 
