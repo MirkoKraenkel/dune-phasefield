@@ -20,7 +20,7 @@
 namespace Dune {
 
 template <class GridType, class RangeProvider>
-class TanhProblem : public EvolutionProblemInterface<
+class SharpProblem : public EvolutionProblemInterface<
                        Dune::Fem::FunctionSpace< double, double, GridType::dimension,RangeProvider::rangeDim >, true >
 {
  
@@ -40,7 +40,7 @@ public:
 //   typedef TestThermodynamics ThermodynamicsType;
   typedef BalancedThermodynamics ThermodynamicsType;
 
-  TanhProblem() : 
+  SharpProblem() : 
     myName_( "Mixedtest Heatproblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
@@ -129,7 +129,7 @@ public:
 
 
 template <class GridType,class RangeProvider>
-inline double TanhProblem<GridType,RangeProvider>
+inline double SharpProblem<GridType,RangeProvider>
 :: init(const bool returnA ) const 
 {
   return 0;
@@ -138,12 +138,12 @@ inline double TanhProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline void TanhProblem<GridType,RangeProvider>
+inline void SharpProblem<GridType,RangeProvider>
 :: printInitInfo() const
 {}
 
 template <class GridType,class RangeProvider>
-inline void TanhProblem<GridType,RangeProvider>
+inline void SharpProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
 
@@ -224,7 +224,7 @@ inline void TanhProblem<GridType,RangeProvider>
 
 
 template <class GridType,class RangeProvider>
-inline std::string TanhProblem<GridType,RangeProvider>
+inline std::string SharpProblem<GridType,RangeProvider>
 :: description() const
 {
   std::ostringstream stream;
