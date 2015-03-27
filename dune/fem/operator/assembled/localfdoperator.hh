@@ -58,6 +58,7 @@ class LocalFDOperator
   using MyOperatorType::setNeighbor;
   using MyOperatorType::operator();
   using MyOperatorType::setTime;
+  using MyOperatorType::timeStepEstimate;
   using MyOperatorType::setDeltaT;
   using MyOperatorType::setPreviousTimeStep;
   using MyOperatorType::getPreviousTimeStep; 
@@ -141,9 +142,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
     uValues.resize(numQuadraturePoints);
     uJacobians.resize(numQuadraturePoints);
-    // std::vector<RangeType> uValues(numQuadraturePoints);
-    // std::vector<JacobianRangeType> uJacobians(numQuadraturePoints);
-
 
     uLocal.evaluateQuadrature(quadrature, uValues);
     uLocal.evaluateQuadrature(quadrature,uJacobians);
@@ -156,8 +154,6 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
       RangeType vu(0.) , fu(0.);
       JacobianRangeType dvu(0.) , fdu(0.);
 
-      //  uLocal.evaluate( quadrature[ pt ], vu);
-      //  uLocal.jacobian( quadrature[ pt ], dvu);
       localIntegral(pt,
           geometry,
           quadrature,
