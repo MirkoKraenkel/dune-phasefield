@@ -1,15 +1,16 @@
+#! /usr/bin/env python
 import os,subprocess, sys
 
-folders = { 1:'../ConstRhoSources/' , 2:'../InvRhoSources/', 3:'../PhasefieldvanderWaalsSources/', 
+folders = { 1:'../ConstRhoSources/' , 2:'../AltAltSources/', 3:'../PhasefieldvanderWaalsSources/',
 4:'../ConstRhoSources/',5:'../RhoTaitSources/',6:'../TaitSources/'}
 
-files = { 1:'balancedCODEGEN.mpl', 2:'balancedhmodelCODEGEN.mpl', 3:'phasefieldvanderWaalsCODEGEN.mpl', 
+files = { 1:'balancedCODEGEN.mpl', 2:'AltAltCODEGEN.mpl', 3:'phasefieldvanderWaalsCODEGEN.mpl',
 4:'balancedCoquelCODEGEN.mpl', 5:'rhotaitCODEGEN.mpl', 6:'taitCODEGEN.mpl'}
 
 namelist = [' helmholtz', ' reactionSource',' dphireactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential',' pressure', ' a']
 
 namelist2 = [' rhosol', ' gradrho',' gradphi',' musol',' thetasol',' phiSource',' veloSource']
-models={ 1:'balanced',2:'balancedh',3:'vdW', 4:'balCoq',5:'rhotait', 6:'tait'}
+models={ 1:'balanced',2:'balanced',3:'vdW', 4:'balCoq',5:'rhotait', 6:'tait'}
 
 number=int(sys.argv[1])
 
