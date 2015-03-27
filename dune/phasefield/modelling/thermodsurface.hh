@@ -73,7 +73,7 @@ return 1;
 #if TAIT
 #include "TaitSources/maple.cc"
 #else
-#include "RhoTaitSources/maple.cc"
+#include "AltAltSources/maple.cc"
 #endif
 #endif
 
@@ -81,7 +81,7 @@ return 1;
 
   inline double reactionFactor() const { return reaction_; }
   inline double lipschitzC() const { return lipschitzC_; }
-  inline double delta()    const { return beta_*delta_; }
+  inline double delta()    const { return delta_; }
   inline double deltaInv() const { return deltaInv_; }
   inline double mu1()      const { return mu1_; }
   inline double mu2()      const { return mu2_; }
