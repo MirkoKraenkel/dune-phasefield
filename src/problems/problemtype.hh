@@ -3,11 +3,6 @@
 #include <dune/common/version.hh>
 #include <dune/fem/io/parameter.hh>
 
-#if DUNE_VERSION_NEWER_REV(DUNE_GRID,2,1,0)
-// DGF gridtype 
-#else
-#include <dune/grid/io/file/dgfparser/dgfgridtype.hh>
-#endif
 
 template< int dimension, bool mixed>
 struct RangeTypeProvider;
@@ -18,12 +13,7 @@ struct RangeTypeProvider<dimension,true>
 #if LAMBDASCHEME 
   enum{ rangeDim=3*dimension+4 };
 #else
-enum{ rangeDim=2*dimension+4 };
-#endif
-
-#if 0
-#warning "FEMSCHEME"
-  enum{ rangeDim=dimension+4 };
+  enum{ rangeDim=2*dimension+4 };
 #endif
 };
 
@@ -54,13 +44,16 @@ typedef TravelProblem< GridSelector :: GridType,
  >  PhaseProblemType;
 #endif
 #elif PROBLEM==2
+#if GRIDDIM==2
+#include "../mixedscheme/bubbleensemble2.hh"
+#else
+#include "../mixedscheme/bubbleensemble1d.hh"
+#endif
 #if MIXED
-#include "../mixedscheme/bubbleensemble1.hh"
 typedef BubbleEnsemble< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else
-#include "../mixedscheme/bubbleensemble2.hh"
 typedef BubbleEnsemble< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;
@@ -88,13 +81,13 @@ typedef TanhProblem< GridSelector :: GridType,
         >PhaseProblemType;
 #endif
 #elif PROBLEM==5
-#include "../mixedscheme/datareadproblem.hh"
+#include "../mixedscheme/sharpproblem.hh"
 #if MIXED
-typedef DataReadProblem< GridSelector :: GridType,
+typedef SharpProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else
-typedef DatareadProblem< GridSelector :: GridType,
+typedef SharpProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;
 #endif
