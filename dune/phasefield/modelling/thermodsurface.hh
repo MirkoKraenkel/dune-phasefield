@@ -54,10 +54,10 @@ class BalancedThermodynamics:
 #else
   inline double h( double rho ) const
   {
-#if TAIT
-return 1;
+#if UNBALMODEL
+    return rho;
 #else
-   return rho;
+    return 1.;
 #endif
 }
   
@@ -70,10 +70,10 @@ return 1;
   {
     return 0.;
   }
-#if TAIT
-#include "TaitSources/maple.cc"
-#else
+#if UNBALMODEL
 #include "AltAltSources/maple.cc"
+#else
+#include "TaitSources/maple.cc"
 #endif
 #endif
 
