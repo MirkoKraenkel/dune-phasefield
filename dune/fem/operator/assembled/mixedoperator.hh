@@ -86,6 +86,7 @@ class DGPhasefieldOperator
                         uOld_("uOld" , space ),
                         uOldLocal_(space),
                         uOldNeighbor_(space),
+                        outflow_(Dune::Fem::Parameter::getValue<bool>("phasefield.outflow")),
                         minArea_( std::numeric_limits<double>::max() )
     {
       uOld_.clear();
@@ -205,6 +206,7 @@ class DGPhasefieldOperator
   mutable DiscreteFunctionType uOld_;
   mutable TemporaryLocalType uOldLocal_; 
   mutable TemporaryLocalType uOldNeighbor_; 
+  const bool outflow_;
   mutable double areaEn_;
   mutable double areaNb_;
   mutable double minArea_;
@@ -302,6 +304,7 @@ class FDJacobianDGPhasefieldOperator
   using MyOperatorType::uOld_;
   using MyOperatorType::uOldLocal_; 
   using MyOperatorType::uOldNeighbor_; 
+  using MyOperatorType::outflow_;
   using MyOperatorType::debugmu_;
   using MyOperatorType::debugtheta_;
   using MyOperatorType::areaEn_;

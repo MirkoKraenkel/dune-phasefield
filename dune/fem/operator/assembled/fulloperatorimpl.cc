@@ -287,6 +287,8 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                     RangeType& avuLeft,
                     JacobianRangeType& aduLeft) const
 {
+
+  size_t boundaryIndex=intersection.boundaryId();
   typedef typename IntersectionType::Geometry  IntersectionGeometryType;
   const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
@@ -319,11 +321,21 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   double fluxRet;
   RangeType gLeft(0.),dummy(0.);
 #if 1 
-  fluxRet=flux_.boundaryFlux( normal,
-                              area,
-                              vuEn,
-                              vuMidEn,
-                              gLeft);
+  if( boundaryIndex==1 || !outflow_)
+    {
+      fluxRet=flux_.boundaryFlux( normal,
+                                  area,
+                                  vuEn,
+                                  vuMidEn,gLeft);
+    }
+  else
+    {
+      flux_.outFlowFlux( normal,
+                         area,
+                         vuEn,
+                         vuMidEn,gLeft);
+
+    }
 #else
    fluxRet=flux_.numericalFlux( normal,
                                 area,
@@ -337,12 +349,19 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   avuLeft+=gLeft;
   RangeType value(0.);
 
-  fluxRet+=flux_.diffusionBoundaryFlux( normal,
-                                        penaltyFactor,
-                                        vuMidEn,
-                                        duMidEn,    
-                                        value,
-                                        aduLeft);
+  if( boundaryIndex==1 || !outflow_)
+    {
+      fluxRet+=flux_.diffusionBoundaryFlux( normal,
+                                            penaltyFactor,
+                                            vuMidEn,
+                                            duMidEn,
+                                            value,
+                                            aduLeft);
+    }
+  else
+    {
+      flux_.diffusionOutFlowFlux( value , aduLeft);
+    }
 
   avuLeft+=value;
 
