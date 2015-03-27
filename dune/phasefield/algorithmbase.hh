@@ -406,14 +406,16 @@ public:
       }
     //  writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
       double firstTimeStep=Dune::Fem::Parameter::getValue<double>("phasefield.firstStep",1e-6);
-      timeProvider.provideTimeStepEstimate(firstTimeStep);
-    	// start first time step with prescribed fixed time step 
+
+      // start first time step with prescribed fixed time step 
 	    // if it is not 0 otherwise use the internal estimate
 			if ( fixedTimeStep_ > 1e-20 )
 			  timeProvider.init( fixedTimeStep_ );
 		  else
+      {
+        timeProvider.provideTimeStepEstimate( std::min( firstTimeStep , timeStepEstimate()));
 			  timeProvider.init();
-
+      }
      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
     else
