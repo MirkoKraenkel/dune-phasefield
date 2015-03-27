@@ -146,8 +146,15 @@ template <class GridType,class RangeProvider>
 inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
+
+  double rhodiff=rho2_-rho1_;
+#if UNBALMODEL
+  const double rhomean=0.5*(rho2_+rho1_);
+#else
+  const double rhomean=1;
+#endif
 #if SURFACE
-  double deltaInv=1/(delta_*phiscale_);
+  double deltaInv=rhomean/(delta_*phiscale_);
 #else  
   double deltaInv=sqrt(A_)/(delta_*phiscale_);
 #endif  
@@ -155,20 +162,22 @@ inline void TanhProblem<GridType,RangeProvider>
   double tanhr=-tanh( ( r-radius_ )*deltaInv ); 
   double tanhrho=-tanh( ( r-radius_ )*rhofactor_*deltaInv ); 
 
+  double velopos=r-(radius_+(delta_/rhomean));
+  double peak=exp(-velopos*velopos*deltaInv*deltaInv);
+
   //(1-tanh^2)/delta
   double drtanhr=-deltaInv*(1-tanhr*tanhr);
   double drdrtanhr=tanhr*drtanhr;
   //-2/delta^2 *(tanh*(1-tanh^2)
   drdrtanhr*=-2*deltaInv;
-    double phi=0.5*tanhr+0.5;
+  double phi=-0.5*tanhr+0.5;
 
   
 
-  double rhodiff=rho2_-rho1_;
   //double rho=thermodyn_.evalRho(phi);
   double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
   
-  double v=(veloleft_-veloright_)*(-0.5*tanhr+0.5)+veloright_;
+  double v=(veloright_-veloleft_)*(peak)+veloleft_;
   //rho
   res[0]= rho;
  
@@ -185,7 +194,7 @@ inline void TanhProblem<GridType,RangeProvider>
 #if MIXED
   double dFdphi= thermodyn_.reactionSource(rho,phi); 
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
-  double sigma=0.5*drtanhr;
+  double sigma=-0.5*drtanhr;
  double laplacePhi=0.5*drdrtanhr;
   if(arg[0]<0.)
     {
