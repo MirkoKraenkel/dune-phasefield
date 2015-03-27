@@ -80,6 +80,11 @@ public:
                      const RangeType& midEn,
                      FluxRangeType& gLeft) const;
 
+  void outFlowFlux( const DomainType& normal,
+                    const double area,
+                    const RangeType& midEn,
+                    FluxRangeType& gLeft) const;
+
   double diffusionBoundaryFlux( const DomainType& normal,
                                 const double penaltyFactor,
                                 const RangeType& uEn,
@@ -107,7 +112,7 @@ void JacobianFlux<Model>
   {
     double vNormalEn(0.);
     double laplaceFlux(0.);
-  
+
     for(int ii = 0; ii < dimDomain ; ++ii )
       {
         vNormalEn+=midEn[1 + ii]*normal[ ii ];
@@ -124,7 +129,29 @@ void JacobianFlux<Model>
     gLeft[ 0 ][ 0 ]=-0.5*vNormalEn;
   }
 
-
+template< class Model >
+void JacobianFlux<Model>
+::outFlowFlux(const DomainType& normal,
+              const double area,
+              const RangeType& midEn,
+              FluxRangeType& gLeft) const
+  {
+    double vNormalEn(0.);
+    double laplaceFlux(0.);
+  
+    for(int ii = 0; ii < dimDomain ; ++ii )
+      {
+        //gLeft[ 0 ][ 1 + ii ] = -0.5*normal[ii]*midEn[0];
+        laplaceFlux=normal[ ii ]*0.5;
+#if LAMBDASCHEME
+        // F_{3.3}(\lambda^+)\cdot n
+        gLeft[ dimDomain + 3 ][ 2*dimDomain + 4 +ii ]=-model_.delta()*laplaceFlux;
+#else
+        // F_{3.3}(\sigma^+)\cdot n
+        gLeft[ dimDomain + 3 ][ dimDomain + 4 +ii ]=-model_.delta()*laplaceFlux;
+#endif
+      }
+  }
 
 
 template< class Model >
@@ -243,8 +270,6 @@ void  JacobianFlux<Model>
           
         }
     
-      //----------------------------------------------------------------
-     //----------------------------------------------------------------
 
       //sigma-----------------------------------------------------------
       for(int ii = 0; ii < dimDomain ; ++ii )
@@ -340,7 +365,6 @@ void JacobianFlux<Model>
   {
     bbLeft[ ii ]*=-1;
     bbLeft[ ii ].mv( normal , bLeft[ ii ]);
-   // for( int jj = 0 ; jj < dimDomain ;++jj)
     {
      bLeft[ii][ii]+=penalty_*penaltyFactor*integrationElement*phiEn[ 0 ];
     }
