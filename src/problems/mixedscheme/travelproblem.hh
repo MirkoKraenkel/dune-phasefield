@@ -44,7 +44,6 @@ public:
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
-    smear_( Fem::Parameter::getValue<double> ("phasefield.smear")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     thermodyn_()
     {
@@ -98,7 +97,6 @@ public:
   const double endTime_;
   const double mu_;
   const double delta_;
-  double smear_;
   const double phiscale_;
   const ThermodynamicsType thermodyn_;
   
