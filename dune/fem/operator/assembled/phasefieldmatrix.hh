@@ -100,6 +100,7 @@ class PhasefieldJacobianOperator
   using MyOperatorType::deltaT_;
   using MyOperatorType::uOldLocal_;
   using MyOperatorType::uOldNeighbor_;
+  using MyOperatorType::outflow_;
   using MyOperatorType::factorImp_;
   using MyOperatorType::factorExp_;
   using MyOperatorType::model_;
@@ -728,6 +729,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
           typedef typename IntersectionType::Geometry  IntersectionGeometryType;
           const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
           jLocal.clear();
+          size_t boundaryIndex=intersection.boundaryId();
 
           FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
           const size_t numQuadraturePoints = quadInside.nop();
@@ -770,25 +772,40 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
               const double intersectionArea = normal.two_norm();
               const double localwidth = lastSpeed_*areaEn_ / intersectionArea;
               const double penaltyFactor = 1./localwidth;
+              if( boundaryIndex==1 || !outflow_)
+              {
+                jacFlux_.boundaryFlux( normal,
+                                       localwidth,
+                                       vuMidEn,
+                                       fluxLeft);
+              }
+              else
+              {
+                jacFlux_.outFlowFlux( normal,
+                                      localwidth,
+                                      vuMidEn,
+                                      fluxLeft);
 
-              jacFlux_.boundaryFlux( normal,
-                                     localwidth,
-                                     vuMidEn,
-                                     fluxLeft);
-  
+              }
+
               for( size_t jj=0 ; jj < numScalarBf ; ++jj)
                 {
                   RangeType avuLeft(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
                   JacobianRangeType aduLeft(0.),aduRight(0.);
-                  DiffusionType aLeft,aRight;
-                  DiffusionValueType bLeft, bRight;
+                  DiffusionType aLeft;
+                  DiffusionValueType bLeft;
+ 
+                  if( boundaryIndex==1 || !outflow_)
+                    {
 
-                  jacFlux_.scalar2vectorialBoundaryFlux(normal,
-                                                        penaltyFactor,
-                                                        phi[ jj ],
-                                                        dphi[ jj ],
-                                                        aLeft,
-                                                        bLeft);
+                      jacFlux_.scalar2vectorialBoundaryFlux(normal,
+                                                            penaltyFactor,
+                                                            phi[ jj ],
+                                                            dphi[ jj ],
+                                                            aLeft,
+                                                            bLeft);
+
+                    }
 
 
                   for( size_t ii = 0; ii < numScalarBf ; ++ii )
@@ -801,25 +818,25 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                                                           jj,
                                                                           weightInside,
                                                                           jLocal );
-
-                      for(int i  = 0; i  < dimDomain ; ++i )
-                        {
-                          int global_i=ii*dimRange+1+i;
-                          for(int j  = 0 ; j  < dimDomain ; ++j )
-                            {
-                              int global_j= jj*dimRange+1+j;
-                              double valueEn;
+                      if( boundaryIndex==1 || !outflow_)
+                        for(int i  = 0; i  < dimDomain ; ++i )
+                          {
+                            int global_i=ii*dimRange+1+i;
+                            for(int j  = 0 ; j  < dimDomain ; ++j )
+                              {
+                                int global_j= jj*dimRange+1+j;
+                                double valueEn;
                         
-                              valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
-                              valueEn+=bLeft[ j ][ i ]*phi[ ii ];
+                                valueEn=aLeft[ j ][ i ]*dphi[ ii ][ 0 ];
+                                valueEn+=bLeft[ j ][ i ]*phi[ ii ];
 
-                              jLocal.add( global_i , global_j , weightInside*valueEn*0.5);
-                            }
-                        }    
+                                jLocal.add( global_i , global_j , weightInside*valueEn*0.5);
+                              }
+                          }
                       }
-                }
-            }
-        add( jLocal, realLocal);
+                  }
+              }
+          add( jLocal, realLocal);
         }
       }
     visited_[indexSet_.index( entity )]=true;
