@@ -37,7 +37,6 @@ public:
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
-//   typedef TestThermodynamics ThermodynamicsType;
   typedef BalancedThermodynamics ThermodynamicsType; 
 
   BubbleEnsemble() : 
@@ -241,17 +240,13 @@ inline void BubbleEnsemble<GridType,RangeProvider>
             double rhodiff=rho2_-rho1_;
             rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
 #if MIXED
-            res[dimension+4]=-1.*dtanhr*dtanr*(M_PI/width)*dxr(arg);
-            res[dimension+5]=-1.*dtanhr*dtanr*(M_PI/width)*dyr(arg);
-            double laplacePhi=dtanhr*dtanr*(M_PI/width)*(dxdxr(arg)+dydyr(arg))
-              +(dtanhr*ddtanr +ddtanhr*dtanr*dtanr)*(M_PI/width)*(M_PI/width)*(dxr(arg)*dxr(arg)+dyr(arg)*dyr(arg));
-            laplacePhi*=0.5;
-            dFdphi= thermodyn_.reactionSource(rho,phi); 
-            dFdrho=thermodyn_.chemicalPotential(rho, phi);
+            res[dimension+4]=dtanhr*dtanr*(M_PI/width)*dxr(arg);
+            res[dimension+5]=dtanhr*dtanr*(M_PI/width)*dyr(arg);
+
             //mu
-            res[dimension+2]=dFdrho;
+            res[dimension+2]=0;
             //tau
-            res[dimension+3]=dFdphi-delta_*laplacePhi;
+            res[dimension+3]=0;
 #endif
             continue;
           }
