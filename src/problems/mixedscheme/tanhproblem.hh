@@ -51,6 +51,7 @@ public:
     rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
     phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
     radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
+    shift_(Fem::Parameter::getValue<double>("phasefield.shift",0.)),
     veloright_(Fem::Parameter::getValue<double>("phasefield.veloright")),
     veloleft_(Fem::Parameter::getValue<double>("phasefield.veloleft")),
     thermodyn_()
@@ -121,6 +122,7 @@ public:
   double rho2_;
   const double phiscale_;
   const double radius_;
+  const double shift_;
   const double veloright_;
   const double veloleft_;
   const ThermodynamicsType thermodyn_;
@@ -149,7 +151,7 @@ inline void TanhProblem<GridType,RangeProvider>
 
   double rhodiff=rho2_-rho1_;
 #if UNBALMODEL
-  const double rhomean=0.5*(rho2_+rho1_);
+  const double rhomean=1;//0.5*(rho2_+rho1_);
 #else
   const double rhomean=1;
 #endif
@@ -160,7 +162,7 @@ inline void TanhProblem<GridType,RangeProvider>
 #endif  
   double r=std::abs( arg[0]);
   double tanhr=-tanh( ( r-radius_ )*deltaInv ); 
-  double tanhrho=-tanh( ( r-radius_ )*rhofactor_*deltaInv ); 
+  double tanhrho=-tanh( ( r-(radius_+shift_))*rhofactor_*deltaInv ); 
 
   double velopos=r-(radius_+(delta_/rhomean));
   double peak=exp(-velopos*velopos*deltaInv*deltaInv);
