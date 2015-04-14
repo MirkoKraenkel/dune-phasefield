@@ -97,7 +97,7 @@ struct SchemeTraits< false ,Polorder, GridImp >
     typedef SchemeTraits< mixed , POLORDER, GridType> SchemeTraitsType; 
   
     typedef typename SchemeTraitsType::ProblemGeneratorType ProblemGeneratorType;
-    typedef typename SchemeTraitsType::AlgorithmTraitsType AlgoTraits;
+//    typedef typename SchemeTraitsType::AlgorithmTraitsType AlgoTraits;
     typedef typename SchemeTraitsType::AlgorithmType AlgorithmType;
 
     // typedef MixedProblemGenerator< GridType > ProblemGeneratorType;
