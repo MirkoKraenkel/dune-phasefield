@@ -29,20 +29,19 @@ int main(int argc, char ** argv, char ** envp) {
   Dune::Fem::MPIManager :: initialize( argc, argv );
   try {
 
+        // *** Initialization
+        Dune::Fem::Parameter::append(argc,argv);
 
-      // *** Initialization
-     Dune::Fem::Parameter::append(argc,argv);                      
-    #if 0
-    if (argc == 2) 
-      {
-        Dune::Fem::Parameter::append(argv[1]);
-      } 
-      else 
-      {
-        Dune::Fem::Parameter::append("parameter");                   
-      }                                                     
-    #endif
-   // get number of desired threads (default is 1)
+        if (argc == 2)
+        {
+          Dune::Fem::Parameter::append(argv[1]);
+        }
+        else
+        {
+          Dune::Fem::Parameter::append("parameter");
+        }
+
+    // get number of desired threads (default is 1)
     int numThreads = Dune::Fem::Parameter::getValue< int >("fem.parallel.numberofthreads", 1);
     Dune :: Fem :: ThreadManager :: setMaxNumberThreads( numThreads );
 
