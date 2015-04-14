@@ -71,7 +71,6 @@ Dune::GridPtr< HGridType > initialize( const std::string& problemDescription )
 template <class Algorithm>
 void compute(Algorithm& algorithm)
 {
-  typedef typename Algorithm::DiscreteFunctionType DiscreteFunctionType;
   typename Algorithm::DiscreteSpaceType& space = algorithm.space();
   typename Algorithm::GridPartType& gridPart = space.gridPart();
   typedef typename Algorithm::GridPartType::GridType GridType;
