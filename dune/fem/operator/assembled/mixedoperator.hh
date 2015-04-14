@@ -112,7 +112,7 @@ class DGPhasefieldOperator
 
   double getDeltaT() {return deltaT_;}
 
-  double timeStepEstimate() { return 0.1* std::min( minArea_/maxSpeed_,lipschitzC());}
+  double timeStepEstimate() { return std::min( minArea_/maxSpeed_,lipschitzC());}
 
   double maxSpeed() { return maxSpeed_; }
   
