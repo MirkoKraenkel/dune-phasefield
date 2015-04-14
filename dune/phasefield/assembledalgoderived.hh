@@ -62,6 +62,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     double                  surfaceEnergy_;
     bool                    stepconverged_;
     int                     maxNewtonIter_;
+    double                  timestepfactor_;
   public:
   //Constructor
   AssembledAlgorithm( GridType& gridImp):
@@ -74,7 +75,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       estimatorData_( "estimator", estimator_, gridPart_, space_.order() ),
       surfaceEnergy_(0.),
       stepconverged_(false),
-      maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("fem.ode.maxiterations") )
+      maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("fem.ode.maxiterations") ),
+      timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor"))
       {
         start_.clear();
       }
@@ -88,7 +90,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     void reduceTimeStep( TimeProviderType& timeProvider, double ldt)
       {
         double factor=0.5;
-        double newtime=std::min(factor*ldt,dgOperator_.timeStepEstimate());
+        double newtime=std::min(factor*ldt,timeStepEstimate());
         timeProvider.provideTimeStepEstimate( newtime);
         //timeProvider.invalidateTimeStep();
       }
@@ -137,14 +139,13 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
           std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
           reduceTimeStep( timeProvider , deltaT );
          }
-     else if( newton_iterations < 2 && timeProvider.deltaT() < dgOperator_.timeStepEstimate())
+     else if( newton_iterations < 2 && timeProvider.deltaT() < timeStepEstimate())
         {
           timeProvider.provideTimeStepEstimate( 1.2*deltaT);
         }
       else
         {
-    //      timeProvider.provideTimeStepEstimate( deltaT );
-          timeProvider.provideTimeStepEstimate( dgOperator_.timeStepEstimate());
+          timeProvider.provideTimeStepEstimate( timeStepEstimate());
         }
     }
 	  
@@ -167,7 +168,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 
   double timeStepEstimate()
   {
-    return dgOperator_.timeStepEstimate();
+    return timestepfactor_*dgOperator_.timeStepEstimate();
   }
 
   using BaseType::space;
