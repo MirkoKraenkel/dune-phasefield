@@ -20,7 +20,7 @@ GRIDDIM =  1
 POLORDER = 1 
 USEJACOBIAN = 1 
 
-PROBLEM = 3 # check ./problemtype.hh
+PROBLEM = 4 # check ./problemtype.hh
 
 FLUX = 1 # check ./problemcreator.hh
 
