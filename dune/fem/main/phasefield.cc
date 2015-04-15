@@ -27,29 +27,29 @@ int main(int argc, char ** argv, char ** envp) {
 
   /* Initialize MPI (always do this even if you are not using MPI) */
   Dune::Fem::MPIManager :: initialize( argc, argv );
-  try {
+  try 
+  {
 
         // *** Initialization
         Dune::Fem::Parameter::append(argc,argv);
-
+    
         if (argc == 2)
         {
           Dune::Fem::Parameter::append(argv[1]);
         }
         else
         {
-          Dune::Fem::Parameter::append("parameter");
+          Dune::Fem::Parameter::append("../parameterFiles/parameter");
         }
+        // get number of desired threads (default is 1)
+        int numThreads = Dune::Fem::Parameter::getValue< int >("fem.parallel.numberofthreads", 1);
+        Dune :: Fem :: ThreadManager :: setMaxNumberThreads( numThreads );
 
-    // get number of desired threads (default is 1)
-    int numThreads = Dune::Fem::Parameter::getValue< int >("fem.parallel.numberofthreads", 1);
-    Dune :: Fem :: ThreadManager :: setMaxNumberThreads( numThreads );
 
-
-    simulation :: simulate();  
+        simulation :: simulate();  
 	  
-    // write parameters used 
-    Dune::Fem::Parameter::write("parameter.log");
+        // write parameters used 
+        Dune::Fem::Parameter::write("parameter.log");
   }
   catch (Dune::Exception &e) 
   {                           
