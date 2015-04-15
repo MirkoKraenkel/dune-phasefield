@@ -63,6 +63,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     bool                    stepconverged_;
     int                     maxNewtonIter_;
     double                  timestepfactor_;
+
   public:
   //Constructor
   AssembledAlgorithm( GridType& gridImp):
@@ -75,7 +76,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       estimatorData_( "estimator", estimator_, gridPart_, space_.order() ),
       surfaceEnergy_(0.),
       stepconverged_(false),
-      maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("fem.ode.maxiterations") ),
+      maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("phasefield.maxNewtonIterations") ),
       timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor"))
       {
         start_.clear();
