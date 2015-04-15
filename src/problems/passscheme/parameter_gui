@@ -1,13 +1,11 @@
 fem.resolvevariables: 1
-#scheme: test2
-#order: 0
 # DATA WRITER
 #------------
-fem.prefix: ./$(path) # specify directory for data output (is created if not exists)
+fem.prefix: ./databbb # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 0.05 #save data every time interval 
-fem.io.savecount: 0     # save every i-th st
-fem.io.checkpointstep: 5
+fem.io.savestep: 1e-1 #save data every time interval
+fem.io.savecount: 0   # save every i-th ste
+fem.io.checkpointstep: 0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
 # GRID SOLUTION
@@ -26,67 +24,125 @@ paramfile: ./paramFiles/paramBase
 
 # PROBLEM SETUP
 #--------------
+
+phasefield.restart: false 
 phasefield.calcresidual: false
 phasefield.interpolinitial: false 
-phasefield.diffusionTimeStep:1 
+
+#phasefield.diffusionTimeStep:1 
 phasefield.energy: true
 phasefield.additionalvariables: true  
-# PHYSICAL CONSTANTS
-phasefield.reactionrate: 1. 
-phasefield.addvisc: 0
-phasefield.nonconvisc: 0 
-phasefield.thetaswitch: -1.
-phasefield.delta: 0.025
 phasefield.radius: 0.5
-phasefield.mu1: 0.1 
-phasefield.mu2: 0.1
-phasefield.rho0: 2.5
-phasefield.penalty: 10 
-phasefield.acpenalty: 0.
-phasefield.mwp2:3.793667900 
-phasefield.mwp1:1.947734046
-phasefield.numbubbles: 2
-phasefield.bubbles: 2bubbles.txt 
-phasefield.smear: 2.2
-phiscale: 0.99
-pressure: 1
-gamma: 0.1 
-phasefield.restart: false
+phasefield.bubbles: ./InputFiles/2bubbles.txt 
+phiscale: 0.6 
+phasefield.rhofactor:1
 
 
+# PROBLEM PHYSICS
+#---------------
+phasefield.reactionrate: 1
+phasefield.delta: 0.05
+
+#surface tension coefficient
+phasefield.A:1
+
+#coefficient for homogenuos free energy part
+phasefield.beta:1
+
+#hight of first minimum of the double well
+phasefield.alpha:0
+
+#viscosity coefficients
+phasefield.mu1: 0.01
+phasefield.mu2: 0.01
+
+#velocities vor Riemann-Problem
+phasefield.veloright:0
+phasefield.veloleft:0
+
+#total density for mixproblem
+phasefield.rho0: 0.4 
+
+#maxwell points
+phasefield.mwp1: 2
+phasefield.mwp2: 0.192
+
+#phasefield.mwp1: 1.6
+#phasefield.mwp2: 1.2
+#phasefield.mwp2: 1.657270212
+#phasefield.mwp2: 3.793667900 
+#phasefield.mwp1: 1.947734046
+#phasefield.mwp2: 1
+#phasefield.mwp1: 1
+
+# NUMERICAL PARAMETERS
+#-----------------------------
+phasefield.addvisc: 1 
+phasefield.oldvisc: 0 
+phasefield.nonconvisc:1  
+phasefield.penalty: 10
+phasefield.acpenalty: 0 
+phasefield.ipswitch: 1
+
+phasefield.outflow: true
 # DOMAIN
 #-------
 
-fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
-#fem.io.macroGridFile_1d: ../macrogrids/1dtorus2.dgf
+# 1D
+# ------
+#fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
+fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
+
+# 2D
+# ------
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
 fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
-
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitgrid2d_unstr_2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/stability.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/cdgpaper_test.dgf
-fem.io.macroGridFile_3d: ../macrogrids/unitcube3.dgf
+
 
 
 # SOLVER
 #-------
-dgiffusionflux.upwind: -1 -3.141
-#dgdiffusionflux.upwind: -1 
 paramfile: ./paramFiles/paramSolver
-phasefield.maxTimeStep: 0.5
-fem.ode.tolerance: 1e-8
-#phasefield.maximaltimesteps: 5 
-phasefield.timesteptolerance: -1
+#phasefield.maxTimeStep: 0.5
+#fem.ode.tolerance: 1e-54
+#fem.solver.matrixout:  false 
+#fem.solver.newton.tolerance: 1e-6
+#3fem.solver.tolerance: 1e-8
+#fem.solver.verbose: false 
+#fem.solver.newton.verbose: false 
+#fem.solver.newton.assemblesteps: 1 
+#fem.solver.newton.maxiterations: 50
+#fem.solver.newton.maxlineariterations: 100
+#fem.differenceoperator.eps: 1 
+#phasefield.fdjacobian.epsilon: 0 
+#phasefield.maximaltimesteps: 0
+##phasefield.mixed.theta: 0
+#phasefield.maxTimeStep: 1e-3
+
+# IMEX=1 ->tau implicit IMEX=0.5->semi implicit
+#phasefield.IMEX: 1 
+#3phasefield.firstStep: 1e-4
+
+#istl.preconditioning.method: ilu-0
+#istl.gmres.restart: 100
+#33istl.preconditioning.iterations: 1 
+#istl.preconditioning.relaxation: 1.1
+
+#oemsolver.gmres.restart: 1000
+
+#phasefield.timesteptolerance: -1 
 
 # Output
 #------------
-phasefield.storelaststep: true 
-phasefield.additionalvariables: false 
-phasefield.energy: true 
-phasefield.sigma: true 
-phasefield.theta: true 
+phasefield.storelaststep: true
+phasefield.adaptive.verbose: false
+
