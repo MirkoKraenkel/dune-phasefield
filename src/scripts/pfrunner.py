@@ -71,7 +71,7 @@ class PhasefieldRunner:
     idxs = self.listbox.curselection()
     index=int(idxs[0])
     p=self.programms[index]
-    outfile='/disk1/Data_'+myday+'/'+self.paramEntries['fem.prefix'].get()
+    outfile='./Data_'+myday+'/'+self.paramEntries['fem.prefix'].get()
     paramstring=''
     
     for key in self.paramEntries:
@@ -87,7 +87,7 @@ class PhasefieldRunner:
     #execstring ='/opt/openmpi/bin/mpiexec -n 4 '+p+' '+paramstring+'paramfile:parameter_gui'
     #execstring ='/opt/openmpi/bin/mpiexec -n 4  xterm -e gdb --args '+p+' '+paramstring+'paramfile:parameter_gui'
     #execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+outfile+p+'.out'
-    execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui '
+    execstring ='./'+p+' '+paramstring+'paramfile:../parameterFiles/parameter'
     #execstring ='gdb --args '+p+' '+paramstring+'paramfile:parameter_gui '
  
 
