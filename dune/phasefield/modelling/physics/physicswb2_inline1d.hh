@@ -191,16 +191,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
                          double& p,
 												 double& reaction ) const
 	{
-		assert( cons[0] > 1e-20 );
-	  
-		double rho=cons[0];
-		double phi=cons[phaseId];
-		
-		p=thermoDynamics_.pressure(rho,phi);
-		reaction=thermoDynamics_.reactionSource(rho,phi); 
-			
-		assert( p > 1e-20 );
-	}
+	  std::cout<<"Don't call this with WB\n";
+  }
 
   template< typename Thermodynamics >
   inline void  PhasefieldPhysics< 1, Thermodynamics>
@@ -312,7 +304,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   assert(u[0] > 1e-20);
   double u_normal=(u[1]*n[0])/u[0];
   double c=thermoDynamics_.a( u[0] , u[2] );
-  return std::abs(u_normal)+sqrt(c);
+  return std::abs(u_normal)+std::sqrt(c);
  } 
 
 }//end namespace Dune
