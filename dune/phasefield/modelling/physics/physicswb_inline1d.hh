@@ -183,7 +183,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
    
     double dxphi=du[2][0];
   	mu=thermoDynamics_.chemicalPotential(rho,phi);
-		mu+=thermoDynamics_.h2prime(rho)*0.5*dxphi*dxphi;
+		mu+=delta()*thermoDynamics_.h2prime(rho)*0.5*dxphi*dxphi;
     reaction=thermoDynamics_.reactionSource(rho,phi); 
   }
 
@@ -234,9 +234,9 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
 								const JacobianRangeType& jacU,
                 RangeType& f) const
 	{
-    //dphi=1/rho*(d(rho*phi)-phi*drho)   
     double rho_inv=1./u[0];
     double phi=u[2]*rho_inv;
+    //dphi=1/rho*(d(rho*phi)-phi*drho)   
     double dphi=jacU[2][0]-phi*jacU[0][0];
     dphi*=rho_inv;
     double reactionFac=thermoDynamics_.reactionFactor();
@@ -245,8 +245,8 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
     //-(\rho\nabla\mu-\tau\nabla\phi) 
     f[1]=-dtheta[0]*u[0]+dphi*theta[1];
     f[phaseId]=theta[1];
-    f[phaseId]*=-1.;
-    f[phaseId]*=reactionFac;
+    f[phaseId]*=-reactionFac;
+    
     return 0.4*reactionFac*deltaInv(); 
   }
   
