@@ -45,11 +45,11 @@ public:
 	WBFlux( const Model& mod )
     : model_(mod),
       visc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",1)),
-			alpha1_(Dune::Fem::Parameter::getValue<double>("phasefield.nonconvisc",0.))
+			numViscMu_(Dune::Fem::Parameter::getValue<double>("phasefield.nuvisc",0.))
   {
   }
 
-  static std::string name () { return "WB"; }
+  static std::string name () { return "nonconservativtranssport"; }
 
   const Model& model() const { return model_; }
 
@@ -139,7 +139,7 @@ public:
      // \delta\mu  consider sign!!!!!!!!
     newvisc=thetaRight[0];
     newvisc-=thetaLeft[0];
-    newvisc*=viscpara*alpha1_; 
+    newvisc*=viscpara*numViscMu_; 
      
    gLeft[0]-=newvisc[0];
    gLeft *= 0.5*len; 
@@ -218,6 +218,6 @@ public:
  protected:
   const Model& model_;
   const double visc_;
-	const double alpha1_;
+	const double numViscMu_;
 };
 #endif // file declaration
