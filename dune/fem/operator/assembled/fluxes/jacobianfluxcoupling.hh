@@ -187,7 +187,8 @@ void  JacobianFlux<Model>
       //rho-------------------------------------------------------------
  
       double vNormalEn(0),vNormalNb(0.);
-    
+      double laplaceFluxLeft(0.),laplaceFluxRight(0.);
+
       for(int ii = 0; ii < dimDomain ; ++ii )
         {
           //v^+\cdot n^+
@@ -196,28 +197,9 @@ void  JacobianFlux<Model>
           vNormalNb+=midNb[ 1 + ii ]*normal[ ii ];
           gLeft[ 0 ][ 1 + ii ]  = -0.25*normal[ ii ]*midEn[ 0 ];
           gRight[ 0 ][ 1 + ii ] =  0.25*normal[ ii ]*midNb[ 0 ];
-        }
-  
 
-      //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
-      gLeft[ 0 ][ 0 ]=-0.25*vNormalEn;
-      //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5 
-      gRight[ 0 ][ 0 ]=0.25*vNormalNb;
-       //[[mu]]
-      gLeft[ 0 ][ dimDomain+2 ]=0.5*numViscMu_*area;
-      gRight[ 0 ][ dimDomain+2 ]=-0.5*numViscMu_*area;
-      //[[rho]]
-      gLeft[ 0 ][ dimDomain +1 ]=0.5*numVisc_*area;
-      gRight[ 0 ][ dimDomain +1 ]=-0.5*numVisc_*area;
-     
-        
-      //----------------------------------------------------------------
-    
-      //v---------------------------------------------------------------
-    
-      for(int ii = 0; ii < dimDomain ; ++ii )
-        { 
-          //(\rho_j,\mu*,\v_i)
+
+           //(\rho_j,\mu*,\v_i)
           gLeft[ 1 + ii ][ 0 ]=-0.5*jumpImEx[ dimDomain + 2 ]*normal[ ii ];
           //(\rho*,\mu_j,\v_i)
           gLeft[ 1 + ii ][ dimDomain + 2 ]=-imexFactor_*normal[ ii ]*midEn[ 0 ];
@@ -227,22 +209,14 @@ void  JacobianFlux<Model>
           //(\phi_j,\tau*,v_i)
           gLeft[ 1 + ii ][ dimDomain + 1] =0.5*normal[ ii ]*vuEnImEx[ dimDomain + 3 ];
           gRight[ 1 + ii ][ dimDomain + 1 ]=-0.5*normal[ ii ]*vuEnImEx[ dimDomain + 3 ];
-          
+
           gLeft[ 1 + ii ]*=0.5;
           gRight[ 1 + ii ]*=0.5;
 
-        } 
-    
-      //----------------------------------------------------------------
-      double laplaceFluxLeft(0.),laplaceFluxRight(0.);
-
-      //phi-------------------------------------------------------------
-      for( int ii = 0 ; ii<dimDomain ; ++ii )
-        {
           //F_{3.1}
-       
-          //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5 
-          gLeft[ dimDomain + 1 ][ dimDomain + 1 ]+=normal[ ii ]*midEn[ 1 + ii ]*-0.25;
+
+          //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5
+          ////gLeft[ dimDomain + 1 ][ dimDomain + 1 ]+=normal[ ii ]*midEn[ 1 + ii ]*-0.25;
           gRight[ dimDomain + 1 ][ dimDomain +1 ]+=normal[ ii ]*midEn[ 1 + ii ]*0.25;
 
           gLeft[ dimDomain + 1 ][ 1 + ii ]=jump[ dimDomain + 1 ]*normal[ ii ]*-0.25;
@@ -267,20 +241,27 @@ void  JacobianFlux<Model>
           //factor 0.5 comes from linerarization of 1/2(phi^(n+1)+phi^n)
           gLeft[ dimDomain + 3 ][ dimDomain + 1]=-model_.delta()*0.5*penaltyTerm;
           gRight[ dimDomain + 3 ][ dimDomain + 1]=model_.delta()*0.5*penaltyTerm; 
-          
-        }
-    
 
-      //sigma-----------------------------------------------------------
-      for(int ii = 0; ii < dimDomain ; ++ii )
-        {  
           //F_4
           //(\phi^+-\phi^-)\normal*0.5
           gLeft[ dimDomain + 4 + ii ][ dimDomain + 1 ]=normal[ ii ]*0.5;
           gRight[ dimDomain + 4 + ii ][ dimDomain + 1 ]=normal[ ii ]*-0.5;
+       }
   
-        } 
+
+      //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)
+      gLeft[ 0 ][ 0 ]=-0.25*vNormalEn;
+      //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5
+      gRight[ 0 ][ 0 ]=0.25*vNormalNb;
+       //[[mu]]
+      gLeft[ 0 ][ dimDomain+2 ]=0.5*numViscMu_*area;
+      gRight[ 0 ][ dimDomain+2 ]=-0.5*numViscMu_*area;
+      //[[rho]]
+      gLeft[ 0 ][ dimDomain +1 ]=0.5*numVisc_*area;
+      gRight[ 0 ][ dimDomain +1 ]=-0.5*numVisc_*area;
+
       //----------------------------------------------------------------
+
   }
 template< class Model >
 template< class ScalarType , class JacobianType ,class DiffusionTensorType, class DiffusionVectorType>
@@ -318,18 +299,16 @@ void JacobianFlux<Model>
   
   //loop over components
   for( int ii = 0 ; ii < dimDomain ; ++ ii)
-  {
-    bbLeft[ ii ]*=-0.5;
-    bbLeft[ ii ].mv( normal , bLeft[ ii ]);
-    bbLeft[ii]=0;
-    bbRight[ ii ]*=-0.5;
-    bbRight[ ii ].mv( normal , bRight[ ii ]);
-   // for( int jj = 0 ; jj < dimDomain ;++jj)
     {
+      bbLeft[ ii ]*=-0.5;
+      bbLeft[ ii ].mv( normal , bLeft[ ii ]);
+      bbLeft[ii]=0;
+      bbRight[ ii ]*=-0.5;
+      bbRight[ ii ].mv( normal , bRight[ ii ]);
+
       bLeft[ii][ii]+=penalty_*penaltyFactor*integrationElement*phiEn[ 0 ];
       bRight[ii][ii]-=penalty_*penaltyFactor*integrationElement*phiNb[ 0 ];
     }
-  }
   
 }
 
@@ -362,13 +341,11 @@ void JacobianFlux<Model>
 
   //loop over components
   for( int ii = 0 ; ii < dimDomain ; ++ ii)
-  {
-    bbLeft[ ii ]*=-1;
-    bbLeft[ ii ].mv( normal , bLeft[ ii ]);
     {
-     bLeft[ii][ii]+=penalty_*penaltyFactor*integrationElement*phiEn[ 0 ];
+      bbLeft[ ii ]*=-1;
+      bbLeft[ ii ].mv( normal , bLeft[ ii ]);
+      bLeft[ii][ii]+=penalty_*penaltyFactor*integrationElement*phiEn[ 0 ];
     }
-  }
 }
 
 
@@ -407,10 +384,10 @@ double JacobianFlux<Model>
   // [u]\otimes n
   for(int i=0; i<dimDomain; ++i)
     for(int j=0; j<dimDomain; ++j)
-    { 
-      jumpNormalLeft[i+1][j]=-0.5*uEn[i+1]*normal[j];
-      jumpNormalRight[i+1][j]=0.5*uNb[i+1]*normal[j];
-    }
+      {
+        jumpNormalLeft[i+1][j]=-0.5*uEn[i+1]*normal[j];
+        jumpNormalRight[i+1][j]=0.5*uNb[i+1]*normal[j];
+      }
 
   jumpNormalLeft*=switchIP_;
   jumpNormalRight*=switchIP_;
@@ -429,10 +406,9 @@ double JacobianFlux<Model>
   model_.diffusion(mean,Amean);
 
   Amean.umv(normal,valueRight);
- 
-  
   
   return penalty_;
+
 }
 template< class Model >
 double JacobianFlux<Model>
