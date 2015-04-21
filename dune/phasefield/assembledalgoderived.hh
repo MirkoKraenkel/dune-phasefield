@@ -30,6 +30,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   typedef typename BaseType::TimeProviderType TimeProviderType; 
   typedef typename BaseType::AdaptationManagerType AdaptationManagerType;
   //Operator
+  typedef typename Traits :: WrappedOperatorType WrappedOperatorType;
   typedef typename Traits :: DiscreteOperatorType DiscreteOperatorType;
   typedef typename Traits :: JacobianOperatorType JacobianOperatorType;
  	typedef PhasefieldBoundaryCorrection<DiscreteFunctionType, ModelType> BoundaryCorrectionType;
@@ -53,6 +54,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   using BaseType::overallTimer_;
   using BaseType::tolerance_;
   private:
+    WrappedOperatorType     wrappedOperator_;
     DiscreteOperatorType    dgOperator_;
     BoundaryCorrectionType  boundaryCorrection_;
     DiscreteFunctionType    start_;
@@ -67,8 +69,9 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   public:
   //Constructor
   AssembledAlgorithm( GridType& gridImp):
-      BaseType( gridImp),
-      dgOperator_( *model_ , space()),
+      BaseType( gridImp ),
+      wrappedOperator_( *model_, space()),
+      dgOperator_( wrappedOperator_, space()),
       boundaryCorrection_( *model_ , space()),
       start_( "start", space() ),
       pressure_( "pressure", energyspace()),
