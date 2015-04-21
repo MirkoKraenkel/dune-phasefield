@@ -1,11 +1,11 @@
 # SOLVER CONFIGURATION
 #---------------------
 
-fem.ode.odesolver: EX  # ode solvers: EX, IM, IMEX
+fem.ode.odesolver: IM  # ode solvers: EX, IM, IMEX
 fem.ode.linearsolver: gmres 
 fem.ode.gmrescycles: 1000
 fem.ode.order: 1 
-fem.ode.verbose: full  # ode output: none, cfl, full
+fem.ode.verbose: none  # ode output: none, cfl, full
 fem.ode.cflincrease: 1.1
 fem.ode.miniterations: 14 
 fem.ode.maxiterations: 16 
@@ -20,7 +20,7 @@ fem.timeprovider.updatestep: 2
 fixedTimeStep: 1e-4 #when 0 then use dynamic time stepi
 phasefield.maxTimeStep: 0.5
 
-phasefield.maximaltimesteps: 5 
+#phasefield.maximaltimesteps: 5 
 phasefield.timesteptolerance: -1
 
 
