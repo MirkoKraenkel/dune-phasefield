@@ -1,5 +1,5 @@
-#ifndef DUNE_PHASIELD_LOCALFDOPERATOR_HH
-#define DUNE_PHASIELD_LOCALFDOPERATOR_HH
+#ifndef DUNE_PHASEFIELD_LOCALFDOPERATOR_HH
+#define DUNE_PHASEFIELD_LOCALFDOPERATOR_HH
 
 
 
@@ -7,18 +7,16 @@
 
 #include <dune/fem/operator/common/differentiableoperator.hh>
 #include <dune/fem/operator/common/stencil.hh>
-#include "mixedoperator.hh"
+//#include "mixedoperator.hh"
 
-template<class DiscreteFunction,class Model, class Flux, class Jacobian>
+template<class OperatorType , class Jacobian>
 class LocalFDOperator
- :public Dune::Fem::DifferentiableOperator < Jacobian >,
-  protected DGPhasefieldOperator<DiscreteFunction,Model,Flux>
+ :public Dune::Fem::DifferentiableOperator < Jacobian >
 {
 
-  typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
+  typedef OperatorType MyOperatorType;
 
   typedef Dune::Fem::DifferentiableOperator< Jacobian> BaseType;
-
 
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
 
@@ -43,14 +41,13 @@ class LocalFDOperator
   typedef typename MyOperatorType::GridPartType GridPartType;
   typedef typename GridPartType::IndexSetType IndexSetType;
   public: 
-  LocalFDOperator(const ModelType &model,
-      const DiscreteFunctionSpaceType &space)//,
-      //const NumericalFluxType &flux)
-    :MyOperatorType(model,space),//,flux),
+  LocalFDOperator( MyOperatorType& myOperator,const DiscreteFunctionSpaceType& space ):
     stencil_(space,space),
+    myOperator_(myOperator),
     epsilon_(Dune::Fem::Parameter::getValue<double>("phasefield.fdjacobian.epsilon"))
   {}
 
+#if 0
   using MyOperatorType::localIntegral;
   using MyOperatorType::intersectionIntegral;
   using MyOperatorType::boundaryIntegral;
@@ -63,14 +60,42 @@ class LocalFDOperator
   using MyOperatorType::setPreviousTimeStep;
   using MyOperatorType::getPreviousTimeStep; 
   using MyOperatorType::space;
-
+#endif
   typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
 
+   //! application operator 
+  void operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const
+    {
+      myOperator_( u , w);
+    }
+
+  void setTime(const double time)  { myOperator_.setTime(time); }
+  
+  double getTime(){return myOperator_.getTime(); }
+
+  void setDeltaT( const double deltat) { myOperator_.setDeltaT(deltat); }
+
+  double getDeltaT() {return myOperator_.getDeltaT(); }
+
+  double timeStepEstimate()  { return myOperator_.timeStepEstimate(); }
+
+  double maxSpeed() { return myOperator_.maxSpeed(); }
+  
+  double lipschitzC() { return myOperator_.lipschitzC(); }
+
+  void setPreviousTimeStep( DiscreteFunctionType& uOld)  { myOperator_.setPreviousTimeStep( uOld ); } 
+  
+  DiscreteFunctionType& getPreviousTimeStep() { return myOperator_.getPreviousTimeStep(); }
+  
+  const DiscreteFunctionSpaceType& space() const { return myOperator_.space();}
+  
+  const ModelType& model() const { return myOperator_.model(); } 
 
   void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
 
   private:
   StencilType stencil_;
+  MyOperatorType& myOperator_;
   double epsilon_;
 };
 
@@ -78,8 +103,8 @@ class LocalFDOperator
 // Implementation of LocalFDOperator
 // // ------------------------------------------------
 
-template<class DiscreteFunction,class Model, class Flux, class Jacobian> void
-LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
+template<class Operator, class Jacobian> 
+void LocalFDOperator< Operator, Jacobian>
 ::jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const
 {
   typedef typename JacobianOperatorType::LocalMatrixType LocalMatrixType;
@@ -128,7 +153,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
     const LocalFunctionType uLocal = u.localFunction( entity );
 
-    setEntity( entity );
+    myOperator_.setEntity( entity );
 
     LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
     const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
@@ -154,7 +179,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
       RangeType vu(0.) , fu(0.);
       JacobianRangeType dvu(0.) , fdu(0.);
 
-      localIntegral(pt,
+      myOperator_.localIntegral(pt,
           geometry,
           quadrature,
           uValues[pt],
@@ -170,7 +195,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         dueps=uJacobians[pt];
         dueps.axpy( eps , dphi[ jj ] );
 
-        localIntegral(pt,
+        myOperator_.localIntegral(pt,
                       geometry,
                       quadrature,
                       ueps,
@@ -201,7 +226,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
         EntityPointerType ep = intersection.outside();
         const EntityType& neighbor = *ep ;
 
-        setNeighbor( neighbor );
+        myOperator_.setNeighbor( neighbor );
         typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
         // get local matrix for face entries 
@@ -243,7 +268,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
 
           baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
           baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
-          intersectionIntegral( intersection,                  
+          myOperator_.intersectionIntegral( intersection,                  
                                 pt,
                                 quadInside,
                                 quadOutside,
@@ -269,7 +294,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             duepsNb=duNb[pt];
             duepsNb.axpy( eps, dphiNb[ jj ] );
 
-            intersectionIntegral( intersection,
+            myOperator_.intersectionIntegral( intersection,
                                   pt,
                                   quadInside,
                                   quadOutside,
@@ -282,7 +307,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
                                   fdueps,
                                   fduepsRight);
 
-            intersectionIntegral( intersection,
+            myOperator_.intersectionIntegral( intersection,
                                   pt,
                                   quadInside,
                                   quadOutside,
@@ -327,7 +352,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
           baseSet.jacobianAll( quadInside[ pt ] , dphi);
           const double weight=quadInside.weight( pt );
 
-          boundaryIntegral( intersection,                  
+          myOperator_.boundaryIntegral( intersection,                  
                             pt,
                             quadInside,
                             vuEn,
@@ -344,7 +369,7 @@ LocalFDOperator< DiscreteFunction, Model, Flux,  Jacobian>
             dueps=duEn;
             dueps.axpy( eps, dphi[ jj ] );
 
-            boundaryIntegral( intersection,
+            myOperator_.boundaryIntegral( intersection,
                               pt,
                               quadInside,
                               ueps,
