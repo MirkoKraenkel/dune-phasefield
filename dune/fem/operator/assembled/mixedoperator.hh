@@ -33,7 +33,7 @@ class DGPhasefieldOperator
 {
   typedef Dune::Fem::Operator<DiscreteFunction,DiscreteFunction> BaseType;
   static   const int order=POLORDER;
-  protected:
+  public:
 
   typedef DiscreteFunction DiscreteFunctionType;
   typedef Model            ModelType;
@@ -123,7 +123,7 @@ class DGPhasefieldOperator
   DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
 
 
-  protected:
+  
   void setEntity( const EntityType& entity ) const
   {
     uOldLocal_.init(entity);
