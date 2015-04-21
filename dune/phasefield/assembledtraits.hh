@@ -35,8 +35,9 @@
 #include <dune/fem/util/oemwrapper.hh>
 #include <dune/fem/operator/assembled/mixedoperator.hh>
 #elif FD 
+#include <dune/fem/operator/assembled/integrator.hh>
 #include <dune/fem/operator/assembled/mixedoperator.hh>
-#include <dune/fem/operator/assembled/localfdoperator_2.hh>
+#include <dune/fem/operator/assembled/localfdoperator.hh>
 #elif COUPLING 
 #include <dune/fem/operator/assembled/phasefieldmatrix.hh>
 #elif NSK
@@ -90,7 +91,8 @@ struct MixedAlgorithmTraits
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteScalarSpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
 #if FD 
-  typedef DGPhasefieldOperator< DiscreteFunctionType , ModelType , FluxType > WrappedOperatorType;
+  typedef PhasefieldMixedIntegrator< DiscreteFunctionType, ModelType, FluxType > IntegratorType;
+  typedef DGOperator< DiscreteFunctionType ,IntegratorType > WrappedOperatorType;
   typedef LocalFDOperator<WrappedOperatorType , JacobianOperatorType>  DiscreteOperatorType;
 #else 
 #if NSK

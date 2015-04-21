@@ -21,8 +21,9 @@ class LocalFDOperator
   typedef typename BaseType::JacobianOperatorType JacobianOperatorType;
 
   typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
-  typedef typename MyOperatorType::ModelType ModelType;
-  typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
+  typedef typename MyOperatorType::IntegratorType IntegratorType;
+  typedef typename IntegratorType::ModelType ModelType;
+  typedef typename IntegratorType::NumericalFluxType NumericalFluxType;
   typedef typename MyOperatorType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
   typedef typename MyOperatorType::RangeType RangeType;
   typedef typename MyOperatorType::RangeFieldType RangeFieldType;
@@ -79,17 +80,17 @@ class LocalFDOperator
 
   double timeStepEstimate()  { return myOperator_.timeStepEstimate(); }
 
-  double maxSpeed() { return myOperator_.maxSpeed(); }
+  double maxSpeed() { return myOperator_.integrator().maxSpeed(); }
   
-  double lipschitzC() { return myOperator_.lipschitzC(); }
+  double lipschitzC() { return myOperator_.integrator().lipschitzC(); }
 
-  void setPreviousTimeStep( DiscreteFunctionType& uOld)  { myOperator_.setPreviousTimeStep( uOld ); } 
+  void setPreviousTimeStep( DiscreteFunctionType& uOld)  { myOperator_.integrator().setPreviousTimeStep( uOld ); }
   
-  DiscreteFunctionType& getPreviousTimeStep() { return myOperator_.getPreviousTimeStep(); }
+  //DiscreteFunctionType& getPreviousTimeStep() { return myOperator_.getPreviousTimeStep(); }
   
   const DiscreteFunctionSpaceType& space() const { return myOperator_.space();}
   
-  const ModelType& model() const { return myOperator_.model(); } 
+  const ModelType& model() const { return myOperator_.integrator().model(); }
 
   void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
 
@@ -179,7 +180,7 @@ void LocalFDOperator< Operator, Jacobian>
       RangeType vu(0.) , fu(0.);
       JacobianRangeType dvu(0.) , fdu(0.);
 
-      myOperator_.localIntegral(pt,
+      myOperator_.integrator().localIntegral(pt,
           geometry,
           quadrature,
           uValues[pt],
@@ -195,7 +196,7 @@ void LocalFDOperator< Operator, Jacobian>
         dueps=uJacobians[pt];
         dueps.axpy( eps , dphi[ jj ] );
 
-        myOperator_.localIntegral(pt,
+        myOperator_.integrator().localIntegral(pt,
                       geometry,
                       quadrature,
                       ueps,
@@ -268,7 +269,7 @@ void LocalFDOperator< Operator, Jacobian>
 
           baseSetNb.evaluateAll( quadOutside[ pt ] , phiNb );
           baseSetNb.jacobianAll( quadOutside[ pt ] , dphiNb );
-          myOperator_.intersectionIntegral( intersection,                  
+          myOperator_.integrator().intersectionIntegral( intersection,
                                 pt,
                                 quadInside,
                                 quadOutside,
@@ -294,7 +295,7 @@ void LocalFDOperator< Operator, Jacobian>
             duepsNb=duNb[pt];
             duepsNb.axpy( eps, dphiNb[ jj ] );
 
-            myOperator_.intersectionIntegral( intersection,
+            myOperator_.integrator().intersectionIntegral( intersection,
                                   pt,
                                   quadInside,
                                   quadOutside,
@@ -307,7 +308,7 @@ void LocalFDOperator< Operator, Jacobian>
                                   fdueps,
                                   fduepsRight);
 
-            myOperator_.intersectionIntegral( intersection,
+            myOperator_.integrator().intersectionIntegral( intersection,
                                   pt,
                                   quadInside,
                                   quadOutside,
@@ -352,7 +353,7 @@ void LocalFDOperator< Operator, Jacobian>
           baseSet.jacobianAll( quadInside[ pt ] , dphi);
           const double weight=quadInside.weight( pt );
 
-          myOperator_.boundaryIntegral( intersection,                  
+          myOperator_.integrator().boundaryIntegral( intersection,
                             pt,
                             quadInside,
                             vuEn,
@@ -369,7 +370,7 @@ void LocalFDOperator< Operator, Jacobian>
             dueps=duEn;
             dueps.axpy( eps, dphi[ jj ] );
 
-            myOperator_.boundaryIntegral( intersection,
+            myOperator_.integrator().boundaryIntegral( intersection,
                               pt,
                               quadInside,
                               ueps,
