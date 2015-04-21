@@ -1,5 +1,5 @@
-#ifndef DUNE_PHASEFIELD_MIXEDOPERATOR_HH
-#define DUNE_PHASEFIELD_MIXEDOPERATOR_HH
+#ifndef DUNE_PHASEFIELD_DGOPERATOR_HH
+#define DUNE_PHASEFIELD_DGOPERATOR_HH
 
 
 //globlas includes
@@ -24,11 +24,10 @@
 #include <dune/fem/gridpart/common/capabilities.hh>
 
 //local includes
-#include "phasefieldfilter.hh"
 
 
-template<class DiscreteFunction, class Model, class Flux  >
-class DGPhasefieldOperator
+template<class DiscreteFunction, class Integrator>
+class DGOperator
 : public virtual Dune::Fem::Operator<DiscreteFunction,DiscreteFunction>
 {
   typedef Dune::Fem::Operator<DiscreteFunction,DiscreteFunction> BaseType;
@@ -36,8 +35,7 @@ class DGPhasefieldOperator
   public:
 
   typedef DiscreteFunction DiscreteFunctionType;
-  typedef Model            ModelType;
-  typedef Flux             NumericalFluxType;
+  typedef Integrator IntegratorType;
   typedef typename DiscreteFunctionType::DiscreteFunctionSpaceType DiscreteFunctionSpaceType;
   typedef typename DiscreteFunctionSpaceType::RangeFieldType RangeFieldType;
   typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
@@ -69,29 +67,13 @@ class DGPhasefieldOperator
 
   typedef Dune::Fem::LagrangePointSet<GridPartType,order> LagrangePointSetType;
 
-  typedef  PhasefieldFilter<RangeType> Filter; 
-
   public:
   //! constructor
-  DGPhasefieldOperator( const ModelType &model,
-                        const DiscreteFunctionSpaceType &space):
-                        model_(model),
-                        space_(space),
-                        flux_(model),
-                        theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
-                        time_(0.),
-                        deltaT_(0.),
-                        maxSpeed_(0.),
-                        lastSpeed_(1.),
-                        uOld_("uOld" , space ),
-                        uOldLocal_(space),
-                        uOldNeighbor_(space),
-                        outflow_(Dune::Fem::Parameter::getValue<bool>("phasefield.outflow")),
-                        minArea_( std::numeric_limits<double>::max() )
+  DGOperator( IntegratorType &integrator,
+              const DiscreteFunctionSpaceType& space):
+              integrator_( integrator),
+              space_(space)
     {
-      uOld_.clear();
-      factorImp_=0.5*(1+theta_);
-      factorExp_=0.5*(1-theta_);
     }
 
   // prepare the solution vector 
@@ -104,50 +86,23 @@ class DGPhasefieldOperator
   void operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const;
 
 
-  void setTime(const double time)  {time_=time;}
+  void setTime (const double time)  {integrator_.setTime(time);}
 
-  double getTime(){return time_;}
+  void setDeltaT( const double deltat) { integrator_.setDeltaT(deltat);}
 
-  void setDeltaT( const double deltat) { deltaT_=deltat;}
-
-  double getDeltaT() {return deltaT_;}
-
-  double timeStepEstimate() { return std::min( minArea_/maxSpeed_,lipschitzC());}
-
-  double maxSpeed() { return maxSpeed_; }
-  
-  double lipschitzC() { return model_.lipschitzC(); }
-
-  void setPreviousTimeStep( DiscreteFunctionType& uOld)  { uOld_.assign(uOld);} 
-  
-  DiscreteFunctionType& getPreviousTimeStep() { return uOld_;}
-
+  double timeStepEstimate() { return integrator_.timeStepEstimate();}
 
   
-  void setEntity( const EntityType& entity ) const
+  void setEntity ( const EntityType& entity ) const
   {
-    uOldLocal_.init(entity);
-    uOldLocal_.assign(uOld_.localFunction( entity ));
-    areaEn_=entity.geometry().volume();
-    minArea_=std::min( areaEn_ , minArea_ );
+    integrator_.setEntity( entity );
   }
 
-  void setNeighbor( const EntityType& entity ) const
+  void setNeighbor ( const EntityType& entity ) const
   {
-    uOldNeighbor_.init(entity);
-    uOldNeighbor_.assign(uOld_.localFunction( entity ));
-    areaNb_=entity.geometry().volume();
-    minArea_=std::min( areaNb_ , minArea_ ); 
+    integrator_.setNeighbor( entity);
   }
 
-
-  void localIntegral( size_t  pt,
-                      const GeometryType& geometry,
-                      const QuadratureType& quadrature,
-                      RangeType& vu,
-                      JacobianRangeType& du,
-                      RangeType& avu, // to be added to the result local function
-                      JacobianRangeType& advu) const;
 
   
   template<bool conforming> 
@@ -158,28 +113,6 @@ class DGPhasefieldOperator
 
 
 
-  template< class IntersectionQuad>
-  void intersectionIntegral ( const IntersectionType& intersection,
-                              const size_t pt,
-                              const IntersectionQuad& quadInside,
-                              const IntersectionQuad& quadOutside,
-                              const RangeType& vuEn,
-                              const RangeType& vuNb,
-                              const JacobianRangeType& duEn,
-                              const JacobianRangeType& duNb,
-                              RangeType& avuLeft,
-                              RangeType& avuRight,
-                              JacobianRangeType& aduLeft,
-                              JacobianRangeType& aduRight) const;
-
-  void boundaryIntegral( const IntersectionType& intersection,
-                        const size_t pt,  
-                        const FaceQuadratureType& quadInside,
-                        const RangeType& vuEn,
-                        const JacobianRangeType& duEn,
-                        RangeType& avuLeft,
-                        JacobianRangeType& aduLeft) const;
-
   template<class LocalArgType, class LFDestType>
   void computeBoundary( const IntersectionType& intersection,
                         const EntityType& entity,
@@ -189,140 +122,26 @@ class DGPhasefieldOperator
 
   const DiscreteFunctionSpaceType& space() const {return space_;}
 
-  const ModelType& model() const{ return model_;}
+  IntegratorType& integrator() const{ return integrator_;}
 
-  
+   
   protected:
-  ModelType model_;
-  const DiscreteFunctionSpaceType &space_;
-  const NumericalFluxType flux_;
-  const double  theta_;
-  double time_;
-  double deltaT_;
-  mutable double maxSpeed_;
-  mutable double lastSpeed_;
-  double factorImp_;
-  double factorExp_;
-  mutable DiscreteFunctionType uOld_;
-  mutable TemporaryLocalType uOldLocal_; 
-  mutable TemporaryLocalType uOldNeighbor_; 
-  const bool outflow_;
-  mutable double areaEn_;
-  mutable double areaNb_;
-  mutable double minArea_;
+  IntegratorType& integrator_;
+  const DiscreteFunctionSpaceType& space_;
 };
 
 
 
 
 
-template<class DiscreteFunction, class Model, class Flux, class Jacobian>
-class FDJacobianDGPhasefieldOperator
-: public DGPhasefieldOperator<DiscreteFunction,Model,Flux>,
-  public virtual Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction, Jacobian>
-{
 
-  typedef DGPhasefieldOperator<DiscreteFunction,Model,Flux> MyOperatorType;
-  typedef Dune::Fem::AutomaticDifferenceOperator<DiscreteFunction,DiscreteFunction,Jacobian> BaseType;
-
-  typedef typename MyOperatorType::DiscreteFunctionType DiscreteFunctionType;
-  typedef typename MyOperatorType::ModelType ModelType;
-  typedef typename MyOperatorType::NumericalFluxType NumericalFluxType;
-  protected:
-  typedef typename BaseType::RangeFunctionType RangeFunctionType;
-  typedef typename BaseType::DomainFunctionType DomainFunctionType;
-  typedef typename BaseType::RangeFieldType RangeFieldType;
-  typedef typename BaseType::DomainFieldType DomainFieldType;
-  typedef typename BaseType::DomainSpaceType DomainSpaceType;
-  typedef typename BaseType::RangeSpaceType RangeSpaceType;
-  typedef DomainSpaceType DiscreteFunctionSpaceType;
-
-  typedef typename DiscreteFunctionType::LocalFunctionType LocalFunctionType;
-  typedef typename LocalFunctionType::RangeType RangeType;
-  typedef typename LocalFunctionType::JacobianRangeType JacobianRangeType;
-
-  typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
-  typedef typename IteratorType::Entity       EntityType;
-  typedef typename EntityType::EntityPointer  EntityPointerType;
-
-  typedef typename EntityType::Geometry       GeometryType;
-
-  typedef typename DiscreteFunctionSpaceType::DomainType DomainType; 
-
-  typedef typename DiscreteFunctionSpaceType::GridPartType  GridPartType;
-  typedef typename GridPartType::IntersectionIteratorType IntersectionIteratorType;
-  typedef typename IntersectionIteratorType::Intersection IntersectionType;
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-
-  typedef Dune::Fem::ElementQuadrature< GridPartType, 1 > FaceQuadratureType;
-  typedef Dune::Fem::CachingQuadrature< GridPartType, 0 > QuadratureType;
-
-  typedef Dune::Fem::TemporaryLocalFunction<DiscreteFunctionSpaceType> TemporaryLocalType;
-
-  static const int dimDomain = LocalFunctionType::dimDomain;
-  static const int dimRange = LocalFunctionType::dimRange;
-
-  typedef  PhasefieldFilter<RangeType> Filter; 
-
-  public:
-  //! constructor
-  FDJacobianDGPhasefieldOperator( const ModelType &model,
-                                  const DiscreteFunctionSpaceType &space)
-    :MyOperatorType(model,space){} 
-
-  using MyOperatorType::prepare;
-  //! application operator 
-  using MyOperatorType::operator();
-  using MyOperatorType::setTime;
-  using MyOperatorType::setDeltaT;
-  using MyOperatorType::setPreviousTimeStep;
-  using MyOperatorType::getPreviousTimeStep;
-  using MyOperatorType::timeStepEstimate;
-  using MyOperatorType::maxSpeed;
-  using MyOperatorType::lipschitzC;
-  protected:
-
-  using MyOperatorType::localIntegral;
-  using MyOperatorType::computeBoundary;
-  using MyOperatorType::setEntity;
-  using MyOperatorType::setNeighbor;
-  using MyOperatorType::intersectionIntegral;
-  using MyOperatorType::space;
-  using MyOperatorType::model;
-
-  protected:
-  using MyOperatorType::model_;
-  using MyOperatorType::space_;
-  using MyOperatorType::flux_;
-  using MyOperatorType::time_;
-  using MyOperatorType::deltaT_;
-  using MyOperatorType::maxSpeed_;
-  using MyOperatorType::lastSpeed_;
-  using MyOperatorType::theta_;
-  using MyOperatorType::factorImp_;
-  using MyOperatorType::factorExp_;
-  using MyOperatorType::uOld_;
-  using MyOperatorType::uOldLocal_; 
-  using MyOperatorType::uOldNeighbor_; 
-  using MyOperatorType::outflow_;
-  using MyOperatorType::debugmu_;
-  using MyOperatorType::debugtheta_;
-  using MyOperatorType::areaEn_;
-  using MyOperatorType::areaNb_;
-
-
-};
-
-template<class DiscreteFunction, class Model, class Flux>
-void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
+template<class DiscreteFunction, class Integrator>
+void DGOperator<DiscreteFunction, Integrator>
   ::operator() ( const DiscreteFunctionType &u, DiscreteFunctionType &w ) const 
 {
-  double lastSpeed=maxSpeed_;
-  maxSpeed_=0;
-
   // clear destination 
   w.clear();
-  assert(deltaT_>0);
+  
   // iterate over grid 
   const IteratorType end = space().end();
   for( IteratorType it = space().begin(); it != end; ++it )
@@ -338,7 +157,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
     setEntity( entity );
     RangeType vu(0.),avu(0.);
-    JacobianRangeType du{0.},adu{0.};
+    JacobianRangeType du(0.),adu(0.);
     
     LocalFunctionType wLocal = w.localFunction( entity );
     const int quadOrder =2*space().order(entity);
@@ -350,7 +169,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         uLocal.evaluate( quadrature[ pt ], vu);
         uLocal.jacobian( quadrature[ pt ], du);
         
-        localIntegral( pt , geometry, quadrature , vu , du , avu , adu );   
+        integrator_.localIntegral( pt , geometry, quadrature , vu , du , avu , adu );   
        
         //wlocal+=avu*phi+diffusion*dphi
         wLocal.axpy( quadrature[ pt ], avu, adu);
@@ -407,7 +226,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
                 const double weight = quadInside.weight( pt );
 
 
-                boundaryIntegral( intersection,
+                integrator_.boundaryIntegral( intersection,
                                   pt,
                                   quadInside,
                                   vuEn,
@@ -423,48 +242,6 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
         }
 
       }
-#if 0     
-      if( boundaryElement )
-      { 
-        const int order=1; 
-        const LagrangePointSetType lagrangePointSet( geometry.type(), order );
-
-        const IntersectionIteratorType iitend = space().gridPart().iend( entity ); 
-        for( IntersectionIteratorType iit = space().gridPart().ibegin( entity ); iit != iitend; ++iit ) // looping over intersections
-        {
-          const IntersectionType &intersection = *iit;
-
-          if ( intersection.boundary())
-          {
-            // get face number of boundary intersection 
-            const int face = intersection.indexInInside();
-
-
-            typedef typename LagrangePointSetType::template Codim< 1 >:: SubEntityIteratorType
-              FaceDofIteratorType;
-            // get dof iterators 
-            FaceDofIteratorType faceIt = lagrangePointSet.template beginSubEntity< 1 >( face );
-            const FaceDofIteratorType faceEndIt = lagrangePointSet.template endSubEntity< 1 >( face );
-            for( ; faceIt != faceEndIt; ++faceIt )
-            {
-              const int localBlock=*faceIt;
-              ntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
-                  const int localBlockSize=DiscreteFunctionSpaceTiyplocalBlockSize;
-
-
-              const int dofOffset=localBlock*dimRange;
-              wLocal[dofOffset]=0;
-              for( int ii=0 ; ii < dimDomain ; ++ii)
-              {
-                wLocal[dofOffset+1+ii]=0;
-              }
-
-            }
-
-          }
-        }
-      } 
-#endif
     
 
 
@@ -474,9 +251,9 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 }
 
-template<class DiscreteFunction, class Model, class Flux >
+template< class DiscreteFunction, class Integrator >
 template<bool conforming>
-void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
+void DGOperator<DiscreteFunction, Integrator>
 ::computeIntersection( const IntersectionType &intersection,
                        const LocalFunctionType& uLocal,
                        const LocalFunctionType& uNeighbor,
@@ -506,7 +283,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
 
     //calculate quadrature summands avu
-    intersectionIntegral( intersection,
+    integrator_.intersectionIntegral( intersection,
                           pt,
                           quadInside,
                           quadOutside,
@@ -526,17 +303,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   } 
 }
 
-#define DIFFQUOT 0 
 
-#if NSK
-  #include "fulloperatorNSK.cc"
-#else
-  #if IMPLICITTAU
-    #include "fulloperatorimpl.cc"
-  #else
-    #include "fulloperator.cc"
-#endif
-#endif
 
 
 
