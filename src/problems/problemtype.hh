@@ -71,10 +71,19 @@ typedef MixProblem< GridSelector :: GridType,
 #endif
 #elif PROBLEM==4
 #include "../mixedscheme/tanhproblem.hh"
+
 #if MIXED
 typedef TanhProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
+#if SPLIT
+typedef NvStTanhProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > NvStPhaseProblemType;
+typedef AcTanhProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > AcPhaseProblemType;
+#endif
 #else
 typedef TanhProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
