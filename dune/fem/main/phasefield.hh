@@ -30,8 +30,8 @@
 #include <src/problems/kortewegmixed/mixednskproblemcreator.hh>
 #else
 #if MIXED
-#include <src/problems/mixedscheme/mixedproblemcreator.hh>
-#include <dune/phasefield/assembledalgoderived.hh>
+#include <src/problems/mixedscheme/splitproblemcreator.hh>
+#include <dune/phasefield/splitalgoderived.hh>
 #else
 #include <src/problems/passscheme/problemcreator.hh>
 #include <dune/phasefield/passalgoderived.hh> 
