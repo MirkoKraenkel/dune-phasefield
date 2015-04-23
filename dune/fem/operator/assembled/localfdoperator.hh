@@ -85,7 +85,8 @@ class LocalFDOperator
   double lipschitzC() { return myOperator_.integrator().lipschitzC(); }
 
   void setPreviousTimeStep( DiscreteFunctionType& uOld)  { myOperator_.integrator().setPreviousTimeStep( uOld ); }
-  
+
+  IntegratorType& integrator(){ return myOperator_.integrator();}
   //DiscreteFunctionType& getPreviousTimeStep() { return myOperator_.getPreviousTimeStep(); }
   
   const DiscreteFunctionSpaceType& space() const { return myOperator_.space();}
