@@ -1,9 +1,9 @@
 fem.resolvevariables: 1
 # DATA WRITER
 #------------
-fem.prefix: ./data # specify directory for data output (is created if not exists)
+fem.prefix: ./data_2 # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 1e-1 #save data every time interval
+fem.io.savestep: 1e-2 #save data every time interval
 fem.io.savecount: 0   # save every i-th ste
 fem.io.checkpointstep: 0
 phasefield.eocOutputPath: $(fem.prefix)
@@ -64,11 +64,11 @@ phasefield.veloleft:0
 phasefield.rho0: 0.4 
 
 #maxwell points
-phasefield.mwp1: 2
-phasefield.mwp2: 0.192
+#phasefield.mwp1: 2
+#phasefield.mwp2: 0.192
 
-#phasefield.mwp1: 1.6
-#phasefield.mwp2: 1.2
+phasefield.mwp1: 0.1
+phasefield.mwp2: 0.62
 #phasefield.mwp2: 1.657270212
 #phasefield.mwp2: 3.793667900 
 #phasefield.mwp1: 1.947734046
@@ -84,7 +84,7 @@ phasefield.penalty: 10
 phasefield.acpenalty: 0 
 phasefield.ipswitch: 1
 
-phasefield.outflow: true
+phasefield.outflow: false
 # DOMAIN
 #-------
 
