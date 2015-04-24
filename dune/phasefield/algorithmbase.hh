@@ -93,7 +93,7 @@ public:
   //Problem Dependent Type
 	typedef typename Traits :: InitialDataType             InitialDataType;
 	typedef typename Traits :: ModelType                   ModelType;
-	typedef typename Traits :: FluxType                    FluxType;
+//	typedef typename Traits :: FluxType                    FluxType;
   
   //discrete spaces
   typedef typename Traits::DiscreteSpaceType       DiscreteSpaceType;
@@ -108,7 +108,6 @@ public:
   typedef typename DiscreteSpaceType::FunctionSpaceType FunctionSpaceType;
 
   //Operator
-  typedef typename Traits :: DiscreteOperatorType DiscreteOperatorType;
  
   //Adaptation
   typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
@@ -238,10 +237,12 @@ public:
 
 	void initializeStep ( TimeProviderType& timeprovider )
 	{
-		DiscreteFunctionType& U = solution();
-		DiscreteFunctionType& Uold = oldsolution();
-    //Create OdeSolver if necessary
-    
+	//	DiscreteFunctionType& U = solution();
+	//	DiscreteFunctionType& Uold = oldsolution();
+    std::cout<<"init--------------\n";
+    BaseType::asImp().initializeStep(timeprovider); 
+   //Create OdeSolver if necessary
+   #if 0 
     if( interpolateInitialData_ )
       {
         LagrangeGridPartType lagGridPart(grid_); 
@@ -257,7 +258,8 @@ public:
       }
 
      Uold.assign(U); 
-  }
+ #endif 
+ }
 
   
   void step ( TimeProviderType& timeProvider,
@@ -387,11 +389,13 @@ public:
    
     if(!restart)
     {
-    	initializeStep( timeProvider );
-	 		initializeSolver( timeProvider);
+    	std::cout<<"call ininitalizeStep\n";
+      initializeStep( timeProvider );
+    	std::cout<<"after ininitalizeStep\n"; 		
+      initializeSolver( timeProvider);
       // adapt the grid to the initial data
 	  	int startCount = 0;
-      if( adaptCount > 0 )
+      if( false)
       {      
         while( startCount < maxAdaptationLevel )
 				{
@@ -516,42 +520,42 @@ public:
   }
   inline double error ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-    Fem::L2Norm< GridPartType > l2norm(gridPart_);
-    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+//    Fem::L2Norm< GridPartType > l2norm(gridPart_);
+    double error = 0;//l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
   
   inline double densityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-    std::vector<unsigned int> comp{ 0};
-    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
-    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+  //  std::vector<unsigned int> comp{ 0};
+   // Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error = 0;//l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
   inline double phasefieldError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-    std::vector<unsigned int> comp{ 0 , 1, dimDomain +1 };
-    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
-    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+   // std::vector<unsigned int> comp{ 0 , 1, dimDomain +1 };
+   // Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error = 0;//l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
   inline double velocityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-    std::vector<unsigned int> comp;
-    for (int i = 0 ; i < dimDomain ; ++i)
-      comp.push_back(1+i);
-    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
-    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+    //std::vector<unsigned int> comp;
+  //  for (int i = 0 ; i < dimDomain ; ++i)
+    //  comp.push_back(1+i);
+    //Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error =  0;// l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
   
   //compute Error between old and NewTimeStep
   inline double stepError(DiscreteFunctionType uOld, DiscreteFunctionType& uNew)
 	{
-    std::vector<unsigned int> comp{ 1,2 };
-    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
+   // std::vector<unsigned int> comp{ 1,2 };
+  //  Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
-    return l2norm.distance(uOld, uNew);
+    return 0;//l2norm.distance(uOld, uNew);
 	}
 
    void finalizeStep(TimeProviderType& timeProvider)
