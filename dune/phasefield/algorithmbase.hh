@@ -237,12 +237,13 @@ public:
 
 	void initializeStep ( TimeProviderType& timeprovider )
 	{
-	//	DiscreteFunctionType& U = solution();
-	//	DiscreteFunctionType& Uold = oldsolution();
-    std::cout<<"init--------------\n";
-    BaseType::asImp().initializeStep(timeprovider); 
-   //Create OdeSolver if necessary
-   #if 0 
+#if SPLIT
+      BaseType::asImp().initializeStep(timeprovider); 
+#else
+      DiscreteFunctionType& U = solution();
+	    DiscreteFunctionType& Uold = oldsolution();
+
+//Create OdeSolver if necessary
     if( interpolateInitialData_ )
       {
         LagrangeGridPartType lagGridPart(grid_); 
