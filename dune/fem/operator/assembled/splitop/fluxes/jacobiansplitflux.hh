@@ -11,7 +11,7 @@ class AllenCahnJacobianFlux
  typedef Model ModelType;
  
   enum{ dimDomain=Model::dimDomain};
-  enum{ dimRange=Model::dimRange/2};
+  enum{ dimRange=Model::dimAcRange};
   
   static const int phi=0;
   static const int tau=1;
@@ -144,7 +144,7 @@ class NavierStokesJacobianFlux
  typedef Model ModelType;
  
   enum{ dimDomain=Model::dimDomain};
-  enum{ dimRange=Model::dimRange};
+  enum{ dimRange=Model::dimNvStRange};
  
   typedef typename Dune::FieldVector<double,dimRange> RangeType;
   typedef typename Dune::FieldVector<double,dimDomain> DomainType;
