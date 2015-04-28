@@ -3,7 +3,7 @@
 
 #include <dune/common/fvector.hh>
 
-#include "../splitop/splitfilter.hh"
+#include "../splitfilter.hh"
 
 template<class Model>
 class AcMixedFlux
