@@ -42,7 +42,6 @@ public PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   using GridPartType              = typename BaseType::GridPartType;
   using IntersectionIteratorType  = typename BaseType::IntersectionIteratorType;
   using IntersectionType          = typename BaseType::IntersectionType;
-  using IntersectionGeometryType  = typename BaseType::IntersectionGeometryType;
 
   using QuadratureType            = typename BaseType::QuadratureType; 
   using FaceQuadratureType        = typename BaseType::FaceQuadratureType;
@@ -146,7 +145,7 @@ public PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   mutable BasefunctionStorage phiNb_;
   mutable BaseJacobianStorage dphiNb_;
  
-  mutable MatrixHelper::Couplings<dimDomain> couplings_;
+  mutable MatrixHelper::AcCouplings<dimDomain> couplings_;
 };
 
 
@@ -389,12 +388,10 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
 {
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
-  size_t boundaryIndex=intersection.boundaryId();
 
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
   const double localwidth = lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea;
-  const double penaltyFactor = 1./localwidth;
 
   const double weightInside=quadInside.weight( pt );
   const int numScalarBf=baseSet.size()/dimRange;

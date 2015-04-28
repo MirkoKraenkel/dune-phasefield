@@ -43,7 +43,6 @@ public PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   using GridPartType              = typename BaseType::GridPartType;
   using IntersectionIteratorType  = typename BaseType::IntersectionIteratorType;
   using IntersectionType          = typename BaseType::IntersectionType;
-  using IntersectionGeometryType  = typename BaseType::IntersectionGeometryType;
 
   using QuadratureType            = typename BaseType::QuadratureType; 
   using FaceQuadratureType        = typename BaseType::FaceQuadratureType;
@@ -146,7 +145,7 @@ public PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   mutable BasefunctionStorage phiNb_;
   mutable BaseJacobianStorage dphiNb_;
  
-  mutable MatrixHelper::Couplings<dimDomain> couplings_;
+  mutable MatrixHelper::NvStCouplings<dimDomain> couplings_;
 };
 
 
