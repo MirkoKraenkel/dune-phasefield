@@ -19,7 +19,7 @@
 #include "../problemtype.hh"
 
 #include <dune/fem/operator/assembled/models/phasefieldmodel.hh>
-#include <dune/fem/operator/assembled/fluxes/splitflux.hh>
+#include <dune/fem/operator/assembled/splitop/fluxes/splitflux.hh>
 
 template< class GridType > 
 struct MixedProblemGenerator 
