@@ -22,13 +22,8 @@ class PhasefieldAllenCahnIntegrator
   using AddDiscreteFunctionSpaceType=typename AddFunctionType::DiscreteFunctionSpaceType;
 
 
-
-
-
-
   typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
   typedef typename IteratorType::Entity       EntityType;
-  typedef typename EntityType::EntityPointer  EntityPointerType;
 
   typedef typename EntityType::Geometry       GeometryType;
 
@@ -65,6 +60,7 @@ class PhasefieldAllenCahnIntegrator
                               theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
                               time_(0.),
                               deltaT_(0.),
+                              deltaTInv_(0.),
                               maxSpeed_(0.),
                               lastSpeed_(1.),
                               uOld_("uOld" , space ),
@@ -76,7 +72,6 @@ class PhasefieldAllenCahnIntegrator
                               outflow_(Dune::Fem::Parameter::getValue<bool>("phasefield.outflow")),
                               minArea_( std::numeric_limits<double>::max() )
       {
-        std::cout<<"PhasefieldAllenCahnIntegrator\n";
         uOld_.clear();
         factorImp_=0.5*(1+theta_);
         factorExp_=0.5*(1-theta_);
@@ -106,7 +101,7 @@ class PhasefieldAllenCahnIntegrator
   }
   
   void setTime( const double time) { time_=time;}
-  void setDeltaT( const double deltat) {deltaT_=deltat;}
+  void setDeltaT( const double deltat) {deltaT_=deltat, deltaTInv_=1./deltaT_;}
 
   double timeStepEstimate() { return std::min( minArea_/maxSpeed_,lipschitzC());}
 
@@ -149,12 +144,13 @@ class PhasefieldAllenCahnIntegrator
                         RangeType& avuLeft,
                         JacobianRangeType& aduLeft) const;
 
-  private:
+  protected:
   ModelType model_;    
   NumericalFluxType flux_;
   const double  theta_;
   double time_;
   double deltaT_;
+  double deltaTInv_;
   mutable double maxSpeed_;
   mutable double lastSpeed_;
   double factorImp_;
@@ -167,7 +163,7 @@ class PhasefieldAllenCahnIntegrator
   TemporaryAddLocalType addNeighbor_;
   const bool outflow_;
   mutable double minArea_;
-   mutable double areaEn_;
+  mutable double areaEn_;
   mutable double areaNb_;
  };
 

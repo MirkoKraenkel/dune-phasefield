@@ -61,6 +61,7 @@ class PhasefieldNavierStokesIntegrator
                               theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
                               time_(0.),
                               deltaT_(0.),
+                              deltaTInv_(0.),
                               maxSpeed_(0.),
                               lastSpeed_(1.),
                               uOld_("uOld" , space ),
@@ -145,12 +146,13 @@ class PhasefieldNavierStokesIntegrator
                         RangeType& avuLeft,
                         JacobianRangeType& aduLeft) const;
 
-  private:
+  protected:
   ModelType model_;    
   NumericalFluxType flux_;
   const double  theta_;
   double time_;
   double deltaT_;
+  double deltaTInv_;
   mutable double maxSpeed_;
   mutable double lastSpeed_;
   double factorImp_;
