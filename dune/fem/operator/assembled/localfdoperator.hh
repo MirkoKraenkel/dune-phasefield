@@ -9,12 +9,12 @@
 #include <dune/fem/operator/common/stencil.hh>
 //#include "mixedoperator.hh"
 
-template<class OperatorType , class Jacobian>
+template<class Operator , class Jacobian>
 class LocalFDOperator
  :public Dune::Fem::DifferentiableOperator < Jacobian >
 {
 
-  typedef OperatorType MyOperatorType;
+  typedef Operator MyOperatorType;
 
   typedef Dune::Fem::DifferentiableOperator< Jacobian> BaseType;
 
@@ -48,20 +48,6 @@ class LocalFDOperator
     epsilon_(Dune::Fem::Parameter::getValue<double>("phasefield.fdjacobian.epsilon"))
   {}
 
-#if 0
-  using MyOperatorType::localIntegral;
-  using MyOperatorType::intersectionIntegral;
-  using MyOperatorType::boundaryIntegral;
-  using MyOperatorType::setEntity;
-  using MyOperatorType::setNeighbor;
-  using MyOperatorType::operator();
-  using MyOperatorType::setTime;
-  using MyOperatorType::timeStepEstimate;
-  using MyOperatorType::setDeltaT;
-  using MyOperatorType::setPreviousTimeStep;
-  using MyOperatorType::getPreviousTimeStep; 
-  using MyOperatorType::space;
-#endif
   typedef Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> StencilType;
 
    //! application operator 
@@ -156,7 +142,8 @@ void LocalFDOperator< Operator, Jacobian>
     const LocalFunctionType uLocal = u.localFunction( entity );
 
     myOperator_.setEntity( entity );
-
+//////////////computeEntity
+  
     LocalMatrixType jLocal = jOp.localMatrix( entity, entity );
     const BasisFunctionSetType &baseSet = jLocal.domainBasisFunctionSet();
     const unsigned int numBasisFunctions = baseSet.size();
@@ -172,7 +159,6 @@ void LocalFDOperator< Operator, Jacobian>
 
     uLocal.evaluateQuadrature(quadrature, uValues);
     uLocal.evaluateQuadrature(quadrature,uJacobians);
-
     for( size_t pt = 0; pt < numQuadraturePoints; ++pt )
     {
       baseSet.evaluateAll( quadrature[ pt ], phi);
