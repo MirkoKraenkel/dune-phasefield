@@ -100,7 +100,6 @@ void AllenCahnJacobianFlux<Model>
       
       //rho-------------------------------------------------------------
  
-      double vNormalEn(0),vNormalNb(0.);
       double laplaceFluxLeft(0.),laplaceFluxRight(0.);
 
       for(int ii = 0; ii < dimDomain ; ++ii )
@@ -197,7 +196,7 @@ public:
                                       DiffusionTensorType& aLeft,
                                       DiffusionVectorType& bLeft) const;
 
-  double diffusionFlux ( const DomainType& normal,
+  void diffusionFlux ( const DomainType& normal,
                          const double penaltyFactor,
                          const RangeType& uEn,
                          const RangeType& uNb,
@@ -218,7 +217,7 @@ public:
                     const RangeType& midEn,
                     FluxRangeType& gLeft) const;
 
-  double diffusionBoundaryFlux( const DomainType& normal,
+  void diffusionBoundaryFlux( const DomainType& normal,
                                 const double penaltyFactor,
                                 const RangeType& uEn,
                                 const JacobianRangeType& duEn,
@@ -277,7 +276,6 @@ void  NavierStokesJacobianFlux<Model>
                 FluxRangeType& gRight) const
   {
       RangeType valEn,valNb,midEn(0.), midNb(0.),jump,jumpImEx,mean, jumpPhi(0.);
-      double integrationElement=normal.two_norm();
   
       gLeft=0.;
       gRight=0.;
@@ -297,7 +295,6 @@ void  NavierStokesJacobianFlux<Model>
       //rho-------------------------------------------------------------
  
       double vNormalEn(0),vNormalNb(0.);
-      double laplaceFluxLeft(0.),laplaceFluxRight(0.);
 
       for(int ii = 0; ii < dimDomain ; ++ii )
         {
@@ -434,7 +431,7 @@ void NavierStokesJacobianFlux<Model>
 
 
 template< class Model >
-double NavierStokesJacobianFlux<Model>
+void NavierStokesJacobianFlux<Model>
 :: diffusionFlux( const DomainType& normal,
                   const double penaltyFactor,
                   const RangeType& uEn,
@@ -493,7 +490,7 @@ double NavierStokesJacobianFlux<Model>
 
 }
 template< class Model >
-double NavierStokesJacobianFlux<Model>
+void NavierStokesJacobianFlux<Model>
 :: diffusionBoundaryFlux( const DomainType& normal,
                   const double penaltyFactor,
                   const RangeType& uEn,
