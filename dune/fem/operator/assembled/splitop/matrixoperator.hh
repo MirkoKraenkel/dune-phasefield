@@ -241,8 +241,6 @@ MatrixOperator< Operator , Tensor ,Jacobian >
                   const LocalFunctionType& uLocal,
                   LocalMatrixType& jLocal) const
 {    
-  const unsigned int numBasisFunctions = baseSet.size();
-  const unsigned int numScalarBf = numBasisFunctions/dimRange;
 
   QuadratureType quadrature( entity, 2*space().order(entity)+1 );
   
