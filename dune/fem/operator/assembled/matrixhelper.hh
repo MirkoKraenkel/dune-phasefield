@@ -224,10 +224,127 @@ void Couplings< 2 >::makeIntersectionCouplings ()
 #include "./Codegen/intersectionCouplings2d_CODEGEN.c"
 #endif
 }
+//////////////////////////////////////////////////////////////////////////////////////////////
+template< int dimRange>
+class AcCouplings
+{
+  static const int couplingSize = 2*dimRange+dimRange*dimRange+4;
+  static const int intersectionCouplingSize = 2*dimRange+dimRange*dimRange+2 ;
+
+  typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
+  typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
+
+
+
+  public:
+    AcCouplings()
+    {
+      makeElementCouplings();
+      makeIntersectionCouplings();
+    }
+
+    void makeElementCouplings ();
+
+    void makeIntersectionCouplings ();
+
+    ElementCouplingType& elementCouplings()
+      {
+        return elementCouplings_;
+      }
+
+    IntersectionCouplingType& intersectionCouplings()
+      {
+        return intersectionCouplings_;
+      }
  
+  private:
+    ElementCouplingType elementCouplings_;
+    IntersectionCouplingType intersectionCouplings_;
+};
+template<>
+void AcCouplings< 1 >::makeElementCouplings ()
+  {
+    #include "./Codegen/acelCouplings1d_CODEGEN.c"
+  }
+
+template<>
+void AcCouplings< 1 >::makeIntersectionCouplings ()
+  {
+    #include "./Codegen/acisCouplings1d_CODEGEN.c"
+  }
+
+template<>
+void AcCouplings< 2 >::makeElementCouplings ()
+  {
+    #include "./Codegen/acelCouplings2d_CODEGEN.c"
+  }
+
+template<>
+void AcCouplings< 2 >::makeIntersectionCouplings ()
+  {
+    #include "./Codegen/acisCouplings2d_CODEGEN.c"
+  }
+////////////////////////////////////////////////////////////////////////////////////
+
+template< int dimRange>
+class NvStCouplings
+{
+  static const int couplingSize = 4*dimRange+dimRange*dimRange+3;
+  static const int intersectionCouplingSize = 3*dimRange+dimRange*dimRange+2;
+
+  typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
+  typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
 
 
 
+  public:
+    NvStCouplings()
+    {
+      makeElementCouplings();
+      makeIntersectionCouplings();
+    }
+
+    void makeElementCouplings ();
+
+    void makeIntersectionCouplings ();
+
+    ElementCouplingType& elementCouplings()
+      {
+        return elementCouplings_;
+      }
+
+    IntersectionCouplingType& intersectionCouplings()
+      {
+        return intersectionCouplings_;
+      }
+
+  private:
+    ElementCouplingType elementCouplings_;
+    IntersectionCouplingType intersectionCouplings_;
+};
+template<>
+void NvStCouplings< 1 >::makeElementCouplings ()
+  {
+    #include "./Codegen/nvstelCouplings1d_CODEGEN.c"
+  }
+
+template<>
+void NvStCouplings< 1 >::makeIntersectionCouplings ()
+  {
+    #include "./Codegen/nvstisCouplings1d_CODEGEN.c"
+  }
+
+template<>
+void NvStCouplings< 2 >::makeElementCouplings ()
+  {
+    #include "./Codegen/nvstelCouplings2d_CODEGEN.c"
+  }
+
+template<>
+void NvStCouplings< 2 >::makeIntersectionCouplings ()
+  {
+    #include "./Codegen/nvstisCouplings2d_CODEGEN.c"
+  }
 }
 
 
