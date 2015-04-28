@@ -29,7 +29,7 @@ public:
     }
 
 
-  double numericalFlux( const DomainType& normal, 
+  void numericalFlux( const DomainType& normal, 
                         const double area,
                         const double penaltyFactor,
                         const RangeType& vuEn,
@@ -43,19 +43,19 @@ public:
 
 
 
-  double boundaryFlux( const DomainType& normal, 
-                       const double penaltyFactor,                
-                       const RangeType& vuEn,  
-                       const RangeType& vuMidEn,
-                       const RangeType& addEn,
-                       RangeType& gLeft) const;
-
-  double outFlowFlux( const DomainType& normal,
-                      const double penaltyFactor,
-                      const RangeType& vuEn,
-                      const RangeType& vuMidEn,
-                      const RangeType& addEn,
+  void boundaryFlux( const DomainType& normal, 
+                     const double penaltyFactor,                
+                     const RangeType& vuEn,  
+                     const RangeType& vuMidEn,
+                     const RangeType& addEn,
                       RangeType& gLeft) const;
+
+  void outFlowFlux( const DomainType& normal,
+                    const double penaltyFactor,
+                    const RangeType& vuEn,
+                    const RangeType& vuMidEn,
+                    const RangeType& addEn,
+                    RangeType& gLeft) const;
 
 private:
   const ModelType& model_;
@@ -64,7 +64,7 @@ private:
 
 ////////////Implementation of AcMixedFlux///////////////
 template< class Model >
-double AcMixedFlux<Model>
+void AcMixedFlux<Model>
 ::boundaryFlux(const DomainType& normal,
                const double penaltyFactor,
                const RangeType& vuEn,
@@ -78,8 +78,6 @@ double AcMixedFlux<Model>
     midEn=vuMidEn;
 
     gLeft=0.;
-
-    double vNormalEn(0.);
 
    //phi-------------------------------------------------------------
 
@@ -121,11 +119,10 @@ double AcMixedFlux<Model>
       }
     //----------------------------------------------------------------
 
-    return 0.;
   }
 
 template< class Model >
-double AcMixedFlux<Model>
+void AcMixedFlux<Model>
 ::outFlowFlux(const DomainType& normal,
                const double penaltyFactor,
                const RangeType& vuEn,
@@ -140,7 +137,6 @@ double AcMixedFlux<Model>
 
     gLeft=0.;
 
-    double vNormalEn(0.);
     //phi-------------------------------------------------------------
   
     double laplaceFlux(0.);
@@ -181,7 +177,6 @@ double AcMixedFlux<Model>
       } 
     //----------------------------------------------------------------
   
-    return 0.;
   }
 
 
@@ -191,7 +186,7 @@ double AcMixedFlux<Model>
 
 
 template< class Model >
-double AcMixedFlux<Model>
+void AcMixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double area,              
                 const double penaltyFactor,
@@ -275,7 +270,6 @@ double AcMixedFlux<Model>
 
       } 
     //----------------------------------------------------------------
-  return 0.;
 }
 ////////////Implementation of AcMixedFlux///////////////
 
@@ -308,7 +302,7 @@ public:
     }
 
 
-  double numericalFlux( const DomainType& normal, 
+   void numericalFlux( const DomainType& normal, 
                         const double area,
                         const double penaltyFactor,
                         const RangeType& vuEn,
@@ -321,7 +315,7 @@ public:
                         RangeType& gRight) const;
 
 
-  double diffusionFlux( const DomainType& normal,
+   void diffusionFlux( const DomainType& normal,
                         const double penaltyFactor,
                         const RangeType& uEn,
                         const RangeType& uNb,
@@ -330,19 +324,19 @@ public:
                         RangeType& value,
                         JacobianRangeType& dvalue) const;
 
-  double boundaryFlux( const DomainType& normal, 
+  void boundaryFlux( const DomainType& normal, 
                        const double penaltyFactor,                
                        const RangeType& vuEn,  
                        const RangeType& vuMidEn,
                        RangeType& gLeft) const;
 
-  double outFlowFlux( const DomainType& normal,
+  void outFlowFlux( const DomainType& normal,
                       const double penaltyFactor,
                       const RangeType& vuEn,
                       const RangeType& vuMidEn,
                       RangeType& gLeft) const;
 
-  double diffusionBoundaryFlux( const DomainType& normal,
+  void diffusionBoundaryFlux( const DomainType& normal,
                                 const double penaltyFactor,
                                 const RangeType& uEn,
                                 const JacobianRangeType& duEn,
@@ -361,7 +355,7 @@ private:
 
 
 template< class Model >
-double NvStMixedFlux<Model>
+void NvStMixedFlux<Model>
 ::boundaryFlux(const DomainType& normal,
                const double penaltyFactor,
                const RangeType& vuEn,
@@ -397,26 +391,17 @@ double NvStMixedFlux<Model>
     //----------------------------------------------------------------
 
 
-     return 0.;
   }
 
 template< class Model >
-double NvStMixedFlux<Model>
+void NvStMixedFlux<Model>
 ::outFlowFlux(const DomainType& normal,
                const double penaltyFactor,
                const RangeType& vuEn,
                const RangeType& vuMidEn,
                RangeType& gLeft) const
   {
-    RangeType midEn,valEn;
-    valEn=vuEn;
-
-    midEn=vuMidEn;
-
     gLeft=0.;
-
-    double vNormalEn(0.);
-    return 0.;
   }
 
 
@@ -426,7 +411,7 @@ double NvStMixedFlux<Model>
 
 
 template< class Model >
-double NvStMixedFlux<Model>
+void NvStMixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double area,              
                 const double penaltyFactor,
@@ -444,7 +429,6 @@ double NvStMixedFlux<Model>
     valNb=vuNb;
     addValEn=addEn;
     addValNb=addNb;
-    double integrationElement=normal.two_norm();
  
     gLeft=0.;
     gRight=0.;
@@ -504,7 +488,6 @@ double NvStMixedFlux<Model>
       } 
     
     //----------------------------------------------------------------
-  return 0.;
 }
 
 template< class Model>
@@ -516,7 +499,7 @@ void NvStMixedFlux<Model>
 }
 
 template< class Model >
-double NvStMixedFlux<Model>
+void NvStMixedFlux<Model>
 :: diffusionFlux( const DomainType& normal,
                   const double penaltyFactor,
                   const RangeType& uEn,
@@ -555,10 +538,9 @@ double NvStMixedFlux<Model>
   model_.diffusion(mean,Amean);
 
   Amean.umv(normal,value);
-  return penalty_;
 }
 template< class Model >
-double NvStMixedFlux<Model>
+void NvStMixedFlux<Model>
 :: diffusionBoundaryFlux( const DomainType& normal,
                   const double penaltyFactor,
                   const RangeType& uEn,
@@ -592,7 +574,6 @@ double NvStMixedFlux<Model>
   model_.diffusion(mean,Amean);
 
   Amean.umv(normal,value);
-  return penalty_;
 }
 
 #endif

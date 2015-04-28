@@ -32,7 +32,6 @@ class PhasefieldAllenCahnIntegrator
   typedef typename DiscreteFunctionSpaceType::GridPartType  GridPartType;
   typedef typename GridPartType::IntersectionIteratorType IntersectionIteratorType;
   typedef typename IntersectionIteratorType::Intersection IntersectionType;
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
   typedef Dune::Fem::CachingQuadrature< GridPartType, 1 > FaceQuadratureType;
 
@@ -304,8 +303,6 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
                         JacobianRangeType& aduLeft,
                         JacobianRangeType& aduRight) const
 {
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-
   RangeType vuOldEn(0.),vuMidEn(0.),vuOldNb(0.),vuMidNb(0.), vuAddEn(0.),vuAddNb(0.);
   JacobianRangeType duOldEn(0.),duOldNb(0.),duMidEn(0.), duMidNb(0.),duAddEn(0.),duAddNb(0.);
 
@@ -337,8 +334,7 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
   maxSpeed_ = 0;//std::max( std::max( model_.maxSpeed(normal,vuOldEn), model_.maxSpeed(normal,vuOldNb)),maxSpeed_);
 
   JacobianRangeType dvalue(0.),advalue(0.);
-  double fluxRet;
-  fluxRet=flux_.numericalFlux( normal,
+  flux_.numericalFlux( normal,
                               area,
                               penaltyFactor,
                               vuEn,
@@ -366,8 +362,6 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 {
 
   size_t boundaryIndex=intersection.boundaryId();
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-  const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
   RangeType vuOldEn(0.),vuMidEn(0.),vuAddEn(0), bndValue(0.);
   
@@ -383,26 +377,22 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 
 
   // compute penalty factor
-  const double intersectionArea = intersectionGeometry.volume();
-  const double penaltyFactor = intersectionArea /  areaEn_; 
-  const double area=lastSpeed_*areaEn_/intersectionArea; 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
-  const DomainType xgl = intersectionGeometry.global(x);
- // model_.dirichletValue( time_,xgl, bndValue);
+  //const DomainType xgl = intersectionGeometry.global(x);
+  const double intersectionArea = normal.two_norm();
+  const double area=lastSpeed_*areaEn_/intersectionArea; 
 
   JacobianRangeType dvalue(0.),advalue(0.);
-  double fluxRet;
   RangeType gLeft(0.),dummy(0.);
-#if 1 
   if( boundaryIndex==1 || !outflow_)
     {
-      fluxRet=flux_.boundaryFlux( normal,
-                                  area,
-                                  vuEn,
-                                  vuMidEn,
-                                  vuAddEn,
-                                  gLeft);
+      flux_.boundaryFlux( normal,
+                          area,
+                          vuEn,
+                          vuMidEn,
+                          vuAddEn,
+                          gLeft);
     }
   else
     {
@@ -414,16 +404,6 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
                          gLeft);
 
     }
-#else
-   fluxRet=flux_.numericalFlux( normal,
-                                area,
-                                vuEn,
-                                bndValue,
-                                vuMidEn,
-                                bndValue,
-                                gLeft,
-                                dummy);
-#endif
   avuLeft+=gLeft;
 
 
