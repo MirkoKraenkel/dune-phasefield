@@ -13,7 +13,7 @@ class AcMixedFlux
  typedef Model ModelType;
  
   enum{ dimDomain=Model::dimDomain};
-  enum{ dimRange=Model::dimRange/2};
+  enum{ dimRange=Model::dimAcRange};
  
   typedef typename Dune::FieldVector<double,dimRange> RangeType;
   typedef typename Dune::FieldVector<double,dimDomain> DomainType;
@@ -62,7 +62,7 @@ private:
   double acpenalty_;
 };
 
-
+////////////Implementation of AcMixedFlux///////////////
 template< class Model >
 double AcMixedFlux<Model>
 ::boundaryFlux(const DomainType& normal,
@@ -277,7 +277,7 @@ double AcMixedFlux<Model>
     //----------------------------------------------------------------
   return 0.;
 }
-
+////////////Implementation of AcMixedFlux///////////////
 
 
 
@@ -289,7 +289,7 @@ class NvStMixedFlux
  typedef Model ModelType;
  
   enum{ dimDomain=Model::dimDomain};
-  enum{ dimRange=Model::dimRange/2};
+  enum{ dimRange=Model::dimNvStRange};
  
   typedef typename Dune::FieldVector<double,dimRange> RangeType;
   typedef typename Dune::FieldVector<double,dimDomain> DomainType;
