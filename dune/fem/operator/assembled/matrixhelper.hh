@@ -105,6 +105,13 @@ void axpyElement ( Couplings& couplings,
 }
 
 
+template< class Matrix1, class Matrix2>
+void add( const Matrix1& m1, Matrix2& m2)
+{
+  for( int ii = 0 ; ii<m2.rows() ; ++ii)
+    for( int jj = 0 ; jj<m2.columns() ; ++jj)
+      m2.add( ii , jj, m1.get(ii , jj));
+}
 
 template< int dimRange> 
 class Couplings
