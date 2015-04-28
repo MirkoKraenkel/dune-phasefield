@@ -126,15 +126,20 @@ public PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux>
                        LocalMatrixType& jLocal) const;
    
   using BaseType::addFunction_;
+  using BaseType::uOldLocal_;
   using BaseType::addLocal_;
   using BaseType::addNeighbor_;
   using BaseType::model_; 
   using BaseType::deltaTInv_; 
- 
+  using BaseType::lastSpeed_;
+  using BaseType::areaEn_;
+  using BaseType::areaNb_;
+  using BaseType::outflow_;
+
   private:
   const JacobianFluxType jacFlux_;
   const double imexFactor_;
-  mutable RangeVectorType uEn_,uNb_,addEn_,addNb_;
+  mutable RangeVectorType uEn_,uOldEn_,uNb_,addEn_,addNb_;
   mutable JacobianVectorType duEn_,duNb_,duAddEn_,duAddNb_;
   mutable BasefunctionStorage phi_;
   mutable BaseJacobianStorage dphi_;
@@ -158,9 +163,12 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
   const size_t numQuadraturePoints = quadrature.nop();
   uEn_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, uEn_);
+  uOldEn_.resize(numQuadraturePoints);
+  uOldLocal_.evaluateQuadrature( quadrature, uOldEn_);
+
   duEn_.resize(numQuadraturePoints); 
   uLocal.evaluateQuadrature( quadrature, duEn_);
-  
+
   addEn_.resize(numQuadraturePoints);
   addLocal_.evaluateQuadrature( quadrature, addEn_); 
   duAddEn_.resize(numQuadraturePoints);
@@ -207,55 +215,57 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
   MatrixHelper::evaluateScalarAll( quadrature[ pt ], baseSet.shapeFunctionSet(),phi_);
   MatrixHelper::jacobianScalarAll( quadrature[ pt ], geometry, baseSet.shapeFunctionSet(),dphi_);      
     
-  RangeType vu(0.);
+  RangeType vu(0.),vuOld(0.);
   AddRangeType uAdd(0);
   JacobianRangeType dvu(0.);
   AddJacobianRangeType duAdd(0.);
       
   vu=uEn_[ pt ];
+  vuOld=uOldEn_[pt];
   dvu=duEn_[ pt ]; 
   uAdd=addEn_[ pt ];
   duAdd=duAddEn_[ pt ];
   
   TensorRangeType flux;
-#if 0
   for( size_t jj=0 ;  jj < numScalarBf ; ++jj)
     {
       flux=0.;
       
       //(rho,rho)
-      flux[0][0]=deltaTInv_*phi[ jj ][0];
+      flux[0][0]=deltaTInv_*phi_[ jj ][0];
           
       for( size_t kk = 0 ; kk < dimDomain ; ++kk )
         {
           //div u*phi_rho + v\cdot\nabla phi_rho 
-          flux[0][0]+=0.5*(divu[ 1+kk ][ kk ]*phi[ jj ][ 0 ]+vu[ 1+kk ]*dphi[ jj ][ 0 ][ kk ]);
+          //(rho,rho)
+          flux[0][0]+=0.5*(dvu[ 1+kk ][ kk ]*phi_[ jj ][ 0 ]+vu[ 1+kk ]*dphi_[ jj ][ 0 ][ kk ]);
           // rho*div phi_v +\nabla\rho\cdot\phi_v
-          flux[ 0 ][ 1+kk ]=0.5*(vuMid[0]*dphi[ jj ][0 ][kk]+duMid[0][ kk ]*phi[ jj ][0]);
+          //(rho,v)
+          flux[ 0 ][ 1+kk ]=0.5*(vu[0]*dphi_[ jj ][0 ][kk]+dvu[0][ kk ]*phi_[ jj ][0]);
       
-          flux[1+kk][0] = (vu[ 1 + kk ]-vuOld[ 1 + kk ])*phi[ jj ][0]*0.5*deltaTInv;
-          flux[1+kk][1+kk]=phi[ jj ][ 0 ]*vuMid[0]*deltaTInv_;
+          flux[1+kk][0] = (vu[ 1 + kk ]-vuOld[ 1 + kk ])*phi_[ jj ][0]*0.5*deltaTInv_;
+          flux[1+kk][1+kk]=phi_[ jj ][ 0 ]*vu[0]*deltaTInv_;
    
           for( size_t ll = 0; ll<dimDomain; ++ll)
             { 
-              flux[ 1+kk ][ 0 ]+=0.5*(duMid[ 1 + kk ][ kk ] - duMid[ 1 + ll ][ kk ])*vuMid[ 1 + ll ]*phi[ jj ][ 0 ];
-              flux[ 1+kk ][ 1+ll ]+=0.5*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])* phi[ jj ][ 0 ]*vuMid[0];
-              flux[ 1+kk ][ 1+kk ]+=0.5*( dphi[ jj ][ 0 ][ ll ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
-              flux[ 1+kk ][ 1+ll ]-=0.5*( dphi[ jj ][ 0 ][ kk ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
+              flux[ 1+kk ][ 0 ]+=0.5*(dvu[ 1 + kk ][ kk ] - dvu[ 1 + ll ][ kk ])*vu[ 1 + ll ]*phi_[ jj ][ 0 ];
+              flux[ 1+kk ][ 1+ll ]+=0.5*(dvu[ 1 + kk ][ ll ] - dvu[ 1 + ll ][ kk ])* phi_[ jj ][ 0 ]*vu[0];
+              flux[ 1+kk ][ 1+kk ]+=0.5*( dphi_[ jj ][ 0 ][ ll ] )*vu[ 1 + ll ]*vu[ 0 ];
+              flux[ 1+kk ][ 1+ll ]-=0.5*( dphi_[ jj ][ 0 ][ kk ] )*vu[ 1 + ll ]*vu[ 0 ];
             } 
               
           //(v,rho,mu*)
-          flux[ 1+kk ][ 0 ]+=0.5*phi[ jj ][ 0 ]*duImEx[ 2 + dimDomain ][ kk ];
+          flux[ 1+kk ][ 0 ]+=0.5*phi_[ jj ][ 0 ]*dvu[ 1 + dimDomain ][ kk ];
           //(v,rho*,mu)
-          flux[ 1+kk ][ dimDomain+2]+=imexFactor_*vuMid[ 0 ]*dphi[ jj ][ 0 ][ kk ];
+          flux[ 1+kk ][ 1+dimDomain ]+=imexFactor_*vu[ 0 ]*dphi_[ jj ][ 0 ][ kk ];
           //(mu,v_kk)
-          flux[ dimDomain+2 ][ 1+kk]-=2*vu[ 1+kk ]*phi[ jj ][ 0 ]*0.25;
+          flux[ 1+dimDomain ][ 1+kk ]-=2*vu[ 1+kk ]*phi_[ jj ][ 0 ]*0.25;
 
-           }
+        }
 
 
           //(mu,mu)
-          flux[ dimDomain+2 ][ dimDomain+2 ]=imexFactor_*phi[ jj ][ 0 ];
+          flux[ 1+dimDomain ][ 1+dimDomain ]=imexFactor_*phi_[ jj ][ 0 ];
         
 
           DiffusionType du;
@@ -263,19 +273,19 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
           for(int i = 0;  i<dimDomain ; ++i)
             du[i]=0;
  
-          model_.scalar2vectorialDiffusion( dphi[jj], du);  
+          model_.scalar2vectorialDiffusion( dphi_[jj], du);
           
           for( size_t ii = 0 ; ii < numScalarBf ; ++ii )
             {
               MatrixHelper::diffusionaxpy< DofAlignmentType >(ii,
                                                               jj,
-                                                              dphi,
+                                                              dimDomain,
+                                                              dphi_,
                                                               du,
                                                               weight,
                                                               jLocal);
-          
               MatrixHelper::axpyElement< DofAlignmentType >( couplings_,
-                                                             phi,
+                                                             phi_,
                                                              flux,
                                                              ii,
                                                              jj,
@@ -283,7 +293,6 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
                                                              jLocal);
             } 
       }
-#endif
 } 
 
 template<class Operator, class AddFunction, class Model, class Flux,class JacFlux>
@@ -298,10 +307,94 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
                        const BasisFunctionSetType& baseSet,
                        const BasisFunctionSetType& baseSetNb,
                        LocalMatrixType& jLocal,
-                       LocalMatrixType& jocalEnNb,
+                       LocalMatrixType& jLocalEnNb,
                        LocalMatrixType& jLocalNbEn,
                        LocalMatrixType& jLocalNbNb) const
-                         {}
+{ 
+  const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+  const DomainType normal = intersection.integrationOuterNormal( x );
+
+  // compute penalty factor
+  const double intersectionArea = normal.two_norm();
+  const double localwidth = lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea;
+  const double penaltyFactor = 1./localwidth;
+
+  const double weightInside=quadInside.weight( pt );
+  const double weightOutside=quadOutside.weight( pt );
+   const int numScalarBf=baseSet.size()/dimRange;
+
+  TensorRangeType fluxLeft(0.), fluxRight(0.);
+  TensorRangeType fluxLeftNeg(0.), fluxRightNeg(0.);
+
+  jacFlux_.numericalFlux( normal,
+                          localwidth,
+                          penaltyFactor,
+                          uEn_[pt],
+                          uNb_[pt],
+                          addEn_[pt],
+                          addNb_[pt],
+                          fluxLeft,
+                          fluxRight);
+
+  DomainType negnormal=normal;
+
+  negnormal*=-1;
+
+  jacFlux_.numericalFlux( negnormal,
+                          localwidth,
+                          penaltyFactor,
+                          uNb_[pt],
+                          uEn_[pt],
+                          addNb_[pt],
+                          addEn_[pt],
+                          fluxLeftNeg,
+                          fluxRightNeg);
+
+      for( size_t jj=0 ; jj < numScalarBf ; ++jj)
+        {
+          for( size_t ii = 0; ii < numScalarBf ; ++ii )
+            {
+              MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                  phi_,
+                                                                  phi_,
+                                                                  fluxLeft,
+                                                                  ii,
+                                                                  jj,
+                                                                  weightInside,
+                                                                  jLocal );
+
+              MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                  phi_,
+                                                                  phiNb_,
+                                                                  fluxRight,
+                                                                  ii,
+                                                                  jj,
+                                                                  weightInside,
+                                                                  jLocalNbEn );
+
+              MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                  phiNb_,
+                                                                  phi_,
+                                                                  fluxRightNeg,
+                                                                  ii,
+                                                                  jj,
+                                                                  weightOutside,
+                                                                  jLocalEnNb );
+
+              MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                                  phiNb_,
+                                                                  phiNb_,
+                                                                  fluxLeftNeg,
+                                                                  ii,
+                                                                  jj,
+                                                                  weightOutside,
+                                                                  jLocalNbNb );
+
+
+              }
+
+          }
+}
                                      
 template<class Operator, class AddFunction, class Model, class Flux,class JacFlux>
 void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
@@ -311,7 +404,82 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
                    const FaceQuadratureType& quadInside, 
                    const BasisFunctionSetType& baseSet,
                    LocalMatrixType& jLocal) const
-                      {}
+{
+  const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+  const DomainType normal = intersection.integrationOuterNormal( x );
+  size_t boundaryIndex=intersection.boundaryId();
+
+  // compute penalty factor
+  const double intersectionArea = normal.two_norm();
+  const double localwidth = lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea;
+  const double penaltyFactor = 1./localwidth;
+
+  const double weightInside=quadInside.weight( pt );
+  const int numScalarBf=baseSet.size()/dimRange;
+
+  TensorRangeType fluxLeft(0.);
+
+  if( boundaryIndex==1 || !outflow_)
+    {
+      jacFlux_.boundaryFlux( normal,
+                             penaltyFactor,
+                             uEn_[pt],
+                             fluxLeft);
+    }
+  else
+    {
+      jacFlux_.outFlowFlux( normal,
+                            penaltyFactor,
+                            uEn_[pt],
+                            fluxLeft);
+    }
+
+  for( size_t jj=0 ; jj < numScalarBf ; ++jj)
+    {
+      RangeType avuLeft(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
+      JacobianRangeType aduLeft(0.),aduRight(0.);
+      DiffusionType aLeft;
+      DiffusionValueType bLeft;
+
+      if( boundaryIndex==1 || !outflow_)
+        {
+          jacFlux_.scalar2vectorialBoundaryFlux(normal,
+                                                penaltyFactor,
+                                                phi_[ jj ],
+                                                dphi_[ jj ],
+                                                aLeft,
+                                                bLeft);
+        }
+      for( size_t ii = 0; ii < numScalarBf ; ++ii )
+        {
+          MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                              phi_,
+                                                              phi_,
+                                                              fluxLeft,
+                                                              ii,
+                                                              jj,
+                                                              weightInside,
+                                                              jLocal );
+          if( boundaryIndex==1 || !outflow_)
+            for(int i  = 0; i  < dimDomain ; ++i )
+              {
+                int global_i=ii*dimRange+1+i;
+                for(int j  = 0 ; j  < dimDomain ; ++j )
+                  {
+                    int global_j= jj*dimRange+1+j;
+                    double valueEn;
+
+                    valueEn=aLeft[ j ][ i ]*dphi_[ ii ][ 0 ];
+                    valueEn+=bLeft[ j ][ i ]*phi_[ ii ];
+
+                    jLocal.add( global_i , global_j , weightInside*valueEn*0.5);
+                  }
+                }
+            }
+    }
+
+}
+
  
 
 

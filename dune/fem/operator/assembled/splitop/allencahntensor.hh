@@ -135,6 +135,7 @@ public PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   using BaseType::lastSpeed_;
   using BaseType::areaEn_;
   using BaseType::areaNb_;
+  using BaseType::outflow_;
   private:
   const JacobianFluxType jacFlux_;
   const double imexFactor_;
@@ -162,6 +163,8 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
   const size_t numQuadraturePoints = quadrature.nop();
   uEn_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, uEn_);
+
+
   duEn_.resize(numQuadraturePoints); 
   uLocal.evaluateQuadrature( quadrature, duEn_);
   
@@ -384,6 +387,40 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
                    const BasisFunctionSetType& baseSet,
                    LocalMatrixType& jLocal) const
 {
+  const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+  const DomainType normal = intersection.integrationOuterNormal( x );
+  size_t boundaryIndex=intersection.boundaryId();
+
+  // compute penalty factor
+  const double intersectionArea = normal.two_norm();
+  const double localwidth = lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea;
+  const double penaltyFactor = 1./localwidth;
+
+  const double weightInside=quadInside.weight( pt );
+  const int numScalarBf=baseSet.size()/dimRange;
+
+  TensorRangeType fluxLeft(0.);
+
+  jacFlux_.boundaryFlux( normal,
+                         localwidth,
+                         uEn_[pt],
+                         fluxLeft);
+
+  for( size_t jj=0 ; jj < numScalarBf ; ++jj)
+    {
+      for( size_t ii = 0; ii < numScalarBf ; ++ii )
+        {
+          MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
+                                                              phi_,
+                                                              phi_,
+                                                              fluxLeft,
+                                                              ii,
+                                                              jj,
+                                                              weightInside,
+                                                              jLocal );
+        }
+    }
+
 
 }
  
