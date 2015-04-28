@@ -105,6 +105,36 @@ void axpyElement ( Couplings& couplings,
 }
 
 
+template< class Alignment,class JacobianVector,class DiffusionTensor, class LocalMatrix>
+void diffusionaxpy( const size_t local_i,
+                    const size_t local_j,
+                    const size_t dimDomain,
+                    const JacobianVector& dphi,
+                    const DiffusionTensor du,
+                    const double weight,
+                    LocalMatrix& jLocal)
+{
+   //for each velocomponent
+  for( size_t ii = 0 ; ii < dimDomain ; ++ii )
+    {
+      size_t global_i= Alignment::vectorialIndex( 1 + ii , local_i);
+      for( size_t jj = 0 ; jj < dimDomain; ++jj )
+        {
+          size_t global_j = Alignment::vectorialIndex( 1 + jj , local_j);
+          double  value(0);
+          value=du[ jj ][ ii ]*dphi[ local_i ][ 0 ];
+
+          jLocal.add( global_i , global_j ,0.5*value*weight );
+        }
+     }
+}
+
+
+
+
+
+
+
 template< class Matrix1, class Matrix2>
 void add( const Matrix1& m1, Matrix2& m2)
 {
