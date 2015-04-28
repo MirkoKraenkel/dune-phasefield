@@ -16,7 +16,8 @@ class PhasefieldModel
     typedef Problem ProblemType;
     typedef Grid GridType;
     enum{ dimDomain = GridType::dimensionworld };
-
+    enum{ dimAcRange = ProblemType::dimRange/2};
+    enum{ dimNvStRange=ProblemType::dimRange/2};
     enum{ dimRange = ProblemType::dimRange };
 
     typedef typename ProblemType::ThermodynamicsType ThermodynamicsType;
