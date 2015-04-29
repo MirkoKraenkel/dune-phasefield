@@ -13,7 +13,7 @@ fem.solver.newton.assemblesteps: 1
 fem.solver.newton.maxlineariterations: 100
 fem.differenceoperator.eps: 1 
 phasefield.fdjacobian.epsilon: 0 
-#phasefield.maximaltimesteps: 0
+phasefield.maximaltimesteps: 20
 phasefield.mixed.theta: 0
 phasefield.maxTimeStep: 1e-3
 

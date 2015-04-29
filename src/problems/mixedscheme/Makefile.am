@@ -15,7 +15,7 @@ GRIDTYPE = SPGRID
 #GRIDTYPE = ALUGRID_CONFORM
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM = 1 
-POLORDER = 1 
+POLORDER = 2 
 PROBLEM = 4 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
