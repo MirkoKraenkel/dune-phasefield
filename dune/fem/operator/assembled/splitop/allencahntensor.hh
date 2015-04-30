@@ -113,8 +113,8 @@ public PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction,Model,Flux>
                             const BasisFunctionSetType& baseSet,
                             const BasisFunctionSetType& baseSetNb,
                             LocalMatrixType& jLocal,
-                            LocalMatrixType& jocalEnNb,
-                            LocalMatrixType& jLocalNbEn,
+                            LocalMatrixType& jocalNbEn,
+                            LocalMatrixType& jLocalEnNb,
                             LocalMatrixType& jLocalNbNb) const;
                                      
        
@@ -237,7 +237,7 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
       for( size_t kk = 0 ; kk < dimDomain ; ++kk )
         {
           //\nabla phi_phi\cdot v
-          flux[ 0 ][ 0 ]+=0.5*dphi_[ jj ][0][kk]*uAdd[ 1+ kk];
+          flux[ 0 ][ 0 ]+=dphi_[ jj ][0][kk]*uAdd[ 1+ kk];
  
           //(sigma,gradphi)
           flux[ 2+kk ][ 0 ]-=dphi_[ jj ][ 0 ][ kk ];
@@ -246,7 +246,7 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
           flux[ 2+kk ][ 2+kk]=phi_[ jj ][ 0 ];
 
           //(tau, gradsigma)
-          flux[ 1 ][ 2+kk ]+=model_.delta()*0.5*dphi_[ jj ][ 0 ][ kk ];
+          flux[ 1 ][ 2+kk ]+=model_.delta()*dphi_[ jj ][ 0 ][ kk ];
         }
 
         // phi_phi/deltaT
@@ -286,8 +286,8 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
                        const BasisFunctionSetType& baseSet,
                        const BasisFunctionSetType& baseSetNb,
                        LocalMatrixType& jLocal,
-                       LocalMatrixType& jLocalEnNb,
                        LocalMatrixType& jLocalNbEn,
+                       LocalMatrixType& jLocalEnNb,
                        LocalMatrixType& jLocalNbNb) const
 {
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
@@ -301,7 +301,13 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
 
   const double weightInside=quadInside.weight( pt ); 
   const double weightOutside=quadOutside.weight( pt ); 
-   const int numScalarBf=baseSet.size()/dimRange;
+ const int numScalarBf=baseSet.size()/dimRange;
+  MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi_ );
+  MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi_);
+
+  MatrixHelper::evaluateScalarAll( quadOutside[ pt ], baseSetNb.shapeFunctionSet(), phiNb_);
+  MatrixHelper::jacobianScalarAll( quadOutside[ pt ], geometryNb, baseSetNb.shapeFunctionSet(), dphiNb_);
+
 
   TensorRangeType fluxLeft(0.), fluxRight(0.);
   TensorRangeType fluxLeftNeg(0.), fluxRightNeg(0.);
@@ -315,11 +321,10 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
                           addNb_[pt],
                           fluxLeft,
                           fluxRight);
-  
   DomainType negnormal=normal;
-  
+
   negnormal*=-1;
-  
+
   jacFlux_.numericalFlux( negnormal,
                           localwidth,
                           penaltyFactor,
@@ -351,7 +356,7 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
                                                                   jj,
                                                                   weightInside,
                                                                   jLocalNbEn );
-
+              
               MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
                                                                   phiNb_,
                                                                   phi_,
