@@ -76,11 +76,10 @@ void axpyIntersection ( Couplings& couplings,
     { 
       auto rowcomp=coupling.first;
       auto colcomp=coupling.second;
-      
+
       auto i = Alignment::vectorialIndex( rowcomp , local_i );
       auto j = Alignment::vectorialIndex( colcomp , local_j );
-
-     localMatrix.add( i,j,fluxValue[ rowcomp ][ colcomp ]*phiRow[ local_i ][0]*phiCol[ local_j ][0]*factor);
+      localMatrix.add( i,j,fluxValue[ rowcomp ][ colcomp ]*phiRow[ local_i ][0]*phiCol[ local_j ][0]*factor);
     }
 }
 
@@ -229,7 +228,7 @@ template< int dimRange>
 class AcCouplings
 {
   static const int couplingSize = 2*dimRange+dimRange*dimRange+4;
-  static const int intersectionCouplingSize = 2*dimRange+dimRange*dimRange+2 ;
+  static const int intersectionCouplingSize = dimRange+dimRange*dimRange+2 ;
 
   typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
   typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
