@@ -187,8 +187,8 @@ void MatrixOperator< Operator , Tensor, Jacobian >
                                      baseSet,
                                      baseSetNb,
                                      jLocal,
-                                     jLocalEnNb,
                                      jLocalNbEn,
+                                     jLocalEnNb,
                                      jLocalNbNb);
                                      
                                      
@@ -308,7 +308,7 @@ MatrixOperator< Operator , Tensor, Jacobian >
                     uLocal,
                     jLocal );
  
-   MatrixHelper::add(jLocal, realLocal);
+    MatrixHelper::add(jLocal, realLocal);
     
     jLocal.clear();
     if (space().continuous() )
@@ -333,6 +333,7 @@ MatrixOperator< Operator , Tensor, Jacobian >
                 jLocal.clear();
                 LocalMatrixType jLocalNbEn( dfSpace,dfSpace);
                 jLocalNbEn.init( neighbor, entity);
+                
                 jLocalNbEn.clear();
                 LocalMatrixType jLocalEnNb( dfSpace, dfSpace);
                 jLocalEnNb.init( entity, neighbor);
