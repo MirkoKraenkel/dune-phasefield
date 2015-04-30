@@ -176,15 +176,15 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
           invOp(start_,U);
           errorNvSt=l2norm.distance(U, Uold);
           dgACOperator_.integrator().setAddVariables(U);
-           start_.clear();
+          start_.clear();
           invOp2(start_,UAc);
-           errorAc=l2norm.distance(UAc,UAcOld);
+          errorAc=l2norm.distance(UAc,UAcOld);
           Uold.assign(U);
           UAcOld.assign(UAc);
           ++counter;
       }
       while( errorAc>itertol_ || errorNvSt> itertol_);
-      std::cout<<"counter="<<counter<<"\n";
+      //std::cout<<"counter="<<counter<<"\n";
       //reset overall timer
       overallTimer_.reset();
 
