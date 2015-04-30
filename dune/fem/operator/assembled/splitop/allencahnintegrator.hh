@@ -56,7 +56,6 @@ class PhasefieldAllenCahnIntegrator
                               const DiscreteFunctionSpaceType& space):
                               model_( model),
                               flux_( model ),
-                              theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
                               time_(0.),
                               deltaT_(0.),
                               deltaTInv_(0.),
@@ -72,8 +71,8 @@ class PhasefieldAllenCahnIntegrator
                               minArea_( std::numeric_limits<double>::max() )
       {
         uOld_.clear();
-        factorImp_=0.5*(1+theta_);
-        factorExp_=0.5*(1-theta_);
+        factorImp_=1;
+        factorExp_=0;
       }
   
   
@@ -146,7 +145,6 @@ class PhasefieldAllenCahnIntegrator
   protected:
   ModelType model_;    
   NumericalFluxType flux_;
-  const double  theta_;
   double time_;
   double deltaT_;
   double deltaTInv_;
@@ -184,24 +182,18 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
   const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
   const DomainType xgl = geometry.global(x);
-  RangeType vuOld,vuMid(0);
+  RangeType vuOld;
   AddRangeType vuAdd;
 
   //this should stay instide local Integral as it is operator specific
   uOldLocal_.evaluate( quadrature[ pt ], vuOld); 
   addLocal_.evaluate( quadrature[ pt ], vuAdd);
   double deltaInv=1./deltaT_;
-  //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
-  vuMid.axpy(factorImp_,vu);
-  vuMid.axpy(factorExp_,vuOld);
 
-  JacobianRangeType duOld,duMid ;
+  JacobianRangeType duOld;
   AddJacobianRangeType duAdd;
   uOldLocal_.jacobian( quadrature[ pt ], duOld);
   addLocal_.jacobian( quadrature[pt],duAdd);
-  //(1+theta)/2*DU^n+(1-theta)/2*DU^(n-1)
-  duMid.axpy(factorImp_,du);
-  duMid.axpy(factorExp_,duOld);
 
   CombinedRangeType  source(0.);
   model_.systemSource(time_, xgl, source);        
@@ -215,7 +207,7 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   // \nabla phi\cdot v
   for( int ii = 0; ii < dimDomain ; ++ii ) 
   { 
-    transport+=AddFilter::velocity( vuAdd , ii )*Filter::dphi(duMid, ii );
+    transport+=AddFilter::velocity( vuAdd , ii )*Filter::dphi(du, ii );
   }
   Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vu )/AddFilter::rho(vuAdd);
 
@@ -243,14 +235,14 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction,Model,Flux>
     {
 #if RHOMODEL
 #if LAMBDASCHEME 
-      divsigma+=Filter::dalpha( duMid, ii , ii );
+      divsigma+=Filter::dalpha( du, ii , ii );
 #else
     #warning "USE RHOMODEL ONLY WITH LAMBDASCHEME"
     #error
     abort();
 #endif
 #else
-      divsigma+=Filter::dsigma( duMid, ii , ii );
+      divsigma+=Filter::dsigma( du, ii , ii );
 #endif
     }
 #if RHOMODEL && !LAMBDASCHEME
@@ -303,8 +295,8 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
                         JacobianRangeType& aduLeft,
                         JacobianRangeType& aduRight) const
 {
-  RangeType vuOldEn(0.),vuMidEn(0.),vuOldNb(0.),vuMidNb(0.), vuAddEn(0.),vuAddNb(0.);
-  JacobianRangeType duOldEn(0.),duOldNb(0.),duMidEn(0.), duMidNb(0.),duAddEn(0.),duAddNb(0.);
+  RangeType vuOldEn(0.),vuOldNb(0.), vuAddEn(0.),vuAddNb(0.);
+  JacobianRangeType duOldEn(0.),duOldNb(0.),duAddEn(0.),duAddNb(0.);
 
   //calc vuOldEn....
   uOldLocal_.evaluate( quadInside[ pt ] , vuOldEn );
@@ -312,16 +304,6 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
   //calc vuAddEn..
   addLocal_.evaluate( quadInside[ pt ] , vuAddEn );
   addNeighbor_.evaluate( quadOutside[ pt ] , vuAddNb );
-  
-
-  vuMidEn.axpy( factorImp_ , vuEn );
-  vuMidEn.axpy( factorExp_ , vuOldEn );
-
-  vuMidNb.axpy( factorImp_ , vuNb );
-  vuMidNb.axpy( factorExp_ , vuOldNb);
-
-
-
 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
 
@@ -335,16 +317,14 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 
   JacobianRangeType dvalue(0.),advalue(0.);
   flux_.numericalFlux( normal,
-                              area,
-                              penaltyFactor,
-                              vuEn,
-                              vuNb,
-                              vuMidEn,  
-                              vuMidNb, 
-                              vuAddEn,
-                              vuAddNb,
-                              avuLeft,
-                              avuRight); 
+                       area,
+                       penaltyFactor,
+                       vuEn,
+                       vuNb,
+                       vuAddEn,
+                       vuAddNb,
+                       avuLeft,
+                       avuRight); 
  
   
 }
@@ -363,14 +343,12 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 
   size_t boundaryIndex=intersection.boundaryId();
 
-  RangeType vuOldEn(0.),vuMidEn(0.),vuAddEn(0), bndValue(0.);
+  RangeType vuOldEn(0.),vuAddEn(0), bndValue(0.);
   
   //calc vuOldEn....
   uOldLocal_.evaluate( quadInside[ pt ] , vuOldEn );
   addLocal_.evaluate( quadInside[ pt ],vuAddEn);
   
-  vuMidEn.axpy( factorImp_ , vuEn );
-  vuMidEn.axpy( factorExp_ , vuOldEn );
 
 
 
@@ -390,7 +368,7 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
       flux_.boundaryFlux( normal,
                           area,
                           vuEn,
-                          vuMidEn,
+                          vuEn,
                           vuAddEn,
                           gLeft);
     }
@@ -399,7 +377,7 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
       flux_.outFlowFlux( normal,
                          area,
                          vuEn,
-                         vuMidEn,
+                         vuEn,
                          vuAddEn,
                          gLeft);
 
