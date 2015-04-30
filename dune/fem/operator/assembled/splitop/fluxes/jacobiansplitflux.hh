@@ -84,7 +84,7 @@ void AllenCahnJacobianFlux<Model>
                 FluxRangeType& gLeft,
                 FluxRangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn(0.), midNb(0.),jump,jumpImEx,mean, jumpPhi(0.);
+      RangeType jump ;
       double integrationElement=normal.two_norm();
   
       gLeft=0.;
@@ -93,9 +93,6 @@ void AllenCahnJacobianFlux<Model>
       jump = vuEn;
       jump-= vuNb;
  
-      mean = vuEn ;
-      mean+= vuNb;
-      mean*=0.5;
       
       
       //rho-------------------------------------------------------------
@@ -104,17 +101,16 @@ void AllenCahnJacobianFlux<Model>
 
       for(int ii = 0; ii < dimDomain ; ++ii )
         {
-
           //F_{3.1}
-
           //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5
-          gRight[ phi ][ phi ]+=normal[ ii ]*addEn[ 1 + ii ]*0.25;
-
+          gLeft[ phi ][ phi ]=normal[ ii ]*addEn[ 1 + ii ]*-0.5;
+          gRight[ phi ][ phi ]=normal[ ii ]*addEn[ 1 + ii ]*0.5;
+          
           //tau
           //F_{3.2}
           //(\sigma^+-\sigma^-)\cdot n * 0.5
-          laplaceFluxLeft=normal[ ii ]*0.25;
-          laplaceFluxRight=normal[ ii ]*-0.25;
+          laplaceFluxLeft=normal[ ii ]*0.5;
+          laplaceFluxRight=normal[ ii ]*-0.5;
           
           double penaltyTerm=acpenalty_;
           penaltyTerm*=penaltyFactor;
@@ -124,14 +120,14 @@ void AllenCahnJacobianFlux<Model>
           gLeft[ tau ][ sigma+ii ]=-model_.delta()*laplaceFluxLeft;
           gRight[ tau ][ sigma+ii ]=-model_.delta()*laplaceFluxRight;
           //factor 0.5 comes from linerarization of 1/2(phi^(n+1)+phi^n)
-          gLeft[ tau ][ phi ]=-model_.delta()*0.5*penaltyTerm;
-          gRight[ tau ][ phi ]=model_.delta()*0.5*penaltyTerm; 
-
+          gLeft[ tau ][ phi ]=-model_.delta()*penaltyTerm;
+          gRight[ tau ][ phi ]=model_.delta()*penaltyTerm; 
+          
           //F_4
           //(\phi^+-\phi^-)\normal*0.5
           gLeft[ sigma + ii ][ phi ]=normal[ ii ]*0.5;
           gRight[ sigma + ii ][ phi ]=normal[ ii ]*-0.5;
-       }
+        }
   }
 
 
@@ -171,8 +167,8 @@ public:
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuNb,
-                        const RangeType& vuEnImEx,
-                        const RangeType& vuNbImEx,
+                        const RangeType& vuEnAdd,
+                        const RangeType& vuNbAdd,
                         FluxRangeType& gLeft,
                         FluxRangeType& gRight) const;
 
@@ -268,28 +264,21 @@ void  NavierStokesJacobianFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double area,
                 const double penaltyFactor,
-                const RangeType& vuEnMid,
-                const RangeType& vuNbMid,
-                const RangeType& vuEnImEx,
-                const RangeType& vuNbImEx,
+                const RangeType& vuEn,
+                const RangeType& vuNb,
+                const RangeType& vuEnAdd,
+                const RangeType& vuNbAdd,
                 FluxRangeType& gLeft,
                 FluxRangeType& gRight) const
   {
-      RangeType valEn,valNb,midEn(0.), midNb(0.),jump,jumpImEx,mean, jumpPhi(0.);
+      RangeType valEn,valNb,jump,mean;
   
       gLeft=0.;
       gRight=0.;
 
-      midEn=vuEnMid;
-      midNb=vuNbMid;
-      jump = midEn;
-      jump-= midNb;
-      jumpImEx = vuEnImEx;
-      jumpImEx-= vuNbImEx;
+      jump = vuEn;
+      jump-= vuNb;
  
-      mean = midEn ;
-      mean+= midNb;
-      mean*=0.5;
       
       
       //rho-------------------------------------------------------------
@@ -299,46 +288,38 @@ void  NavierStokesJacobianFlux<Model>
       for(int ii = 0; ii < dimDomain ; ++ii )
         {
           //v^+\cdot n^+
-          vNormalEn+=midEn[ 1 + ii ]*normal[ ii ];
+          vNormalEn+=vuEn[ 1 + ii ]*normal[ ii ];
           //v^-\cdot n^+
-          vNormalNb+=midNb[ 1 + ii ]*normal[ ii ];
-          gLeft[ 0 ][ 1 + ii ]  = -0.25*normal[ ii ]*midEn[ 0 ];
-          gRight[ 0 ][ 1 + ii ] =  0.25*normal[ ii ]*midNb[ 0 ];
+          vNormalNb+=vuNb[ 1 + ii ]*normal[ ii ];
+          gLeft[ 0 ][ 1 + ii ]  = -0.5*normal[ ii ]*vuEn[ 0 ];
+          gRight[ 0 ][ 1 + ii ] =  0.5*normal[ ii ]*vuNb[ 0 ];
 
-
+ 
            //(\rho_j,\mu*,\v_i)
-          gLeft[ 1 + ii ][ 0 ]=-0.5*jumpImEx[ dimDomain + 2 ]*normal[ ii ];
+          gLeft[ 1 + ii ][ 0 ]=-1*jump[ dimDomain + 1 ]*normal[ ii ];
+
           //(\rho*,\mu_j,\v_i)
-          gLeft[ 1 + ii ][ dimDomain + 2 ]=-imexFactor_*normal[ ii ]*midEn[ 0 ];
-          gRight[ 1 + ii ][ dimDomain + 2 ]=imexFactor_*normal[ ii ]*midEn[ 0 ]; 
-          //(\phi*,\tau_j,v_i)
-          gLeft[ 1 + ii ][ dimDomain + 3 ]=jump[ dimDomain + 1 ]*normal[ ii ]*imexFactor_;
-          //(\phi_j,\tau*,v_i)
-          gLeft[ 1 + ii ][ dimDomain + 1] =0.5*normal[ ii ]*vuEnImEx[ dimDomain + 3 ];
-          gRight[ 1 + ii ][ dimDomain + 1 ]=-0.5*normal[ ii ]*vuEnImEx[ dimDomain + 3 ];
+          gLeft[ 1 + ii ][ dimDomain + 1 ]=-1*normal[ ii ]*vuEn[ 0 ];
+          gRight[ 1 + ii ][ dimDomain + 1 ]=normal[ ii ]*vuEn[ 0 ]; 
 
           gLeft[ 1 + ii ]*=0.5;
           gRight[ 1 + ii ]*=0.5;
 
-          //F_{3.1}
-
-          //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5
-          ////gLeft[ dimDomain + 1 ][ dimDomain + 1 ]+=normal[ ii ]*midEn[ 1 + ii ]*-0.25;
-
+ 
+ 
        }
   
-
+ 
       //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)
-      gLeft[ 0 ][ 0 ]=-0.25*vNormalEn;
+      gLeft[ 0 ][ 0 ]=-0.5*vNormalEn;
       //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5
-      gRight[ 0 ][ 0 ]=0.25*vNormalNb;
-       //[[mu]]
-      gLeft[ 0 ][ dimDomain+2 ]=0.5*numViscMu_*area;
-      gRight[ 0 ][ dimDomain+2 ]=-0.5*numViscMu_*area;
+      gRight[ 0 ][ 0 ]=0.5*vNormalNb;
+      //[[mu]]
+      gLeft[ 0 ][ dimDomain+1 ]=0.5*numViscMu_*area;
+      gRight[ 0 ][ dimDomain+1 ]=-0.5*numViscMu_*area;
       //[[rho]]
-      gLeft[ 0 ][ dimDomain +1 ]=0.5*numVisc_*area;
-      gRight[ 0 ][ dimDomain +1 ]=-0.5*numVisc_*area;
-
+      gLeft[ 0 ][ 0 ]+=0.5*numVisc_*area;
+      gRight[ 0 ][0]+=-0.5*numVisc_*area;
       //----------------------------------------------------------------
 
   }
