@@ -34,8 +34,6 @@ public:
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
-                        const RangeType& vuEnOld,
-                        const RangeType& vuNbOld,
                         const RangeType& addEn,
                         const RangeType& addNb,
                         RangeType& gLeft,
@@ -72,10 +70,9 @@ void AcMixedFlux<Model>
                const RangeType& addEn,
                RangeType& gLeft) const
   {
-    RangeType midEn,valEn,addValEn;
+    RangeType valEn,addValEn;
     valEn=vuEn;
     addValEn=addEn; 
-    midEn=vuMidEn;
 
     gLeft=0.;
 
@@ -88,17 +85,17 @@ void AcMixedFlux<Model>
 #if RHOMODEL
 #if LAMBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
-        laplaceFlux-=(Filter::alpha(midEn,i))*normal[i];
+        laplaceFlux-=(Filter::alpha(valEn,i))*normal[i];
 
 #else
         //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
-        laplaceFlux-=Filter::sigma(midEn,i)*model_.h2(AddFilter::rho(addValEn))*normal[i];
+        laplaceFlux-=Filter::sigma(valEn,i)*model_.h2(AddFilter::rho(addValEn))*normal[i];
 #endif
 
 #else
         //F_{3.2}
         //(\sigma^+-\sigma^-)\cdot n * 0.5
-        laplaceFlux-=Filter::sigma(midEn,i)*normal[i];
+        laplaceFlux-=Filter::sigma(valEn,i)*normal[i];
 #endif
       }
 
@@ -130,10 +127,9 @@ void AcMixedFlux<Model>
                const RangeType& addEn,
                RangeType& gLeft) const
   {
-    RangeType midEn,valEn,addValEn;
+    RangeType valEn,addValEn;
     valEn=vuEn;
     addValEn=addEn;
-    midEn=vuMidEn;
 
     gLeft=0.;
 
@@ -146,17 +142,17 @@ void AcMixedFlux<Model>
 #if RHOMODEL
 #if LAMBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
-        laplaceFlux-=(Filter::alpha(midEn,i))*normal[i];
+        laplaceFlux-=(Filter::alpha(valEn,i))*normal[i];
         
 #else
         //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
-        laplaceFlux-=Filter::sigma(midEn,i)*model_.h2(AddFilter::rho(addValEn))*normal[i];
+        laplaceFlux-=Filter::sigma(valEn,i)*model_.h2(AddFilter::rho(addValEn))*normal[i];
 #endif
 
 #else
         //F_{3.2}
         //(\sigma^+-\sigma^-)\cdot n * 0.5
-        laplaceFlux-=Filter::sigma(midEn,i)*normal[i];
+        laplaceFlux-=Filter::sigma(valEn,i)*normal[i];
 #endif
       }  
   
@@ -192,14 +188,12 @@ void AcMixedFlux<Model>
                 const double penaltyFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
-                const RangeType& vuEnMid,
-                const RangeType& vuNbMid,
                 const RangeType& addEn,
                 const RangeType& addNb,
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-    RangeType valEn,valNb,midEn,midNb,jump,mean,jumpNew,addValEn,addValNb;
+    RangeType valEn,valNb,jump,addValEn,addValNb;
     valEn=vuEn;
     valNb=vuNb;
     addValEn=addEn;
@@ -209,19 +203,10 @@ void AcMixedFlux<Model>
     gLeft=0.;
     gRight=0.;
 
-
-    midEn=vuEnMid;
-    midNb=vuNbMid;
-    jump = midEn;
-    jump-= midNb;
-    mean = midEn ;
-    mean+= midNb;
-    mean*=0.5;
+    jump = valEn;
+    jump-= valNb;
    
-    jumpNew=valEn;
-    jumpNew-=valNb;
-   
-   double laplaceFlux(0.);
+    double laplaceFlux(0.);
     //phi-------------------------------------------------------------
     for(int i = 0; i<dimDomain;++i)
       {
@@ -236,10 +221,10 @@ void AcMixedFlux<Model>
 #if RHOMODEL
 #if LAMBDASCHEME
         //(\lambda^+-\lambda^-)\cdot n * 0.5
-        laplaceFlux+=(Filter::alpha(midEn,i)-Filter::alpha(midNb,i))*normal[i]*0.5;
+        laplaceFlux+=(Filter::alpha(valEn,i)-Filter::alpha(valNb,i))*normal[i]*0.5;
 #else
         //(h2(rho^+)\sigma^+-h2(rho^-)\sigma^-)\cdot n * 0.5
-        laplaceFlux+=(Filter::sigma(midEn,i)*model_.h2(AddFilter::rho(addValEn))-Filter::sigma(midNb,i)*model_.h2(AddFilter::rho(addValNb)))*normal[i]*0.5;
+        laplaceFlux+=(Filter::sigma(valEn,i)*model_.h2(AddFilter::rho(addValEn))-Filter::sigma(valNb,i)*model_.h2(AddFilter::rho(addValNb)))*normal[i]*0.5;
 #endif
 #else
         //F_{3.2}
@@ -307,8 +292,6 @@ public:
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
-                        const RangeType& vuEnOld,
-                        const RangeType& vuNbOld,
                         const RangeType& addEn,
                         const RangeType& addNb,
                         RangeType& gLeft,
@@ -362,10 +345,9 @@ void NvStMixedFlux<Model>
                const RangeType& vuMidEn,
                RangeType& gLeft) const
   {
-    RangeType midEn,valEn;
+    RangeType valEn;
     valEn=vuEn;
 
-    midEn=vuMidEn;
 
     gLeft=0.;
 
@@ -375,10 +357,10 @@ void NvStMixedFlux<Model>
   
     for(int i = 0; i<dimDomain;++i)
       {
-        vNormalEn+=Filter::velocity(midEn,i)*normal[i];
+        vNormalEn+=Filter::velocity(valEn,i)*normal[i];
       }
 
-    Filter::rho(gLeft)=-1*vNormalEn*Filter::rho(midEn);
+    Filter::rho(gLeft)=-1*vNormalEn*Filter::rho(valEn);
   
     //----------------------------------------------------------------
     
@@ -417,14 +399,12 @@ void NvStMixedFlux<Model>
                 const double penaltyFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
-                const RangeType& vuEnMid,
-                const RangeType& vuNbMid,
                 const RangeType& addEn,
                 const RangeType& addNb,
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-    RangeType valEn,valNb,midEn,midNb,jump,mean,jumpNew,jumpAdd,addValEn,addValNb;
+    RangeType valEn,valNb,jump,mean,jumpNew,jumpAdd,addValEn,addValNb;
     valEn=vuEn;
     valNb=vuNb;
     addValEn=addEn;
@@ -434,18 +414,11 @@ void NvStMixedFlux<Model>
     gRight=0.;
 
 
-    midEn=vuEnMid;
-    midNb=vuNbMid;
-    jump = midEn;
-    jump-= midNb;
+    jump = vuEn;
+    jump-= vuNb;
     jumpAdd=addEn;
     jumpAdd-=addNb;
-    mean = midEn ;
-    mean+= midNb;
-    mean*=0.5;
    
-    jumpNew=valEn;
-    jumpNew-=valNb;
     //rho-------------------------------------------------------------
  
     double vNormalEn(0.),vNormalNb(0.);
@@ -453,14 +426,15 @@ void NvStMixedFlux<Model>
     for(int i = 0; i<dimDomain;++i)
       {
         //v^+\cdot n^+
-        vNormalEn+=Filter::velocity(midEn,i)*normal[i];
+        vNormalEn+=Filter::velocity(valEn,i)*normal[i];
         //v^-\cdot n^+
-        vNormalNb+=Filter::velocity(midNb,i)*normal[i];
+        vNormalNb+=Filter::velocity(valNb,i)*normal[i];
       }
     
     //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
     //Filter::rho(gLeft)=vNormalEn-vNormalNb;
-    Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
+    Filter::rho(gLeft)=vNormalEn*Filter::rho(valEn)-vNormalNb*Filter::rho(valNb);
+    
     Filter::rho(gLeft)*=-0.5;
      
     double viscmu=Filter::rho(jump);
@@ -479,11 +453,11 @@ void NvStMixedFlux<Model>
       { 
         //F_2=F_{2.1}+F_{2.2}
         //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-        Filter::velocity(gLeft,i)-=Filter::mu(jumpNew)*normal[i]*Filter::rho(midEn)*0.5;
-        Filter::velocity(gRight,i)-=Filter::mu(jumpNew)*normal[i]*Filter::rho(midNb)*0.5;
+        Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(valEn)*0.5;
+        Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(valNb)*0.5;
 
         //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
-        Filter::velocity(gLeft,i)+= AddFilter::phi(jumpAdd)*normal[i]*AddFilter::tau(addValEn)*0.5;
+        Filter::velocity(gLeft,i)+=AddFilter::phi(jumpAdd)*normal[i]*AddFilter::tau(addValEn)*0.5;
         Filter::velocity(gRight,i)+=AddFilter::phi(jumpAdd)*normal[i]*AddFilter::tau(addValNb)*0.5;
       } 
     
