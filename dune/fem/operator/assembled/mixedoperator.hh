@@ -338,7 +338,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
 
     setEntity( entity );
     RangeType vu(0.),avu(0.);
-    JacobianRangeType du{0.},adu{0.};
+    JacobianRangeType du(0.),adu(0.);
     
     LocalFunctionType wLocal = w.localFunction( entity );
     const int quadOrder =2*space().order(entity);
@@ -400,7 +400,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
             for( size_t pt=0; pt < numQuadraturePoints; ++pt )
               {
                 RangeType vuEn(0.),avuLeft(0.);
-                JacobianRangeType duEn{0.},aduLeft{0.};
+                JacobianRangeType duEn(0.),aduLeft(0.);
                 uLocal.evaluate( quadInside[ pt ], vuEn);
                 uLocal.jacobian( quadInside[ pt ], duEn);
                 //const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
@@ -497,7 +497,7 @@ void DGPhasefieldOperator<DiscreteFunction, Model,Flux>
   for( size_t pt=0; pt < numQuadraturePoints; ++pt )
   {
     RangeType vuEn(0.),vuNb(0.),avuLeft(0.),avuRight(0.);
-    JacobianRangeType duEn{0.},duNb{0.},aduLeft{0.}, aduRight{0.};
+    JacobianRangeType duEn(0.),duNb(0.),aduLeft(0.), aduRight(0.);
     uLocal.evaluate( quadInside[ pt ], vuEn);
     uLocal.jacobian( quadInside[ pt ], duEn);
     uNeighbor.evaluate( quadOutside[ pt ], vuNb);
