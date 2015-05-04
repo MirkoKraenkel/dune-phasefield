@@ -15,7 +15,7 @@ GRIDTYPE = SPGRID
 #GRIDTYPE = ALUGRID_CONFORM
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM = 1 
-POLORDER = 2 
+POLORDER = 1 
 PROBLEM = 4 # check ./problemtype.hh
 FLUX = 1 # check ./problemcreator.hh
 
@@ -24,25 +24,24 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefieldunbal phasefieldfd phasefieldlambdacp phasefieldlambdafd phasefieldfdrho#pfimp pflambdaimp pfrhoimp #phasefieldcoupling
+check_PROGRAMS = phasefield  phasefieldfd phasefieldsplit phasefieldsplitfd #pfimp pflambdaimp pfrhoimp #phasefieldcoupling
 
 phasefield_SOURCES = $(SOURCES)
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING -DIMPLICITTAU
 
-phasefieldunbal_SOURCES = $(SOURCES)
-phasefieldunbal_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DUNBALMODEL -DCOUPLING -DIMPLICITTAU
 
 phasefieldfd_SOURCES = $(SOURCES) 
 phasefieldfd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD  -DSPLIT -DSURFACE  -DIMPLICITTAU
 
-phasefieldlambdacp_SOURCES = $(SOURCES) 
-phasefieldlambdacp_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING -DRHO_H2CONSTMODEL -DIMPLICITTAU 
+phasefieldsplit_SOURCES = $(SOURCES)
+phasefieldsplit_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING -DSPLIT -DIMPLICITTAU
 
-phasefieldlambdafd_SOURCES = $(SOURCES) 
-phasefieldlambdafd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL -DIMPLICITTAU -DLAMBDASCHEME  -DBICG
- 
-phasefieldfdrho_SOURCES = $(SOURCES) 
-phasefieldfdrho_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD -DRHOMODEL  -DBICG
+
+phasefieldsplitfd_SOURCES = $(SOURCES) 
+phasefieldsplitfd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DFD  -DSPLIT -DSURFACE  -DIMPLICITTAU
+
+
+
 
 
 
