@@ -122,8 +122,8 @@ void diffusionaxpy( const size_t local_i,
           size_t global_j = Alignment::vectorialIndex( 1 + jj , local_j);
           double  value(0);
           value=du[ jj ][ ii ]*dphi[ local_i ][ 0 ];
-
-          jLocal.add( global_i , global_j ,0.5*value*weight );
+          //value* weight* 0.5 in semi implicit scheme
+          jLocal.add( global_i , global_j ,value*weight );
         }
      }
 }
