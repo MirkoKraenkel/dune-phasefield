@@ -7,7 +7,7 @@
 #include <dune/fem/operator/common/temporarylocalmatrix.hh>
 
 // local includes
-#include "../matrixhelper.hh"
+#include "matrixhelper.hh"
 template<class Operator,class Tensor, class Jacobian>
 class MatrixOperator:
 public Dune::Fem::DifferentiableOperator < Jacobian >
