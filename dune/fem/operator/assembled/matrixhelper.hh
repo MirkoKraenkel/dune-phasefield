@@ -230,8 +230,12 @@ class AcCouplings
   static const int couplingSize = 2*dimRange+dimRange*dimRange+4;
   static const int intersectionCouplingSize = dimRange+dimRange*dimRange+2 ;
 
-  typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
-  typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
+  //typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
+  //typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
+
+  typedef std::vector< std::pair< int , int > > ElementCouplingType;
+  typedef std::vector< std::pair< int , int > > IntersectionCouplingType;
+
 
 
 
@@ -291,8 +295,11 @@ class NvStCouplings
   static const int couplingSize = 4*dimRange+dimRange*dimRange+3;
   static const int intersectionCouplingSize = 3*dimRange+dimRange*dimRange+2;
 
-  typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
-  typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
+//  typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
+//  typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
+  typedef std::vector< std::pair< int , int > > ElementCouplingType;
+  typedef std::vector< std::pair< int , int > > IntersectionCouplingType;
+
 
 
 
