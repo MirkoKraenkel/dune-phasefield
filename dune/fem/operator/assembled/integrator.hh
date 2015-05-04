@@ -49,6 +49,7 @@ class PhasefieldMixedIntegrator
                               theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
                               time_(0.),
                               deltaT_(0.),
+                              deltaTInv_(0.),
                               maxSpeed_(0.),
                               lastSpeed_(1.),
                               uOld_("uOld" , space ),
@@ -82,7 +83,7 @@ class PhasefieldMixedIntegrator
   }
   
   void setTime( const double time) { time_=time;}
-  void setDeltaT( const double deltat) {deltaT_=deltat;}
+  void setDeltaT( const double deltat) {deltaT_=deltat;deltaTInv_=1./deltaT_;}
 
   double timeStepEstimate() { return std::min( minArea_/maxSpeed_,lipschitzC());}
 
@@ -124,12 +125,13 @@ class PhasefieldMixedIntegrator
                         RangeType& avuLeft,
                         JacobianRangeType& aduLeft) const;
 
-  private:
+  protected:
   ModelType model_;    
   NumericalFluxType flux_;
   const double  theta_;
   double time_;
   double deltaT_;
+  double deltaTInv_;
   mutable double maxSpeed_;
   mutable double lastSpeed_;
   double factorImp_;
