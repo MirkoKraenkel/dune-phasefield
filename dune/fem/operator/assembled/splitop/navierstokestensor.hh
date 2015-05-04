@@ -466,6 +466,9 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
 
   const double weightInside=quadInside.weight( pt );
   const int numScalarBf=baseSet.size()/dimRange;
+  MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi_ );
+  MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi_);
+
 
   TensorRangeType fluxLeft(0.);
 
