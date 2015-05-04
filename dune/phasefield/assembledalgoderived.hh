@@ -30,8 +30,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   typedef typename BaseType::TimeProviderType TimeProviderType; 
   typedef typename BaseType::AdaptationManagerType AdaptationManagerType;
   //Operator
-  typedef typename Traits :: IntegratorType IntegratorType;
-  typedef typename Traits :: WrappedOperatorType WrappedOperatorType;
+  typedef typename Traits :: PhasefieldIntegratorType IntegratorType;
+  typedef typename Traits :: PhasefieldOperatorType PhasefieldOperatorType;
   typedef typename Traits :: DiscreteOperatorType DiscreteOperatorType;
   typedef typename Traits :: JacobianOperatorType JacobianOperatorType;
  	typedef PhasefieldBoundaryCorrection<DiscreteFunctionType, ModelType> BoundaryCorrectionType;
@@ -55,26 +55,26 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   using BaseType::overallTimer_;
   using BaseType::tolerance_;
   private:
-    IntegratorType          integrator_;
-    WrappedOperatorType     wrappedOperator_;
-    DiscreteOperatorType    dgOperator_;
-    BoundaryCorrectionType  boundaryCorrection_;
-    DiscreteFunctionType    start_;
-    DiscreteScalarType      pressure_;
-    EstimatorType           estimator_;
-    EstimatorDataType       estimatorData_;
-    double                  surfaceEnergy_;
-    bool                    stepconverged_;
-    int                     maxNewtonIter_;
-    double                  timestepfactor_;
+  IntegratorType          integrator_;
+  PhasefieldOperatorType  pfOperator_;
+  DiscreteOperatorType    dgOperator_;
+  BoundaryCorrectionType  boundaryCorrection_;
+  DiscreteFunctionType    start_;
+  DiscreteScalarType      pressure_;
+  EstimatorType           estimator_;
+  EstimatorDataType       estimatorData_;
+  double                  surfaceEnergy_;
+  bool                    stepconverged_;
+  int                     maxNewtonIter_;
+  double                  timestepfactor_;
 
   public:
   //Constructor
   AssembledAlgorithm( GridType& gridImp):
       BaseType( gridImp ),
       integrator_( *model_ ,space()),
-      wrappedOperator_( integrator_, space()),
-      dgOperator_( wrappedOperator_, space()),
+      pfOperator_( integrator_, space()),
+      dgOperator_( pfOperator_, space()),
       boundaryCorrection_( *model_ , space()),
       start_( "start", space() ),
       pressure_( "pressure", energyspace()),
