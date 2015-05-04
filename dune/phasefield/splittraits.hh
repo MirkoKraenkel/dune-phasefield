@@ -1,5 +1,5 @@
-#ifndef FEMSCHEME_TRAITS_HH
-#define FEMSCHEME_TRAITS_HH
+#ifndef SPLITSCHEME_TRAITS_HH
+#define SPLITSCHEME_TRAITS_HH
 
 
 #include <dune/fem/space/common/functionspace.hh>
@@ -29,27 +29,23 @@
 #endif
 
 
-
-
-#if MATRIXFREE
-#include <dune/fem/util/oemwrapper.hh>
+#include <dune/fem/operator/assembled/splitop/navierstokesintegrator.hh>
+#include <dune/fem/operator/assembled/splitop/allencahnintegrator.hh>
 #include <dune/fem/operator/assembled/mixedoperator.hh>
-#elif FD 
-#include <dune/fem/operator/assembled/integrator.hh>
-#include <dune/fem/operator/assembled/mixedoperator.hh>
+
+#if FD
 #include <dune/fem/operator/assembled/localfdoperator.hh>
-#elif COUPLING 
-#include <dune/fem/operator/assembled/phasefieldmatrix.hh>
-#elif NSK
-#include <dune/fem/operator/assembled/nskmatrix.hh>
-#else
-#include <dune/fem/operator/assembled/mixedopjacobian.hh>
+#elif COUPLING
+#include <dune/fem/operator/assembled/splitop/fluxes/jacobiansplitflux.hh>
+#include <dune/fem/operator/assembled/splitop/allencahntensor.hh>
+#include <dune/fem/operator/assembled/splitop/navierstokestensor.hh>
+#include <dune/fem/operator/assembled/splitop/matrixoperator.hh>
 #endif
 
 //adaptation
 //#include <dune/fem/adaptation/jumpestimator.hh>
-#include <dune/fem/adaptation/rhosigmaestimator.hh>
-//#include <dune/fem/adaptation/mixedestimator.hh>
+//#include <dune/fem/adaptation/splitestimator.hh>
+#include <dune/fem/adaptation/mixedestimator.hh>
 
 template <class GridImp,
           class ProblemGeneratorImp,int polOrd>             
@@ -71,11 +67,15 @@ struct MixedAlgorithmTraits
   enum{ dimDomain = GridType::dimensionworld };
   
   //(rho,v_1...v_n,phi,mu,tau,sigma_1...sigma_n)
-  enum{ dimRange=ProblemGeneratorType::dimRange};
+  enum{ dimRange=ProblemGeneratorType::dimRange/2};
+  
   // problem dependent types 
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: InitialDataType  InitialDataType;
+  typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: NvStInitialDataType NvStInitialDataType;
+  typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: AcInitialDataType AcInitialDataType;
   typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: ModelType        ModelType;
-  typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: FluxType         FluxType;
+  typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: AcFluxType       AcFluxType;
+	typedef typename ProblemGeneratorType :: template Traits< GridPartType > :: NvStFluxType     NvStFluxType;
 	
   // FunctionSpaces
   typedef typename Dune::Fem::FunctionSpace<ctype, double, dimDomain,dimRange> FunctionSpaceType;
@@ -91,17 +91,24 @@ struct MixedAlgorithmTraits
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteScalarSpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
 #if FD 
-  typedef PhasefieldMixedIntegrator< DiscreteFunctionType, ModelType, FluxType > IntegratorType;
-  typedef DGOperator< DiscreteFunctionType ,IntegratorType > WrappedOperatorType;
-  typedef LocalFDOperator<WrappedOperatorType , JacobianOperatorType>  DiscreteOperatorType;
-#else 
-#if NSK
-  typedef NSKJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-#else
-  typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+  typedef PhasefieldAllenCahnIntegrator< DiscreteFunctionType,DiscreteFunctionType,ModelType,AcFluxType> ACIntegratorType;
+  typedef DGOperator< DiscreteFunctionType, ACIntegratorType> ACOperatorType;
+  typedef PhasefieldNavierStokesIntegrator< DiscreteFunctionType,DiscreteFunctionType,ModelType,NvStFluxType> NvStIntegratorType;
+  typedef DGOperator< DiscreteFunctionType, NvStIntegratorType> NvStOperatorType;
+  typedef LocalFDOperator< ACOperatorType, JacobianOperatorType> DiscreteAllenCahnOperatorType;
+  typedef LocalFDOperator< NvStOperatorType, JacobianOperatorType> DiscreteNavierStokesOperatorType;
+#elif COUPLING
+  typedef AllenCahnJacobianFlux<ModelType> AcJacFluxType; 
+  typedef PhasefieldAllenCahnTensor< DiscreteFunctionType,DiscreteFunctionType,ModelType,AcFluxType,AcJacFluxType> ACIntegratorType;
+  typedef DGOperator< DiscreteFunctionType, ACIntegratorType> ACOperatorType;
+  typedef MatrixOperator< ACOperatorType, ACIntegratorType, JacobianOperatorType> DiscreteAllenCahnOperatorType;
+  
+  typedef NavierStokesJacobianFlux<ModelType> NvStkJacFluxType;
+  typedef PhasefieldNavierStokesTensor< DiscreteFunctionType,DiscreteFunctionType,ModelType,NvStFluxType,NvStkJacFluxType>   NvStIntegratorType;
+  typedef DGOperator< DiscreteFunctionType, NvStIntegratorType> NvStOperatorType;
+  typedef MatrixOperator< NvStOperatorType, NvStIntegratorType, JacobianOperatorType> DiscreteNavierStokesOperatorType; 
 #endif
 #endif
-
 
 #if BICG
   typedef typename Dune::Fem::ISTLBICGSTABOp< DiscreteFunctionType, JacobianOperatorType > LinearSolverType; 
@@ -109,32 +116,15 @@ struct MixedAlgorithmTraits
   typedef typename Dune::Fem::ISTLGMResOp< DiscreteFunctionType , JacobianOperatorType > LinearSolverType;
 #endif
 
-#else  
-  typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteSpaceType> DiscreteFunctionType;
-  typedef typename Dune::Fem::AdaptiveDiscreteFunction<DiscreteScalarSpaceType> DiscreteScalarType;
 
   
-#if MATRIXFREE 
-  typedef OEMWrapper<DiscreteFunctionType> JacobianOperatorType;
-  typedef FDJacobianDGPhasefieldOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType> DiscreteOperatorType;
-  typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
-#else 
-  typedef Dune::Fem::SparseRowLinearOperator< DiscreteFunctionType, DiscreteFunctionType> JacobianOperatorType; 
-  #if NSK
-typedef LocalFDOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-  #else
-typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
-#endif
-//typedef Dune::Fem::UMFPACKOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
-  typedef Dune::Fem::OEMGMRESOp<DiscreteFunctionType,JacobianOperatorType> LinearSolverType;
-#endif
-#endif
+
 
   //typedef JumpEstimator<DiscreteFunctionType,ModelType> EstimatorType;
 	typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
   typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
   //Pointers for (rho,v,phi,mu,tau,sigma) and (pressure,totalenergy)
-  typedef Dune::tuple< DiscreteFunctionType*,EstimatorDataType*,DiscreteScalarType*, DiscreteScalarType*> IOTupleType; 
+  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,EstimatorDataType*,DiscreteScalarType*, DiscreteScalarType*> IOTupleType; 
 
   // type of restriction/prolongation projection for adaptive simulations 
   typedef Dune :: Fem::RestrictProlongDefault< DiscreteFunctionType > RestrictionProlongationType;

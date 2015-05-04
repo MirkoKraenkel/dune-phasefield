@@ -16,7 +16,8 @@ class PhasefieldModel
     typedef Problem ProblemType;
     typedef Grid GridType;
     enum{ dimDomain = GridType::dimensionworld };
-
+    enum{ dimAcRange = ProblemType::dimRange/2};
+    enum{ dimNvStRange=ProblemType::dimRange/2};
     enum{ dimRange = ProblemType::dimRange };
 
     typedef typename ProblemType::ThermodynamicsType ThermodynamicsType;
@@ -94,8 +95,9 @@ class PhasefieldModel
 
     template< class JacobianVector>
     inline void scalar2vectorialDiffusion ( const JacobianVector& dphi , DiffusionTensorType& diffusion ) const; 
-    inline void diffusion ( JacobianRangeType& vu,
-                            JacobianRangeType& diffusion) const;
+    template< class JacobianRange >
+    inline void diffusion ( JacobianRange& vu,
+                            JacobianRange& diffusion) const;
 
     inline RangeFieldType pressure (double rho , double phi) const
     {
@@ -306,9 +308,10 @@ inline void PhasefieldModel< Grid, Problem>
 } 
 
 template< class Grid, class Problem > 
+template< class JacobianRange >
 inline void PhasefieldModel< Grid, Problem>
-::diffusion( JacobianRangeType& dvu,
-    JacobianRangeType& diffusion) const
+::diffusion( JacobianRange& dvu,
+    JacobianRange& diffusion) const
 {
   diffusion=0;
  double mu2=problem_.thermodynamics().mu2();
@@ -316,7 +319,9 @@ inline void PhasefieldModel< Grid, Problem>
 #if LAPLACE 
    for(int ii = 0 ; ii < dimDomain ; ++ii )
     for(int jj = 0; jj < dimDomain ; ++ jj)
-     Filter::dvelocity(diffusion,ii,jj )=mu2*Filter::dvelocity(dvu,ii,jj);
+      diffusion[1+ii][jj]=mu2*dvu[1+ii][jj];
+    // Filter::dvelocity(diffusion,ii,jj )=mu2*Filter::dvelocity(dvu,ii,jj);
+      
 #else
   double mu1=problem_.thermodynamics().mu1();
  

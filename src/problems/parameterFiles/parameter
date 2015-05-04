@@ -50,11 +50,11 @@ phasefield.A:1
 phasefield.beta:1
 
 #hight of first minimum of the double well
-phasefield.alpha:0
+phasefield.alpha: 0
 
 #viscosity coefficients
-phasefield.mu1: 0.01
-phasefield.mu2: 0.01
+phasefield.mu1: 0.1
+phasefield.mu2: 0.1
 
 #velocities vor Riemann-Problem
 phasefield.veloright:0
@@ -72,14 +72,14 @@ phasefield.mwp2: 0.62
 #phasefield.mwp2: 1.657270212
 #phasefield.mwp2: 3.793667900 
 #phasefield.mwp1: 1.947734046
-#phasefield.mwp2: 1
-#phasefield.mwp1: 1
+phasefield.mwp1: 0.1
+phasefield.mwp2: 0.62
 
 # NUMERICAL PARAMETERS
 #-----------------------------
-phasefield.addvisc: 1 
+phasefield.addvisc: 0 
 phasefield.oldvisc: 0 
-phasefield.nonconvisc:1  
+phasefield.nonconvisc:0  
 phasefield.penalty: 10
 phasefield.acpenalty: 0 
 phasefield.ipswitch: 1
@@ -91,8 +91,8 @@ phasefield.outflow: false
 # 1D
 # ------
 #fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
-fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
-#fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 
 # 2D
 # ------

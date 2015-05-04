@@ -1,0 +1,6 @@
+intersectionCouplings_.push_back( std::make_pair(0,0));//(rho,rho)
+intersectionCouplings_.push_back( std::make_pair(0,1));//(rho,v)
+intersectionCouplings_.push_back( std::make_pair(0,2));//(rho,mu)
+intersectionCouplings_.push_back( std::make_pair(1,0));//(v,rho)
+intersectionCouplings_.push_back( std::make_pair(1,1));//(v,v)
+intersectionCouplings_.push_back( std::make_pair(1,2));//(v,mu)

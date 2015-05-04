@@ -1,0 +1,8 @@
+elementCouplings_.push_back(std::make_pair(0,0));//(rho,rho)
+elementCouplings_.push_back(std::make_pair(0,1));//(rho,v)
+elementCouplings_.push_back(std::make_pair(1,0));//(v,rho)
+elementCouplings_.push_back(std::make_pair(1,1));//(v,v)
+elementCouplings_.push_back(std::make_pair(1,2));//(v,mu)
+elementCouplings_.push_back(std::make_pair(2,0));//(mu,rho)
+elementCouplings_.push_back(std::make_pair(2,1));//(mu,v)
+elementCouplings_.push_back(std::make_pair(2,2));//(mu,mu)

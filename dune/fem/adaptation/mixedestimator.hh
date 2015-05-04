@@ -337,7 +337,7 @@ namespace Dune
       EstimateFunctor(ThisType& parent):parent_(parent)
       {}
 
-      double operator()( const ElementType& e ) const
+      void operator()( const ElementType& e ) const
       {
         const LocalFunctionType& uLocal=parent_.uh_.localFunction( e );
         parent_.estimateLocal( e, uLocal );

@@ -1,13 +1,13 @@
-#ifndef ASSEMBLEDALGORITHM_HH
-#define ASSEMBLEDALGORITHM_HH
-#include "assembledtraits.hh"
+#ifndef SPLITALGORITHM_HH
+#define SPLITALGORITHM_HH
+#include "splittraits.hh"
 #include "algorithmbase.hh"
 //solver
 #include <dune/fem/solver/cginverseoperator.hh>
 #include <dune/fem/solver/oemsolver.hh>
 #include <dune/fem/solver/newtoninverseoperator.hh>
 //post processing
-#include <dune/fem/operator/assembled/energyconverter.hh>
+#include <dune/fem/operator/assembled/splitop/splitenergyconverter.hh>
 #include <dune/phasefield/util/cons2prim.hh>
 #include <dune/fem/operator/assembled/boundary.hh>
 
@@ -29,15 +29,25 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   typedef typename BaseType::ModelType ModelType;
   typedef typename BaseType::TimeProviderType TimeProviderType; 
   typedef typename BaseType::AdaptationManagerType AdaptationManagerType;
+  typedef typename BaseType::GridPartType GridPartType;
   //Operator
-  typedef typename Traits :: IntegratorType IntegratorType;
-  typedef typename Traits :: WrappedOperatorType WrappedOperatorType;
-  typedef typename Traits :: DiscreteOperatorType DiscreteOperatorType;
+  typedef typename Traits :: ACIntegratorType ACIntegratorType;
+  typedef typename Traits :: NvStIntegratorType NvStIntegratorType;
+  typedef typename Traits :: ACOperatorType ACOperatorType;
+  typedef typename Traits :: NvStOperatorType NvStOperatorType;
+  typedef typename Traits :: DiscreteNavierStokesOperatorType DiscreteNvStkOperatorType;
+  typedef typename Traits :: DiscreteAllenCahnOperatorType DiscreteACOperatorType;
+  
+  //Problem dependent type
+  typedef typename Traits :: AcInitialDataType AcInitialDataType;
+  typedef typename Traits :: NvStInitialDataType NvStInitialDataType;
+  
   typedef typename Traits :: JacobianOperatorType JacobianOperatorType;
  	typedef PhasefieldBoundaryCorrection<DiscreteFunctionType, ModelType> BoundaryCorrectionType;
   //Solver
   typedef typename Traits :: LinearSolverType LinearSolverType;
   typedef typename Dune::Fem::NewtonInverseOperator< JacobianOperatorType, LinearSolverType > NewtonSolverType; 
+  
   //adaptation
   typedef typename Traits::EstimatorType EstimatorType;
   typedef typename Traits::EstimatorDataType EstimatorDataType;
@@ -55,11 +65,18 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   using BaseType::overallTimer_;
   using BaseType::tolerance_;
   private:
-    IntegratorType          integrator_;
-    WrappedOperatorType     wrappedOperator_;
-    DiscreteOperatorType    dgOperator_;
+    NvStIntegratorType nvstintegrator_;
+    NvStOperatorType nvstOp_;
+    DiscreteNvStkOperatorType dgNavStkOperator_;
+    ACIntegratorType acintegrator_;
+    ACOperatorType acOp_; 
+    DiscreteACOperatorType  dgACOperator_; 
     BoundaryCorrectionType  boundaryCorrection_;
     DiscreteFunctionType    start_;
+    DiscreteFunctionType    acsolution_;
+    DiscreteFunctionType    acoldsolution_;
+    const NvStInitialDataType*         nvstproblem_;
+    const AcInitialDataType*           acproblem_;
     DiscreteScalarType      pressure_;
     EstimatorType           estimator_;
     EstimatorDataType       estimatorData_;
@@ -67,31 +84,41 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     bool                    stepconverged_;
     int                     maxNewtonIter_;
     double                  timestepfactor_;
-
+    double                  itertol_;
   public:
   //Constructor
   AssembledAlgorithm( GridType& gridImp):
-      BaseType( gridImp ),
-      integrator_( *model_ ,space()),
-      wrappedOperator_( integrator_, space()),
-      dgOperator_( wrappedOperator_, space()),
+      BaseType( gridImp),
+      nvstintegrator_( *model_, space()),
+      nvstOp_( nvstintegrator_,space()),
+      dgNavStkOperator_( nvstOp_, space()),
+      acintegrator_( *model_,space()),
+      acOp_( acintegrator_,space()),
+      dgACOperator_( acOp_, space()),
       boundaryCorrection_( *model_ , space()),
       start_( "start", space() ),
+      acsolution_( "acsolution", space()),
+      acoldsolution_( "acoldsolution", space()),
+      nvstproblem_( Traits::ProblemGeneratorType::nvstproblem()),
+      acproblem_( Traits::ProblemGeneratorType::acproblem()),
       pressure_( "pressure", energyspace()),
       estimator_( solution_, grid_, model()),
       estimatorData_( "estimator", estimator_, gridPart_, space_.order() ),
       surfaceEnergy_(0.),
       stepconverged_(false),
       maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("phasefield.maxNewtonIterations") ),
-      timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor"))
+      timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor") ),
+      itertol_( Dune::Fem::Parameter::getValue<double>("phasefield.iterationtolerance"))
       {
         start_.clear();
       }
 
-    IOTupleType getDataTuple (){ return IOTupleType( &solution(), &estimatorData_,&pressure_, this->energy());}
+    IOTupleType getDataTuple (){ return IOTupleType( &solution(), &acsolution(),&estimatorData_,&pressure_, this->energy());}
 
     DiscreteScalarType&  getpressure(){ return pressure_;}
 
+    DiscreteFunctionType& acsolution(){ return acsolution_;}
+    DiscreteFunctionType& acoldsolution(){ return acoldsolution_;}
     void initializeSolver ( typename BaseType::TimeProviderType& timeProvider){}
 
     void reduceTimeStep( TimeProviderType& timeProvider, double ldt)
@@ -101,7 +128,19 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
         timeProvider.provideTimeStepEstimate( newtime);
         //timeProvider.invalidateTimeStep();
       }
+    
+    void initializeStep( TimeProviderType& timeProvider)
+    {
 
+      DiscreteFunctionType& U=solution();
+      DiscreteFunctionType& Uold=oldsolution();
+      DiscreteFunctionType& acU=acsolution();
+      DiscreteFunctionType& acUold=acoldsolution();
+      Dune::Fem::DGL2ProjectionImpl::project( *nvstproblem_, U );
+      Dune::Fem::DGL2ProjectionImpl::project( *acproblem_,acU );
+      Uold.assign(U);
+      acUold.assign(acU);
+    }
 
     void step ( TimeProviderType& timeProvider,
 		  				  int& newton_iterations,
@@ -111,22 +150,45 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 	  {
       const double time=timeProvider.time();
       const double deltaT=timeProvider.deltaT();
-
+      Fem::L2Norm<GridPartType> l2norm(gridPart_);      
+      
       DiscreteFunctionType& U=solution();
-      //DiscreteFunctionType& Uold=oldsolution();
-
-      dgOperator_.setPreviousTimeStep(U);
-      dgOperator_.setTime(time);
-      dgOperator_.setDeltaT(deltaT);
-      NewtonSolverType invOp(dgOperator_); 
-      start_.clear();
-
-      invOp(start_,U);
-      //boundaryCorrection_(U);
+      DiscreteFunctionType& UAc=acsolution();
+      DiscreteFunctionType& Uold=oldsolution();
+      DiscreteFunctionType& UAcOld=acoldsolution();
+      dgNavStkOperator_.setPreviousTimeStep(U);
+      dgNavStkOperator_.setTime(time);
+      dgNavStkOperator_.setDeltaT(deltaT);
+      
+      dgACOperator_.setPreviousTimeStep(UAc);
+      dgACOperator_.setTime(time);
+      dgACOperator_.setDeltaT(deltaT);
+      
+      NewtonSolverType invOp(dgNavStkOperator_); 
+      NewtonSolverType invOp2( dgACOperator_);  
+      double errorNvSt,errorAc;    
+      int counter=0; 
+      do 
+        {
+          dgNavStkOperator_.integrator().setAddVariables(UAc);
+      
+          start_.clear();
+          invOp(start_,U);
+          errorNvSt=l2norm.distance(U, Uold);
+          dgACOperator_.integrator().setAddVariables(U);
+          start_.clear();
+          invOp2(start_,UAc);
+          errorAc=l2norm.distance(UAc,UAcOld);
+          Uold.assign(U);
+          UAcOld.assign(UAc);
+          ++counter;
+      }
+      while( errorAc>itertol_ || errorNvSt> itertol_);
+      //std::cout<<"counter="<<counter<<"\n";
       //reset overall timer
       overallTimer_.reset();
 
-      newton_iterations     = invOp.iterations();
+      newton_iterations     = counter;//invOp.iterations();
       ils_iterations        = invOp.linearIterations();;
       max_newton_iterations = std::max(max_newton_iterations,newton_iterations);
       max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
@@ -139,7 +201,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
         }
      if (fixedTimeStep_>1e-20)
       {
-      
+     
       }
      else if( newton_iterations >  3 )
         {
@@ -175,7 +237,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 
   double timeStepEstimate()
   {
-    return timestepfactor_*dgOperator_.timeStepEstimate();
+    return timestepfactor_*std::min( dgNavStkOperator_.timeStepEstimate(),dgACOperator_.timeStepEstimate());
   }
 
   using BaseType::space;
@@ -202,7 +264,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       double kineticEnergy;
       double chemicalEnergy; 
       double surfaceEnergy;
-      double energyIntegral =energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
+      double energyIntegral =splitenergyconverter(solution(),acsolution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
       str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"
         <<energyIntegral<<"\t"
         <<chemicalEnergy<<"\t"
@@ -225,8 +287,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 	    double kineticEnergy;
       double chemicalEnergy;
       double surfaceEnergy;
-      //double energyIntegral = 
-      energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
+      double energyIntegral = splitenergyconverter(solution(),acsolution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
+      std::cout<<"Energy="<<energyIntegral<<"\n";   
    }
 	 // write the data
    eocDataOutput.write( timeProvider );

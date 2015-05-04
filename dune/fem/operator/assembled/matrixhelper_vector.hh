@@ -122,8 +122,8 @@ void diffusionaxpy( const size_t local_i,
           size_t global_j = Alignment::vectorialIndex( 1 + jj , local_j);
           double  value(0);
           value=du[ jj ][ ii ]*dphi[ local_i ][ 0 ];
-          //value* weight* 0.5 in semi implicit scheme
-          jLocal.add( global_i , global_j ,value*weight );
+
+          jLocal.add( global_i , global_j ,0.5*value*weight );
         }
      }
 }
@@ -230,12 +230,8 @@ class AcCouplings
   static const int couplingSize = 2*dimRange+dimRange*dimRange+4;
   static const int intersectionCouplingSize = dimRange+dimRange*dimRange+2 ;
 
-  //typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
-  //typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
-
   typedef std::vector< std::pair< int , int > > ElementCouplingType;
   typedef std::vector< std::pair< int , int > > IntersectionCouplingType;
-
 
 
 
@@ -295,11 +291,8 @@ class NvStCouplings
   static const int couplingSize = 4*dimRange+dimRange*dimRange+3;
   static const int intersectionCouplingSize = 3*dimRange+dimRange*dimRange+2;
 
-//  typedef std::array< std::pair< int , int > ,couplingSize> ElementCouplingType;
-//  typedef std::array< std::pair< int , int >, intersectionCouplingSize >IntersectionCouplingType;
   typedef std::vector< std::pair< int , int > > ElementCouplingType;
-  typedef std::vector< std::pair< int , int > > IntersectionCouplingType;
-
+  typedef std::vector< std::pair< int , int > >IntersectionCouplingType;
 
 
 
