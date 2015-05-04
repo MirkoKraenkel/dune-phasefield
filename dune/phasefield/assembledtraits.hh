@@ -28,18 +28,18 @@
 #include <dune/fem/solver/petscsolver.hh>
 #endif
 
-
-
+#include <dune/fem/operator/assembled/integrator.hh>
+#include <dune/fem/operator/assembled/mixedoperator.hh>
 
 #if MATRIXFREE
 #include <dune/fem/util/oemwrapper.hh>
 #include <dune/fem/operator/assembled/mixedoperator.hh>
 #elif FD 
-#include <dune/fem/operator/assembled/integrator.hh>
-#include <dune/fem/operator/assembled/mixedoperator.hh>
 #include <dune/fem/operator/assembled/localfdoperator.hh>
 #elif COUPLING 
-#include <dune/fem/operator/assembled/phasefieldmatrix.hh>
+#include <dune/fem/operator/assembled/fluxes/jacobianfluxcoupling.hh>
+#include <dune/fem/operator/assembled/phasefieldtensor.hh>
+#include <dune/fem/operator/assembled/matrixoperator.hh>
 #elif NSK
 #include <dune/fem/operator/assembled/nskmatrix.hh>
 #else
@@ -98,7 +98,10 @@ struct MixedAlgorithmTraits
 #if NSK
   typedef NSKJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
 #else
-  typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+  using JacFluxType=JacobianFlux<ModelType>;
+  using PhasefieldIntegratorType=PhasefieldMixedTensor<DiscreteFunctionType,ModelType,FluxType,JacFluxType>;
+  using PhasefieldOperatorType=DGOperator< DiscreteFunctionType,PhasefieldIntegratorType> ;
+  using DiscreteOperatorType=MatrixOperator<PhasefieldOperatorType,PhasefieldIntegratorType,JacobianOperatorType>;
 #endif
 #endif
 
