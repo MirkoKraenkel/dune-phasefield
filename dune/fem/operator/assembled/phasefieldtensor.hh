@@ -139,8 +139,10 @@ public PhasefieldMixedIntegrator<DiscreteFunction,Model,Flux>
   {
     return scalarbf*dimRange+component;
   }
-   
+
+  using BaseType::uOld_;
   using BaseType::uOldLocal_;
+  using BaseType::uOldNeighbor_;
   using BaseType::model_; 
   using BaseType::deltaTInv_; 
   using BaseType::lastSpeed_;
@@ -162,15 +164,6 @@ public PhasefieldMixedIntegrator<DiscreteFunction,Model,Flux>
  
   mutable MatrixHelper::Couplings<dimDomain> couplings_;
 
-
-
-
-
-
-  
-
-
-
 };
 
 
@@ -185,15 +178,17 @@ void PhasefieldMixedTensor<Operator , Model, Flux,JacFlux >
                        const Quad& quadrature ) const
 {
   const size_t numQuadraturePoints = quadrature.nop();
-  
+
   uEn_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, uEn_);
-  duEn_.resize(numQuadraturePoints); 
+
+  duEn_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, duEn_);
-  
+
   uOldEn_.resize(numQuadraturePoints);
   uOldLocal_.evaluateQuadrature( quadrature, uOldEn_);
-  uOldEn_.resize(numQuadraturePoints);  
+
+  duOldEn_.resize(numQuadraturePoints);
   uOldLocal_.evaluateQuadrature( quadrature, duOldEn_);
 }
 
@@ -205,19 +200,19 @@ void PhasefieldMixedTensor<Operator , Model, Flux,JacFlux >
                          const Quad& quadrature ) const
 {
   const size_t numQuadraturePoints = quadrature.nop();
+
   uNb_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, uNb_);
+
   duNb_.resize(numQuadraturePoints); 
   uLocal.evaluateQuadrature( quadrature, duNb_);
-  
+
   uOldNb_.resize(numQuadraturePoints);
-  uOldLocal_.evaluateQuadrature( quadrature, uOldNb_);
+  uOldNeighbor_.evaluateQuadrature( quadrature, uOldNb_);
+
   duOldNb_.resize(numQuadraturePoints); 
-  uOldLocal_.evaluateQuadrature( quadrature, duOldNb_);
-  
+  uOldNeighbor_.evaluateQuadrature( quadrature, duOldNb_);
 }
-
-
 
 
 template<class DiscreteFunction,  class Model, class Flux,class JacFlux>
@@ -234,6 +229,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
   const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
   const int numScalarBf=baseSet.size()/dimRange;
  
+
   MatrixHelper::evaluateScalarAll( quadrature[ pt ], baseSet.shapeFunctionSet(),phi_);
   MatrixHelper::jacobianScalarAll( quadrature[ pt ], geometry, baseSet.shapeFunctionSet(),dphi_);      
     
