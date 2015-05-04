@@ -160,15 +160,16 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
                          const Quad& quadrature ) const
 {
   const size_t numQuadraturePoints = quadrature.nop();
+
   uEn_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, uEn_);
 
-
-  duEn_.resize(numQuadraturePoints); 
+  duEn_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, duEn_);
-  
+
   addEn_.resize(numQuadraturePoints);
-  addLocal_.evaluateQuadrature( quadrature, addEn_); 
+  addLocal_.evaluateQuadrature( quadrature, addEn_);
+
   duAddEn_.resize(numQuadraturePoints);
   addLocal_.evaluateQuadrature( quadrature, duAddEn_);
 }
@@ -183,13 +184,16 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
                          const Quad& quadrature ) const
 {
   const size_t numQuadraturePoints = quadrature.nop();
+
   uNb_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, uNb_);
-  duNb_.resize(numQuadraturePoints); 
+
+  duNb_.resize(numQuadraturePoints);
   uLocal.evaluateQuadrature( quadrature, duNb_);
-  
+
   addNb_.resize(numQuadraturePoints);
-  addNeighbor_.evaluateQuadrature( quadrature, addNb_); 
+  addNeighbor_.evaluateQuadrature( quadrature, addNb_);
+
   duAddNb_.resize(numQuadraturePoints);
   addNeighbor_.evaluateQuadrature( quadrature, duAddNb_);
 }
