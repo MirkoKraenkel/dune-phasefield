@@ -134,15 +134,16 @@ class PhasefieldMixedIntegrator
   double deltaTInv_;
   mutable double maxSpeed_;
   mutable double lastSpeed_;
-  double factorImp_;
-  double factorExp_;
   DiscreteFunctionType uOld_;
   TemporaryLocalType uOldLocal_;
   TemporaryLocalType uOldNeighbor_;
   const bool outflow_;
+  mutable double minArea_;
   mutable double areaEn_;
   mutable double areaNb_;
-  mutable double minArea_;
+  double factorImp_;
+  double factorExp_;
+
 };
 
 
