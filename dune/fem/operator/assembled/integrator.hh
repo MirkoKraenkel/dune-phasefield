@@ -138,11 +138,11 @@ class PhasefieldMixedIntegrator
   double factorExp_;
   DiscreteFunctionType uOld_;
   TemporaryLocalType uOldLocal_;
+  TemporaryLocalType uOldNeighbor_;
   const bool outflow_;
   mutable double areaEn_;
   mutable double areaNb_;
   mutable double minArea_;
-  TemporaryLocalType uOldNeighbor_;
 };
 
 
