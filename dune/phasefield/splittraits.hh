@@ -39,7 +39,7 @@
 #include <dune/fem/operator/assembled/splitop/fluxes/jacobiansplitflux.hh>
 #include <dune/fem/operator/assembled/splitop/allencahntensor.hh>
 #include <dune/fem/operator/assembled/splitop/navierstokestensor.hh>
-#include <dune/fem/operator/assembled/splitop/matrixoperator.hh>
+#include <dune/fem/operator/assembled/matrixoperator.hh>
 #endif
 
 //adaptation
