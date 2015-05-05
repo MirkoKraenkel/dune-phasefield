@@ -341,22 +341,13 @@ namespace Dune
       return normsigma;
     }
   
-    void estimateLocal2 ( const ElementType &entity , const LocalFunctionType &uLocal )
+    //jumEstimator for density
+    void estimaterhojumpLocal ( const ElementType &entity , const LocalFunctionType &uLocal )
     {
       const int insideIndex = indexSet_.index( entity );    
  
-      const typename ElementType :: Geometry &geometry = entity.geometry();
-      const Dune::ReferenceElement< double, dimension > &refElement =
-      Dune::ReferenceElements< double, dimension >::general( entity.type() );
-      
-      const double volume = geometry.volume();
-      //double h2 = (dimension == 2 ? volume : std :: pow( volume, 2.0 / (double)dimension ));  
-      //double localh = std::sqrt(volume);
-
       ElementQuadratureType quad( entity, 2*(dfSpace_.order() )+1 );
       const int numQuadraturePoints = quad.nop();
-      double sigmasquared=0.;
-      double maxsigma=0;
       RangeType range( 0. );
       RangeType rangeNb( 0. );
 
@@ -426,7 +417,7 @@ namespace Dune
       {
         const LocalFunctionType& uLocal=parent_.uh_.localFunction( e );
         parent_.estimateLocal( e , uLocal );
-        parent_.estimateLocal2( e , uLocal );
+        parent_.estimaterhojumpLocal( e , uLocal );
       }
      
     

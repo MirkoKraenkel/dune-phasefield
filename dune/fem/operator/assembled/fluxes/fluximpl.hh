@@ -178,7 +178,6 @@ double MixedFlux<Model>
 
     gLeft=0.;
 
-    double vNormalEn(0.);
     //phi-------------------------------------------------------------
   
     double laplaceFlux(0.);

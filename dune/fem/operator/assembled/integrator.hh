@@ -366,8 +366,6 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
                         JacobianRangeType& aduLeft,
                         JacobianRangeType& aduRight) const
 {
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-
   RangeType vuOldEn(0.),vuMidEn(0.),vuOldNb(0.),vuMidNb(0.);
   JacobianRangeType duOldEn(0.),duOldNb(0.),duMidEn(0.), duMidNb(0.);
 

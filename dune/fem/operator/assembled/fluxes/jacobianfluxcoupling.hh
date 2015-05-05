@@ -136,7 +136,6 @@ void JacobianFlux<Model>
               const RangeType& midEn,
               FluxRangeType& gLeft) const
   {
-    double vNormalEn(0.);
     double laplaceFlux(0.);
   
     for(int ii = 0; ii < dimDomain ; ++ii )

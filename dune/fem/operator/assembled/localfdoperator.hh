@@ -215,7 +215,6 @@ void LocalFDOperator< Operator, Jacobian>
         const EntityType& neighbor = *ep ;
 
         myOperator_.setNeighbor( neighbor );
-        typedef typename IntersectionType::Geometry  IntersectionGeometryType;
 
         // get local matrix for face entries 
         LocalMatrixType jLocalNb = jOp.localMatrix( neighbor,entity );
