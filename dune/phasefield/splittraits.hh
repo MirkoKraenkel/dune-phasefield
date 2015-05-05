@@ -1,5 +1,5 @@
-#ifndef SPLITSCHEME_TRAITS_HH
-#define SPLITSCHEME_TRAITS_HH
+#ifndef PHASEFIELD_SPLIITTRAITS_HH
+#define PHASEFIELD_SPLIITTRAITS_HH
 
 
 #include <dune/fem/space/common/functionspace.hh>
@@ -49,7 +49,7 @@
 
 template <class GridImp,
           class ProblemGeneratorImp,int polOrd>             
-struct MixedAlgorithmTraits 
+struct SplitAlgorithmTraits 
 {
   enum { polynomialOrder = polOrd };
 

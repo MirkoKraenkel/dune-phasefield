@@ -1,5 +1,5 @@
-#ifndef SPLITALGORITHM_HH
-#define SPLITALGORITHM_HH
+#ifndef PHASEFIELD_SPLITALGORITHM_HH
+#define PHASEFIELD_SPLITALGORITHM_HH
 #include "splittraits.hh"
 #include "algorithmbase.hh"
 //solver
@@ -16,10 +16,10 @@ namespace Dune{
 
 template< class GridImp,
           class AlgorithmTraits>
-class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits, AssembledAlgorithm< GridImp,AlgorithmTraits > > 
+class SplitAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits,SplitAlgorithm< GridImp,AlgorithmTraits > > 
 {
  public:
- typedef AssembledAlgorithm< GridImp, AlgorithmTraits> ThisType;
+ typedef SplitAlgorithm< GridImp, AlgorithmTraits> ThisType;
  typedef PhasefieldAlgorithmBase< GridImp , AlgorithmTraits , ThisType > BaseType;
 
   typedef typename BaseType::Traits Traits;
@@ -87,7 +87,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     double                  itertol_;
   public:
   //Constructor
-  AssembledAlgorithm( GridType& gridImp):
+  SplitAlgorithm( GridType& gridImp):
       BaseType( gridImp),
       nvstintegrator_( *model_, space()),
       nvstOp_( nvstintegrator_,space()),

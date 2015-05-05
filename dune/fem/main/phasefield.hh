@@ -30,13 +30,11 @@
 #include <src/problems/kortewegmixed/mixednskproblemcreator.hh>
 #else
 #if MIXED
-#if SPLIT
-#include <src/problems/mixedscheme/splitproblemcreator.hh>
-#include <dune/phasefield/splitalgoderived.hh>
-#else
 #include <src/problems/mixedscheme/mixedproblemcreator.hh>
 #include <dune/phasefield/assembledalgoderived.hh>
-#endif
+#elif SPLIT
+#include <src/problems/mixedscheme/splitproblemcreator.hh>
+#include <dune/phasefield/splitalgoderived.hh>
 #else
 #include <src/problems/passscheme/problemcreator.hh>
 #include <dune/phasefield/passalgoderived.hh> 
@@ -60,6 +58,16 @@ struct SchemeTraits< true, Polorder, GridImp >
   typedef MixedAlgorithmTraits< GridType , ProblemGeneratorType ,Polorder> AlgorithmTraitsType;
   typedef AssembledAlgorithm< GridType,AlgorithmTraitsType> AlgorithmType;
 };
+
+#elif SPLIT
+template< int Polorder,class GridImp>
+struct SchemeTraits< true, Polorder, GridImp >
+{
+  typedef GridImp GridType;
+  typedef SplitProblemGenerator<GridType> ProblemGeneratorType;
+  typedef SplitAlgorithmTraits< GridType , ProblemGeneratorType ,Polorder> AlgorithmTraitsType;
+  typedef SplitAlgorithm< GridType,AlgorithmTraitsType> AlgorithmType;
+};
 #else
 template< int Polorder,class GridImp>
 struct SchemeTraits< false ,Polorder, GridImp >
@@ -82,10 +90,10 @@ struct SchemeTraits< false ,Polorder, GridImp >
     const bool mixed = false;
 #endif
 #if PARAGRID 
-   typedef Dune::GridSelector :: GridType HostGridType;
-   typedef MixedProblemGenerator< HostGridType > ProblemGeneratorType;
-      // use problem specific initialize method since some problems do different things
-    // there, e.g. poisson 
+    typedef Dune::GridSelector :: GridType HostGridType;
+    typedef MixedProblemGenerator< HostGridType > ProblemGeneratorType;
+    
+    // use problem specific initialize method since some problems do different things
 		const std::string Flux="Phasefieldflux";
     Dune::GridPtr<HostGridType> gridptr = ProblemGeneratorType :: initializeGrid( Flux );
     
@@ -102,13 +110,10 @@ struct SchemeTraits< false ,Polorder, GridImp >
     typedef SchemeTraits< mixed , POLORDER, GridType> SchemeTraitsType; 
   
     typedef typename SchemeTraitsType::ProblemGeneratorType ProblemGeneratorType;
-//    typedef typename SchemeTraitsType::AlgorithmTraitsType AlgoTraits;
     typedef typename SchemeTraitsType::AlgorithmType AlgorithmType;
 
-    // typedef MixedProblemGenerator< GridType > ProblemGeneratorType;
 
     // use problem specific initialize method since some problems do different things
-    // there, e.g. poisson 
 		const std::string Flux="Phasefieldflux";
     Dune::GridPtr<GridType> gridptr = ProblemGeneratorType :: initializeGrid( Flux );
 
@@ -116,14 +121,6 @@ struct SchemeTraits< false ,Polorder, GridImp >
     GridType& grid = *gridptr;
 #endif 
     AlgorithmType algorithm( grid );  
-#if 0
-typedef AlgorithmTraits<GridType,ProblemGeneratorType,POLORDER> AlgoTraits;
-#if MIXED
-	  AssembledAlgorithm< GridType,AlgoTraits >  stepper( grid );
-#else
-    PassAlgorithm< GridType, AlgoTraits > stepper( grid );  
-#endif
-#endif
     //defined in base.hh
     compute( algorithm );
   } 
