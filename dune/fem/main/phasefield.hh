@@ -30,11 +30,13 @@
 #include <src/problems/kortewegmixed/mixednskproblemcreator.hh>
 #else
 #if MIXED
-#include <src/problems/mixedscheme/mixedproblemcreator.hh>
-#include <dune/phasefield/assembledalgoderived.hh>
-#elif SPLIT
+#if SPLIT
 #include <src/problems/mixedscheme/splitproblemcreator.hh>
 #include <dune/phasefield/splitalgoderived.hh>
+#else
+#include <src/problems/mixedscheme/mixedproblemcreator.hh>
+#include <dune/phasefield/assembledalgoderived.hh>
+#endif
 #else
 #include <src/problems/passscheme/problemcreator.hh>
 #include <dune/phasefield/passalgoderived.hh> 
@@ -50,16 +52,7 @@ struct SchemeTraits
 {
 };
 #if MIXED
-template< int Polorder,class GridImp>
-struct SchemeTraits< true, Polorder, GridImp >
-{
-  typedef GridImp GridType;
-  typedef MixedProblemGenerator<GridType> ProblemGeneratorType;
-  typedef MixedAlgorithmTraits< GridType , ProblemGeneratorType ,Polorder> AlgorithmTraitsType;
-  typedef AssembledAlgorithm< GridType,AlgorithmTraitsType> AlgorithmType;
-};
-
-#elif SPLIT
+#if SPLIT
 template< int Polorder,class GridImp>
 struct SchemeTraits< true, Polorder, GridImp >
 {
@@ -68,6 +61,16 @@ struct SchemeTraits< true, Polorder, GridImp >
   typedef SplitAlgorithmTraits< GridType , ProblemGeneratorType ,Polorder> AlgorithmTraitsType;
   typedef SplitAlgorithm< GridType,AlgorithmTraitsType> AlgorithmType;
 };
+#else
+template< int Polorder,class GridImp>
+struct SchemeTraits< true, Polorder, GridImp >
+{
+  typedef GridImp GridType;
+  typedef MixedProblemGenerator<GridType> ProblemGeneratorType;
+  typedef MixedAlgorithmTraits< GridType , ProblemGeneratorType ,Polorder> AlgorithmTraitsType;
+  typedef AssembledAlgorithm< GridType,AlgorithmTraitsType> AlgorithmType;
+};
+#endif
 #else
 template< int Polorder,class GridImp>
 struct SchemeTraits< false ,Polorder, GridImp >

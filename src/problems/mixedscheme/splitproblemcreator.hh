@@ -22,7 +22,7 @@
 #include <dune/fem/operator/assembled/splitop/fluxes/splitflux.hh>
 
 template< class GridType > 
-struct MixedProblemGenerator 
+struct SplitProblemGenerator 
 {
   typedef PhaseProblemType ProblemType;
   typedef NvStPhaseProblemType NvStProblemType;
