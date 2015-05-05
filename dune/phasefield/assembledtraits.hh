@@ -91,9 +91,9 @@ struct MixedAlgorithmTraits
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteScalarSpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
 #if FD 
-  typedef PhasefieldMixedIntegrator< DiscreteFunctionType, ModelType, FluxType > IntegratorType;
-  typedef DGOperator< DiscreteFunctionType ,IntegratorType > WrappedOperatorType;
-  typedef LocalFDOperator<WrappedOperatorType , JacobianOperatorType>  DiscreteOperatorType;
+  using PhasefieldIntegratorType=PhasefieldMixedIntegrator< DiscreteFunctionType, ModelType, FluxType >;
+  using PhasefieldOperatorType=DGOperator< DiscreteFunctionType ,PhasefieldIntegratorType >;
+  using DiscreteOperatorType= LocalFDOperator<PhasefieldOperatorType , JacobianOperatorType>;
 #else 
 #if NSK
   typedef NSKJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
