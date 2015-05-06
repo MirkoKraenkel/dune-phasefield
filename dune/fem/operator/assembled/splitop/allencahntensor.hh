@@ -241,7 +241,7 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
       for( size_t kk = 0 ; kk < dimDomain ; ++kk )
         {
           //\nabla phi_phi\cdot v
-          flux[ 0 ][ 0 ]+=dphi_[ jj ][0][kk]*uAdd[ 1+ kk];
+          flux[ 0 ][ 0 ]+=dphi_[ jj ][0][kk]*uAdd[ 1+ kk ];
  
           //(sigma,gradphi)
           flux[ 2+kk ][ 0 ]-=dphi_[ jj ][ 0 ][ kk ];
@@ -404,6 +404,7 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
 
   const double weightInside=quadInside.weight( pt );
   const int numScalarBf=baseSet.size()/dimRange;
+  MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(),phi_);
 
   TensorRangeType fluxLeft(0.);
 
@@ -411,7 +412,6 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
                          localwidth,
                          uEn_[pt],
                          fluxLeft);
-
   for( size_t jj=0 ; jj < numScalarBf ; ++jj)
     {
       for( size_t ii = 0; ii < numScalarBf ; ++ii )
