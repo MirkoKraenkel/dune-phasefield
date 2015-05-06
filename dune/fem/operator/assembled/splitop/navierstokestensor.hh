@@ -531,7 +531,7 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
                     valueEn=aLeft[ j ][ i ]*dphi_[ ii ][ 0 ];
                     valueEn+=bLeft[ j ][ i ]*phi_[ ii ];
 
-                    jLocal.add( global_i , global_j , weightInside*valueEn*0.5);
+                    jLocal.add( global_i , global_j , weightInside*valueEn);
                   }
                 }
             }
