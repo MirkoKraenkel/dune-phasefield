@@ -61,10 +61,11 @@ void AllenCahnJacobianFlux<Model>
                FluxRangeType& gLeft) const
   {
     double laplaceFlux(0.);
-
+    gLeft=0;
     for(int ii = 0; ii < dimDomain ; ++ii )
       {
-        laplaceFlux=normal[ ii ]*0.5;
+        laplaceFlux=normal[ ii ];//*0.5;
+        //std::cout<<"normal["<<ii<<"]="<<laplaceFlux<<"\n";
         // F_{3.3}(\sigma^+)\cdot n
         gLeft[ tau ][ sigma + ii ]=-model_.delta()*laplaceFlux;
       } 
@@ -93,8 +94,6 @@ void AllenCahnJacobianFlux<Model>
       jump = vuEn;
       jump-= vuNb;
  
-      
-      
       //rho-------------------------------------------------------------
  
       double laplaceFluxLeft(0.),laplaceFluxRight(0.);
@@ -103,8 +102,8 @@ void AllenCahnJacobianFlux<Model>
         {
           //F_{3.1}
           //-(\phi^+-\phi^-)*n[i]*v[i]^+*0.5
-          gLeft[ phi ][ phi ]=normal[ ii ]*addEn[ 1 + ii ]*-0.5;
-          gRight[ phi ][ phi ]=normal[ ii ]*addEn[ 1 + ii ]*0.5;
+          gLeft[ phi ][ phi ]-=normal[ ii ]*addEn[ 1 + ii ]*0.5;
+          gRight[ phi ][ phi ]+=normal[ ii ]*addEn[ 1 + ii ]*0.5;
           
           //tau
           //F_{3.2}
@@ -239,13 +238,12 @@ void NavierStokesJacobianFlux<Model>
                FluxRangeType& gLeft) const
   {
     double vNormalEn(0.);
-
     for(int ii = 0; ii < dimDomain ; ++ii )
       {
         vNormalEn+=midEn[1 + ii]*normal[ ii ];
-        gLeft[ 0 ][ 1 + ii ] = -0.5*normal[ii]*midEn[0];
+        gLeft[ 0 ][ 1 + ii ] = -1*normal[ii]*midEn[0];
       } 
-    gLeft[ 0 ][ 0 ]=-0.5*vNormalEn;
+    gLeft[ 0 ][ 0 ]=-1*vNormalEn;
   }
 
 template< class Model >
