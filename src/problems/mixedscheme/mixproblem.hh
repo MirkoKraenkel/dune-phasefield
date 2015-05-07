@@ -1,9 +1,8 @@
-#ifndef MIXPRONLEM_HH
-#define MIXPRONLEM_HH
+#ifndef PHASEFIELD_MIXPROBLEM_HH
+#define PHASEFIELD_MIXPROBLEM_HH
 #include <dune/common/version.hh>
 
 // dune-fem includes
-#include <dune/fem/misc/linesegmentsampler.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/functionspace.hh>
 
@@ -14,13 +13,6 @@
 #else
 #include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
 #endif
-
-
-//#include <dune/phasefield/modelling/thermodynamicsfreistuehler.hh>
-//#include <dune/phasefield/modelling/thermodynamicsvanderWaals.hh>
-
-
-//#include <dune/fem/probleminterfaces.hh>
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
 
@@ -33,26 +25,25 @@ class MixProblem : public EvolutionProblemInterface<
 {
  
 public:
-  enum{ dimension = GridType::dimensionworld };
-  enum{ dimDomain = dimension };
-  enum{ phasefieldId = dimension + 1 };
-  enum{ dimRange=RangeProvider::rangeDim};
-  typedef Fem::FunctionSpace<typename GridType::ctype, double, GridType::dimensionworld,dimRange > FunctionSpaceType ;
+  constexpr static int dimension = GridType::dimensionworld;
+  constexpr static int phasefieldId = dimension + 1 ;
+  constexpr static int dimRange=RangeProvider::rangeDim;
   
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
 
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
 
-  typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
-  typedef typename FunctionSpaceType :: DomainType        DomainType;
-  typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
-  typedef typename FunctionSpaceType :: RangeType         RangeType;
+  using ThermodynamicsType = BalancedThermodynamics;
 
-//   typedef TestThermodynamics ThermodynamicsType;
-  typedef BalancedThermodynamics ThermodynamicsType; 
-//  typedef ThermodynamicsFreistuehler ThermodynamicsType;
   MixProblem() : 
     myName_( "Mixedtest Heatproblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
-    mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
@@ -102,12 +93,10 @@ public:
   void paraview_conv2prim() const {}
   std::string description() const;
  
-  inline double mu() const { abort(); return mu_; }
   inline double delta() const{return thermodyn_.delta();}
   protected:
   const std::string myName_;
   const double endTime_;
-  const double mu_;
   const double delta_;
   double A_;
   double rho_;
@@ -215,6 +204,96 @@ inline std::string MixProblem<GridType,RangeProvider>
   std::string returnString = stream.str();
   return returnString;
 }
+
+////////////////////////////////////////////////////////////////////////////////////
+//                      WRAPPERS FOR SPLIT OPERATOR                               //
+////////////////////////////////////////////////////////////////////////////////////
+
+template <class GridType, class RangeProvider>
+class NvStMixProblem:
+private MixProblem< GridType, RangeProvider>
+{
+  using BaseType=MixProblem< GridType, RangeProvider> ;
+  using BaseType::fixedTimeFunction;
+  constexpr static int  dimension = GridType::dimensionworld;
+  constexpr static int dimDomain = dimension;
+  constexpr static int dimRange=RangeProvider::rangeDim/2;
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
+
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
+
+  public:
+  NvStMixProblem():
+  BaseType()
+  {}
+
+  template< class DomainType , class RangeType>
+  void evaluate( const DomainType& arg, RangeType& res) const
+  {
+    evaluate(0,arg,res);
+  }
+
+  template< class DomainType , class RangeType>
+  void evaluate( const double time, const DomainType& arg, RangeType& res ) const
+  {
+    typename BaseType::RangeType resfull;
+    BaseType::evaluate( time , arg , resfull );
+    res[0]=resfull[0];
+    for( int ii = 0 ; ii<dimension ; ++ii)
+      res[1+ii]=resfull[1+ii];
+    res[dimension+1]=resfull[dimension+2];
+  }
+
+};
+
+template <class GridType, class RangeProvider>
+class AcMixProblem:
+private MixProblem< GridType, RangeProvider>
+{
+  using BaseType=MixProblem< GridType, RangeProvider> ;
+  using BaseType::fixedTimeFunction;
+  constexpr static int  dimension = GridType::dimensionworld;
+  constexpr static int dimDomain = dimension;
+  constexpr static int dimRange=RangeProvider::rangeDim/2;
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
+
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
+
+  public:
+  AcMixProblem():
+  BaseType()
+  {}
+
+  template< class DomainType , class RangeType>
+  void evaluate( const DomainType& arg, RangeType& res) const
+  {
+    evaluate(0,arg,res);
+  }
+
+  template< class DomainType , class RangeType>
+  void evaluate( const double time, const DomainType& arg, RangeType& res) const
+  {
+    typename BaseType::RangeType resfull;
+    BaseType::evaluate( time , arg , resfull );
+    res[0]=resfull[dimension+1];
+    res[1]=resfull[dimension+3];
+    for( int ii = 0 ; ii < dimension ; ++ii)
+     res[2+ii]=resfull[dimension+4+ii];
+  }
+
+};
 
 } // end namespace Dune
 #endif
