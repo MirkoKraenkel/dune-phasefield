@@ -3,15 +3,16 @@
 #include <dune/common/version.hh>
 
 // dune-fem includes
-#include <dune/fem/misc/linesegmentsampler.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/functionspace.hh>
 
 // local includes
 
+#if SURFACE
+#include <dune/phasefield/modelling/thermodsurface.hh>
+#else
 #include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
-
-//#include <dune/fem/probleminterfaces.hh>
+#endif
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
 
@@ -24,25 +25,25 @@ class BubbleEnsemble : public EvolutionProblemInterface<
 {
  
 public:
-  enum{ dimension = GridType::dimensionworld };
-  enum{ dimDomain = dimension };
-  enum{ phasefieldId = dimension + 1 };
-  enum{ dimRange=RangeProvider::rangeDim};
-  typedef Fem::FunctionSpace<typename GridType::ctype, double, GridType::dimensionworld,dimRange > FunctionSpaceType ;
+  constexpr static int dimension = GridType::dimensionworld;
+  constexpr static int phasefieldId = dimension + 1 ;
+  constexpr static int dimRange=RangeProvider::rangeDim;
   
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
 
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
 
-  typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
-  typedef typename FunctionSpaceType :: DomainType        DomainType;
-  typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
-  typedef typename FunctionSpaceType :: RangeType         RangeType;
+  using ThermodynamicsType = BalancedThermodynamics;
 
-  typedef BalancedThermodynamics ThermodynamicsType; 
-
-  BubbleEnsemble() : 
-    myName_( "Mixedtest Heatproblem" ),
+ BubbleEnsemble() : 
+    myName_( "BubbleProblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
-    mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
@@ -75,8 +76,8 @@ public:
           std::cout<<a<<"\n";
           bubblevector_.push_back(a);
         }
-     
-      std::cout<<"size="<<bubblevector_.size()<<"\n";
+
+      numBubbles_=bubblevector_.size()/(dimension+1);
       bubblefile.close();
     }
   }
@@ -109,24 +110,9 @@ public:
     evaluate( t, x, res );
   }
 
-  inline double dxr( const DomainType& x) const
+  inline double dxdi( const DomainType& x , const int i) const
   {
-    return x[0]/x.two_norm();
-  }
-
-  inline double dyr( const DomainType& x) const
-  {
-    return x[1]/x.two_norm();
-  }
-
-  inline double dxdxr( const DomainType& x) const
-  {
-    return pow( x[1], 2)*pow(x.two_norm(),-3./2.);
-  }
-
- inline double dydyr( const DomainType& x) const
-  {
-    return pow( x[0], 2)*pow(x.two_norm(),-3./2.);
+    return x[i]/x.two_norm();
   }
 
 
@@ -143,12 +129,10 @@ public:
   void paraview_conv2prim() const {}
   std::string description() const;
  
-  inline double mu() const { abort(); return mu_; }
   inline double delta() const{return delta_;}
   protected:
   const std::string myName_;
   const double endTime_;
-  const double mu_;
   const double delta_;
   const double A_;
   double rho_;
@@ -158,7 +142,7 @@ public:
   std::string bubblefilename_; 
   std::vector<double> bubblevector_;
   const ThermodynamicsType thermodyn_;
-  
+  int numBubbles_;
 };
 
 
@@ -181,37 +165,39 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double phi; 
-  double width=delta_;
+  double width=6*delta_;
+  double width2=delta_;
+#if SURFACE
+#else
   width/=sqrt(A_);
-  phi=0.;
+#endif
+  phi=0;
   double rho=rho2_;
 #if MIXED 
-  res[dimension+4]=0.;
-  res[dimension+5]=0.;
+  for(int ii = 0; ii < dimension ; ++ii)
+    res[dimension+4+ii]=0.;
 
- double dFdphi= thermodyn_.reactionSource(rho,phi); 
+  double dFdphi= thermodyn_.reactionSource(rho,phi);
   double dFdrho=thermodyn_.chemicalPotential(rho, phi);
  //mu
  res[dimension+2]=dFdrho;
   //tau
  res[dimension+3]=dFdphi;
 #endif 
- 
+  const int offset=dimension+1;
 
-  for(size_t i=0 ; i<(bubblevector_.size())/3 ;++i)
+  for(size_t i=0 ; i<numBubbles_ ;++i)
   { 
-
-    
     DomainType center;
-    center[0]=bubblevector_[i*3];
-    center[1]=bubblevector_[1+(i*3)];
-    double radius=bubblevector_[2+(i*3)];
+    for(int ii = 0 ; ii <dimension ; ++ ii)
+      center[ii]=bubblevector_[i*offset+ii];
+    double radius=bubblevector_[dimension+(i*offset)];
   
     DomainType vector=center;
     vector-=arg;
     double r=vector.two_norm();
-    double tanr=tan((radius-r) * ( M_PI / width ));
-    double tanhr=tanh(tanr);
+    double tanr=tanh((radius-r) * (1 /width2 ));
+    double tanhr=tanr;
     double dtanr=1+tanr*tanr;
     double dtanhr=1-tanhr*tanhr; 
     double ddtanr=2*tanr*dtanr;
@@ -222,7 +208,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
       {
         if( r < radius-(0.5*width))
           {//Inside bubble
-            phi=1.;
+            phi=1;//0.5+0.5*phiscale_;
             rho=rho1_;
 #if MIXED
             dFdphi= thermodyn_.reactionSource(rho,phi); 
@@ -240,9 +226,8 @@ inline void BubbleEnsemble<GridType,RangeProvider>
             double rhodiff=rho2_-rho1_;
             rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
 #if MIXED
-            res[dimension+4]=dtanhr*dtanr*(M_PI/width)*dxr(arg);
-            res[dimension+5]=dtanhr*dtanr*(M_PI/width)*dyr(arg);
-
+            for( int ii=0 ; ii< dimension ;++ii)
+              res[dimension+4+ii]=0.5*dtanhr*(1/width2)*dxdi(vector,ii);
             //mu
             res[dimension+2]=0;
             //tau
@@ -253,7 +238,6 @@ inline void BubbleEnsemble<GridType,RangeProvider>
         }
       }
       
-
   double v=0;
   //rho
   res[0]= rho;
@@ -269,11 +253,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
   res[dimension+1]*=rho;
 #endif
  
-    //sigma
- }
-
-
-
+}
 
 
 template <class GridType,class RangeProvider>
@@ -284,6 +264,96 @@ inline std::string BubbleEnsemble<GridType,RangeProvider>
   std::string returnString = stream.str();
   return returnString;
 }
+
+////////////////////////////////////////////////////////////////////////////////////
+//                      WRAPPERS FOR SPLIT OPERATOR                               //
+////////////////////////////////////////////////////////////////////////////////////
+
+template <class GridType, class RangeProvider>
+class NvStBubbleEnsemble:
+private BubbleEnsemble< GridType, RangeProvider>
+{
+  using BaseType = BubbleEnsemble< GridType, RangeProvider> ;
+  using BaseType::fixedTimeFunction;
+  constexpr static int dimension = GridType::dimensionworld;
+  constexpr static int dimDomain = dimension;
+  constexpr static int dimRange  = RangeProvider::rangeDim/2;
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
+
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
+
+  public:
+  NvStBubbleEnsemble():
+  BaseType()
+  {}
+  template< class DomainType , class RangeType>
+  void evaluate( const DomainType& arg, RangeType& res) const
+  {
+    evaluate(0,arg,res);
+  }
+
+
+  template< class DomainType , class RangeType>
+  void evaluate( const double time, const DomainType& arg, RangeType& res ) const
+  {
+    typename BaseType::RangeType resfull;
+    BaseType::evaluate( time , arg , resfull );
+    res[0]=resfull[0];
+    for( int ii = 0 ; ii<dimension ; ++ii)
+      res[1+ii]=resfull[1+ii];
+    res[dimension+1]=resfull[dimension+2];
+  }
+
+};
+
+template <class GridType, class RangeProvider>
+class AcBubbleEnsemble :
+private BubbleEnsemble< GridType, RangeProvider>
+{
+  using BaseType = BubbleEnsemble< GridType, RangeProvider> ;
+  using BaseType::fixedTimeFunction;
+  constexpr static int  dimension = GridType::dimensionworld;
+  constexpr static int dimDomain = dimension;
+  constexpr static int dimRange=RangeProvider::rangeDim/2;
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
+
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
+
+  public:
+  AcBubbleEnsemble():
+  BaseType()
+  {}
+  
+  template< class DomainType , class RangeType>
+  void evaluate( const DomainType& arg, RangeType& res) const
+  {
+    evaluate(0,arg,res);
+  } 
+  
+  template< class DomainType , class RangeType>
+  void evaluate( const double time, const DomainType& arg, RangeType& res) const
+  {
+    typename BaseType::RangeType resfull;
+    BaseType::evaluate( time , arg , resfull );
+    res[0]=resfull[dimension+1];
+    res[1]=resfull[dimension+3];
+    for( int ii = 0 ; ii < dimension ; ++ii)
+     res[2+ii]=resfull[dimension+4+ii];
+  }
+
+};
 
 } // end namespace Dune
 #endif
