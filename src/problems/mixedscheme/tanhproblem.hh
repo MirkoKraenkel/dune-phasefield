@@ -1,9 +1,8 @@
-#ifndef HEATPROBLEM_HH
-#define HEATPROBLEM_HH
+#ifndef PHASEFIELD_TANHPROBLEM_HH
+#define PHASEFIELD_TANHPROBLEM_HH
 #include <dune/common/version.hh>
 
 // dune-fem includes
-#include <dune/fem/misc/linesegmentsampler.hh>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/functionspace.hh>
 
@@ -25,25 +24,25 @@ class TanhProblem : public EvolutionProblemInterface<
 {
  
 public:
-  enum{ dimension = GridType::dimensionworld };
-  enum{ dimDomain = dimension };
-  enum{ phasefieldId = dimension + 1 };
-  enum{ dimRange=RangeProvider::rangeDim};
-  typedef Fem::FunctionSpace<typename GridType::ctype, double, GridType::dimensionworld,dimRange > FunctionSpaceType ;
+  constexpr static int dimension = GridType::dimensionworld;
+  constexpr static int phasefieldId = dimension + 1 ;
+  constexpr static int dimRange=RangeProvider::rangeDim;
 
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
 
-  typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
-  typedef typename FunctionSpaceType :: DomainType        DomainType;
-  typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
-  typedef typename FunctionSpaceType :: RangeType         RangeType;
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
 
-//   typedef TestThermodynamics ThermodynamicsType;
-  typedef BalancedThermodynamics ThermodynamicsType;
+  using ThermodynamicsType = BalancedThermodynamics;
 
   TanhProblem() : 
     myName_( "TanhProblem" ),
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
-    mu_( Fem::Parameter :: getValue< double >( "phasefield.mu1" )),
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rhofactor_( Fem::Parameter::getValue<double> ("phasefield.rhofactor")),
@@ -59,7 +58,6 @@ public:
     }
 
 
-
   // initialize A and B 
   double init(const bool returnA ) const ;
 
@@ -69,6 +67,7 @@ public:
   // source implementations 
   inline bool hasStiffSource() { return true; }
   inline bool hasNonStiffSource() { return false; }
+
   // this is the initial data
   inline void evaluate( const DomainType& arg , RangeType& res ) const 
   {
@@ -85,17 +84,6 @@ public:
     evaluate( t, x, res );
   }
 
-  inline double dxr( const DomainType& x) const
-  {
-    return x[0]/x.two_norm();
-  }
-
-
-  inline double dxdxr( const DomainType& x) const
-  {
-    return 0; 
-  }
-
   template< class DiscreteFunctionType >
   void finalizeSimulation( DiscreteFunctionType& variablesToOutput,
                            const int eocloop) const
@@ -109,12 +97,10 @@ public:
   void paraview_conv2prim() const {}
   std::string description() const;
  
-  inline double mu() const { abort(); return mu_; }
   inline double delta() const{return delta_;}
   protected:
   const std::string myName_;
   const double endTime_;
-  const double mu_;
   const double delta_;
   double A_;
   double rhofactor_; 
@@ -129,91 +115,6 @@ public:
   
 };
 
-template <class GridType, class RangeProvider>
-class NvStTanhProblem:
-private TanhProblem< GridType, RangeProvider>
-{
-  using BaseType=TanhProblem< GridType, RangeProvider> ;
-  using BaseType::fixedTimeFunction; 
-  enum{ dimension = GridType::dimensionworld };
-  enum{ dimDomain = dimension };
-  enum{ phasefieldId = dimension + 1 };
-  enum{ dimRange=RangeProvider::rangeDim/2};
-  typedef Fem::FunctionSpace<typename GridType::ctype, double, GridType::dimensionworld,dimRange > FunctionSpaceType ;
-
-
-  typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
-  typedef typename FunctionSpaceType :: DomainType        DomainType;
-  typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
-  typedef typename FunctionSpaceType :: RangeType         RangeType;
-
-
-  public:
-  NvStTanhProblem():
-  BaseType()
-  {}
-  template< class DomainType , class RangeType>
-  void evaluate( const DomainType& arg, RangeType& res) const
-  {
-    evaluate(0,arg,res);
-  } 
-  
- 
-  template< class DomainType , class RangeType>
-  void evaluate( const double time, const DomainType& arg, RangeType& res ) const
-  {
-    typename BaseType::RangeType resfull;
-    BaseType::evaluate( time , arg , resfull );
-    res[0]=resfull[0];
-    for( int ii = 0 ; ii<dimension ; ++ii)
-      res[1+ii]=resfull[1+ii];
-    res[dimension+1]=resfull[dimension+2];
-  }
-
-};
-
-template <class GridType, class RangeProvider>
-class AcTanhProblem : 
-private TanhProblem< GridType, RangeProvider>
-{
-  using BaseType=TanhProblem< GridType, RangeProvider >;
-  
-
-  enum{ dimension = GridType::dimensionworld };
-  enum{ dimDomain = dimension };
-  enum{ phasefieldId = dimension + 1 };
-  enum{ dimRange=RangeProvider::rangeDim/2};
-  typedef Fem::FunctionSpace<typename GridType::ctype, double, GridType::dimensionworld,dimRange > FunctionSpaceType ;
-
-
-  typedef typename FunctionSpaceType :: DomainFieldType   DomainFieldType;
-  typedef typename FunctionSpaceType :: DomainType        DomainType;
-  typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
-  typedef typename FunctionSpaceType :: RangeType         RangeType;
-  
-  public:
-  AcTanhProblem():
-  BaseType()
-  {}
-  
-  template< class DomainType , class RangeType>
-  void evaluate( const DomainType& arg, RangeType& res) const
-  {
-    evaluate(0,arg,res);
-  } 
-  
-  template< class DomainType , class RangeType>
-  void evaluate( const double time, const DomainType& arg, RangeType& res) const
-  {
-    typename BaseType::RangeType resfull;
-    BaseType::evaluate( time , arg , resfull );
-    res[0]=resfull[dimension+1];
-    res[1]=resfull[dimension+3];
-    for( int ii = 0 ; ii < dimension ; ++ii)
-     res[2+ii]=resfull[dimension+4+ii];
-  }
-
-};
 
 
 
@@ -268,7 +169,7 @@ inline void TanhProblem<GridType,RangeProvider>
   //double rho=thermodyn_.evalRho(phi);
   double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
   
-  double v=(veloright_-veloleft_)*(peak)+veloleft_;
+  double v=0;//(veloright_-veloleft_)*(peak)+veloleft_;
   //rho
   res[0]= rho;
  
@@ -342,6 +243,95 @@ inline std::string TanhProblem<GridType,RangeProvider>
   return returnString;
 }
 
+////////////////////////////////////////////////////////////////////////////////////
+//                      WRAPPERS FOR SPLIT OPERATOR                               //
+////////////////////////////////////////////////////////////////////////////////////
+
+template <class GridType, class RangeProvider>
+class NvStTanhProblem:
+private TanhProblem< GridType, RangeProvider>
+{
+  using BaseType=TanhProblem< GridType, RangeProvider> ;
+  using BaseType::fixedTimeFunction;
+  constexpr static int  dimension = GridType::dimensionworld;
+  constexpr static int dimDomain = dimension;
+  constexpr static int dimRange=RangeProvider::rangeDim/2;
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
+
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
+
+  public:
+  NvStTanhProblem():
+  BaseType()
+  {}
+
+  template< class DomainType , class RangeType>
+  void evaluate( const DomainType& arg, RangeType& res) const
+  {
+    evaluate(0,arg,res);
+  }
+
+  template< class DomainType , class RangeType>
+  void evaluate( const double time, const DomainType& arg, RangeType& res ) const
+  {
+    typename BaseType::RangeType resfull;
+    BaseType::evaluate( time , arg , resfull );
+    res[0]=resfull[0];
+    for( int ii = 0 ; ii<dimension ; ++ii)
+      res[1+ii]=resfull[1+ii];
+    res[dimension+1]=resfull[dimension+2];
+  }
+
+};
+
+template <class GridType, class RangeProvider>
+class AcTanhProblem:
+private TanhProblem< GridType, RangeProvider>
+{
+  using BaseType=TanhProblem< GridType, RangeProvider> ;
+  using BaseType::fixedTimeFunction;
+  constexpr static int  dimension = GridType::dimensionworld;
+  constexpr static int dimDomain = dimension;
+  constexpr static int dimRange=RangeProvider::rangeDim/2;
+  using FunctionSpaceType = typename Fem::FunctionSpace<typename GridType::ctype,
+                                                        double,
+                                                        GridType::dimensionworld,
+                                                        dimRange >;
+
+  using DomainFieldType = typename FunctionSpaceType :: DomainFieldType;
+  using DomainType      = typename FunctionSpaceType :: DomainType;
+  using RangeFieldType  = typename FunctionSpaceType :: RangeFieldType;
+  using RangeType       = typename FunctionSpaceType :: RangeType;
+
+  public:
+  AcTanhProblem():
+  BaseType()
+  {}
+
+  template< class DomainType , class RangeType>
+  void evaluate( const DomainType& arg, RangeType& res) const
+  {
+    evaluate(0,arg,res);
+  }
+
+  template< class DomainType , class RangeType>
+  void evaluate( const double time, const DomainType& arg, RangeType& res) const
+  {
+    typename BaseType::RangeType resfull;
+    BaseType::evaluate( time , arg , resfull );
+    res[0]=resfull[dimension+1];
+    res[1]=resfull[dimension+3];
+    for( int ii = 0 ; ii < dimension ; ++ii)
+     res[2+ii]=resfull[dimension+4+ii];
+  }
+
+};
 
 
 } // end namespace Dune
