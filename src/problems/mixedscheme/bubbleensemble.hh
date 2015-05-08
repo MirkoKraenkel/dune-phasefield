@@ -1,5 +1,5 @@
-#ifndef HEATPROBLEM_HH
-#define HEATPROBLEM_HH
+#ifndef PHASEFIELD_BUBBLEENSEMBLE_HH
+#define PHASEFIELD_BUBBLEENSEMBLE_HH
 #include <dune/common/version.hh>
 
 // dune-fem includes
@@ -54,6 +54,8 @@ public:
     bubblevector_(0),
     thermodyn_()
     {
+      distortion_[0]=1;
+      distortion_[1]=1.5;
       readDataFile( bubblefilename_ );
     }      
 
@@ -100,6 +102,15 @@ public:
     evaluate( 0.,arg ,res);
   }
 
+  
+  inline double mynorm( const DomainType& x) const
+  {
+    double res(0.);
+    for( int ii=0 ; ii < dimension ; ++ii)
+      res+=distortion_[ii]*x[ii]*x[ii];
+    return std::sqrt(res);
+  }
+
 
   // evaluate function 
   inline void evaluate( const double t, const DomainType& x, RangeType& res ) const;
@@ -112,7 +123,8 @@ public:
 
   inline double dxdi( const DomainType& x , const int i) const
   {
-    return x[i]/x.two_norm();
+   return distortion_[i]*x[i]/mynorm(x);
+ //     return x[i]/x.two_norm();
   }
 
 
@@ -142,6 +154,7 @@ public:
   std::string bubblefilename_; 
   std::vector<double> bubblevector_;
   const ThermodynamicsType thermodyn_;
+  DomainType distortion_;
   int numBubbles_;
 };
 
@@ -172,7 +185,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
   width/=sqrt(A_);
 #endif
   phi=0;
-  double rho=rho2_;
+  double rho=rho1_;
 #if MIXED 
   for(int ii = 0; ii < dimension ; ++ii)
     res[dimension+4+ii]=0.;
@@ -195,7 +208,9 @@ inline void BubbleEnsemble<GridType,RangeProvider>
   
     DomainType vector=center;
     vector-=arg;
-    double r=vector.two_norm();
+    double r=mynorm(vector);
+    //double r=vector.two_norm();
+    
     double tanr=tanh((radius-r) * (1 /width2 ));
     double tanhr=tanr;
     double dtanr=1+tanr*tanr;
@@ -209,7 +224,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
         if( r < radius-(0.5*width))
           {//Inside bubble
             phi=1;//0.5+0.5*phiscale_;
-            rho=rho1_;
+            rho=rho2_;
 #if MIXED
             dFdphi= thermodyn_.reactionSource(rho,phi); 
             dFdrho=thermodyn_.chemicalPotential(rho, phi);
@@ -223,8 +238,8 @@ inline void BubbleEnsemble<GridType,RangeProvider>
         else
           {
             phi=0.5*( tanhr )+0.5;
-            double rhodiff=rho2_-rho1_;
-            rho=(rhodiff)*(-0.5*tanhr+0.5)+rho1_;
+            double rhodiff=rho1_-rho2_;
+            rho=(rhodiff)*(-0.5*tanhr+0.5)+rho2_;
 #if MIXED
             for( int ii=0 ; ii< dimension ;++ii)
               res[dimension+4+ii]=0.5*dtanhr*(1/width2)*dxdi(vector,ii);
