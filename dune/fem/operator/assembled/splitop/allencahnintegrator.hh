@@ -60,7 +60,7 @@ class PhasefieldAllenCahnIntegrator
                               deltaT_(0.),
                               deltaTInv_(0.),
                               maxSpeed_(0.),
-                              lastSpeed_(1.),
+                              lastSpeed_(0.),
                               uOld_("uOld" , space ),
                               uOldLocal_(space),
                               uOldNeighbor_(space),
