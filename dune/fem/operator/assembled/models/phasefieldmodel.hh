@@ -263,7 +263,7 @@ inline double PhasefieldModel< Grid, Problem>
     double unormal(0.);
     for( int ii = 0 ; ii<dimDomain ; ++ii)
       unormal+=u[1+ii]*normal[ii];
-    double c=problem_.thermodynamics().a(u[0],u[dimDomain+1]);
+    double c=problem_.thermodynamics().a(u[0],u[dimDomain+1])*normal.two_norm();
 
     return std::abs(unormal)+std::sqrt(c);
 }
