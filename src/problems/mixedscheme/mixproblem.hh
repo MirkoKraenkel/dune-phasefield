@@ -125,70 +125,47 @@ inline void MixProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double x=arg[0];
-  double cost=cos(M_PI*t);
-  double cosx=cos(2*M_PI*x);
-  double sinx=sin(2*M_PI*x);
-    
+  double y=0;
+  if(dimension==2)
+    y=arg[1];
+  
   double rho=rho_;
   double rho_inv=1./rho_;
   double v=0;
   //rho
   res[0]= rho;
   //v
-  for(int i=1;i<=dimension;i++)
-   {
-    res[i]=v;
-   }
+  for(int ii = 0; ii < dimension ; ++ii )
+    res[ii+1]=v;
   
-  if(dimension==2)
-     res[2]=0;
-   
-   double  phi=0.05*cosx+0.5;
-   res[dimension+1]=phi;
+  double phi=0.05;
+
+  for( int ii = 0; ii < dimension ; ++ii)
+    phi*=cos(2*M_PI*arg[ii]);
+
+  phi+=0.5;
+  res[dimension+1]=phi;
 
 
 #if MIXED     
-  double dFdphi= thermodyn_.reactionSource(rho,phi); 
-  double dFdrho=thermodyn_.chemicalPotential(rho, phi);
-  double sigma=-2*M_PI*sinx*cost*0.05;
-#if RHOMODEL
-  //mu
-  res[dimension+2]=0.5*v*v+dFdrho-thermodyn_.delta()*rho_inv*rho_inv*sigma*sigma*0.5;
-  //tau
-  res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*rho_inv*cosx+dFdphi;
-  //sigma_x
-  res[dimension+4]=sigma;
-#else
-  //mu
-  res[dimension+2]=0.5*v*v+dFdrho;
-  //tau
-  res[dimension+3]=thermodyn_.delta()*4*0.05*M_PI*M_PI*cosx+dFdphi;
-  //sigma_x
-  res[dimension+4]=sigma;
-#endif
-#if LAMBDASCHEME 
-  //alpha_x
-  res[dimension+4+dimension]=res[dimension+4]*thermodyn_.h2(rho);
-#endif
-  if(dimension==2)
+  for( int ii = 0 ; ii<dimension; ++ ii)
     {
-      //sigma_y
-      res[dimension+5]=0.;
+      res[dimension+4+ii]=-2*M_PI*sin(2*M_PI*arg[ii]);
 #if LAMBDASCHEME
-      //alpha_y
-      res[dimension+7]=0.;
+      res[2*dimension+4+ii]=thermodyn_.h2(rho)*res[dimension+4+ii];
 #endif
     }
+  //tau
+  res[dimension+3]=0;
+  //mu
+  res[dimension+2]=0;
 #else
-  for(int i=1;i<=dimension;i++)
-   {
-      res[i]*=res[0];
-   }
+
 #if NONCONTRANS
 #else
-      res[dimension+1]*=res[0];
+    for(int ii= 0 ; ii < dimension ; ++ ii)
+      res[ii]*=res[0];
 #endif
-
 #endif    
 }
 
