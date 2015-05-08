@@ -51,7 +51,7 @@ class PhasefieldMixedIntegrator
                               deltaT_(0.),
                               deltaTInv_(0.),
                               maxSpeed_(0.),
-                              lastSpeed_(1.),
+                              lastSpeed_(0.),
                               uOld_("uOld" , space ),
                               uOldLocal_(space),
                               uOldNeighbor_(space),
@@ -88,7 +88,7 @@ class PhasefieldMixedIntegrator
   double timeStepEstimate() { return std::min( minArea_/maxSpeed_,lipschitzC());}
 
   double maxSpeed() { return maxSpeed_; }
-  
+
   double lipschitzC() { return model_.lipschitzC(); }
 
   void setSpeed() { lastSpeed_=maxSpeed_; maxSpeed_=0;}
