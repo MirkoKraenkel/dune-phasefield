@@ -437,8 +437,8 @@ void NvStMixedFlux<Model>
     
     Filter::rho(gLeft)*=-0.5;
      
-    double viscmu=Filter::rho(jump);
-    double viscrho=Filter::mu( jump );
+    double viscrho=Filter::rho(jump);
+    double viscmu=Filter::mu( jump );
     
     Filter::rho( gLeft )+=numVisc_*area*viscrho;
     Filter::rho( gRight )=Filter::rho( gLeft );

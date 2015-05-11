@@ -1,6 +1,7 @@
 #ifndef PHASEFIELD_ALLENCAHNINTEGRATOR_HH
 #define PHASEFIELD_ALLENCAHNINTEGRATOR_HH
 #include "splitfilter.hh"
+#include "../matrixhelper.hh"
 template< class DiscreteFunction, class AddFunction ,class Model, class Flux>
 class PhasefieldAllenCahnIntegrator
 { 
@@ -59,7 +60,7 @@ class PhasefieldAllenCahnIntegrator
                               time_(0.),
                               deltaT_(0.),
                               deltaTInv_(0.),
-                              maxSpeed_(0.),
+                              maxSpeed_(1.),
                               lastSpeed_(0.),
                               uOld_("uOld" , space ),
                               uOldLocal_(space),
@@ -312,8 +313,13 @@ void PhasefieldAllenCahnIntegrator<DiscreteFunction,AddFunction, Model,Flux>
   const double intersectionArea = normal.two_norm();
   const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
   const double area=lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea; 
+  CombinedRangeType combinedEn,combinedNb;
+  MatrixHelper::concat(vuAddEn,vuOldEn,combinedEn);
+  MatrixHelper::concat(vuAddNb,vuOldNb,combinedNb);
+  
+  maxSpeed_ = std::max( std::max( model_.maxSpeed(normal,combinedEn), model_.maxSpeed(normal,combinedNb)),maxSpeed_);
 
-  maxSpeed_ = 0;//std::max( std::max( model_.maxSpeed(normal,vuOldEn), model_.maxSpeed(normal,vuOldNb)),maxSpeed_);
+ 
 
   JacobianRangeType dvalue(0.),advalue(0.);
   flux_.numericalFlux( normal,
