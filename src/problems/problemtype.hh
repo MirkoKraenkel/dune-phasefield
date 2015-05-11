@@ -44,30 +44,42 @@ typedef TravelProblem< GridSelector :: GridType,
  >  PhaseProblemType;
 #endif
 #elif PROBLEM==2
-#if GRIDDIM==2
-#include "../mixedscheme/bubbleensemble2.hh"
-#else
-#include "../mixedscheme/bubbleensemble1d.hh"
-#endif
+#include "../mixedscheme/bubbleensemble.hh"
 #if MIXED
 typedef BubbleEnsemble< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
-        >PhaseProblemType;
+        > PhaseProblemType;
+#if SPLIT
+typedef NvStBubbleEnsemble< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > NvStPhaseProblemType;
+typedef AcBubbleEnsemble< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > AcPhaseProblemType;
+#endif
 #else
 typedef BubbleEnsemble< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
-        >PhaseProblemType;
+        > PhaseProblemType;
 #endif
 #elif PROBLEM==3
-#include "../mixedscheme/mixproblem2d.hh"
+#include "../mixedscheme/mixproblem.hh"
 #if MIXED
 typedef MixProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
-        >PhaseProblemType;
+        > PhaseProblemType;
+#if SPLIT
+typedef NvStMixProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > NvStPhaseProblemType;
+typedef AcMixProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > AcPhaseProblemType;
+#endif
 #else
 typedef MixProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
-        >PhaseProblemType;
+        > PhaseProblemType;
 #endif
 #elif PROBLEM==4
 #include "../mixedscheme/tanhproblem.hh"
@@ -75,7 +87,7 @@ typedef MixProblem< GridSelector :: GridType,
 #if MIXED
 typedef TanhProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
-        >PhaseProblemType;
+        > PhaseProblemType;
 #if SPLIT
 typedef NvStTanhProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
@@ -87,7 +99,7 @@ typedef AcTanhProblem< GridSelector :: GridType,
 #else
 typedef TanhProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
-        >PhaseProblemType;
+        > PhaseProblemType;
 #endif
 #elif PROBLEM==5
 #include "../mixedscheme/sharpproblem.hh"
