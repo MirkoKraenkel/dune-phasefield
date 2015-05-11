@@ -14,9 +14,10 @@ SOURCES = $(BASEDIR)/phasefield.cc
 GRIDTYPE = SPGRID
 #GRIDTYPE = ALUGRID_CONFORM
 #GRIDTYPE = ALBERTAGRID
-GRIDDIM = 1 
+GRIDDIM = 2 
 POLORDER = 1 
-PROBLEM = 4 # check ./problemtype.hh
+PROBLEM = 3 # check ./problemtype.hh
+
 FLUX = 1 # check ./problemcreator.hh
 
 AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
@@ -24,7 +25,7 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefield_fd phasedield_ub phasefield_split  phasefield_ub_split phasefield_lambda
+check_PROGRAMS = phasefield phasefield_fd phasefield_ub phasefield_split phasefield_split_fd phasefield_ub_split phasefield_lambda
 
 phasefield_SOURCES = $(SOURCES)
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING -DIMPLICITTAU
@@ -37,6 +38,9 @@ phasefield_ub_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_IS
 
 phasefield_split_SOURCES = $(SOURCES)
 phasefield_split_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE  -DCOUPLING -DSPLIT -DIMPLICITTAU
+
+phasefield_split_fd_SOURCES = $(SOURCES)
+phasefield_split_fd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE  -DFD -DSPLIT -DIMPLICITTAU
 
 phasefield_ub_split_SOURCES = $(SOURCES)
 phasefield_ub_split_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING -DSPLIT -DIMPLICITTAU
