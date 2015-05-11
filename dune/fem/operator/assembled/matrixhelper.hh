@@ -20,6 +20,25 @@
 
 namespace MatrixHelper
 {
+  template< class Range1, class Range2, class Range3>
+  void concat( const Range1& v1, const Range2& v2, Range3& result)
+    {
+      assert( v1.size()+v2.size()==result.size());
+
+      auto resit=result.begin();
+      for( auto item: v1)
+        {
+          (*resit)=item;
+          resit.increment();
+        }
+      for( auto item: v2)
+        {
+          (*resit)=item;
+          resit.increment();
+        }
+    }
+
+
 
 template< class Point, class ShapeFunctionSet, class RangeArray>
 void evaluateScalarAll( const Point &x ,
