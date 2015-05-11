@@ -310,14 +310,13 @@ void  NavierStokesJacobianFlux<Model>
  
       //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)
       gLeft[ 0 ][ 0 ]=-0.5*vNormalEn;
-      //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5
       gRight[ 0 ][ 0 ]=0.5*vNormalNb;
       //[[mu]]
-      gLeft[ 0 ][ dimDomain+1 ]=0.5*numViscMu_*area;
-      gRight[ 0 ][ dimDomain+1 ]=-0.5*numViscMu_*area;
+      gLeft[ 0 ][ dimDomain+1 ]=numViscMu_*area;
+      gRight[ 0 ][ dimDomain+1 ]=-1*numViscMu_*area;
       //[[rho]]
-      gLeft[ 0 ][ 0 ]+=0.5*numVisc_*area;
-      gRight[ 0 ][0]+=-0.5*numVisc_*area;
+      gLeft[ 0 ][ 0 ]+=numVisc_*area;
+      gRight[ 0 ][0]-=numVisc_*area;
       //----------------------------------------------------------------
 
   }
