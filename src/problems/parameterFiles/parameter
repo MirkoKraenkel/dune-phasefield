@@ -34,7 +34,7 @@ phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.radius: 0.5
 phasefield.bubbles: ./InputFiles/2bubbles.txt 
-phiscale: 0.6 
+phasefield.phiscale: 0.6 
 phasefield.rhofactor:1
 
 

@@ -25,8 +25,8 @@ class PhasefieldRunner:
     self.params=[ 'phasefield.delta','phasefield.mu1','phasefield.mu2','phasefield.endTime', 'fixedTimeStep', 
                   'fem.prefix','phasefield.startLevel','phasefield.reactionrate','phasefield.alpha', 
                   'phasefield.beta','phasefield.A', 'phasefield.rhofactor','phasefield.addvisc',
-                  'phasefield.muvisc','phasefield.acpenalty','phiscale','phasefield.timestepfactor','phasefield.shift','phasefield.veloleft','phasefield.veloright']
-    self.defaults=[ '0.05','0.01','0.01','1','0','','0','1','0.1','1.','1','2',1,0,1,1,0.1,0,0 ,0]
+                  'phasefield.muvisc','phasefield.acpenalty','phasefield.phiscale','phasefield.timestepfactor','phasefield.shift','phasefield.veloleft','phasefield.veloright']
+    self.defaults=[ '0.02','0.01','0.01','5','0','','0','1','0.','1.','1','2',1,0,1,1,0.1,0,0 ,0]
     
     self.paramEntries=self.makeform(paramframe,self.params)
     
