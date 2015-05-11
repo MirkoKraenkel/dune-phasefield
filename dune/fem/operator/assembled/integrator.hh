@@ -50,7 +50,7 @@ class PhasefieldMixedIntegrator
                               time_(0.),
                               deltaT_(0.),
                               deltaTInv_(0.),
-                              maxSpeed_(0.),
+                              maxSpeed_(1.),
                               lastSpeed_(0.),
                               uOld_("uOld" , space ),
                               uOldLocal_(space),
@@ -394,14 +394,13 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
   const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
-  const double area=lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea; 
-
+  const double viscFactor=lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea;
   maxSpeed_ = std::max( std::max( model_.maxSpeed(normal,vuOldEn), model_.maxSpeed(normal,vuOldNb)),maxSpeed_);
 
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
   fluxRet=flux_.numericalFlux( normal,
-                              area,
+                              viscFactor,
                               penaltyFactor,
                               vuEn,
                               vuNb,
