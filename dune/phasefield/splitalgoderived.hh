@@ -159,39 +159,54 @@ class SplitAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits,Sp
       dgNavStkOperator_.setPreviousTimeStep(U);
       dgNavStkOperator_.setTime(time);
       dgNavStkOperator_.setDeltaT(deltaT);
-      
+
       dgACOperator_.setPreviousTimeStep(UAc);
       dgACOperator_.setTime(time);
+#if 0
+      dgACOperator_.setDeltaT(deltaT*0.5);
+#else
       dgACOperator_.setDeltaT(deltaT);
-      
+#endif
       NewtonSolverType invOp(dgNavStkOperator_); 
       NewtonSolverType invOp2( dgACOperator_);  
       double errorNvSt,errorAc;    
-      int counter=0; 
+      int counter=0;
+      newton_iterations     = 0;
+      ils_iterations        = 0;
       do 
         {
-          dgNavStkOperator_.integrator().setAddVariables(UAc);
-      
-          start_.clear();
-          invOp(start_,U);
-          errorNvSt=l2norm.distance(U, Uold);
           dgACOperator_.integrator().setAddVariables(U);
           start_.clear();
           invOp2(start_,UAc);
           errorAc=l2norm.distance(UAc,UAcOld);
+          newton_iterations+=invOp2.iterations();
+          ils_iterations+=invOp2.linearIterations();
+#if 0
+          dgACOperator_.setPreviousTimeStep(UAc);
+          dgACOperator_.setTime(time);
+          dgACOperator_.setDeltaT(deltaT*0.5);
+          start_.clear();
+          invOp2(start_,UAc);
+#endif
+          dgNavStkOperator_.integrator().setAddVariables(UAc);
+          start_.clear();
+          invOp(start_,U);
+          errorNvSt=l2norm.distance(U, Uold);
+
+          std::cout<<"errorNvSt="<<errorNvSt<<" errorAc="<<errorAc<<"\n";
+
           Uold.assign(U);
           UAcOld.assign(UAc);
           ++counter;
+          newton_iterations+=invOp.iterations()+invOp2.iterations();
+          ils_iterations+=invOp.linearIterations();
       }
       while( errorAc>itertol_ || errorNvSt> itertol_);
-      //std::cout<<"counter="<<counter<<"\n";
       //reset overall timer
       overallTimer_.reset();
 
-      newton_iterations     = counter;//invOp.iterations();
-      ils_iterations        = invOp.linearIterations();;
-      max_newton_iterations = std::max(max_newton_iterations,newton_iterations);
-      max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
+     max_newton_iterations = std::max(max_newton_iterations,newton_iterations);
+     max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
           
       if( !invOp.converged() )
         {
@@ -203,11 +218,11 @@ class SplitAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits,Sp
       {
      
       }
-     else if( newton_iterations >  3 )
+     else if( newton_iterations >  5 )
         {
           std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
           reduceTimeStep( timeProvider , deltaT );
-         }
+        }
      else if( newton_iterations < 2 && timeProvider.deltaT() < timeStepEstimate())
         {
           timeProvider.provideTimeStepEstimate( 1.2*deltaT);
