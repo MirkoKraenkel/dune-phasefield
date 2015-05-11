@@ -49,7 +49,7 @@ public:
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
     rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
     rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
-    phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+    phiscale_(Fem::Parameter::getValue<double> ("phasefield.phiscale")),
     bubblefilename_(Fem::Parameter::getValue<std::string>("phasefield.bubbles")),
     bubblevector_(0),
     thermodyn_()
@@ -184,7 +184,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 #else
   width/=sqrt(A_);
 #endif
-  phi=0;
+  phi=0.5-phiscale_*0.5;
   double rho=rho1_;
 #if MIXED 
   for(int ii = 0; ii < dimension ; ++ii)
@@ -223,7 +223,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
       {
         if( r < radius-(0.5*width))
           {//Inside bubble
-            phi=1;//0.5+0.5*phiscale_;
+            phi=0.5+0.5*phiscale_;
             rho=rho2_;
 #if MIXED
             dFdphi= thermodyn_.reactionSource(rho,phi); 
@@ -237,7 +237,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
           }
         else
           {
-            phi=0.5*( tanhr )+0.5;
+            phi=phiscale_*0.5*( tanhr )+0.5;
             double rhodiff=rho1_-rho2_;
             rho=(rhodiff)*(-0.5*tanhr+0.5)+rho2_;
 #if MIXED
