@@ -47,7 +47,7 @@ public:
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
-    phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+    phiscale_(Fem::Parameter::getValue<double> ("phasefield.phiscale")),
     thermodyn_()
     {
     }
