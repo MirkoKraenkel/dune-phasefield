@@ -1,6 +1,7 @@
 #ifndef PHASEFIELD_NAVIERSTOKESINTEGRATOR_HH
 #define PHASEFIELD_NAVIERSTOKESINTEGRATOR_HH
 #include "splitfilter.hh"
+#include "../matrixhelper.hh"
 template< class DiscreteFunction, class AddFunction, class Model, class Flux>
 class PhasefieldNavierStokesIntegrator
 { 
@@ -48,9 +49,8 @@ class PhasefieldNavierStokesIntegrator
 
   typedef Dune::FieldVector<RangeFieldType, combinedRange> CombinedRangeType;
 
-  typedef  NvStFilter<RangeType> Filter; 
-  typedef  AcFilter< AddRangeType> AddFilter;
-
+  typedef NvStFilter<RangeType> Filter;
+  typedef AcFilter< AddRangeType> AddFilter;
 
   public:
     PhasefieldNavierStokesIntegrator( const ModelType& model,
@@ -60,7 +60,7 @@ class PhasefieldNavierStokesIntegrator
                               time_(0.),
                               deltaT_(0.),
                               deltaTInv_(0.),
-                              maxSpeed_(0.),
+                              maxSpeed_(1.),
                               lastSpeed_(0.),
                               uOld_("uOld" , space ),
                               uOldLocal_(space),
@@ -103,7 +103,7 @@ class PhasefieldNavierStokesIntegrator
   void setTime( const double time) { time_=time;}
   void setDeltaT( const double deltat) {deltaT_=deltat;deltaTInv_=1./deltaT_;}
 
-  double timeStepEstimate() { return std::min( minArea_/maxSpeed_,lipschitzC());}
+  double timeStepEstimate() { return minArea_/maxSpeed_;}
 
   double maxSpeed() { return maxSpeed_; }
   
@@ -335,8 +335,11 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
   const double intersectionArea = normal.two_norm();
   const double penaltyFactor = intersectionArea / std::min( areaEn_, areaNb_ ); 
   const double area=lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea; 
+  CombinedRangeType combinedEn,combinedNb;
+  MatrixHelper::concat(vuOldEn,vuAddEn,combinedEn);
+  MatrixHelper::concat(vuOldNb,vuAddNb,combinedNb);
 
-  maxSpeed_ = 0;//std::max( std::max( model_.maxSpeed(normal,vuOldEn), model_.maxSpeed(normal,vuOldNb)),maxSpeed_);
+  maxSpeed_ = std::max( std::max( model_.maxSpeed(normal,combinedEn), model_.maxSpeed(normal,combinedNb)),maxSpeed_);
 
   JacobianRangeType dvalue(0.),advalue(0.);
   flux_.numericalFlux( normal,
