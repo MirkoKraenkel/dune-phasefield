@@ -141,7 +141,7 @@ void DGOperator<DiscreteFunction, Integrator>
 {
   // clear destination 
   w.clear();
-  
+  integrator_.setSpeed(); 
   // iterate over grid 
   const IteratorType end = space().end();
   for( IteratorType it = space().begin(); it != end; ++it )
