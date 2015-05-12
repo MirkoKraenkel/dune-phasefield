@@ -44,8 +44,8 @@ public:
   
 	WBFlux( const Model& mod )
     : model_(mod),
-      visc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",1)),
-			numViscMu_(Dune::Fem::Parameter::getValue<double>("phasefield.nuvisc",0.))
+      visc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0)),
+			numViscMu_(Dune::Fem::Parameter::getValue<double>("phasefield.muvisc",0.))
   {
   }
 
