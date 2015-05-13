@@ -39,6 +39,7 @@ Makefile.in
 *.trs
 *.pyc
 *.bak
+*.out
 timer.out.0
 /src/problems/passscheme/DATA_ARCHIVE
 /src/problems/mixedscheme/DATA_ARCHIVE
