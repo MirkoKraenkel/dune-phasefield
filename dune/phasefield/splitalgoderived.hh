@@ -175,12 +175,6 @@ class SplitAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits,Sp
       ils_iterations        = 0;
       do 
         {
-          dgACOperator_.integrator().setAddVariables(U);
-          start_.clear();
-          invOp2(start_,UAc);
-          errorAc=l2norm.distance(UAc,UAcOld);
-          newton_iterations+=invOp2.iterations();
-          ils_iterations+=invOp2.linearIterations();
 #if 0
           dgACOperator_.setPreviousTimeStep(UAc);
           dgACOperator_.setTime(time);
@@ -188,10 +182,20 @@ class SplitAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits,Sp
           start_.clear();
           invOp2(start_,UAc);
 #endif
+          //std::cout<<"nvst--------------------------------------------\n";
           dgNavStkOperator_.integrator().setAddVariables(UAc);
           start_.clear();
           invOp(start_,U);
           errorNvSt=l2norm.distance(U, Uold);
+          //std::cout<<"ac--------------------------------------------\n";
+          dgACOperator_.integrator().setAddVariables(U);
+
+
+          start_.clear();
+          invOp2(start_,UAc);
+          errorAc=l2norm.distance(UAc,UAcOld);
+          newton_iterations+=invOp2.iterations();
+          ils_iterations+=invOp2.linearIterations();
 
           std::cout<<"errorNvSt="<<errorNvSt<<" errorAc="<<errorAc<<"\n";
 
@@ -220,7 +224,7 @@ class SplitAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits,Sp
       }
      else if( newton_iterations >  5 )
         {
-          std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
+          //std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
           reduceTimeStep( timeProvider , deltaT );
         }
      else if( newton_iterations < 2 && timeProvider.deltaT() < timeStepEstimate())
