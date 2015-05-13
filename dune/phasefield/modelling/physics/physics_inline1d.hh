@@ -329,7 +329,7 @@ inline void PhasefieldPhysics< 1, Thermodynamics >
   assert(u[0] > MIN_RHO);
   double u_normal=u[1]*n[0]/u[0];
   double phi=u[2]/u[0];
-  double c=thermoDynamics_.a(u[0],phi);   
+  double c=thermoDynamics_.a(u[0],phi)*n.two_norm2();
 
   return std::abs(u_normal)+sqrt(c);
  

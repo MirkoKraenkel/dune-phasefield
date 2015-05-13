@@ -363,7 +363,7 @@ template< class Thermodynamics >
   assert( u[0] > 1e-10 );
   RangeFieldType u_normal = (u[1]*n[0]+u[2]*n[1]) / u[0];
   double phi=u[phaseId]/u[0];
-  double c = thermoDynamics_.a( u[0] , phi );
+  double c = thermoDynamics_.a( u[0] , phi )*n.two_norm2();
   return std::abs(u_normal) + std::sqrt(c);
  } 
 

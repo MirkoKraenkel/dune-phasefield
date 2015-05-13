@@ -367,14 +367,10 @@ template< class Thermodynamics >
  inline double PhasefieldPhysics< 2, Thermodynamics >
  ::maxSpeed( const DomainType& n, const RangeType& u) const
  {
-#if 1   
   assert( u[0] > 1e-10 );
   RangeFieldType u_normal = (u[1]*n[0]+u[2]*n[1]) / u[0];
-  RangeFieldType p = thermoDynamics_.a(u[0],u[2]/u[0]);
-  RangeFieldType c2 = p/ u[0] * n.two_norm2();
-  return std::abs(u_normal) + std::sqrt(c2);
-#endif
-  return 1;
+  RangeFieldType c = thermoDynamics_.a(u[0],u[3])* n.two_norm2();
+  return std::abs(u_normal) + std::sqrt(c);
  } 
 
 }//end namespace Dune
