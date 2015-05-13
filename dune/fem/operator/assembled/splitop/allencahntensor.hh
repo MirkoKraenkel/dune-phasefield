@@ -300,8 +300,9 @@ void PhasefieldAllenCahnTensor<Operator , AddFunction, Model, Flux,JacFlux >
 
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
+  const double penaltyFactor = intersectionArea/std::min(areaEn_,areaNb_);
   const double localwidth = lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea;
-  const double penaltyFactor = 1./localwidth;
+
 
   const double weightInside=quadInside.weight( pt ); 
   const double weightOutside=quadOutside.weight( pt ); 
