@@ -263,46 +263,45 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
   for( size_t jj=0 ;  jj < numScalarBf ; ++jj)
     {
       flux*=0.;
-      //evaluate Operator  for all basisFunctions
       //(rho,rho)
       flux[0][0]=deltaTInv_*phi_[ jj ][0];
           
       for( size_t kk = 0 ; kk < dimDomain ; ++kk )
         {
           //div u*phi_rho + v\cdot\nabla phi_rho 
-          flux[0][0]+=0.5*(duMid[ 1+kk ][ kk ]*phi_[ jj ][ 0 ]+vuMid[ 1+kk ]*dphi_[ jj ][ 0 ][ kk ]);
+          flux[0][0]+=factorImp_*(duMid[ 1+kk ][ kk ]*phi_[ jj ][ 0 ]+vuMid[ 1+kk ]*dphi_[ jj ][ 0 ][ kk ]);
           // rho*div phi_v +\nabla\rho\cdot\phi_v
-          flux[ 0 ][ 1+kk ]=0.5*(vuMid[0]*dphi_[ jj ][0 ][kk]+duMid[0][ kk ]*phi_[ jj ][0]);
+          flux[ 0 ][ 1+kk ]=factorImp_*(vuMid[0]*dphi_[ jj ][0 ][kk]+duMid[0][ kk ]*phi_[ jj ][0]);
       
-          flux[1+kk][0] = (vu[ 1 + kk ]-vuOld[ 1 + kk ])*phi_[ jj ][0]*0.5*deltaTInv_;
+          flux[1+kk][0] = (vu[ 1 + kk ]-vuOld[ 1 + kk ])*phi_[ jj ][0]*factorImp_*deltaTInv_;
           flux[1+kk][1+kk]=phi_[ jj ][ 0 ]*vuMid[0]*deltaTInv_;
    
           for( size_t ll = 0; ll<dimDomain; ++ll)
             { 
-              flux[ 1+kk ][ 0 ]+=0.5*(duMid[ 1 + kk ][ kk ] - duMid[ 1 + ll ][ kk ])*vuMid[ 1 + ll ]*phi_[ jj ][ 0 ];
-              flux[ 1+kk ][ 1+ll ]+=0.5*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])* phi_[ jj ][ 0 ]*vuMid[0];
-              flux[ 1+kk ][ 1+kk ]+=0.5*( dphi_[ jj ][ 0 ][ ll ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
-              flux[ 1+kk ][ 1+ll ]-=0.5*( dphi_[ jj ][ 0 ][ kk ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
+              flux[ 1+kk ][ 0 ]+=factorImp_*(duMid[ 1 + kk ][ kk ] - duMid[ 1 + ll ][ kk ])*vuMid[ 1 + ll ]*phi_[ jj ][ 0 ];
+              flux[ 1+kk ][ 1+ll ]+=factorImp_*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])* phi_[ jj ][ 0 ]*vuMid[0];
+              flux[ 1+kk ][ 1+kk ]+=factorImp_*( dphi_[ jj ][ 0 ][ ll ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
+              flux[ 1+kk ][ 1+ll ]-=factorImp_*( dphi_[ jj ][ 0 ][ kk ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
             } 
               
           //(v,rho,mu*)
-          flux[ 1+kk ][ 0 ]+=0.5*phi_[ jj ][ 0 ]*duImEx[ 2 + dimDomain ][ kk ];
+          flux[ 1+kk ][ 0 ]+=factorImp_*phi_[ jj ][ 0 ]*duImEx[ 2 + dimDomain ][ kk ];
           //(v,rho*,mu)
           flux[ 1+kk ][ dimDomain+2]+=imexFactor_*vuMid[ 0 ]*dphi_[ jj ][ 0 ][ kk ];
           //(v,phi,tau*)
-          flux[ 1+kk][ dimDomain+1]-=0.5*vuImEx[ dimDomain + 3 ]*dphi_[ jj ][0][ kk ];
+          flux[ 1+kk][ dimDomain+1]-=factorImp_*vuImEx[ dimDomain + 3 ]*dphi_[ jj ][0][ kk ];
           //(v,phi*,tau)               
           flux[ 1+kk][ dimDomain+3]-=imexFactor_*phi_[ jj ][ 0 ]*duMid[ dimDomain + 1 ][ kk ] ;
           //\nabla phi_phi\cdot v
-          flux[ dimDomain+1 ][ dimDomain+1 ]+=0.5*dphi_[ jj ][0][kk]*vuMid[ 1+ kk];
+          flux[ dimDomain+1 ][ dimDomain+1 ]+=factorImp_*dphi_[ jj ][0][kk]*vuMid[ 1+ kk];
           //\nabla phi \cdot phi_v
-          flux[ dimDomain+1 ][ 1+kk ] +=0.5* duMid[dimDomain+1][kk]*phi_[ jj ][0];
+          flux[ dimDomain+1 ][ 1+kk ] +=factorImp_* duMid[dimDomain+1][kk]*phi_[ jj ][0];
           //(mu,v_kk)
           flux[ dimDomain+2 ][ 1+kk]-=2*vu[ 1+kk ]*phi_[ jj ][ 0 ]*0.25;
 
 #if LAMBDASCHEME
           //(mu , sigma_kk)
-          flux[ dimDomain+2 ][ dimDomain+4+kk]=-0.5*model_.delta()*model_.h2prime(vuOld[0])*vuOld[dimDomain+4+kk]*phi_[jj][0];
+          flux[ dimDomain+2 ][ dimDomain+4+kk]=-factorImp_*model_.delta()*model_.h2prime(vuOld[0])*vuOld[dimDomain+4+kk]*phi_[jj][0];
 #endif
  
           //(sigma,gradphi)
@@ -312,7 +311,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
 
 #if LAMBDASCHEME
           //(tau, gradlambda)
-          flux[ dimDomain+3 ][ 2*dimDomain+4+kk ]+=model_.delta()*0.5*dphi_[ jj ][ 0 ][ kk ];
+          flux[ dimDomain+3 ][ 2*dimDomain+4+kk ]+=model_.delta()*factorImp_*dphi_[ jj ][ 0 ][ kk ];
           //(lambda,lambda)
           flux[2*dimDomain+4+kk][ 2*dimDomain+4+kk]=phi_[jj][0];
           //(lambda,rho)=h2prime(\bar\rho)*\bar\sigma
@@ -321,12 +320,12 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
           flux[2*dimDomain+4+kk][ dimDomain+4+kk]=-model_.h2(vu[0])*phi_[jj][0];
 #else
           //(tau, gradsigma)
-          flux[ dimDomain+3 ][ dimDomain+4+kk ]+=model_.delta()*0.5*dphi_[ jj ][ 0 ][ kk ];
+          flux[ dimDomain+3 ][ dimDomain+4+kk ]+=model_.delta()*factorImp_*dphi_[ jj ][ 0 ][ kk ];
 #endif
         }
 
           //( - tau phi_rho)/ rho*rho
-          flux[ dimDomain+1 ][ 0 ]=-1*model_.reactionFactor()*0.5* vu[ dimDomain + 3 ]*phi_[ jj ][ 0 ]/(vuMid[0]*vuMid[0]);
+          flux[ dimDomain+1 ][ 0 ]=-1*model_.reactionFactor()*factorImp_* vu[ dimDomain + 3 ]*phi_[ jj ][ 0 ]/(vuMid[0]*vuMid[0]);
           // phi_phi/deltaT
           flux[ dimDomain+1 ][ dimDomain+1]+=phi_[jj][0]*deltaTInv_;
 
@@ -396,7 +395,7 @@ void PhasefieldMixedTensor< DiscreteFunction, Model, Flux,  Jacobian>
           double  value(0);
           value=du[ jj ][ ii ]*dphi[ local_i ][ 0 ];         
                 
-          jLocal.add( global_i , global_j ,0.5*value*weight );
+          jLocal.add( global_i , global_j ,factorImp_*value*weight );
         }
      }
 }
@@ -556,16 +555,16 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
                 valueNb=-1*(aRight[ j ][ i ]*dphi_[ ii ][ 0 ]);
                 valueNb+=bRight[ j ][ i ]*phi_[ ii ];
 
-                jLocal.add( global_i , global_j , weightInside*valueEn*0.5); 
-                jLocalNbEn.add( global_i , global_j , weightInside*valueNb*0.5);
+                jLocal.add( global_i , global_j , weightInside*valueEn*factorImp_); 
+                jLocalNbEn.add( global_i , global_j , weightInside*valueNb*factorImp_);
 
                 valueEn=(aLeft[ j ][ i ]*dphiNb_[ ii ][ 0 ]);
                 valueEn-=bLeft[ j ][ i ]*phiNb_[ ii ];
                 valueNb=-1*(aRight[ j ][ i ]*dphiNb_[ ii][ 0 ]);
                 valueNb-=bRight[ j ][ i ]*phiNb_[ ii ];
 
-                jLocalEnNb.add( global_i , global_j , weightOutside*valueEn*0.5); 
-                jLocalNbNb.add( global_i , global_j , weightOutside*valueNb*0.5);
+                jLocalEnNb.add( global_i , global_j , weightOutside*valueEn*factorImp_); 
+                jLocalNbNb.add( global_i , global_j , weightOutside*valueNb*factorImp_);
 
               }
             }
@@ -662,7 +661,7 @@ void PhasefieldMixedTensor<DiscreteFunction ,  Model, Flux,JacFlux >
                     valueEn=aLeft[ j ][ i ]*dphi_[ ii ][ 0 ];
                     valueEn+=bLeft[ j ][ i ]*phi_[ ii ];
 
-                    jLocal.add( global_i , global_j , weightInside*valueEn*0.5);
+                    jLocal.add( global_i , global_j , weightInside*valueEn*factorImp_);
                   }
               }
         }
