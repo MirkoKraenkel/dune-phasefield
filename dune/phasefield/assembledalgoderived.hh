@@ -141,9 +141,9 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       {
       
       }
-     else if( newton_iterations >  3 )
+     else if( newton_iterations >  10 )
         {
-          std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
+          //std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
           reduceTimeStep( timeProvider , deltaT );
          }
      else if( newton_iterations < 2 && timeProvider.deltaT() < timeStepEstimate())
