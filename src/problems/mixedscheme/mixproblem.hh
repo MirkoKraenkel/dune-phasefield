@@ -160,11 +160,11 @@ inline void MixProblem<GridType,RangeProvider>
   //mu
   res[dimension+2]=0;
 #else
-
+for(int ii= 0 ; ii < dimension ; ++ ii)
+  res[ii+1]*=res[0];
 #if NONCONTRANS
 #else
-    for(int ii= 0 ; ii < dimension ; ++ ii)
-      res[ii]*=res[0];
+  res[dimension+1]*=res[0];
 #endif
 #endif    
 }
