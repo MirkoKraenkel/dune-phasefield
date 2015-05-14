@@ -174,36 +174,26 @@ class SplitAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTraits,Sp
       newton_iterations     = 0;
       ils_iterations        = 0;
       do 
-        {
-#if 0
-          dgACOperator_.setPreviousTimeStep(UAc);
-          dgACOperator_.setTime(time);
-          dgACOperator_.setDeltaT(deltaT*0.5);
-          start_.clear();
-          invOp2(start_,UAc);
-#endif
-          //std::cout<<"nvst--------------------------------------------\n";
-          dgNavStkOperator_.integrator().setAddVariables(UAc);
-          start_.clear();
-          invOp(start_,U);
-          errorNvSt=l2norm.distance(U, Uold);
-          //std::cout<<"ac--------------------------------------------\n";
-          dgACOperator_.integrator().setAddVariables(U);
+      { 
+        //std::cout<<"ac--------------------------------------------\n";
+        dgACOperator_.integrator().setAddVariables(U);
+        start_.clear();
+        invOp2(start_,UAc);
+        errorAc=l2norm.distance(UAc,UAcOld);
 
+        //std::cout<<"nvst--------------------------------------------\n";
+        dgNavStkOperator_.integrator().setAddVariables(UAc);
+        start_.clear();
+        invOp(start_,U);
+        errorNvSt=l2norm.distance(U, Uold);
 
-          start_.clear();
-          invOp2(start_,UAc);
-          errorAc=l2norm.distance(UAc,UAcOld);
-          newton_iterations+=invOp2.iterations();
-          ils_iterations+=invOp2.linearIterations();
+        //std::cout<<"errorNvSt="<<errorNvSt<<" errorAc="<<errorAc<<"\n";
 
-          std::cout<<"errorNvSt="<<errorNvSt<<" errorAc="<<errorAc<<"\n";
-
-          Uold.assign(U);
-          UAcOld.assign(UAc);
-          ++counter;
-          newton_iterations+=invOp.iterations()+invOp2.iterations();
-          ils_iterations+=invOp.linearIterations();
+        Uold.assign(U);
+        UAcOld.assign(UAc);
+        ++counter;
+        newton_iterations+=invOp.iterations()+invOp2.iterations();
+        ils_iterations+=invOp.linearIterations();
       }
       while( errorAc>itertol_ || errorNvSt> itertol_);
       //reset overall timer
