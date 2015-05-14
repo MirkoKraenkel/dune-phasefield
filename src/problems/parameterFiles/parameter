@@ -4,7 +4,7 @@ fem.resolvevariables: 1
 fem.prefix: ./data_2 # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
 fem.io.savestep: 1e-2 #save data every time interval
-fem.io.savecount: 0   # save every i-th ste
+fem.io.savecount: 0    # save every i-th ste
 fem.io.checkpointstep: 0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
@@ -33,8 +33,8 @@ phasefield.interpolinitial: false
 phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.radius: 0.5
-phasefield.bubbles: ./InputFiles/2bubbles.txt 
-phasefield.phiscale: 0.6 
+phasefield.bubbles: ./InputFiles/1bubble.txt 
+phasefield.phiscale: 1 
 phasefield.rhofactor:1
 
 
@@ -61,19 +61,17 @@ phasefield.veloright:0
 phasefield.veloleft:0
 
 #total density for mixproblem
-phasefield.rho0: 0.4 
+phasefield.rho0: 1.5 
 
 #maxwell points
-#phasefield.mwp1: 2
-#phasefield.mwp2: 0.192
+phasefield.mwp1: 1.5
+phasefield.mwp2: 1.5
 
-phasefield.mwp1: 0.1
-phasefield.mwp2: 0.62
+#phasefield.mwp1: 0.11
+#phasefield.mwp2: 0.61
 #phasefield.mwp2: 1.657270212
 #phasefield.mwp2: 3.793667900 
 #phasefield.mwp1: 1.947734046
-phasefield.mwp1: 0.1
-phasefield.mwp2: 0.62
 
 # NUMERICAL PARAMETERS
 #-----------------------------
@@ -96,11 +94,11 @@ fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 
 # 2D
 # ------
-#fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
+fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
-fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitgrid2d_unstr_2.dgf

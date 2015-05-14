@@ -10,23 +10,23 @@ fem.solver.verbose: false
 fem.solver.newton.verbose: false 
 fem.solver.newton.assemblesteps: 1 
 #fem.solver.newton.maxiterations: 50
-fem.solver.newton.maxlineariterations: 100
+fem.solver.newton.maxlineariterations: 1000
 fem.differenceoperator.eps: 1 
 phasefield.fdjacobian.epsilon: 0 
-#phasefield.maximaltimesteps: 2
-phasefield.mixed.theta: 0
+#phasefield.maximaltimesteps:3 
+phasefield.mixed.theta: 1 
 phasefield.maxTimeStep: 1e-3
 
 phasefield.IMEX: 1 
 phasefield.firstStep: 1e-4
 phasefield.timestepfactor: 0.1
-istl.preconditioning.method: ilu-0
+istl.preconditioning.method: ilu-0 
 istl.gmres.restart: 100
 istl.preconditioning.iterations: 1 
 istl.preconditioning.relaxation: 1.1
 
 oemsolver.gmres.restart: 1000
-
+phasefield.iterationtolerance: 1e-7
 phasefield.timesteptolerance: -1 
 
 
