@@ -2,10 +2,10 @@
 import os,subprocess, sys
 
 folders = { 1:'../ConstRhoSources/' , 2:'../AltAltSources/', 3:'../PhasefieldvanderWaalsSources/',
-4:'../ConstRhoSources/',5:'../RhoTaitSources/',6:'../TaitSources/'}
+4:'../ConstRhoSources/',5:'../ConstRhoSources/',6:'../TaitSources/'}
 
 files = { 1:'balancedCODEGEN.mpl', 2:'AltAltCODEGEN.mpl', 3:'phasefieldvanderWaalsCODEGEN.mpl',
-4:'balancedCoquelCODEGEN.mpl', 5:'rhotaitCODEGEN.mpl', 6:'taitCODEGEN.mpl'}
+4:'balancedCoquelCODEGEN.mpl', 5:'coquelTaylorCODEGEN.mpl', 6:'taitCODEGEN.mpl'}
 
 namelist = [' helmholtz', ' reactionSource',' dphireactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential',' pressure', ' a']
 
