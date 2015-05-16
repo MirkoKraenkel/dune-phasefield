@@ -64,8 +64,8 @@ phasefield.veloleft:0
 phasefield.rho0: 1.5 
 
 #maxwell points
-phasefield.mwp1: 1.5
-phasefield.mwp2: 1.5
+phasefield.mwp1: 2 
+phasefield.mwp2: 1
 
 #phasefield.mwp1: 0.11
 #phasefield.mwp2: 0.61
