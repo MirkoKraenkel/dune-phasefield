@@ -297,7 +297,9 @@ public:
                         const double viscFactor,
                         const double penaltyFactor,
                         const RangeType& vuEn,
-                        const RangeType& vuN,
+                        const RangeType& vuNb,
+                        const RangeType& vuMidEn,
+                        const RangeType& vuMidNb,
                         const RangeType& addEn,
                         const RangeType& addNb,
                         RangeType& gLeft,
@@ -405,6 +407,8 @@ void NvStMixedFlux<Model>
                 const double penaltyFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
+                const RangeType& vuMidEn,
+                const RangeType& vuMidNb,
                 const RangeType& addEn,
                 const RangeType& addNb,
                 RangeType& gLeft,
@@ -413,9 +417,13 @@ void NvStMixedFlux<Model>
     RangeType valEn,valNb,jump,mean,jumpNew,jumpAdd,addValEn,addValNb;
     valEn=vuEn;
     valNb=vuNb;
+    valMidEn=vuMidEn;
+    valMidNb=vuMidNb;
     addValEn=addEn;
     addValNb=addNb;
- 
+
+
+  
     gLeft=0.;
     gRight=0.;
 
@@ -432,14 +440,13 @@ void NvStMixedFlux<Model>
     for(int i = 0; i<dimDomain;++i)
       {
         //v^+\cdot n^+
-        vNormalEn+=Filter::velocity(valEn,i)*normal[i];
+        vNormalEn+=Filter::velocity(valMidEn,i)*normal[i];
         //v^-\cdot n^+
-        vNormalNb+=Filter::velocity(valNb,i)*normal[i];
+        vNormalNb+=Filter::velocity(valMidNb,i)*normal[i];
       }
     
     //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
-    //Filter::rho(gLeft)=vNormalEn-vNormalNb;
-    Filter::rho(gLeft)=vNormalEn*Filter::rho(valEn)-vNormalNb*Filter::rho(valNb);
+    Filter::rho(gLeft)=vNormalEn*Filter::rho(valMidEn)-vNormalNb*Filter::rho(valMidNb);
     
     Filter::rho(gLeft)*=-0.5;
      
@@ -459,8 +466,8 @@ void NvStMixedFlux<Model>
       { 
         //F_2=F_{2.1}+F_{2.2}
         //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-        Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(valEn)*0.5;
-        Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(valNb)*0.5;
+        Filter::velocity(gLeft,i)-=Filter::mu(jump)*normal[i]*Filter::rho(valMidEn)*0.5;
+        Filter::velocity(gRight,i)-=Filter::mu(jump)*normal[i]*Filter::rho(valMidNb)*0.5;
 
         //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
         Filter::velocity(gLeft,i)+=AddFilter::phi(jumpAdd)*normal[i]*AddFilter::tau(addValEn)*0.5;
