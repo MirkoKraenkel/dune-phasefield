@@ -25,7 +25,7 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefield_fd phasefield_ub phasefield_split phasefield_split_fd phasefield_ub_split phasefield_lambda
+check_PROGRAMS = phasefield phasefield_fd phasefield_fd_dq phasefield_split phasefield_split_fd  phasefield_split_fd_dq phasefield_ub_split phasefield_lambda
 
 phasefield_SOURCES = $(SOURCES)
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING -DIMPLICITTAU
@@ -33,14 +33,18 @@ phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL 
 phasefield_fd_SOURCES = $(SOURCES) 
 phasefield_fd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DFD  -DIMPLICITTAU
 
-phasefield_ub_SOURCES = $(SOURCES)
-phasefield_ub_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DUNBALMODEL -DCOUPLING -DIMPLICITTAU
+phasefield_fd_dq_SOURCES = $(SOURCES)
+phasefield_fd_dq_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DFD -DDIFFQUOT -DIMPLICITTAU
 
 phasefield_split_SOURCES = $(SOURCES)
 phasefield_split_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE  -DCOUPLING -DSPLIT -DIMPLICITTAU
 
 phasefield_split_fd_SOURCES = $(SOURCES)
 phasefield_split_fd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE  -DFD -DSPLIT -DIMPLICITTAU
+
+phasefield_split_fd_dq_SOURCES = $(SOURCES)
+phasefield_split_fd_dq_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE  -DFD -DDIFFQUOT -DSPLIT -DIMPLICITTAU
+
 
 phasefield_ub_split_SOURCES = $(SOURCES)
 phasefield_ub_split_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DCOUPLING -DSPLIT -DIMPLICITTAU

@@ -1,7 +1,8 @@
 phasefield
 phasefield_fd
-phasefield_ub
+phasefield_fd_dq
 phasefield_split
 phasefield_split_fd
+phasefield_split_fd_dq
 phasefield_ub_split
 phasefield_lambda
