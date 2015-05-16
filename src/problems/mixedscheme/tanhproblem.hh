@@ -169,7 +169,7 @@ inline void TanhProblem<GridType,RangeProvider>
   //double rho=thermodyn_.evalRho(phi);
   double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
   
-  double v=0;//(veloright_-veloleft_)*(peak)+veloleft_;
+  double v=veloright_;//-veloleft_)*(peak)+veloleft_;
   //rho
   res[0]= rho;
  
@@ -184,8 +184,8 @@ inline void TanhProblem<GridType,RangeProvider>
    res[dimension+1]=phi;
  
 #if MIXED
-  double dFdphi= thermodyn_.reactionSource(rho,phi); 
-  double dFdrho=thermodyn_.chemicalPotential(rho, phi);
+  double dFdphi=0;// thermodyn_.reactionSource(rho,phi); 
+  double dFdrho=0;//thermodyn_.chemicalPotential(rho, 0);
   double sigma=-0.5*drtanhr;
  double laplacePhi=0.5*drdrtanhr;
   if(arg[0]<0.)
