@@ -8,7 +8,6 @@
 
 #include "../phasefieldfilter.hh"
 #define LAPLACE  1
-#define DIFFQUOT 0 
 template<class Grid, class Problem>
 class PhasefieldModel
 {
@@ -33,7 +32,8 @@ class PhasefieldModel
     //contructor
   public:
     PhasefieldModel( const ProblemType& problem):
-      problem_(problem)
+      problem_(problem),
+      diffquotthresh_(Dune::Fem::Parameter::getValue<double>("phasefield.diffquoutthresh"))
   {}
 
 
@@ -130,7 +130,7 @@ class PhasefieldModel
 
   private:
     const ProblemType& problem_;
-
+    const double diffquotthresh_;
 };
 
 template< class Grid, class Problem>
@@ -185,9 +185,12 @@ inline void PhasefieldModel< Grid, Problem >
              RangeFieldType phi,
              RangeFieldType& mu) const
 {
-#if DIFFQUOT
+#if TAYLOR
+  double rhoMid=0.5*(rho+rhoOld);
+  mu=problem_.thermodynamics().chemicalPotential(rho,rhoMid,rhoOld,phi);
+#elif DIFFQUOT
   double diffrho=rho-rhoOld;
-  if( std::abs(diffrho)<1e-9)
+  if( std::abs(diffrho)<diffquotthresh_)
     mu=problem_.thermodynamics().chemicalPotential(rhoOld,phi);
   else
     {
@@ -229,11 +232,14 @@ inline void PhasefieldModel< Grid, Problem>
               RangeFieldType rhoOld,
               RangeFieldType& tau) const
 {
-#if DIFFQUOT
+#if TAYLOR
+  double phiMid=0.5*(phi+phiOld);
+  tau=problem_.thermodynamics().reactionSource(rhoOld,phi,phiMid,phiOld);
+#elif DIFFQUOT
   double diffphi=phi-phiOld;
-  if( std::abs(diffphi)<1e-9)
-    tau=problem_.thermodynamics().reactionSource(rhoOld,phiOld);
-  else
+  if( std::abs(diffphi)<diffquotthresh_)
+   tau=problem_.thermodynamics().reactionSource(rhoOld,phiOld);
+ else
   {
     double fnew,fold;
     fnew=problem_.thermodynamics().helmholtz(rhoOld,phi);
