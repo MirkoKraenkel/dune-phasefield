@@ -30,10 +30,12 @@ public:
 
 
   void numericalFlux( const DomainType& normal, 
-                        const double area,
+                        const double viscFactor,
                         const double penaltyFactor,
                         const RangeType& vuEn,
-                        const RangeType& vuN,
+                        const RangeType& vuNn,
+                        const RangeType& vuMidEn,
+                        const RangeType& vuMidNb,
                         const RangeType& addEn,
                         const RangeType& addNb,
                         RangeType& gLeft,
@@ -184,27 +186,31 @@ void AcMixedFlux<Model>
 template< class Model >
 void AcMixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
-                const double area,              
+                const double viscFactor,
                 const double penaltyFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
+                const RangeType& vuMidEn,
+                const RangeType& vuMidNb,
                 const RangeType& addEn,
                 const RangeType& addNb,
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-    RangeType valEn,valNb,jump,addValEn,addValNb;
+    RangeType valEn,valNb,valMidEn,valMidNb,jump,addValEn,addValNb;
     valEn=vuEn;
     valNb=vuNb;
+
     addValEn=addEn;
     addValNb=addNb;
     double integrationElement=normal.two_norm();
- 
+    valMidEn=vuMidEn;
+    valMidNb=vuMidNb;
     gLeft=0.;
     gRight=0.;
 
-    jump = valEn;
-    jump-= valNb;
+    jump = valMidEn;
+    jump-= valMidNb;
    
     double laplaceFlux(0.);
     //phi-------------------------------------------------------------
@@ -288,7 +294,7 @@ public:
 
 
    void numericalFlux( const DomainType& normal, 
-                        const double area,
+                        const double viscFactor,
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
@@ -395,7 +401,7 @@ void NvStMixedFlux<Model>
 template< class Model >
 void NvStMixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
-                const double area,              
+                const double viscFactor,              
                 const double penaltyFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
@@ -440,10 +446,10 @@ void NvStMixedFlux<Model>
     double viscrho=Filter::rho(jump);
     double viscmu=Filter::mu( jump );
     
-    Filter::rho( gLeft )+=numVisc_*area*viscrho;
+    Filter::rho( gLeft )+=numVisc_*viscFactor*viscrho;
     Filter::rho( gRight )=Filter::rho( gLeft );
     
-    Filter::rho( gLeft )+=numViscMu_*area*viscmu;
+    Filter::rho( gLeft )+=numViscMu_*viscFactor*viscmu;
     Filter::rho( gRight )=Filter::mu( gLeft );
     //----------------------------------------------------------------
     
