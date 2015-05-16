@@ -73,7 +73,11 @@ class BalancedThermodynamics:
 #if UNBALMODEL
 #include "AltAltSources/maple.cc"
 #else
+#if TAYLOR 
+#include "ConstRhoSources/maple2.cc"
+#else
 #include "ConstRhoSources/maple.cc"
+#endif
 #endif
 #endif
 
