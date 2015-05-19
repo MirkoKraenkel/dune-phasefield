@@ -190,8 +190,8 @@ inline void BubbleEnsemble<GridType,RangeProvider>
   for(int ii = 0; ii < dimension ; ++ii)
     res[dimension+4+ii]=0.;
 
-  double dFdphi= thermodyn_.reactionSource(rho,phi);
-  double dFdrho=thermodyn_.chemicalPotential(rho, phi);
+  double dFdphi= 0;
+  double dFdrho=0;
  //mu
  res[dimension+2]=dFdrho;
   //tau
@@ -226,8 +226,6 @@ inline void BubbleEnsemble<GridType,RangeProvider>
             phi=0.5+0.5*phiscale_;
             rho=rho2_;
 #if MIXED
-            dFdphi= thermodyn_.reactionSource(rho,phi); 
-            dFdrho=thermodyn_.chemicalPotential(rho, phi);
             //mu
             res[dimension+2]=dFdrho;
             //tau
