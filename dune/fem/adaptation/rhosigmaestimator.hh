@@ -97,7 +97,7 @@ namespace Dune
       maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
       minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
       coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1)),
-      ifelements_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.tolfactor",1) ),
+      ifelements_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.ifelements",4) ),
       maxH_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.maxh",0.02 )),
       localsizeFactor_( Dune::Fem::Parameter::getValue<double>( "phasefield.adaptive.localsizefactor",0.4)),
       rhoTol_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.rhoTol",0.1)),
@@ -163,6 +163,7 @@ namespace Dune
       return ( sigmaIndicator_[ index ] > localsize_[ index ]
               && rhoIndicator_[ index ] < coarsen_*rhoTol_);
     }
+    
     double computeIndicator()
     {
       totalIndicator_ = 0.0;
