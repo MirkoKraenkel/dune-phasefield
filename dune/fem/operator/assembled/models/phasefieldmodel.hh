@@ -33,7 +33,7 @@ class PhasefieldModel
   public:
     PhasefieldModel( const ProblemType& problem):
       problem_(problem),
-      diffquotthresh_(Dune::Fem::Parameter::getValue<double>("phasefield.diffquoutthresh"))
+      diffquotthresh_(Dune::Fem::Parameter::getValue<double>("phasefield.diffquotthresh"))
   {}
 
 
@@ -186,8 +186,7 @@ inline void PhasefieldModel< Grid, Problem >
              RangeFieldType& mu) const
 {
 #if TAYLOR
-  double rhoMid=0.5*(rho+rhoOld);
-  mu=problem_.thermodynamics().chemicalPotential(rho,rhoMid,rhoOld,phi);
+  mu=problem_.thermodynamics().chemicalPotential(rho,phi,rhoOld);
 #elif DIFFQUOT
   double diffrho=rho-rhoOld;
   if( std::abs(diffrho)<diffquotthresh_)
@@ -212,7 +211,11 @@ inline void PhasefieldModel< Grid, Problem >
                  RangeFieldType& mu ) const
 
 {
+#if TAYLOR
+  mu=problem_.thermodynamics().drhochemicalPotential(rho,phi,rhoOld);
+#else
   mu=problem_.thermodynamics().drhochemicalPotential(rhoOld,phi);
+#endif
 }
 template<class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem >
@@ -221,7 +224,11 @@ inline void PhasefieldModel< Grid, Problem >
                  RangeFieldType phi,
                  RangeFieldType& mu ) const
 {
+#if TAYLOR
+  mu=problem_.thermodynamics().dphichemicalPotential(rho,phi,rhoOld);
+#else
   mu=problem_.thermodynamics().dphichemicalPotential(rhoOld,phi);
+#endif
 } 
 
 
@@ -233,8 +240,7 @@ inline void PhasefieldModel< Grid, Problem>
               RangeFieldType& tau) const
 {
 #if TAYLOR
-  double phiMid=0.5*(phi+phiOld);
-  tau=problem_.thermodynamics().reactionSource(rhoOld,phi,phiMid,phiOld);
+  tau=problem_.thermodynamics().reactionSource(rhoOld,phi,phiOld);
 #elif DIFFQUOT
   double diffphi=phi-phiOld;
   if( std::abs(diffphi)<diffquotthresh_)
@@ -257,8 +263,11 @@ inline void PhasefieldModel< Grid, Problem>
                   RangeFieldType rho,
                   RangeFieldType& tau) const
 {
- //abort();
- tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
+#if TAYLOR
+  tau=problem_.thermodynamics().dphireactionSource(rho,phi,phiOld);
+#else
+  tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
+#endif
 }
 
 template< class Grid, class Problem >
