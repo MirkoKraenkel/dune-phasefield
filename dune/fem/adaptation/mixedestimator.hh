@@ -93,7 +93,7 @@ namespace Dune
       maxLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.finestLevel")),
       minLevel_(Dune::Fem::Parameter::getValue<int>("fem.adaptation.coarsestLevel")),
       coarsen_(Dune::Fem::Parameter::getValue<double>("fem.adaptation.coarsenPercent",0.1)),
-      ifelements_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.tolfactor",1) ),
+      ifelements_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.ifelements",4) ),
       maxH_( Dune::Fem::Parameter::getValue<double>("phasefield.adaptive.maxh",0.02 )),
       localsizeFactor_( Dune::Fem::Parameter::getValue<double>( "phasefield.adaptive.localsizefactor",0.4)),
       verbose_( Dune::Fem::Parameter::getValue<bool>("phasefield.adaptive.verbose",false) ),
@@ -217,7 +217,7 @@ namespace Dune
                   mark_[ indexnb ] = 1;
                   ++marked;
                 }
-// loop over second neigbors
+                // loop over second neigbors
                 IntersectionIteratorType end = gridPart_.iend( outside );
                 if(secondNb_)
                   for(IntersectionIteratorType inter2 = gridPart_.ibegin( outside ); inter2!=end; ++inter2)
