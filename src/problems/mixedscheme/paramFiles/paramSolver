@@ -28,5 +28,5 @@ istl.preconditioning.relaxation: 1.1
 oemsolver.gmres.restart: 1000
 phasefield.iterationtolerance: 1e-7
 phasefield.timesteptolerance: -1 
-
+phasefield.diffquotthresh: 1e-3
 
