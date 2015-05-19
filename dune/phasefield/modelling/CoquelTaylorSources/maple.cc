@@ -150,30 +150,35 @@ t8*t23-t16*t23)*(rho-old)/24.0);
   }
 }
 
-
 inline double drhochemicalPotential ( double rho ,double phi ,double old ) const
 {
   double t1;
-  double t10;
   double t11;
+  double t12;
   double t15;
-  double t16;
   double t2;
-  double t21;
+  double t20;
   double t22;
+  double t32;
+  double t4;
+  double t5;
   double t7;
+  double t8;
   {
     t1 = phi*phi;
     t2 = t1*t1;
-    t7 = 30.0*t2-60.0*t1*phi+30.0*t1;
-    t10 = 0.5*rho+0.5*old;
-    t11 = log(t10);
-    t15 = -t7;
-    t16 = log(2.0);
-    t21 = t10*t10;
-    t22 = 1/t21;
-    return(beta_*(t7*(0.15E-9+0.15E1*t11)+t15*(0.15E-9+t11-t16))+beta_*(-0.15E1*
-t7*t22-t15*t22)*(rho-old)/24.0);
+    t4 = 6.0*t2*phi;
+    t5 = 15.0*t2;
+    t7 = 10.0*t1*phi;
+    t8 = t4-t5+t7;
+    t11 = 0.5*rho+0.5*old;
+    t12 = 1/t11;
+    t15 = 1.0-t4+t5-t7;
+    t20 = t11*t11;
+    t22 = 1/t20/t11;
+    t32 = 1/t20;
+    return(beta_*(0.75*t8*t12+0.5*t15*t12)+beta_*(0.15E1*t8*t22+0.1E1*t15*t22)*(
+rho-old)/24.0+beta_*(-0.15E1*t8*t32-t15*t32)/24.0);
   }
 }
 
