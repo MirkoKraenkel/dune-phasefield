@@ -226,7 +226,6 @@ void  JacobianFlux<Model>
           gLeft[ dimDomain + 3 ][ dimDomain + 4+ii ]=-model_.delta()*laplaceFluxLeft;
           gRight[ dimDomain + 3 ][dimDomain + 4+ii ]=-model_.delta()*laplaceFluxRight;
 #endif
-          //factor 0.5 comes from linerarization of 1/2(phi^(n+1)+phi^n)
           gLeft[ dimDomain + 3 ][ dimDomain + 1]=-model_.delta()*factorImp_*penaltyTerm;
           gRight[ dimDomain + 3 ][ dimDomain + 1]=model_.delta()*factorImp_*penaltyTerm; 
 
@@ -239,14 +238,13 @@ void  JacobianFlux<Model>
 
       //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)
       gLeft[ 0 ][ 0 ]=-0.5*factorImp_*vNormalEn;
-      //from linerarization  vuMid=0.5(vu+vuOld), d vuMid/d vu=0.5
       gRight[ 0 ][ 0 ]=0.5*factorImp_*vNormalNb;
        //[[mu]]
       gLeft[ 0 ][ dimDomain+2 ]=imexFactor_*numViscMu_*area;
-      gRight[ 0 ][ dimDomain+2 ]=imexFactor_*numViscMu_*area;
+      gRight[ 0 ][ dimDomain+2 ]=-imexFactor_*numViscMu_*area;
       //[[rho]]
-      gLeft[ 0 ][ 0 ]=factorImp_*numVisc_*area;
-      gRight[ 0 ][ 0 ]=-factorImp_*numVisc_*area;
+      gLeft[ 0 ][ 0 ]+=factorImp_*numVisc_*area;
+      gRight[ 0 ][ 0 ]-=factorImp_*numVisc_*area;
 
       //----------------------------------------------------------------
 
