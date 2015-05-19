@@ -414,7 +414,7 @@ void NvStMixedFlux<Model>
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-    RangeType valEn,valNb,jump,mean,jumpNew,jumpAdd,addValEn,addValNb;
+    RangeType valEn,valNb,jump,mean,jumpNew,jumpAdd,addValEn,addValNb, valMidEn,valMidNb;
     valEn=vuEn;
     valNb=vuNb;
     valMidEn=vuMidEn;
