@@ -74,7 +74,7 @@ class BalancedThermodynamics:
 #include "AltAltSources/maple.cc"
 #else
 #if TAYLOR 
-#include "ConstRhoSources/maple2.cc"
+#include "CoquelTaylorSources/maple.cc"
 #else
 #include "ConstRhoSources/maple.cc"
 #endif
