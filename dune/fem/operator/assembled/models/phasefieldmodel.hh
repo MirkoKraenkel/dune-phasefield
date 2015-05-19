@@ -33,7 +33,7 @@ class PhasefieldModel
   public:
     PhasefieldModel( const ProblemType& problem):
       problem_(problem),
-      diffquotthresh_(Dune::Fem::Parameter::getValue<double>("phasefield.diffquoutthresh"))
+      diffquotthresh_(Dune::Fem::Parameter::getValue<double>("phasefield.diffquotthresh"))
   {}
 
 
