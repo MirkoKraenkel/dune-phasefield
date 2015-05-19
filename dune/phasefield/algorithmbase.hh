@@ -396,7 +396,7 @@ public:
       initializeSolver( timeProvider);
       // adapt the grid to the initial data
 	  	int startCount = 0;
-      if( false)
+      if( adaptCount>0)
       {      
         while( startCount < maxAdaptationLevel )
 				{
