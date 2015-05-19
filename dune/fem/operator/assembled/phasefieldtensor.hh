@@ -257,8 +257,9 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
  
   //mu
   RangeFieldType dphimu(0.);
-  model_.dphimuSource( vuOld[ 0 ] , vuOld[ 0 ] , vu[ dimDomain + 1 ] , dphimu );
-
+  model_.dphimuSource( vu[ 0 ] , vuOld[ 0 ] , vu[ dimDomain + 1 ] , dphimu );
+  RangeFieldType drhomu(0.);
+  model_.drhomuSource( vu[ 0 ] , vuOld[ 0 ] , vu[ dimDomain + 1] , drhomu );
 
   for( size_t jj=0 ;  jj < numScalarBf ; ++jj)
     {
@@ -332,20 +333,23 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
           //(phi_tau rho)/ rho*rho
           flux[ dimDomain+1 ][ dimDomain+3 ]=model_.reactionFactor()*imexFactor_*phi_[ jj ][ 0 ]*vuMid[ 0 ]/(vuMid[0]*vuMid[0]);
 
-#if !IMPLICITTAU
-          //flux[ dimDomain+2 ][ 0 ]=-1*drhomu*phi[ jj ][ 0 ];
+          //tau
+          RangeFieldType dphitau(0.);
+          model_.dphitauSource( vu[dimDomain+1],vuOld[dimDomain+1], vuOld[0],dphitau);
+
+#if TAYLOR
+          //<mu,rho>=(dmu/drho,rho))
+          flux[ dimDomain+2 ][ 0 ]=-1*drhomu*phi_[ jj ][ 0 ];
+          //<tau,phi>=(dtau/dphi,phi)
+          flux[ dimDomain+3 ][ dimDomain+1 ]-=dphitau*phi_[ jj ][ 0 ];
+
 #endif
           //(mu,phi)
           flux[ dimDomain+2 ][ dimDomain+1 ]=-1*dphimu*phi_[ jj ][ 0];
           //(mu,mu)
           flux[ dimDomain+2 ][ dimDomain+2 ]=imexFactor_*phi_[ jj ][ 0 ];
         
-          //tau
-          //RangeFieldType dphitau(0.);
-          //model_.dphitauSource( vu[dimDomain+1],vuOld[dimDomain+1], vuOld[0],dphitau);
-          //(tau, phi)
-          //flux[ dimDomain+3 ][ dimDomain+1 ]-=dphitau*phi[ jj ][ 0 ];
-          //(tau,tau)
+         //(tau,tau)
           flux[ dimDomain+3 ][ dimDomain+3 ]+=imexFactor_*phi_[ jj ][ 0 ];
 
           DiffusionType du;
