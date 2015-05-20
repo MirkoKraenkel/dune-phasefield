@@ -25,7 +25,6 @@ class PhasefieldNavierStokesIntegrator
 
   typedef typename DiscreteFunctionSpaceType::IteratorType IteratorType;
   typedef typename IteratorType::Entity       EntityType;
-  typedef typename EntityType::EntityPointer  EntityPointerType;
 
   typedef typename EntityType::Geometry       GeometryType;
 
@@ -57,6 +56,7 @@ class PhasefieldNavierStokesIntegrator
                               const DiscreteFunctionSpaceType& space):
                               model_( model),
                               flux_( model ),
+                              theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
                               time_(0.),
                               deltaT_(0.),
                               deltaTInv_(0.),
@@ -72,8 +72,8 @@ class PhasefieldNavierStokesIntegrator
                               minArea_( std::numeric_limits<double>::max() )
       {
         uOld_.clear();
-        factorImp_=1;
-        factorExp_=0;
+        factorImp_=0.5*(1+theta_);
+        factorExp_=0.5*(1-theta_);
       }
   
   
@@ -86,7 +86,6 @@ class PhasefieldNavierStokesIntegrator
     addLocal_.assign(addFunction_.localFunction( entity ));
     areaEn_=entity.geometry().volume();
     minArea_=std::min( areaEn_ , minArea_ );
-    
   }
   
   //prepares data on a given entity
@@ -95,7 +94,7 @@ class PhasefieldNavierStokesIntegrator
     uOldNeighbor_.init(entity);
     uOldNeighbor_.assign(uOld_.localFunction( entity ));
     addNeighbor_.init(entity);
-    addNeighbor_.assign(addFunction_.localFunction( entity ));
+    addNeighbor_.assign(addFunction_.localFunction( entity));
     areaNb_=entity.geometry().volume();
     minArea_=std::min( areaNb_ , minArea_ ); 
   }
@@ -111,9 +110,9 @@ class PhasefieldNavierStokesIntegrator
 
   void setSpeed() { lastSpeed_=maxSpeed_; maxSpeed_=0;}
 
-  void setPreviousTimeStep( DiscreteFunctionType& uOld)  { uOld_.assign(uOld); }
-  void setAddVariables( AddFunctionType& addF) {addFunction_.assign(addF);} 
-  
+  void setPreviousTimeStep( DiscreteFunctionType& uOld)  { uOld_.assign(uOld);}
+  void setAddVariables( AddFunctionType& addF) { addFunction_.assign(addF);}
+
   void localIntegral( size_t  pt,
                       const GeometryType& geometry,
                       const QuadratureType& quadrature,
@@ -147,6 +146,7 @@ class PhasefieldNavierStokesIntegrator
   protected:
   ModelType model_;    
   NumericalFluxType flux_;
+  double theta_;
   double time_;
   double deltaT_;
   double deltaTInv_;
@@ -164,14 +164,14 @@ class PhasefieldNavierStokesIntegrator
   mutable double minArea_;
   mutable double areaEn_;
   mutable double areaNb_;
-  };
+ };
 
 
 
 
 
 
-template<class DiscreteFunction, class AddFunction,class Model, class Flux >
+template<class DiscreteFunction,class AddFunction, class Model, class Flux >
 void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 ::localIntegral( size_t  pt,
     const GeometryType& geometry,
@@ -184,18 +184,24 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
   const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
   const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
   const DomainType xgl = geometry.global(x);
-  RangeType vuOld;
-  AddRangeType vuAdd; 
-  
+  RangeType vuOld,vuMid(0.);
+  AddRangeType vuAdd;
+
   //this should stay instide local Integral as it is operator specific
   uOldLocal_.evaluate( quadrature[ pt ], vuOld); 
   addLocal_.evaluate( quadrature[ pt ], vuAdd);
   double deltaInv=1./deltaT_;
-  JacobianRangeType duOld;
+  //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
+  vuMid.axpy(factorImp_,vu);
+  vuMid.axpy(factorExp_,vuOld);
+
+
+  JacobianRangeType duOld,duMid(0);
   AddJacobianRangeType duAdd;
   uOldLocal_.jacobian( quadrature[ pt ], duOld);
-  addLocal_.jacobian( quadrature[ pt ], duAdd);
-
+  addLocal_.jacobian( quadrature[pt],duAdd);
+  duMid.axpy(factorImp_,du);
+  duMid.axpy(factorExp_,duOld);
 
 
   CombinedRangeType  source(0.);
@@ -269,7 +275,7 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
     //\sigma^n*\sigma^{n-1}
     sigmasqr+=AddFilter::sigma( vuAdd , ii )*AddFilter::sigma( vuAdd , ii );
 #endif
-  }
+    }
 
   Filter::mu(avu)-=0.25*(usqr+uOldsqr);
 #if RHOMODEL
@@ -286,13 +292,11 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 #endif
   //------------------------------------------------------------------
 
-  
- 
   for(int ii = 0; ii < dimRange ; ii++)
   {
     assert( avu[ii]==avu[ii]) ;
   }
-  //avu-=source;
+ // avu-=source;
   avu*=weight;
   adu*=weight;
 
@@ -316,15 +320,15 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
                         JacobianRangeType& aduLeft,
                         JacobianRangeType& aduRight) const
 {
-  RangeType vuOldEn(0.),vuOldNb(0.),vuAddEn(0.),vuAddNb(0.);
-  JacobianRangeType duOldEn(0.),duOldNb(0.), duAddEn(0.),duAddNb(0.);
+  RangeType vuOldEn(0.),vuOldNb(0.), vuAddEn(0.),vuAddNb(0.), vuMidEn(0.),vuMidNb(0.);
+  JacobianRangeType duOldEn(0.),duOldNb(0.),duAddEn(0.),duAddNb(0.);
 
   //calc vuOldEn....
   uOldLocal_.evaluate( quadInside[ pt ] , vuOldEn );
   uOldLocal_.jacobian( quadInside[ pt ] , duOldEn );
   uOldNeighbor_.evaluate( quadOutside[ pt ] , vuOldNb );
   uOldNeighbor_.jacobian( quadOutside[ pt ] , duOldNb );
-  
+
   addLocal_.evaluate( quadInside[ pt ] , vuAddEn );
   addNeighbor_.evaluate( quadInside[ pt ] , vuAddNb );
 
@@ -347,6 +351,8 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
                        penaltyFactor,
                        vuEn,
                        vuNb,
+                       vuMidEn,
+                       vuMidNb,
                        vuAddEn,
                        vuAddNb,
                        avuLeft,
@@ -370,7 +376,7 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 }
 
 //Boundary Intgral
-template<class DiscreteFunction, class AddFunction,class Model, class Flux>
+template<class DiscreteFunction, class AddFunction, class Model, class Flux>
 void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 ::boundaryIntegral( const IntersectionType& intersection,
                     const size_t pt,  
@@ -382,8 +388,6 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
 {
 
   size_t boundaryIndex=intersection.boundaryId();
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-  const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
   RangeType vuOldEn(0.), bndValue(0.);
   JacobianRangeType duOldEn(0.);
@@ -399,22 +403,20 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
   // compute penalty factor
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
-  const DomainType xgl = intersectionGeometry.global(x);
   const double intersectionArea = normal.two_norm();
   const double penaltyFactor = intersectionArea /  areaEn_; 
   const double area=lastSpeed_*areaEn_/intersectionArea; 
-//model_.dirichletValue( time_,xgl, bndValue);
 
   JacobianRangeType dvalue(0.),advalue(0.);
   RangeType gLeft(0.),dummy(0.);
 #if 1 
   if( boundaryIndex==1 || !outflow_)
     {
-     flux_.boundaryFlux( normal,
-                                  area,
-                                  vuEn,
-                                  vuEn,
-                                  gLeft);
+      flux_.boundaryFlux( normal,
+                          area,
+                          vuEn,
+                          vuEn,
+                          gLeft);
     }
   else
     {
@@ -425,15 +427,7 @@ void PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction, Model,Flux>
                          gLeft);
 
     }
-#else
-   fluxRet=flux_.numericalFlux( normal,
-                                area,
-                                vuEn,
-                                bndValue,
-                                bndValue,
-                                gLeft,
-                                dummy);
-#endif
+
   avuLeft+=gLeft;
   RangeType value(0.);
 
