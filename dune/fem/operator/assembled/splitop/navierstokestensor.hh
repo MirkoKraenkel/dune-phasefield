@@ -16,7 +16,7 @@ public PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux>
 {
 
   typedef PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux> BaseType;
-  
+
   public:
   using DiscreteFunctionType      = typename BaseType::DiscreteFunctionType;
   using AddFunctionType           = typename BaseType::AddFunctionType;
@@ -49,7 +49,8 @@ public PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux>
 
   using JacobianFluxType=JacobianFlux;
 
-  using TemporaryLocalTypex      = typename BaseType::TemporaryLocalType;
+  using TemporaryLocalType       = typename BaseType::TemporaryLocalType;
+
   
   typedef Dune::Fem::TemporaryLocalMatrix<DiscreteFunctionSpaceType,
                                           DiscreteFunctionSpaceType> LocalMatrixType;
@@ -63,46 +64,49 @@ public PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   typedef typename Dune::FieldMatrix<double,1,dimDomain> ComponentJacobianType;
   typedef std::vector< ComponentRangeType> BasefunctionStorage;
   typedef std::vector< ComponentJacobianType> BaseJacobianStorage;
-  
+
   typedef typename std::array<DomainType, dimDomain> DiffusionValueType;
   using  DiffusionType=typename Model::DiffusionTensorType; 
  
 
-   public: 
+  public:
    PhasefieldNavierStokesTensor(const ModelType &model,
-                                const DiscreteFunctionSpaceType& space ):
-    BaseType(model,space),
+                                const DiscreteFunctionSpaceType& space):
+    BaseType( model,space),
     jacFlux_(model),
     imexFactor_(Dune::Fem::Parameter::getValue<double>("phasefield.IMEX"))
     {}
-    
-    template<class Quad>
-    void computeCoefficientsEn ( const LocalFunctionType& uLocal,
-                                const Quad& quadrature ) const;
-    template<class Quad>
-    void computeCoefficientsNb ( const LocalFunctionType& uLocal,
+
+ 
+
+  template<class Quad>
+  void computeCoefficientsEn ( const LocalFunctionType& uLocal,
+                               const Quad& quadrature ) const;
+  template<class Quad>
+  void computeCoefficientsNb ( const LocalFunctionType& uLocal,
                                const Quad& quadrature ) const;
 
-    void resizeBaseStorageEn ( int numDofs ) const
-      {
-        const unsigned int scalarDofs=numDofs/dimRange;
-        phi_.resize( scalarDofs );
-        dphi_.resize( scalarDofs );
-      }
+
+  void resizeBaseStorageEn ( int numDofs ) const
+  {
+    const unsigned int scalarDofs=numDofs/dimRange;
+    phi_.resize( scalarDofs );
+    dphi_.resize( scalarDofs );
+  }
   
-    void resizeBaseStorageNb ( int numDofs ) const
-      {
-        const unsigned int scalarDofs=numDofs/dimRange;
-        phiNb_.resize( scalarDofs );
-        dphiNb_.resize( scalarDofs );
-      }
+  void resizeBaseStorageNb ( int numDofs ) const
+  {
+    const unsigned int scalarDofs=numDofs/dimRange;
+    phiNb_.resize( scalarDofs );
+    dphiNb_.resize( scalarDofs );
+  }
   
+  void elementTensor (size_t pt,
+                      const GeometryType& geometry,
+                      const QuadratureType& quadrature,
+                      const BasisFunctionSetType& baseSet,
+                      LocalMatrixType& jLocal) const;
  
-  void elementTensor ( size_t pt,
-                       const GeometryType& geometry,
-                       const QuadratureType& quadrature,
-                       const BasisFunctionSetType& baseSet,
-                       LocalMatrixType& jLocal) const;
   template<class Quad>
   void intersectionTensor ( size_t pt,
                             const IntersectionType& intersection,
@@ -116,14 +120,16 @@ public PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux>
                             LocalMatrixType& jocalNbEn,
                             LocalMatrixType& jLocalEnNb,
                             LocalMatrixType& jLocalNbNb) const;
-  
-  void boundaryTensor( size_t pt,
-                       const IntersectionType& intersection,
-                       const GeometryType& geometry,
-                       const FaceQuadratureType& quadInside, 
-                       const BasisFunctionSetType& baseSet,
-                       LocalMatrixType& jLocal) const;
-   
+
+
+  void boundaryTensor ( size_t pt,
+                        const IntersectionType& intersection,
+                        const GeometryType& geometry,
+                        const FaceQuadratureType& quadInside,
+                        const BasisFunctionSetType& baseSet,
+                        LocalMatrixType& jLocal) const;
+
+
   using BaseType::addFunction_;
   using BaseType::uOldLocal_;
   using BaseType::addLocal_;
@@ -134,7 +140,6 @@ public PhasefieldNavierStokesIntegrator<DiscreteFunction,AddFunction,Model,Flux>
   using BaseType::areaEn_;
   using BaseType::areaNb_;
   using BaseType::outflow_;
-
   private:
   const JacobianFluxType jacFlux_;
   const double imexFactor_;
@@ -157,7 +162,7 @@ template<class Operator, class AddFunction, class Model, class Flux,class JacFlu
 template<class Quad>
 void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
 ::computeCoefficientsEn( const LocalFunctionType& uLocal,
-                       const Quad& quadrature ) const
+                         const Quad& quadrature ) const
 {
   const size_t numQuadraturePoints = quadrature.nop();
 
@@ -176,6 +181,8 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
   duAddEn_.resize(numQuadraturePoints);
   addLocal_.evaluateQuadrature( quadrature, duAddEn_);
 }
+
+
 
 // evaluate the coefficient functions in all quadrature points
 template<class Operator, class AddFunction, class Model, class Flux,class JacFlux>
@@ -205,17 +212,17 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
 template<class Operator, class AddFunction, class Model, class Flux,class JacFlux>
 void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
 ::elementTensor( size_t pt,
-                  const GeometryType& geometry,
-                  const QuadratureType& quadrature,
-                  const BasisFunctionSetType& baseSet,
-                  LocalMatrixType& jLocal ) const
+                 const GeometryType& geometry,
+                 const QuadratureType& quadrature,
+                 const BasisFunctionSetType& baseSet,
+                 LocalMatrixType& jLocal ) const
 
 {    
   const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
   const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
   //get this before application
   const int numScalarBf=baseSet.size()/dimRange;
-   
+
   //this should be provided by the actuial basisfunctionset
   MatrixHelper::evaluateScalarAll( quadrature[ pt ], baseSet.shapeFunctionSet(),phi_);
   MatrixHelper::jacobianScalarAll( quadrature[ pt ], geometry, baseSet.shapeFunctionSet(),dphi_);      
@@ -235,10 +242,10 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
   for( size_t jj=0 ;  jj < numScalarBf ; ++jj)
     {
       flux=0.;
-      
+
       //(rho,rho)
       flux[0][0]=deltaTInv_*phi_[ jj ][0];
-          
+
       for( size_t kk = 0 ; kk < dimDomain ; ++kk )
         {
           //div u*phi_rho + v\cdot\nabla phi_rho 
@@ -247,10 +254,10 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
           // rho*div phi_v +\nabla\rho\cdot\phi_v
           //(rho,v)
           flux[ 0 ][ 1+kk ]=(vu[0]*dphi_[ jj ][0 ][kk]+dvu[0][ kk ]*phi_[ jj ][0]);
-      
+
           flux[1+kk][0] = (vu[ 1 + kk ]-vuOld[ 1 + kk ])*phi_[ jj ][0]*deltaTInv_;
           flux[1+kk][1+kk]=phi_[ jj ][ 0 ]*vu[0]*deltaTInv_;
-   
+
           for( size_t ll = 0; ll<dimDomain; ++ll)
             { 
               flux[ 1+kk ][ 0 ]+=(dvu[ 1 + kk ][ kk ] - dvu[ 1 + ll ][ kk ])*vu[ 1 + ll ]*phi_[ jj ][ 0 ];
@@ -268,10 +275,8 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
 
         }
 
-
           //(mu,mu)
           flux[ 1+dimDomain ][ 1+dimDomain ]=imexFactor_*phi_[ jj ][ 0 ];
-        
 
           DiffusionType du;
 
@@ -279,26 +284,29 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
             du[i]=0;
  
           model_.scalar2vectorialDiffusion( dphi_[jj], du);
-          
-          for( size_t ii = 0 ; ii < numScalarBf ; ++ii )
-            {
-              MatrixHelper::diffusionaxpy< DofAlignmentType >(ii,
-                                                              jj,
-                                                              dimDomain,
-                                                              dphi_,
-                                                              du,
-                                                              weight,
-                                                              jLocal);
-              MatrixHelper::axpyElement< DofAlignmentType >( couplings_,
-                                                             phi_,
-                                                             flux,
-                                                             ii,
-                                                             jj,
-                                                             weight,
-                                                             jLocal);
-            } 
-      }
-} 
+
+      for( size_t ii = 0 ; ii < numScalarBf ; ++ii )
+        {
+          MatrixHelper::diffusionaxpy< DofAlignmentType >(ii,
+                                                          jj,
+                                                          dimDomain,
+                                                          dphi_,
+                                                          du,
+                                                          weight,
+                                                          jLocal);
+
+          MatrixHelper::axpyElement< DofAlignmentType >( couplings_,
+                                                        phi_,
+                                                        flux,
+                                                        ii,
+                                                        jj,
+                                                        weight,
+                                                        jLocal);
+        }
+    }
+}
+
+
 
 template<class Operator, class AddFunction, class Model, class Flux,class JacFlux>
 template<class Quad>
@@ -315,14 +323,16 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
                        LocalMatrixType& jLocalNbEn,
                        LocalMatrixType& jLocalEnNb,
                        LocalMatrixType& jLocalNbNb) const
-{ 
+{
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
+
   const DomainType normal = intersection.integrationOuterNormal( x );
 
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
   const double penaltyFactor = intersectionArea/std::min(areaEn_,areaNb_);
   const double localwidth = lastSpeed_*std::min(areaEn_,areaNb_)/intersectionArea;
+
 
   const double weightInside=quadInside.weight( pt );
   const double weightOutside=quadOutside.weight( pt );
@@ -418,38 +428,39 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
                                                                   jLocalNbNb );
 #if 1
 // Adding DiffusionFluxTerms
-            for(int i  = 0; i  < dimDomain ; ++i )
-            {
-              int global_i=ii*dimRange+1+i; 
-              for(int j  = 0 ; j  < dimDomain ; ++j )
-              {
-                int global_j= jj*dimRange+1+j;
-                double valueEn,valueNb; 
+              for(int i  = 0; i  < dimDomain ; ++i )
+                {
+                  int global_i=ii*dimRange+1+i;
 
-                valueEn=aLeft[ j ][ i ]*dphi_[ ii ][ 0 ];
-                valueEn+=bLeft[ j ][ i ]*phi_[ ii ];
-                valueNb=-1*(aRight[ j ][ i ]*dphi_[ ii ][ 0 ]);
-                valueNb+=bRight[ j ][ i ]*phi_[ ii ];
+                    for(int j  = 0 ; j  < dimDomain ; ++j )
+                      {
+                        int global_j= jj*dimRange+1+j;
+                        double valueEn,valueNb;
 
-                jLocal.add( global_i , global_j , weightInside*valueEn); 
-                jLocalNbEn.add( global_i , global_j , weightInside*valueNb);
+                        valueEn=aLeft[ j ][ i ]*dphi_[ ii ][ 0 ];
+                        valueEn+=bLeft[ j ][ i ]*phi_[ ii ];
+                        valueNb=-1*(aRight[ j ][ i ]*dphi_[ ii ][ 0 ]);
+                        valueNb+=bRight[ j ][ i ]*phi_[ ii ];
 
-                valueEn=(aLeft[ j ][ i ]*dphiNb_[ ii ][ 0 ]);
-                valueEn-=bLeft[ j ][ i ]*phiNb_[ ii ];
-                valueNb=-1*(aRight[ j ][ i ]*dphiNb_[ ii][ 0 ]);
-                valueNb-=bRight[ j ][ i ]*phiNb_[ ii ];
+                        jLocal.add( global_i , global_j , weightInside*valueEn);
+                        jLocalNbEn.add( global_i , global_j , weightInside*valueNb);
 
-                jLocalEnNb.add( global_i , global_j , weightOutside*valueEn); 
-                jLocalNbNb.add( global_i , global_j , weightOutside*valueNb);
+                        valueEn=(aLeft[ j ][ i ]*dphiNb_[ ii ][ 0 ]);
+                        valueEn-=bLeft[ j ][ i ]*phiNb_[ ii ];
+                        valueNb=-1*(aRight[ j ][ i ]*dphiNb_[ ii][ 0 ]);
+                        valueNb-=bRight[ j ][ i ]*phiNb_[ ii ];
 
-              }
-            }
+                        jLocalEnNb.add( global_i , global_j , weightOutside*valueEn);
+                        jLocalNbNb.add( global_i , global_j , weightOutside*valueNb);
+
+                      }
+                }
 #endif
  
 
-              }
+            }
 
-          }
+        }
 }
                                      
 template<class Operator, class AddFunction, class Model, class Flux,class JacFlux>
@@ -534,11 +545,11 @@ void PhasefieldNavierStokesTensor<Operator , AddFunction, Model, Flux,JacFlux >
                   }
                 }
             }
-    }
-
+}
+ 
 }
 
- 
+
 
 
 
