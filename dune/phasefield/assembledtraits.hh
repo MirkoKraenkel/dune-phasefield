@@ -37,7 +37,7 @@
 #elif FD 
 #include <dune/fem/operator/assembled/localfdoperator.hh>
 #elif COUPLING 
-#include <dune/fem/operator/assembled/fluxes/jacobianfluxcoupling.hh>
+#include <dune/fem/operator/assembled/fluxes/jacobianflux.hh>
 #include <dune/fem/operator/assembled/phasefieldtensor.hh>
 #include <dune/fem/operator/assembled/matrixoperator.hh>
 #elif NSK
