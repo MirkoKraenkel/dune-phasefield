@@ -183,7 +183,7 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   duMid.axpy(factorExp_,duOld);
 
   RangeType  source(0.);
-  model_.systemSource(time_, xgl, source);        
+  model_.systemSource(time_,vu, xgl, source);
   //rho------------------------------------------------------------- 
   //d_t rho=(rho^n-rho^n-1)/delta t
   Filter::rho(avu)=Filter::rho(vu);
@@ -225,7 +225,7 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
     Filter::velocity( avu , ii )-=Filter::tau( vu )*Filter::dphi( duMid , ii );
   }
   // A(dv) 
-  model_.diffusion( duMid , adu );
+  model_.diffusion( vu, duMid , adu );
   //------------------------------------------------------------------
 
   //phi---------------------------------------------------------------
