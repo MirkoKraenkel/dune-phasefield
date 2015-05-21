@@ -144,6 +144,7 @@ public PhasefieldMixedIntegrator<DiscreteFunction,Model,Flux>
   using BaseType::uOldLocal_;
   using BaseType::uOldNeighbor_;
   using BaseType::model_; 
+  using BaseType::time_;
   using BaseType::deltaTInv_; 
   using BaseType::lastSpeed_;
   using BaseType::factorImp_;
@@ -233,7 +234,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
   MatrixHelper::evaluateScalarAll( quadrature[ pt ], baseSet.shapeFunctionSet(),phi_);
   MatrixHelper::jacobianScalarAll( quadrature[ pt ], geometry, baseSet.shapeFunctionSet(),dphi_);      
     
-      
+
   RangeType vu(0.) ,vuOld(0.), vuMid(0.),vuImEx(0.) ,fu(0.);
   JacobianRangeType dvu(0.) ,duOld(0), duMid(0.),duImEx(0.), fdu(0.);
   TensorRangeType flux(0.);
@@ -266,11 +267,19 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
       flux*=0.;
       //(rho,rho)
       flux[0][0]=deltaTInv_*phi_[ jj ][0];
-          
+      //(v2,rho) gravity
+      RangeType source;
+      DomainType xgl(0.);
+      RangeType baseFunc(0.);
+      baseFunc[0]=phi_[jj][0];
+      model_.systemSource(time_,baseFunc, xgl,source);
+      flux[2][0]+=source[2];
+
       for( size_t kk = 0 ; kk < dimDomain ; ++kk )
         {
-          //div u*phi_rho + v\cdot\nabla phi_rho 
+         //div u*phi_rho + v\cdot\nabla phi_rho
           flux[0][0]+=factorImp_*(duMid[ 1+kk ][ kk ]*phi_[ jj ][ 0 ]+vuMid[ 1+kk ]*dphi_[ jj ][ 0 ][ kk ]);
+
           // rho*div phi_v +\nabla\rho\cdot\phi_v
           flux[ 0 ][ 1+kk ]=factorImp_*(vuMid[0]*dphi_[ jj ][0 ][kk]+duMid[0][ kk ]*phi_[ jj ][0]);
       
@@ -283,6 +292,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
               flux[ 1+kk ][ 1+ll ]+=factorImp_*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])* phi_[ jj ][ 0 ]*vuMid[0];
               flux[ 1+kk ][ 1+kk ]+=factorImp_*( dphi_[ jj ][ 0 ][ ll ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
               flux[ 1+kk ][ 1+ll ]-=factorImp_*( dphi_[ jj ][ 0 ][ kk ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
+              
             } 
               
           //(v,rho,mu*)
@@ -357,7 +367,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
           for(int i = 0;  i<dimDomain ; ++i)
             du[i]=0;
  
-          model_.scalar2vectorialDiffusion( dphi_[jj], du);  
+          model_.scalar2vectorialDiffusion( vuOld,dphi_[jj], du);  
           
           for( size_t ii = 0 ; ii < numScalarBf ; ++ii )
             {
@@ -370,6 +380,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
                                                              jj,
                                                              weight,
                                                              jLocal);
+
             } 
       }
 } 
