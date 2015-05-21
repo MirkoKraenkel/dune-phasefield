@@ -47,6 +47,7 @@ class PhasefieldModel
     // additional Source for the whole syten eg. for 
     // generatring exact solutions
     inline void systemSource ( const double time,
+                               const RangeType& vu,
                                const DomainType& xgl,
                                RangeType& s) const;
 
@@ -88,16 +89,20 @@ class PhasefieldModel
     inline void dirichletValue ( const double time,
                                  const DomainType& xglobal,
                                  RangeType& g) const;
-    inline double diffusion () const
-    { 
-      return problem_.thermodynamics().mu1();
-    }
+
+
 
     template< class JacobianVector>
-    inline void scalar2vectorialDiffusion ( const JacobianVector& dphi , DiffusionTensorType& diffusion ) const; 
+    inline void scalar2vectorialDiffusion ( const RangeType& vu,
+                                            const JacobianVector& dphi,
+                                            DiffusionTensorType& diffusion ) const;
+
+
     template< class JacobianRange >
-    inline void diffusion ( JacobianRange& vu,
+    inline void diffusion ( const RangeType& vu,
+                            const JacobianRange& dvu,
                             JacobianRange& diffusion) const;
+
 
     inline RangeFieldType pressure (double rho , double phi) const
     {
@@ -167,10 +172,12 @@ inline void PhasefieldModel< Grid,Problem>
 template< class Grid, class Problem>
 inline void PhasefieldModel< Grid,Problem>
 ::systemSource ( const double time,
+                 const RangeType& vu,
                  const DomainType& xgl,
                  RangeType& s ) const
 {
  s=0.;
+ s[2]=vu[0]*-9.81;
 #if PROBLEM==6 
   double x=xgl[0];
   s[1]=problem_.veloSource(x);
@@ -294,20 +301,22 @@ inline void PhasefieldModel< Grid,Problem>
 template< class Grid, class Problem > 
 template< class JacobianVector>
 inline void PhasefieldModel< Grid, Problem>
-::scalar2vectorialDiffusion( const JacobianVector& dphi,DiffusionTensorType& du) const
+::scalar2vectorialDiffusion ( const RangeType& vu, const JacobianVector& dphi,DiffusionTensorType& du) const
 {
+  double phi=vu[dimDomain+1];
 #if  LAPLACE
+  //double mu2=problem_.thermodynamics().mu2();
+  mu2=diffusion(phi)
+  for( int ii=0 ; ii < dimDomain  ; ++ii)
+    {
+      for(int jj=0 ; jj < dimDomain ; ++jj )
+        du[ ii ][ ii ][ jj ] = mu2*dphi[ 0 ][ jj ];
+    }
 #else
   double mu1=0.5*problem_.thermodynamics().mu1();
-#endif
   double mu2=problem_.thermodynamics().mu2();
   for( int ii=0 ; ii < dimDomain  ; ++ii)
     {
-#if  LAPLACE
-      for(int jj=0 ; jj < dimDomain ; ++jj )
-        du[ ii ][ ii ][ jj ] = mu2*dphi[ 0 ][ jj ];
-#else
-// full diffusion
       for( int jj = 0; jj < dimDomain; ++ jj )
         {
           du[ ii ][ jj ][ ii ]=mu1*dphi[ 0 ][ jj ];
@@ -319,25 +328,24 @@ inline void PhasefieldModel< Grid, Problem>
         }
      du[ ii ][ ii ][ ii ]+=mu2*dphi[ 0 ] [ ii ];
 #endif
-}
+    }
 } 
 
 template< class Grid, class Problem > 
 template< class JacobianRange >
 inline void PhasefieldModel< Grid, Problem>
-::diffusion( JacobianRange& dvu,
-    JacobianRange& diffusion) const
+::diffusion ( const RangeType& vu,
+              const JacobianRange& dvu,
+              JacobianRange& diffusion) const
 {
   diffusion=0;
- double mu2=problem_.thermodynamics().mu2();
-
 #if LAPLACE 
    for(int ii = 0 ; ii < dimDomain ; ++ii )
     for(int jj = 0; jj < dimDomain ; ++ jj)
       diffusion[1+ii][jj]=mu2*dvu[1+ii][jj];
-    // Filter::dvelocity(diffusion,ii,jj )=mu2*Filter::dvelocity(dvu,ii,jj);
       
 #else
+  abort();
   double mu1=problem_.thermodynamics().mu1();
  
   for(int ii = 0 ; ii < dimDomain ; ++ii )
