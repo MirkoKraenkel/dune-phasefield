@@ -391,13 +391,13 @@ double MixedFlux<Model>
  
 
   jumpNormal*=switchIP_;
-  model_.diffusion(jumpNormal,dvalue);
+  model_.diffusion(uEn,jumpNormal,dvalue);
    
   JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   mean+=duNb;
   mean*=-0.5;
-  model_.diffusion(mean,Amean);
+  model_.diffusion(uEn,mean,Amean);
 
   Amean.umv(normal,value);
   return penalty_;
@@ -429,12 +429,12 @@ double MixedFlux<Model>
  
 
   jumpNormal*=switchIP_;
-  model_.diffusion(jumpNormal,dvalue);
+  model_.diffusion(uEn,jumpNormal,dvalue);
    
   JacobianRangeType mean(0.), Amean(0.);
   mean=duEn;
   mean*=-1;
-  model_.diffusion(mean,Amean);
+  model_.diffusion(uEn,mean,Amean);
 
   Amean.umv(normal,value);
   return penalty_;
