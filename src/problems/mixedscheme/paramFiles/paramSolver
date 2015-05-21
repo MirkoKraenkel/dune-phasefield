@@ -3,11 +3,11 @@
 phasefield.maxNewtonIterations: 10
 phasefield.maxTimeStep: 0.5
 fem.ode.tolerance: 1e-54
-fem.solver.matrixout:  false 
+fem.solver.matrixout: false
 fem.solver.newton.tolerance: 1e-6
 fem.solver.tolerance: 1e-8
 fem.solver.verbose: false 
-fem.solver.newton.verbose: true 
+fem.solver.newton.verbose: false
 fem.solver.newton.assemblesteps: 1 
 fem.solver.newton.maxiterations: 10
 fem.solver.newton.maxlineariterations: 1000
