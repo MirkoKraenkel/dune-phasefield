@@ -243,10 +243,8 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vu )/Filter::rho(vuMid);
   //mu-----------------------------------------------------------------
   
-  double dFdrho;
-  //model_.muSource(Filter::rho(vu),Filter::rho(vu),Filter::phi(vu),dFdrho);
   //old version like Paris talk
-  //  model_.muSource(Filter::rho(vuOld),Filter::rho(vu),Filter::phi(vu),dFdrho);
+  double dFdrho;
   model_.muSource(Filter::rho(vu),Filter::rho(vuOld),Filter::phi(vu),dFdrho);
 
 
@@ -286,12 +284,6 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   //tau---------------------------------------------------------------
   // dF/dphi
   double dFdphi;
-  /*
-    model_.tauSource( Filter::phi(vuOld),
-                      Filter::phi(vu),
-                      Filter::rho(vuOld),
-                      dFdphi);
-   */
   model_.tauSource( Filter::phi(vu),
                     Filter::phi(vuOld),
                     Filter::rho(vuOld),
