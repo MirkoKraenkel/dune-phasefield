@@ -91,17 +91,22 @@ class PhasefieldModel
                                  RangeType& g) const;
 
 
-
     template< class JacobianVector>
     inline void scalar2vectorialDiffusion ( const RangeType& vu,
                                             const JacobianVector& dphi,
                                             DiffusionTensorType& diffusion ) const;
 
-
     template< class JacobianRange >
     inline void diffusion ( const RangeType& vu,
                             const JacobianRange& dvu,
                             JacobianRange& diffusion) const;
+
+    template< class JacobianRange >
+    inline void diffusionprime ( const RangeType& vu,
+                                 const JacobianRange& dvu,
+                                 JacobianRange& diffusion) const;
+
+
 
 
     inline RangeFieldType pressure (double rho , double phi) const
@@ -134,6 +139,32 @@ class PhasefieldModel
 
 
   private:
+    inline void  diffFactors (const RangeFieldType phi, double mu1, double mu2 ) const
+    {
+#warning "CORRECT THERMODYNAMICS"
+      mu2= phi*problem_.thermodynamics().mu1()+(1-phi)*problem_.thermodynamics().mu2();
+      mu1= 0;
+    }
+
+    inline void diffFactorsPrime (const RangeFieldType phi, double mu1 , double mu2 ) const
+    {
+      mu2=problem_.thermodynamics().mu1()-problem_.thermodynamics().mu2();
+      mu1=0;
+    }
+
+    template< class JacobianRange >
+    inline void diffusion ( const RangeFieldType& mu1,
+                            const RangeFieldType& mu2,
+                            const RangeType& vu,
+                            const JacobianRange& dvu,
+                            JacobianRange& diffusion) const;
+
+    template< class JacobianVector>
+    inline void scalar2vectorialDiffusion ( const RangeFieldType& mu1,
+                                            const RangeFieldType& mu2,
+                                            const JacobianVector& dphi,
+                                            DiffusionTensorType& diffusion ) const;
+ 
     const ProblemType& problem_;
     const double diffquotthresh_;
 };
@@ -297,24 +328,33 @@ inline void PhasefieldModel< Grid,Problem>
   problem_.evaluate(time,xglobal,g);
 }
 
-
-template< class Grid, class Problem > 
+template< class Grid, class Problem >
 template< class JacobianVector>
 inline void PhasefieldModel< Grid, Problem>
-::scalar2vectorialDiffusion ( const RangeType& vu, const JacobianVector& dphi,DiffusionTensorType& du) const
+::scalar2vectorialDiffusion( const RangeType& vu ,const JacobianVector& dphi,DiffusionTensorType& du) const
 {
-  double phi=vu[dimDomain+1];
+  double mu1,mu2;
+  diffFactors( vu[dimDomain+1], mu1, mu2);
+  scalar2vectorialDiffusion( mu1, mu2, dphi, du);
+}
+
+template< class Grid, class Problem >
+template< class JacobianVector>
+inline void PhasefieldModel< Grid, Problem>
+::scalar2vectorialDiffusion ( const RangeFieldType& mu1,
+                              const RangeFieldType& mu2,
+                              const JacobianVector& dphi,
+                              DiffusionTensorType& du) const
+{
+  //du[i][j][k]
+  
 #if  LAPLACE
-  //double mu2=problem_.thermodynamics().mu2();
-  mu2=diffusion(phi)
   for( int ii=0 ; ii < dimDomain  ; ++ii)
     {
       for(int jj=0 ; jj < dimDomain ; ++jj )
         du[ ii ][ ii ][ jj ] = mu2*dphi[ 0 ][ jj ];
     }
 #else
-  double mu1=0.5*problem_.thermodynamics().mu1();
-  double mu2=problem_.thermodynamics().mu2();
   for( int ii=0 ; ii < dimDomain  ; ++ii)
     {
       for( int jj = 0; jj < dimDomain; ++ jj )
@@ -327,14 +367,41 @@ inline void PhasefieldModel< Grid, Problem>
           du[ ii ][ jj ][ jj ]+=mu2*dphi[ 0 ][ ii ];
         }
      du[ ii ][ ii ][ ii ]+=mu2*dphi[ 0 ] [ ii ];
-#endif
     }
+#endif
 } 
 
 template< class Grid, class Problem > 
 template< class JacobianRange >
 inline void PhasefieldModel< Grid, Problem>
 ::diffusion ( const RangeType& vu,
+              const JacobianRange& dvu,
+              JacobianRange& diff) const
+{
+  double mu1,mu2;
+  diffFactors( vu[dimDomain+1], mu1, mu2);
+  diffusion( mu1 , mu2 , vu , dvu , diff );
+}
+
+template< class Grid, class Problem >
+template< class JacobianRange >
+inline void PhasefieldModel< Grid, Problem>
+::diffusionprime ( const RangeType& vu,
+                   const JacobianRange& dvu,
+                   JacobianRange& diff) const
+{
+  double mu1,mu2;
+  diffFactorsPrime( vu[dimDomain+1] , mu1 , mu2 );
+  diffusion( mu1 , mu2 , vu , dvu , diff );
+}
+
+
+template< class Grid, class Problem >
+template< class JacobianRange >
+inline void PhasefieldModel< Grid, Problem>
+::diffusion ( const RangeFieldType& mu1,
+              const RangeFieldType& mu2,
+              const RangeType& vu,
               const JacobianRange& dvu,
               JacobianRange& diffusion) const
 {

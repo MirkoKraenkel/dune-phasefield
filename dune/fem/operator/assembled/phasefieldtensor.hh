@@ -63,7 +63,6 @@ public PhasefieldMixedIntegrator<DiscreteFunction,Model,Flux>
   
   typedef typename std::array<DomainType, dimDomain> DiffusionValueType;
   using  DiffusionType=typename Model::DiffusionTensorType; 
- 
 
 
   public: 
@@ -262,6 +261,9 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
   RangeFieldType drhomu(0.);
   model_.drhomuSource( vu[ 0 ] , vuOld[ 0 ] , vu[ dimDomain + 1] , drhomu );
 
+  JacobianRangeType diffusionU;
+  model_.diffusionprime(vuMid,duMid,diffusionU);
+
   for( size_t jj=0 ;  jj < numScalarBf ; ++jj)
     {
       flux*=0.;
@@ -367,12 +369,21 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
           for(int i = 0;  i<dimDomain ; ++i)
             du[i]=0;
  
-          model_.scalar2vectorialDiffusion( vuOld,dphi_[jj], du);  
+          model_.scalar2vectorialDiffusion( vuMid , dphi_[jj] , du );
           
           for( size_t ii = 0 ; ii < numScalarBf ; ++ii )
             {
               diffusionaxpy( ii ,jj , dphi_, du , weight, jLocal);
-          
+
+              MatrixHelper::diffPhiAxpy< DofAlignmentType >( ii,
+                                                             jj,
+                                                             dimDomain,
+                                                             dphi_,
+                                                             diffusionU,
+                                                             weight,
+                                                             jLocal);
+
+
               MatrixHelper::axpyElement< DofAlignmentType >( couplings_,
                                                              phi_,
                                                              flux,
@@ -507,6 +518,8 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
 
       jacFlux_.scalar2vectorialDiffusionFlux( normal,
                                               penaltyFactor,
+                                              vuMidEn,
+                                              vuMidNb,
                                               phi_[ jj ],
                                               phiNb_[ jj ],
                                               dphi_[ jj ],
@@ -646,6 +659,7 @@ void PhasefieldMixedTensor<DiscreteFunction ,  Model, Flux,JacFlux >
         {
           jacFlux_.scalar2vectorialBoundaryFlux(normal,
                                                 penaltyFactor,
+                                                vuMidEn,
                                                 phi_[ jj ],
                                                 dphi_[ jj ],
                                                 aLeft,

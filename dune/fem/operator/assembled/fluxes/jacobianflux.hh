@@ -50,6 +50,8 @@ public:
   template< class ScalarType, class JacobianType, class DiffusionTensorType, class DiffusionVectorType>
   void scalar2vectorialDiffusionFlux( const DomainType& normal,
                                       const double penaltyFactor,
+                                      const RangeType& vuEn,
+                                      const RangeType& vuNb,
                                       const ScalarType& phiEn,
                                       const ScalarType& phiNb,
                                       const JacobianType& dphiEn,
@@ -62,6 +64,7 @@ public:
   template< class ScalarType , class JacobianType ,class DiffusionTensorType, class DiffusionVectorType>
   void  scalar2vectorialBoundaryFlux( const DomainType& normal,
                                       const double penaltyFactor,
+                                      const RangeType& vuEn,
                                       const ScalarType& phiEn,
                                       const JacobianType& dphiEn,
                                       DiffusionTensorType& aLeft,
@@ -254,6 +257,8 @@ template< class ScalarType , class JacobianType ,class DiffusionTensorType, clas
 void JacobianFlux<Model>
 :: scalar2vectorialDiffusionFlux( const DomainType& normal,
                                   const double penaltyFactor,
+                                  const RangeType& vuEn,
+                                  const RangeType& vuNb,
                                   const ScalarType& phiEn,
                                   const ScalarType& phiNb,
                                   const JacobianType& dphiEn,
@@ -265,23 +270,24 @@ void JacobianFlux<Model>
 {
   double integrationElement=normal.two_norm();
   //[\phiEn]\otimes n ; [\phiNb]\otimes n
-  JacobianType jumpNormalLeft(0.),jumpNormalRight(0.);
+  JacobianType jumpNormalEn(0.),jumpNormalNb(0.);
+
 
   for(int j=0; j<dimDomain; ++j)
     { 
-      jumpNormalLeft[0][j]=-0.5*phiEn[0]*normal[j];
-      jumpNormalRight[0][j]=-0.5*phiNb[0]*normal[j];
+      jumpNormalEn[j]=-0.5*phiEn[0]*normal[j];
+      jumpNormalNb[0][j]=-0.5*phiNb[0]*normal[j];
     }
 
   DiffusionTensorType bbLeft,bbRight;
-  jumpNormalLeft*=switchIP_;
-  jumpNormalRight*=switchIP_;
+  jumpNormalEn*=switchIP_;
+  jumpNormalNb*=switchIP_;
   
-  model_.scalar2vectorialDiffusion(jumpNormalLeft ,aLeft);
-  model_.scalar2vectorialDiffusion(jumpNormalRight,aRight);
+  model_.scalar2vectorialDiffusion( vuEn , jumpNormalEn , aLeft  );
+  model_.scalar2vectorialDiffusion( vuNb , jumpNormalNb , aRight );
   
-  model_.scalar2vectorialDiffusion( dphiEn, bbLeft);
-  model_.scalar2vectorialDiffusion( dphiNb, bbRight);
+  model_.scalar2vectorialDiffusion( vuEn , dphiEn, bbLeft);
+  model_.scalar2vectorialDiffusion( vuNb , dphiNb, bbRight);
   
   //loop over components
   for( int ii = 0 ; ii < dimDomain ; ++ ii)
@@ -305,10 +311,11 @@ template< class ScalarType , class JacobianType ,class DiffusionTensorType, clas
 void JacobianFlux<Model>
 :: scalar2vectorialBoundaryFlux( const DomainType& normal,
                                  const double penaltyFactor,
-                                  const ScalarType& phiEn,
-                                  const JacobianType& dphiEn,
-                                  DiffusionTensorType& aLeft,
-                                  DiffusionVectorType& bLeft) const
+                                 const RangeType& vuEn,
+                                 const ScalarType& phiEn,
+                                 const JacobianType& dphiEn,
+                                 DiffusionTensorType& aLeft,
+                                 DiffusionVectorType& bLeft ) const
 {
   double integrationElement=normal.two_norm();
   //[\phiEn]\otimes n ; [\phiNb]\otimes n
@@ -322,8 +329,8 @@ void JacobianFlux<Model>
   DiffusionTensorType bbLeft;
   jumpNormalLeft*=switchIP_;
 
-  model_.scalar2vectorialDiffusion(jumpNormalLeft ,aLeft);
-  model_.scalar2vectorialDiffusion( dphiEn, bbLeft);
+  model_.scalar2vectorialDiffusion( vuEn , jumpNormalLeft , aLeft );
+  model_.scalar2vectorialDiffusion( vuEn , dphiEn, bbLeft);
 
   //loop over components
   for( int ii = 0 ; ii < dimDomain ; ++ ii)

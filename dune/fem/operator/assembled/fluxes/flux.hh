@@ -360,6 +360,9 @@ void MixedFlux<Model>
  dvalue=0;
 }
 
+//value=1/2 (D(\phi^+,\nabla u^+)+D(\phi^-,\nabla u^-))n^+ \in R^dim
+//dvalue=1/2(D(\phi^+,(u^+-u^-)\otimes n^+) \in R^{dim\times\dim}
+//D(\phi,\nabla u)=\nu(phi)\nabla u
 template< class Model >
 double MixedFlux<Model>
 :: diffusionFlux( const DomainType& normal,
@@ -371,12 +374,13 @@ double MixedFlux<Model>
                   RangeType& value,
                   JacobianRangeType& dvalue) const
 {
-  
   RangeType jump;
+
+  // u^+-u^-
   jump=uEn;
-  jump-=uNb;  
+  jump-=uNb;
+
   double integrationElement=normal.two_norm();
-  
   
   for( int i=0; i<dimDomain;++i)
     {
@@ -384,21 +388,26 @@ double MixedFlux<Model>
     }
   JacobianRangeType jumpNormal(0.);
  
-  // [u]\otimes n
+  // 1/2 [u]\otimes n^+
   for(int i=0; i<dimDomain; ++i)
     for(int j=0; j<dimDomain; ++j)
       jumpNormal[i+1][j]=-0.5*jump[i+1]*normal[j];
- 
 
   jumpNormal*=switchIP_;
+  //dvalue=1/2(D(\phi^+,[u])\otimes n^+)
   model_.diffusion(uEn,jumpNormal,dvalue);
-   
-  JacobianRangeType mean(0.), Amean(0.);
-  mean=duEn;
-  mean+=duNb;
-  mean*=-0.5;
-  model_.diffusion(uEn,mean,Amean);
 
+
+  JacobianRangeType Amean,AEn(0.),ANb(0.);
+  //\nu(\phi^+)\nabla u^+
+  model_.diffusion(uEn,duEn,AEn);
+  //\nu(\phi^-)\nabla u^-
+  model_.diffusion(uNb,duNb,ANb);
+  //1/2{D(\phi,\nabla U)}
+  Amean=AEn;
+  Amean+=ANb;
+  Amean*=-0.5;
+  //value=1/2 (D(\phi^+,\nabla u^+)+D(\phi^-,\nabla u^-))n^+
   Amean.umv(normal,value);
   return penalty_;
 }

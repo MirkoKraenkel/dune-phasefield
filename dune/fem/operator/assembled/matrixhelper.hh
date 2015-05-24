@@ -134,22 +134,48 @@ void diffusionaxpy( const size_t local_i,
                     const double weight,
                     LocalMatrix& jLocal)
 {
-   //for each velocomponent
+  //for each velocomponent
   for( size_t ii = 0 ; ii < dimDomain ; ++ii )
     {
-      size_t global_i= Alignment::vectorialIndex( 1 + ii , local_i);
+      // iith velocity compoent
+      size_t row = Alignment::vectorialIndex( 1 + ii , local_i);
+
       for( size_t jj = 0 ; jj < dimDomain; ++jj )
         {
-          size_t global_j = Alignment::vectorialIndex( 1 + jj , local_j);
+          size_t col = Alignment::vectorialIndex( 1 + jj , local_j);
           double  value(0);
+          //dphi[local_i]=\nabla\phi_i
+          //sum_kk du[jj][ii][kk]*dpho[local_i][0][kk]
           value=du[ jj ][ ii ]*dphi[ local_i ][ 0 ];
-          //value* weight* 0.5 in semi implicit scheme
-          jLocal.add( global_i , global_j ,value*weight );
+          jLocal.add( row , col , value*weight );
         }
      }
 }
 
+template< class Alignment,class JacobianVector,class Tensor, class LocalMatrix>
+void diffPhiAxpy( const size_t local_i,
+                  const size_t local_j,
+                  const int dimDomain,
+                  const JacobianVector& dphi,
+                  const Tensor du,
+                  const double weight,
+                  LocalMatrix& jLocal)
+{
+  //dphi[local_i]=\nabla\phi_i
 
+  //for each velocomponent
+  for( size_t ii = 0 ; ii < dimDomain ; ++ii )
+    {
+      // iith velocity compoent
+      size_t row = Alignment::vectorialIndex( 1 + ii , local_i);
+      // col for phi variable
+      size_t col = Alignment::vectorialIndex(dimDomain+1 , local_j);
+      double  value(0);
+      //sum_kk du[jj][ii][kk]*dphi[local_i][0][kk]
+      value=du[ ii ]*dphi[ local_i ][ 0 ];
+      jLocal.add( row , col , value*weight );
+    }
+}
 
 
 
