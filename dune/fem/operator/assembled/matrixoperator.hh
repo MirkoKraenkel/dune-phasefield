@@ -1,5 +1,7 @@
 #ifndef PHASEFIELD_MATRIXOPERATOR_HH
 #define PHASEFIELD_MATRIXOPERATOR_HH      
+#warning "VISTING EDGES ONLY ONES DOES NOT WORK WITH VARIABLE VICOSITY"
+
 // Dune::Fem includes
 #include <dune/fem/function/localfunction/temporary.hh>
 #include <dune/fem/operator/common/differentiableoperator.hh>
@@ -389,9 +391,9 @@ MatrixOperator< Operator , Tensor, Jacobian >
                 jLocal.clear();
                 MatrixHelper::add( jLocalNbEn, realLocalNbEn);
                 jLocalNbEn.clear();
-                MatrixHelper::add( jLocalEnNb, realLocalEnNb);
+                //MatrixHelper::add( jLocalEnNb, realLocalEnNb);
                 jLocalEnNb.clear();
-                MatrixHelper::add( jLocalNbNb, realLocalNbNb);
+                //MatrixHelper::add( jLocalNbNb, realLocalNbNb);
                 jLocalNbNb.clear();
           } 
       
@@ -409,7 +411,7 @@ MatrixOperator< Operator , Tensor, Jacobian >
           jLocal.clear();
         }
       }
-    visited_[indexSet_.index( entity )]=true;
+    visited_[indexSet_.index( entity )]=false;
   } // end grid traversal 
   jOp.communicate();
 }
