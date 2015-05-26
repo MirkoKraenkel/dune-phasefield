@@ -371,6 +371,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
  
           model_.scalar2vectorialDiffusion( vuMid , dphi_[jj] , du );
           
+          diffusionU*=phi_[jj][0]*factorImp_;
           for( size_t ii = 0 ; ii < numScalarBf ; ++ii )
             {
               diffusionaxpy( ii ,jj , dphi_, du ,weight, jLocal);
@@ -390,7 +391,6 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
                                                              jj,
                                                              weight,
                                                              jLocal);
-
             } 
       }
 } 
@@ -580,7 +580,6 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
                                                               jj,
                                                               weightOutside,
                                                               jLocalNbNb );
-
 #if 1
 
             //column indexfor \phi
