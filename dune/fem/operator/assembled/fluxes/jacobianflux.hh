@@ -299,7 +299,7 @@ void JacobianFlux<Model>
   jumpNormalNb*=switchIP_;
   
   model_.scalar2vectorialDiffusion( vuEn , jumpNormalEn , aLeft  );
-  model_.scalar2vectorialDiffusion( vuNb , jumpNormalNb , aRight );
+  model_.scalar2vectorialDiffusion( vuEn , jumpNormalNb , aRight );
   
   model_.scalar2vectorialDiffusion( vuEn , dphiEn, bbLeft);
   model_.scalar2vectorialDiffusion( vuNb , dphiNb, bbRight);
@@ -351,14 +351,14 @@ void JacobianFlux<Model>::diffPhiDiffusionFlux ( const DomainType& normal,
   JacobianRangeType aaLeft(0.),bbLeft(0.),bbRight(0.);
   //dD/dphi(\bar{\phi^+},[u]\otimes\n})*\psi_phi^+
   model_.diffusionprime( vuEn , jumpNormal , aLeft  );
-  aLeft*=phiEn;
+  aLeft*=phiEn[0];
   aRight=0.;
 
   model_.diffusionprime( vuEn , duEn, bbLeft);
   model_.diffusionprime( vuNb , duNb, bbRight);
-  bbLeft*=-0.5*phiEn;
+  bbLeft*=-0.5*phiEn[0];
   bbLeft.mv( normal , bLeft);
-  bbRight*=-0.5*phiNb;
+  bbRight*=-0.5*phiNb[0];
   bbRight.mv( normal , bRight);
 
   
