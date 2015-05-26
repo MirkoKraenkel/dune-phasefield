@@ -275,7 +275,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
       RangeType baseFunc(0.);
       baseFunc[0]=phi_[jj][0];
       model_.systemSource(time_,baseFunc, xgl,source);
-      flux[2][0]+=source[2];
+//      flux[2][0]+=source[2];
 
       for( size_t kk = 0 ; kk < dimDomain ; ++kk )
         {
@@ -373,7 +373,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
           
           for( size_t ii = 0 ; ii < numScalarBf ; ++ii )
             {
-              diffusionaxpy( ii ,jj , dphi_, du , weight, jLocal);
+              diffusionaxpy( ii ,jj , dphi_, du ,weight, jLocal);
 
               MatrixHelper::diffPhiAxpy< DofAlignmentType >( ii,
                                                              jj,
@@ -382,7 +382,6 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
                                                              diffusionU,
                                                              weight,
                                                              jLocal);
-
 
               MatrixHelper::axpyElement< DofAlignmentType >( couplings_,
                                                              phi_,
@@ -514,7 +513,9 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
     {
       RangeType avuLeft(0.), avuRight(0.), valueLeft(0.),valueRight(0.);
       DiffusionType aLeft,aRight;
-      DiffusionValueType bLeft, bRight; 
+      JacobianRangeType aphiEn,aphiNb;
+      DiffusionValueType bLeft, bRight;
+      RangeType bphiEn,bphiNb;
 
       jacFlux_.scalar2vectorialDiffusionFlux( normal,
                                               penaltyFactor,
@@ -529,7 +530,19 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
                                               bLeft,
                                               bRight );
 
-
+      jacFlux_.diffPhiDiffusionFlux( normal,
+                                     penaltyFactor,
+                                     vuMidEn,
+                                     vuMidNb,
+                                     duMidEn,
+                                     duMidNb,
+                                     phi_[ jj ],
+                                     phiNb_[ jj ],
+                                     aphiEn,
+                                     aphiNb,
+                                     bphiEn,
+                                     bphiNb );
+ 
       for( size_t ii = 0; ii < numScalarBf ; ++ii )
         {
           MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
@@ -569,19 +582,46 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
                                                               jLocalNbNb );
 
 #if 1
-            // Adding DiffusionFluxTerms
+
+            //column indexfor \phi
+            int global_j_phi=jj*dimRange+(dimDomain+1);
+                 // Adding DiffusionFluxTerms
             for(int i  = 0; i  < dimDomain ; ++i )
             {
-              int global_i=ii*dimRange+1+i; 
+                int global_i=ii*dimRange+1+i; 
+                double valueEn,valueNb;
+ 
+                valueEn=aphiEn[ i+1 ]*dphi_[ ii ][ 0 ];
+                valueEn+=bphiEn[ i+1 ]*phi_[ ii ];
+
+                valueNb=-1*(aphiNb[ i+1 ]*dphi_[ ii ][ 0 ]);
+                valueNb+=bphiNb[ i+1 ]*phi_[ ii ];
+
+                jLocal.add( global_i , global_j_phi , weightInside*valueEn*factorImp_);
+                jLocalNbEn.add( global_i , global_j_phi , weightInside*valueNb*factorImp_);
+
+                valueEn=(aphiEn[ i+1 ]*dphiNb_[ ii ][ 0 ]);
+                valueEn-=bphiEn[ i+1 ]*phiNb_[ ii ];
+                valueNb=-1*(aphiNb[ i+1 ]*dphiNb_[ ii][ 0 ]);
+                valueNb-=bphiNb[ i+1 ]*phiNb_[ ii ];
+
+                jLocalEnNb.add( global_i , global_j_phi , weightOutside*valueEn*factorImp_);
+                jLocalNbNb.add( global_i , global_j_phi , weightOutside*valueNb*factorImp_);
+
+
+              
+              
               for(int j  = 0 ; j  < dimDomain ; ++j )
               {
                 int global_j= jj*dimRange+1+j;
-                double valueEn,valueNb; 
+                valueEn=0;
+                valueNb=0; 
 
                 valueEn=aLeft[ j ][ i ]*dphi_[ ii ][ 0 ];
                 valueEn+=bLeft[ j ][ i ]*phi_[ ii ];
                 valueNb=-1*(aRight[ j ][ i ]*dphi_[ ii ][ 0 ]);
                 valueNb+=bRight[ j ][ i ]*phi_[ ii ];
+
 
                 jLocal.add( global_i , global_j , weightInside*valueEn*factorImp_); 
                 jLocalNbEn.add( global_i , global_j , weightInside*valueNb*factorImp_);
@@ -594,6 +634,7 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
                 jLocalEnNb.add( global_i , global_j , weightOutside*valueEn*factorImp_); 
                 jLocalNbNb.add( global_i , global_j , weightOutside*valueNb*factorImp_);
 
+              
               }
             }
 #endif

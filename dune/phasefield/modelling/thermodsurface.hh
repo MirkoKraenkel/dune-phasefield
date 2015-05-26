@@ -27,8 +27,10 @@ class BalancedThermodynamics:
     alpha_(Dune::Fem::Parameter::getValue<double>("phasefield.alpha",0)),
     beta_(Dune::Fem::Parameter::getValue<double>("phasefield.beta",1)),
     A_(Dune::Fem::Parameter::getValue<double>("phasefield.A")),
-    mu1_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1" ) ),
-    mu2_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2") ),
+    mu1Liq_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1_liq" ) ),
+    mu2Liq_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2_liq") ),
+    mu1Vap_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1_vap" ) ),
+    mu2Vap_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2_vap") ),
     reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
   {
     lipschitzC_=1/(4*A_*reaction_/(delta_));
@@ -87,8 +89,11 @@ class BalancedThermodynamics:
   inline double lipschitzC() const { return lipschitzC_; }
   inline double delta()    const { return A_*delta_; }
   inline double deltaInv() const { return deltaInv_; }
-  inline double mu1()      const { return mu1_; }
-  inline double mu2()      const { return mu2_; }
+  inline double mu1Liq()      const { return mu1Liq_; }
+  inline double mu2Liq()      const { return mu2Liq_; }
+  inline double mu1Vap()      const { return mu1Vap_; }
+  inline double mu2Vap()      const { return mu2Vap_; }
+
 
   private:
   mutable double  delta_;
@@ -96,7 +101,7 @@ class BalancedThermodynamics:
   mutable double  alpha_; 
   mutable double  beta_;
   mutable double  A_;
-  mutable double  mu1_,mu2_;
+  mutable double  mu1Liq_,mu2Liq_,mu1Vap_,mu2Vap_;
   mutable double  reaction_;
   mutable double  lipschitzC_;
 };

@@ -183,7 +183,9 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   duMid.axpy(factorExp_,duOld);
 
   RangeType  source(0.);
-  model_.systemSource(time_,vu, xgl, source);
+  RangeType dummy(0.);
+  dummy[0]=1.;
+  model_.systemSource(time_,dummy, xgl, source);
   //rho------------------------------------------------------------- 
   //d_t rho=(rho^n-rho^n-1)/delta t
   Filter::rho(avu)=Filter::rho(vu);
@@ -334,7 +336,7 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   {
     assert( avu[ii]==avu[ii]) ;
   }
-  avu-=source;
+ // avu-=source;
   avu*=weight;
   adu*=weight;
 
