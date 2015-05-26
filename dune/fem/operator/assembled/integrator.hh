@@ -227,7 +227,7 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
     Filter::velocity( avu , ii )-=Filter::tau( vu )*Filter::dphi( duMid , ii );
   }
   // A(dv) 
-  model_.diffusion( vu, duMid , adu );
+  model_.diffusion( vuMid, duMid , adu );
   //------------------------------------------------------------------
 
   //phi---------------------------------------------------------------
