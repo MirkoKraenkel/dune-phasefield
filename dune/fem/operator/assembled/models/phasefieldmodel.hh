@@ -139,17 +139,16 @@ class PhasefieldModel
 
 
   private:
-    inline void  diffFactors (const RangeFieldType phi, double mu1, double mu2 ) const
+    inline void  diffFactors (const RangeFieldType phi, double& mu1, double& mu2 ) const
     {
-#warning "CORRECT THERMODYNAMICS"
-      mu2= phi*problem_.thermodynamics().mu1()+(1-phi)*problem_.thermodynamics().mu2();
-      mu1= 0;
+      mu2 = phi*problem_.thermodynamics().mu2Liq()+(1-phi)*problem_.thermodynamics().mu2Vap();
+      mu1 = phi*problem_.thermodynamics().mu1Liq()+(1-phi)*problem_.thermodynamics().mu1Vap();
     }
 
-    inline void diffFactorsPrime (const RangeFieldType phi, double mu1 , double mu2 ) const
+    inline void diffFactorsPrime (const RangeFieldType phi, double& mu1, double& mu2 ) const
     {
-      mu2=problem_.thermodynamics().mu1()-problem_.thermodynamics().mu2();
-      mu1=0;
+      mu2 = problem_.thermodynamics().mu2Liq()-problem_.thermodynamics().mu2Vap();
+      mu1 = problem_.thermodynamics().mu1Liq()-problem_.thermodynamics().mu1Vap();
     }
 
     template< class JacobianRange >
@@ -208,7 +207,7 @@ inline void PhasefieldModel< Grid,Problem>
                  RangeType& s ) const
 {
  s=0.;
- s[2]=vu[0]*-9.81;
+// s[2]=0;//vu[0]*-9.81;
 #if PROBLEM==6 
   double x=xgl[0];
   s[1]=problem_.veloSource(x);
@@ -378,7 +377,7 @@ inline void PhasefieldModel< Grid, Problem>
               const JacobianRange& dvu,
               JacobianRange& diff) const
 {
-  double mu1,mu2;
+  double mu1(0.),mu2(0.);
   diffFactors( vu[dimDomain+1], mu1, mu2);
   diffusion( mu1 , mu2 , vu , dvu , diff );
 }
@@ -390,7 +389,7 @@ inline void PhasefieldModel< Grid, Problem>
                    const JacobianRange& dvu,
                    JacobianRange& diff) const
 {
-  double mu1,mu2;
+  double mu1(0.),mu2(0.);
   diffFactorsPrime( vu[dimDomain+1] , mu1 , mu2 );
   diffusion( mu1 , mu2 , vu , dvu , diff );
 }
