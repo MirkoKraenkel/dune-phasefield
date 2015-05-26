@@ -171,8 +171,8 @@ void diffPhiAxpy( const size_t local_i,
       // col for phi variable
       size_t col = Alignment::vectorialIndex(dimDomain+1 , local_j);
       double  value(0);
-      //sum_kk du[jj][ii][kk]*dphi[local_i][0][kk]
-      value=du[ ii ]*dphi[ local_i ][ 0 ];
+      //sum_kk du[ii][kk]*dphi[local_i][0][kk]
+      value=du[ 1+ii ]*dphi[ local_i ][ 0 ];
       jLocal.add( row , col , value*weight );
     }
 }
