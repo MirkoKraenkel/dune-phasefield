@@ -33,6 +33,7 @@ class PhasefieldModel
   public:
     PhasefieldModel( const ProblemType& problem):
       problem_(problem),
+      force_(Dune::Fem::Parameter::getValue<double>("phasefield.gravity")),
       diffquotthresh_(Dune::Fem::Parameter::getValue<double>("phasefield.diffquotthresh"))
   {}
 
@@ -165,6 +166,7 @@ class PhasefieldModel
                                             DiffusionTensorType& diffusion ) const;
  
     const ProblemType& problem_;
+    const double force_;
     const double diffquotthresh_;
 };
 
@@ -207,7 +209,7 @@ inline void PhasefieldModel< Grid,Problem>
                  RangeType& s ) const
 {
  s=0.;
-// s[2]=0;//vu[0]*-9.81;
+ s[dimDomain]=vu[0]*force_;
 #if PROBLEM==6 
   double x=xgl[0];
   s[1]=problem_.veloSource(x);
