@@ -383,7 +383,6 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
                                                              diffusionU,
                                                              weight,
                                                              jLocal);
-
               MatrixHelper::axpyElement< DofAlignmentType >( couplings_,
                                                              phi_,
                                                              flux,
@@ -391,7 +390,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
                                                              jj,
                                                              weight,
                                                              jLocal);
-            } 
+          } 
       }
 } 
 
@@ -545,6 +544,7 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
  
       for( size_t ii = 0; ii < numScalarBf ; ++ii )
         {
+
           MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
                                                               phi_,
                                                               phi_,
@@ -580,7 +580,6 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
                                                               jj,
                                                               weightOutside,
                                                               jLocalNbNb );
-#if 1
 
             //column indexfor \phi
             int global_j_phi=jj*dimRange+(dimDomain+1);
@@ -636,7 +635,6 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
               
               }
             }
-#endif
           } 
         }
 }    
@@ -663,10 +661,12 @@ void PhasefieldMixedTensor<DiscreteFunction ,  Model, Flux,JacFlux >
   const int numScalarBf=baseSet.size()/dimRange;
   MatrixHelper::evaluateScalarAll( quadInside[ pt ], baseSet.shapeFunctionSet(), phi_ );
   MatrixHelper::jacobianScalarAll( quadInside[ pt ], geometry, baseSet.shapeFunctionSet(), dphi_);
-    RangeType vuMidEn(0.);
-
+  RangeType vuMidEn(0.);
+  JacobianRangeType duMidEn(0.);
   vuMidEn.axpy( factorImp_ , uEn_[ pt ] );
   vuMidEn.axpy( factorExp_ , uOldEn_[ pt ] );
+  duMidEn.axpy( factorImp_ , duEn_[ pt ] );
+  duMidEn.axpy( factorExp_ , duOldEn_[ pt ] );
 
 
 
@@ -690,8 +690,8 @@ void PhasefieldMixedTensor<DiscreteFunction ,  Model, Flux,JacFlux >
 
   for( size_t jj=0 ; jj < numScalarBf ; ++jj)
     {
-      RangeType avuLeft(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
-      JacobianRangeType aduLeft(0.),aduRight(0.);
+      RangeType bphiEn(0.), avuRight(0.),dummy(0.), valueLeft(0.),valueRight(0.);
+      JacobianRangeType aphiEn(0.),aduRight(0.);
       DiffusionType aLeft;
       DiffusionValueType bLeft;
  
@@ -705,10 +705,19 @@ void PhasefieldMixedTensor<DiscreteFunction ,  Model, Flux,JacFlux >
                                                 aLeft,
                                                 bLeft);
 
+          jacFlux_.diffPhiBoundaryFlux( normal,
+                                        penaltyFactor,
+                                        vuMidEn,
+                                        duMidEn,
+                                        phi_[ jj ],
+                                        aphiEn,
+                                        bphiEn);
+
+          
         }
 
 
-      for( size_t ii = 0; ii < numScalarBf ; ++ii )
+      for( size_t ii = 0; ii < numScalarBf ; ++ii )     
         {
           MatrixHelper::axpyIntersection< DofAlignmentType >( couplings_,
                                                               phi_,
@@ -719,21 +728,34 @@ void PhasefieldMixedTensor<DiscreteFunction ,  Model, Flux,JacFlux >
                                                               weightInside,
                                                               jLocal );
           if( boundaryIndex==1 || !outflow_)
-            for(int i  = 0; i  < dimDomain ; ++i )
-              {
-                int global_i=ii*dimRange+1+i;
-                for(int j  = 0 ; j  < dimDomain ; ++j )
-                  {
-                    int global_j= jj*dimRange+1+j;
-                    double valueEn;
-                     
-                    valueEn=aLeft[ j ][ i ]*dphi_[ ii ][ 0 ];
-                    valueEn+=bLeft[ j ][ i ]*phi_[ ii ];
+            {
+              //column indexfor \phi
+              int global_j_phi=jj*dimRange+(dimDomain+1);
+        
+              for(int i  = 0; i  < dimDomain ; ++i )
+                {
+                  int global_i=ii*dimRange+1+i; 
+                  double valueEn;
+ 
+                  valueEn=aphiEn[ i+1 ]*dphi_[ ii ][ 0 ];
+                  valueEn+=bphiEn[ i+1 ]*phi_[ ii ];
 
-                    jLocal.add( global_i , global_j , weightInside*valueEn*factorImp_);
-                  }
-              }
-        }
+                  jLocal.add( global_i , global_j_phi , weightInside*valueEn*factorImp_);
+                  
+                  for(int j  = 0 ; j  < dimDomain ; ++j )
+                    {
+                      int global_j= jj*dimRange+1+j;
+                      double valueEn;
+                     
+                      valueEn=aLeft[ j ][ i ]*dphi_[ ii ][ 0 ];
+                      valueEn+=bLeft[ j ][ i ]*phi_[ ii ];
+
+                      jLocal.add( global_i , global_j , weightInside*valueEn*factorImp_);
+                    }
+                }
+            }  
+          }
+        
     }
 }
 
