@@ -84,6 +84,15 @@ public:
                                       const JacobianType& dphiEn,
                                       DiffusionTensorType& aLeft,
                                       DiffusionVectorType& bLeft) const;
+  template< class ScalarType >
+  void diffPhiBoundaryFlux( const DomainType& normal,
+                            const double penaltyFactor,
+                            const RangeType& vuEn,
+                            const JacobianRangeType& duEn,
+                            const ScalarType& phiEn,
+                            JacobianRangeType& aLeft,
+                            RangeType& bLeft) const;
+
 
     void boundaryFlux( const DomainType& normal, 
                      const double area,
@@ -313,8 +322,8 @@ void JacobianFlux<Model>
       bbRight[ ii ]*=-0.5;
       bbRight[ ii ].mv( normal , bRight[ ii ]);
 
-  //    bLeft[ii][ii]+=penalty_*penaltyFactor*integrationElement*phiEn[ 0 ];
-//      bRight[ii][ii]-=penalty_*penaltyFactor*integrationElement*phiNb[ 0 ];
+      bLeft[ii][ii]+=penalty_*penaltyFactor*integrationElement*phiEn[ 0 ];
+      bRight[ii][ii]-=penalty_*penaltyFactor*integrationElement*phiNb[ 0 ];
     }
   
 }
@@ -335,19 +344,19 @@ void JacobianFlux<Model>::diffPhiDiffusionFlux ( const DomainType& normal,
                                                 RangeType& bRight) const
 {
   double integrationElement=normal.two_norm();
-  //[u]\otimes n ; 
+  //[u]\otimes n 
   JacobianRangeType jumpNormal(0);
   auto jump=vuEn;
   jump-=vuNb;
   for( int i = 0 ; i < dimDomain ; ++i)
     for(  int j = 0 ; j<dimDomain ; ++j )
-    { 
+    {
       jumpNormal[i+1][j]=-0.5*jump[i+1]*normal[j];
     }
 
   //DiffusionTensorType bbLeft,bbRight;
   jumpNormal*=switchIP_;
-  
+
   JacobianRangeType aaLeft(0.),bbLeft(0.),bbRight(0.);
   //dD/dphi(\bar{\phi^+},[u]\otimes\n})*\psi_phi^+
   model_.diffusionprime( vuEn , jumpNormal , aLeft  );
@@ -361,7 +370,6 @@ void JacobianFlux<Model>::diffPhiDiffusionFlux ( const DomainType& normal,
   bbRight*=-0.5*phiNb[0];
   bbRight.mv( normal , bRight);
 
-  
 }
 
 template< class Model >
@@ -400,6 +408,40 @@ void JacobianFlux<Model>
 }
 
 
+
+template< class Model >
+template< class ScalarType >
+void JacobianFlux<Model>::diffPhiBoundaryFlux ( const DomainType& normal,
+                                                const double penaltyFactor,
+                                                const RangeType& vuEn,
+                                                const JacobianRangeType& duEn,
+                                                const ScalarType& phiEn,
+                                                JacobianRangeType& aLeft,
+                                                RangeType& bLeft) const
+{
+  double integrationElement=normal.two_norm();
+  //[u]\otimes n 
+  JacobianRangeType jumpNormal(0);
+  auto jump=vuEn;
+  for( int i = 0 ; i < dimDomain ; ++i)
+    for(  int j = 0 ; j<dimDomain ; ++j )
+    {
+      jumpNormal[i+1][j]=1*jump[i+1]*normal[j];
+    }
+
+  //DiffusionTensorType bbLeft,bbRight;
+  jumpNormal*=switchIP_;
+
+  JacobianRangeType aaLeft(0.),bbLeft(0.),bbRight(0.);
+  //dD/dphi(\bar{\phi^+},[u]\otimes\n})*\psi_phi^+
+  model_.diffusionprime( vuEn , jumpNormal , aLeft  );
+  aLeft*=phiEn[0];
+
+  model_.diffusionprime( vuEn , duEn, bbLeft);
+  bbLeft*=-1*phiEn[0];
+  bbLeft.mv( normal , bLeft);
+
+}
 
 
 
