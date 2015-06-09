@@ -33,7 +33,7 @@ class PhasefieldModel
   public:
     PhasefieldModel( const ProblemType& problem):
       problem_(problem),
-      force_(Dune::Fem::Parameter::getValue<double>("phasefield.gravity")),
+      force_(Dune::Fem::Parameter::getValue<double>("phasefield.gravity",0)),
       diffquotthresh_(Dune::Fem::Parameter::getValue<double>("phasefield.diffquotthresh"))
   {}
 
@@ -191,11 +191,11 @@ inline void PhasefieldModel< Grid,Problem>
   surfaceEnergy*=h2(rho);
   
   kin=rho*0.5*kineticEnergy;
-  surfaceEnergy*=0.5;
+  //surfaceEnergy*=0.5;
   surfaceEnergy*=problem_.thermodynamics().delta();
 
   therm=problem_.thermodynamics().helmholtz(rho,phi);
-  //therm+=surfaceEnergy;
+  therm+=surfaceEnergy;
 
   total=therm+kin+surfaceEnergy;
   surf=surfaceEnergy;
