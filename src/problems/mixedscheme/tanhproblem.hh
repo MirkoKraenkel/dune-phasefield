@@ -7,11 +7,7 @@
 #include <dune/fem/space/common/functionspace.hh>
 
 // local includes
-#if SURFACE
 #include <dune/phasefield/modelling/thermodsurface.hh>
-#else
-#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
-#endif
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
 
@@ -140,19 +136,16 @@ inline void TanhProblem<GridType,RangeProvider>
 {
 
   double rhodiff=rho2_-rho1_;
-#if UNBALMODEL
   const double rhomean=1;//0.5*(rho2_+rho1_);
-#else
-  const double rhomean=1;
-#endif
+
 #if SURFACE
   double deltaInv=rhomean/(delta_*phiscale_);
 #else  
   double deltaInv=sqrt(A_)/(delta_*phiscale_);
 #endif  
-  double r=std::abs( arg[0]);
-  double tanhr=-tanh( ( r-radius_ )*deltaInv ); 
-  double tanhrho=-tanh( ( r-(radius_+shift_))*rhofactor_*deltaInv ); 
+  double r=std::abs( arg[dimension-1]);//+0.025*sin(4*M_PI*arg[0]);
+  double tanhr=-tanh( -( r-radius_ )*deltaInv );
+  double tanhrho=-tanh( -( r-(radius_+shift_))*rhofactor_*deltaInv );
 
   double velopos=r-(radius_+(delta_/rhomean));
   double peak=exp(-velopos*velopos*deltaInv*deltaInv);
@@ -186,8 +179,8 @@ inline void TanhProblem<GridType,RangeProvider>
 #if MIXED
   double dFdphi=0;// thermodyn_.reactionSource(rho,phi); 
   double dFdrho=0;//thermodyn_.chemicalPotential(rho, 0);
-  double sigma=-0.5*drtanhr;
- double laplacePhi=0.5*drdrtanhr;
+  double sigma=0.5*drtanhr;
+  double laplacePhi=0.5*drdrtanhr;
   if(arg[0]<0.)
     {
       sigma*=-1;
