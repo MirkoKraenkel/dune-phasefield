@@ -49,7 +49,7 @@ public:
     rhofactor_( Fem::Parameter::getValue<double> ("phasefield.rhofactor")),
     rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
     rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
-    phiscale_(Fem::Parameter::getValue<double> ("phiscale")),
+    phiscale_(Fem::Parameter::getValue<double> ("phasefield.phiscale")),
     radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
     veloright_(Fem::Parameter::getValue<double>("phasefield.veloright")),
     veloleft_(Fem::Parameter::getValue<double>("phasefield.veloleft")),
