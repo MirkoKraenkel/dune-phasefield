@@ -47,15 +47,15 @@ public:
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rho_( Fem::Parameter::getValue<double> ("phasefield.rho0")),
-    rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
-    rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
+    mwpliq_( Fem::Parameter::getValue<double> ("phasefield.mwpliq")),
+    mwpvap_( Fem::Parameter::getValue<double> ("phasefield.mwpvap")),
     phiscale_(Fem::Parameter::getValue<double> ("phasefield.phiscale")),
     bubblefilename_(Fem::Parameter::getValue<std::string>("phasefield.bubbles")),
     bubblevector_(0),
     thermodyn_()
     {
       distortion_[0]=1;
-      distortion_[1]=1.5;
+      distortion_[1]=1.;
       readDataFile( bubblefilename_ );
     }      
 
@@ -148,8 +148,8 @@ public:
   const double delta_;
   const double A_;
   double rho_;
-  double rho1_;
-  double rho2_;
+  double mwpliq_;
+  double mwpvap_;
   const double phiscale_;
   std::string bubblefilename_; 
   std::vector<double> bubblevector_;
@@ -184,8 +184,9 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 #else
   width/=sqrt(A_);
 #endif
+  //phi\approx 0
   phi=0.5-phiscale_*0.5;
-  double rho=rho1_;
+  double rho=mwpliq_;
 #if MIXED 
   for(int ii = 0; ii < dimension ; ++ii)
     res[dimension+4+ii]=0.;
@@ -209,8 +210,8 @@ inline void BubbleEnsemble<GridType,RangeProvider>
     DomainType vector=center;
     vector-=arg;
     double r=mynorm(vector);
-    //double r=vector.two_norm();
     
+    //0 if r big;
     double tanr=tanh((radius-r) * (1 /width2 ));
     double tanhr=tanr;
     double dtanr=1+tanr*tanr;
@@ -224,7 +225,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
         if( r < radius-(0.5*width))
           {//Inside bubble
             phi=0.5+0.5*phiscale_;
-            rho=rho2_;
+            rho=mwpvap_;
 #if MIXED
             //mu
             res[dimension+2]=dFdrho;
@@ -236,11 +237,11 @@ inline void BubbleEnsemble<GridType,RangeProvider>
         else
           {
             phi=phiscale_*0.5*( tanhr )+0.5;
-            double rhodiff=rho1_-rho2_;
-            rho=(rhodiff)*(-0.5*tanhr+0.5)+rho2_;
+            double rhodiff=mwpvap_-mwpliq_;
+            rho=(rhodiff)*(0.5*tanhr+0.5)+mwpliq_;
 #if MIXED
             for( int ii=0 ; ii< dimension ;++ii)
-              res[dimension+4+ii]=0.5*dtanhr*(1/width2)*dxdi(vector,ii);
+              res[dimension+4+ii]=-0.5*dtanhr*(1/width2)*dxdi(vector,ii);
             //mu
             res[dimension+2]=0;
             //tau
