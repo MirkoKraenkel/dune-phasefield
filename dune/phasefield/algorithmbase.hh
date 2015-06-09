@@ -327,7 +327,8 @@ public:
     //some setup stuff
 		//const bool verbose = Dune::Fem::Parameter :: verbose ();
   	int printCount = Dune::Fem::Parameter::getValue<int>("phasefield.printCount", -1);
-		int adaptCount = 0;
+	  printCount*=(loopNumber+1);	
+    int adaptCount = 0;
 		int maxAdaptationLevel = 0;
         
      Dune::Fem::AdaptationMethod< GridType > am( grid_ );
@@ -390,9 +391,7 @@ public:
    
     if(!restart)
     {
-    	std::cout<<"call ininitalizeStep\n";
       initializeStep( timeProvider );
-    	std::cout<<"after ininitalizeStep\n"; 		
       initializeSolver( timeProvider);
       // adapt the grid to the initial data
 	  	int startCount = 0;
@@ -409,7 +408,7 @@ public:
           ++startCount;
         }
       }
-    //  writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
+      // writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
       double firstTimeStep=Dune::Fem::Parameter::getValue<double>("phasefield.firstStep",1e-6);
 
       // start first time step with prescribed fixed time step 
@@ -459,7 +458,7 @@ public:
           abort();
 			  }
 
-      double timeStepEst=timeStepEstimate();//dgOperator_.timeStepEstimate();
+      double timeStepEst=timeStepEstimate();
       timeStepError=stepError(U,Uold);
       timeStepError/=ldt;
 
@@ -521,42 +520,42 @@ public:
   }
   inline double error ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-//    Fem::L2Norm< GridPartType > l2norm(gridPart_);
-    double error = 0;//l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+    Fem::L2Norm< GridPartType > l2norm(gridPart_);
+    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
   
   inline double densityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-  //  std::vector<unsigned int> comp{ 0};
-   // Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
-    double error = 0;//l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+    std::vector<unsigned int> comp{ 0};
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
   inline double phasefieldError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-   // std::vector<unsigned int> comp{ 0 , 1, dimDomain +1 };
-   // Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
-    double error = 0;//l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+    std::vector<unsigned int> comp{ 0 , 1, dimDomain +1 };
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
   inline double velocityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-    //std::vector<unsigned int> comp;
-  //  for (int i = 0 ; i < dimDomain ; ++i)
-    //  comp.push_back(1+i);
-    //Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
-    double error =  0;// l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
+    std::vector<unsigned int> comp;
+    for (int i = 0 ; i < dimDomain ; ++i)
+      comp.push_back(1+i);
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
+    double error =   l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
   
   //compute Error between old and NewTimeStep
   inline double stepError(DiscreteFunctionType uOld, DiscreteFunctionType& uNew)
 	{
-   // std::vector<unsigned int> comp{ 1,2 };
-  //  Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
+    std::vector<unsigned int> comp{ 1,2 };
+    Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
-    return 0;//l2norm.distance(uOld, uNew);
+    return l2norm.distance(uOld, uNew);
 	}
 
    void finalizeStep(TimeProviderType& timeProvider)
