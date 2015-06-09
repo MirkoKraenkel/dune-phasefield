@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 import os,subprocess, sys
 
-folders = { 1:'../CoquelTaylorSources/' , 2:'../TaitTaylorSources/'}
+folders = { 1:'../CoquelTaylorSources/' , 2:'../TaitTaylorSources/', 3:'../AltAltSources/'}
 
-files = { 1:'coquelTaylorCODEGEN.mpl', 2:'taittaylorCODEGEN.mpl'}
+files = { 1:'coquelTaylorCODEGEN.mpl', 2:'taittaylorCODEGEN.mpl',3:'AltAltCODEGEN.mpl'}
 
 namelist = [' helmholtz', ' pressure', ' a']
 namelist2 = [ ' reactionSource',' dphireactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential']
