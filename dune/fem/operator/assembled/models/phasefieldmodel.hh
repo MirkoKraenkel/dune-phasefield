@@ -191,7 +191,7 @@ inline void PhasefieldModel< Grid,Problem>
   surfaceEnergy*=h2(rho);
   
   kin=rho*0.5*kineticEnergy;
-  //surfaceEnergy*=0.5;
+  surfaceEnergy*=0.5;
   surfaceEnergy*=problem_.thermodynamics().delta();
 
   therm=problem_.thermodynamics().helmholtz(rho,phi);
