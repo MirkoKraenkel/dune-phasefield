@@ -21,8 +21,8 @@ class PhasefieldPhysics<2,Thermodynamics>
     enum { dimGradRange = dimRange * dimDomain };
     
     typedef double RangeFieldType;
-        
-    typedef FieldVector< double, dimDomain >                  DomainType;
+       
+    using DomainType = FieldVector< double , dimDomain >;
     typedef FieldVector< double, dimDomain - 1 >              FaceDomainType;
     typedef FieldVector< double, dimRange >                   RangeType;
     typedef FieldVector< double, dimThetaRange >              ThetaRangeType;
@@ -54,19 +54,14 @@ class PhasefieldPhysics<2,Thermodynamics>
                            double& total ) const;
 
   inline void chemPotAndReaction( const RangeType& cons, 
-																	const JacobianRangeType du,
+																	const JacobianRangeType& du,
                                   double& mu,
 																	double& reaction ) const;
 
 	inline void pressureAndReaction( const RangeType& cons, 
 																	 double& p,
 																	 double& reaction ) const;
-  inline void nonConProduct(const RangeType & uL, 
-														const RangeType & uR,
-														const ThetaRangeType& thetaL,
-														const ThetaRangeType& thetaR,
-														RangeType& ret) const;
-
+  
  
   inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
   
@@ -111,8 +106,8 @@ public:
 
 	inline double delta()const  { return thermoDynamics_.delta(); }
 	inline double deltaInv()const{ return thermoDynamics_.deltaInv(); }
-  inline double mu1() const { return thermoDynamics_.mu1();}
- 	inline double mu2() const { return thermoDynamics_.mu2();}
+  inline double mu1() const { return thermoDynamics_.mu1Liq();}
+ 	inline double mu2() const { return thermoDynamics_.mu2Liq();}
 
 
 };
@@ -269,12 +264,15 @@ template< class Thermodynamics >
     double reactionFac=thermoDynamics_.reactionFactor();
 
     f[0]=0;
+    
     //-(\rho\nabla\mu-\tau\nabla\phi) 
    	f[1]=-dtheta[0][0]*u[0]+dphix*theta[1];
 		f[2]=-dtheta[0][1]*u[0]+dphiy*theta[1];
-    f[phaseId]=theta[1]
+    
+    f[phaseId]=theta[1];
     f[phaseId]*=-reactionFac;
     f[phaseId]*=rho_inv;
+    
     //nonconservative Discretization of transport term
     f[phaseId]-=vx*dphix+vy*dphiy;
     return 0.4*reactionFac*deltaInv(); 
@@ -302,7 +300,6 @@ template< class Thermodynamics >
     const double dzu = du11;
     const double dxw = du20; 
     const double dzw = du21; 
-
 #if LAPLACE
     const double tau00 = muLoc*dxu;
     const double tau01 = 0;
