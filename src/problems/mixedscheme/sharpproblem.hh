@@ -47,8 +47,8 @@ public:
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rhofactor_( Fem::Parameter::getValue<double> ("phasefield.rhofactor")),
-    rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
-    rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
+    rho1_( Fem::Parameter::getValue<double> ("phasefield.mwpliq")),
+    rho2_( Fem::Parameter::getValue<double> ("phasefield.mwpvap")),
     phiscale_(Fem::Parameter::getValue<double> ("phasefield.phiscale")),
     radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
     veloright_(Fem::Parameter::getValue<double>("phasefield.veloright")),
@@ -158,14 +158,19 @@ inline void SharpProblem<GridType,RangeProvider>
      double phi=0;
      double rho=rho1_;
      double v=veloleft_;
-    
-  if( arg[0]>0.5) 
-    {
-      phi=1;
-      rho=rho2_;
-      v=veloright_;
-    }
   
+    if( arg[ 0 ]>0.3 && arg[ 0 ]<0.7 &&  arg[ 1 ]>0.3 && arg[ 1 ]<0.7) 
+      {
+        phi=1;
+        rho=rho2_;
+        v=veloright_;
+      }
+    else
+      {
+        phi=0;
+        rho=rho1_;
+        veloleft_;
+      }
   //rho
   res[0]= rho;
  
