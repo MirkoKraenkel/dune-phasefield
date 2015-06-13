@@ -111,15 +111,13 @@ public:
 
 	inline double delta() const { return thermoDynamics_.delta(); }
 	inline double deltaInv() const { return thermoDynamics_.deltaInv(); }
-	inline double mu1() const { return thermoDynamics_.mu1(); }
-	inline double mu2() const { return thermoDynamics_.mu2(); }
+	inline double mu1() const { return thermoDynamics_.mu1Liq(); }
+	inline double mu2() const { return thermoDynamics_.mu2Liq(); }
 	
  };
 
-
-
 template< class Thermodynamics >
-  inline void PhasefieldPhysics<2,Thermodynamics>
+inline void PhasefieldPhysics<2,Thermodynamics>
 ::conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const
  {
   	assert( cons[0] > 0. );
@@ -129,11 +127,14 @@ template< class Thermodynamics >
     rho_inv=1./rho;
     phi=cons[phaseId];
     phi*=rho_inv;
+
     //velocity
-    prim[0] = cons[1]*rho_inv;
-    prim[1] = cons[2]*rho_inv;
+    for(int i=0;i<dimDomain;++i)
+      prim[i] = cons[i+1]*rho_inv;
+
     //pressure
   	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
+
     //phasefield
     prim[phaseId]   = phi;
   
@@ -149,15 +150,16 @@ template< class Thermodynamics >
                   double& surf,
                   double& total) const
   {
-    assert( cons[0] > 0. );
 	  double rho = cons[0];
 	  double rho_inv = 1. /rho;
 	  double phi = cons[phaseId];
     phi*=rho_inv;
     
     double kineticEnergy,surfaceEnergy;
-    
-    kineticEnergy=cons[1]*cons[1]+cons[2]*cons[2];
+
+    for(int i=0;i<dimDomain;++i)
+      kineticEnergy+=cons[i]*cons[i];
+
     kineticEnergy*=0.5*rho_inv;
     //recontsruction of gradphi 
     double dxphi=grad[phaseId][0];
@@ -165,17 +167,15 @@ template< class Thermodynamics >
     double dyphi=grad[phaseId][1];
     dyphi-=phi*grad[0][1];
 
-
     surfaceEnergy=dxphi*dxphi+dyphi*dyphi;
     surfaceEnergy*=rho_inv;
     surfaceEnergy*=rho_inv;
-    surfaceEnergy*=delta()*0.5;
-
+    surfaceEnergy*=delta()*0.5*thermoDynamics_.h2(rho);
  
-	  double freeEnergy = thermoDynamics_.helmholtz( rho, phi );
+	  term = thermoDynamics_.helmholtz( rho, phi );
+    term +=surfaceEnergy;
     kin = kineticEnergy;
-	  term = freeEnergy+surfaceEnergy;
-    total = surfaceEnergy+freeEnergy+kineticEnergy;
+    total = term+kineticEnergy;
     surf = surfaceEnergy;
   }
 
@@ -357,12 +357,18 @@ template< class Thermodynamics >
     const double dzu = rho_inv*(du11 - v[0]*du01);
     const double dxw = rho_inv*(du20 - v[1]*du00);
     const double dzw = rho_inv*(du21 - v[1]*du01);
- 
+#if LAPLACE   
+    const double tau00 = muLoc*dxu;
+    const double tau01 = 0;
+    const double tau10 = 0;
+    const double tau11 = muLoc*dzw;
+#else
     const double tau00 = (2.*muLoc+lambdaLoc)*dxu + lambdaLoc*dzw;
     const double tau01 = muLoc*(dxw + dzu);
     const double tau10 = tau01;
     const double tau11 = lambdaLoc*dxu + (2.*muLoc+lambdaLoc)*dzw;
 
+#endif
     // 1st row
     diff[0][0] = 0.;                   diff[0][1] = 0.;
     // 2nd row
