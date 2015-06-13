@@ -122,7 +122,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       start_.clear();
 
       invOp(start_,U);
-      //boundaryCorrection_(U);
+      
       //reset overall timer
       overallTimer_.reset();
 
@@ -138,21 +138,19 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
            abort(); 
         }
      if (fixedTimeStep_>1e-20)
-      {
-      
-      }
-     else if( newton_iterations >  10 )
         {
-          //std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
+        }
+     else if( newton_iterations >  5 )
+        {
           reduceTimeStep( timeProvider , deltaT );
-         }
-     else if( newton_iterations < 2 && timeProvider.deltaT() < timeStepEstimate())
+        }
+     else if( newton_iterations < 2 )
         {
-          timeProvider.provideTimeStepEstimate( 1.2*deltaT);
+          timeProvider.provideTimeStepEstimate( 2*timeStepEstimate());
         }
       else
         {
-          timeProvider.provideTimeStepEstimate( timeStepEstimate());
+          timeProvider.provideTimeStepEstimate( timeStepEstimate() );
         }
     }
 	  
