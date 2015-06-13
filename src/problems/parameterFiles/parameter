@@ -1,10 +1,10 @@
 fem.resolvevariables: 1
 # DATA WRITER
 #------------
-fem.prefix: ./data_2 # specify directory for data output (is created if not exists)
+fem.prefix: ./test_data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 0.1 #save data every time interval
-fem.io.savecount: 0    # save every i-th ste
+fem.io.savestep: 0.01 #save data every time interval
+fem.io.savecount: 10   # save every i-th ste
 fem.io.checkpointstep: 0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
@@ -33,7 +33,7 @@ phasefield.interpolinitial: false
 phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.radius: 0.5
-phasefield.bubbles: ./InputFiles/2bubbles.txt 
+phasefield.bubbles: ./InputFiles/1bubble.txt 
 phasefield.phiscale: 1 
 phasefield.rhofactor:1
 
@@ -53,22 +53,29 @@ phasefield.beta:1
 phasefield.alpha: 0
 
 #viscosity coefficients
-phasefield.mu1: 0.1
-phasefield.mu2: 0.1
+phasefield.mu1_vap: 0.1
+phasefield.mu2_vap: 0.1 
+phasefield.mu1_liq: 0.1
+phasefield.mu2_liq: 0.1 
+
 
 #velocities vor Riemann-Problem
-phasefield.veloright:0
+phasefield.veloright:10
 phasefield.veloleft:0
 
 #total density for mixproblem
 phasefield.rho0: 1.5 
 
 #maxwell points
-phasefield.mwp1: 2 
-phasefield.mwp2: 1
+phasefield.mwpvap: 0.8924834528 
+#phasefield.mwpvap: 1.1 
+phasefield.mwpliq: 1.686282197
 
-#phasefield.mwp1: 0.11
-#phasefield.mwp2: 0.61
+
+#maxwell points vdw theta=0.85
+#phasefield.mwp1: 0.1065766549
+#phasefield.mwp2: 0.6023801090
+
 #phasefield.mwp2: 1.657270212
 #phasefield.mwp2: 3.793667900 
 #phasefield.mwp1: 1.947734046
@@ -78,9 +85,9 @@ phasefield.mwp2: 1
 phasefield.addvisc: 0 
 phasefield.oldvisc: 0 
 phasefield.nonconvisc:0  
-phasefield.penalty: 10
+phasefield.penalty: 10 
 phasefield.acpenalty: 0 
-phasefield.ipswitch: 1
+phasefield.ipswitch: 0 
 
 phasefield.outflow: false
 # DOMAIN
@@ -88,17 +95,17 @@ phasefield.outflow: false
 
 # 1D
 # ------
-fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
-#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+#fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
+fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
 #fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 
 # 2D
 # ------
-#fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
+fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
-fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitgrid2d_unstr_2.dgf
