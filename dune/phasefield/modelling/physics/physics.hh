@@ -11,7 +11,7 @@
 // dune-fem include
 #include <dune/fem/io/parameter.hh>
 
-
+#define LAPLACE 1
 namespace Dune{
 
 
