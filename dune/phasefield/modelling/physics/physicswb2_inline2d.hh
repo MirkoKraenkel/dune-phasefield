@@ -130,10 +130,12 @@ template< class Thermodynamics >
     phi=cons[phaseId];
     
     //velocity 
-    for(int i=0;int<dimDomain;++i)
+    for( int i = 0 ; i < dimDomain ; ++i )
       prim[i] = cons[i+1]*rho_inv;
-    //pressure  
-  	prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
+
+    //pressure
+    prim[phaseId-1] = thermoDynamics_.pressure(rho,phi);
+
     //phasefield
     prim[phaseId] = phi;
   
@@ -300,12 +302,18 @@ template< class Thermodynamics >
     const double dzu = du11;
     const double dxw = du20; 
     const double dzw = du21; 
-   
+
+#if LAPLACE
+    const double tau00 = muLoc*dxu;
+    const double tau01 = 0;
+    const double tau10 = 0;
+    const double tau11 = muLoc*dzw;
+#else
     const double tau00 = (2.*muLoc+lambdaLoc)*dxu + lambdaLoc*dzw;
     const double tau01 = muLoc*(dxw + dzu);
     const double tau10 = tau01;
     const double tau11 = lambdaLoc*dxu + (2.*muLoc+lambdaLoc)*dzw;
-
+#endif
     // 1st row
     diff[0][0] = 0.;                   diff[0][1] = 0.;
 
