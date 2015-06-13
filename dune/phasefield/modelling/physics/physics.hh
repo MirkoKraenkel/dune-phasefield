@@ -133,10 +133,11 @@ class PhasefieldPhysics
 #if WELLBALANCED
 #if NONCONTRANS
 #include "physicswb2_inline1d.hh"
+#include "physicswb2_inline2d.hh"
 #else
 #include "physicswb_inline1d.hh"
-#endif
 #include "physicswb_inline2d.hh"
+#endif
 #else
 #include "physics_inline1d.hh"
 #include "physics_inline2d.hh"
