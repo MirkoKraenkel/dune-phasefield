@@ -417,7 +417,7 @@ public:
 			  timeProvider.init( fixedTimeStep_ );
 		  else
       {
-        timeProvider.initTimeStepEstimate();
+        timeProvider.init();
       }
      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
