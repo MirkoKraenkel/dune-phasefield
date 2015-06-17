@@ -413,12 +413,11 @@ public:
 
       // start first time step with prescribed fixed time step 
 	    // if it is not 0 otherwise use the internal estimate
-			if ( fixedTimeStep_ > 1e-20 )
+			if ( fixedTimeStep_ > 1e-20 || firstTimeStep >1e-20)
 			  timeProvider.init( fixedTimeStep_ );
 		  else
       {
-        timeProvider.provideTimeStepEstimate( std::min( firstTimeStep , timeStepEstimate()));
-			  timeProvider.init();
+        timeProvider.initTimeStepEstimate();
       }
      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
