@@ -3,8 +3,8 @@ fem.resolvevariables: 1
 #------------
 fem.prefix: ./test_data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep: 0.01 #save data every time interval
-fem.io.savecount: 10   # save every i-th ste
+fem.io.savestep: 1e-2 #save data every time interval
+fem.io.savecount: 0   # save every i-th ste
 fem.io.checkpointstep: 0
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
@@ -26,14 +26,14 @@ paramfile: ./paramFiles/paramBase
 #--------------
 
 phasefield.restart: false 
-phasefield.calcresidual: false
+phasefield.calcresidual: false 
 phasefield.interpolinitial: false 
 
 #phasefield.diffusionTimeStep:1 
 phasefield.energy: true
 phasefield.additionalvariables: true  
-phasefield.radius: 0.5
-phasefield.bubbles: ./InputFiles/1bubble.txt 
+phasefield.radius: 0.25
+phasefield.bubbles: ../InputFiles/1bubble.txt 
 phasefield.phiscale: 1 
 phasefield.rhofactor:1
 
@@ -60,7 +60,7 @@ phasefield.mu2_liq: 0.1
 
 
 #velocities vor Riemann-Problem
-phasefield.veloright:10
+phasefield.veloright:0
 phasefield.veloleft:0
 
 #total density for mixproblem
@@ -68,8 +68,9 @@ phasefield.rho0: 1.5
 
 #maxwell points
 phasefield.mwpvap: 0.8924834528 
-#phasefield.mwpvap: 1.1 
+#phasefield.mwpvap: 1. 
 phasefield.mwpliq: 1.686282197
+#phasefield.mwpliq: 1.
 
 
 #maxwell points vdw theta=0.85
@@ -117,34 +118,6 @@ fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 # SOLVER
 #-------
 paramfile: ./paramFiles/paramSolver
-#phasefield.maxTimeStep: 0.5
-#fem.ode.tolerance: 1e-54
-#fem.solver.matrixout:  false 
-#fem.solver.newton.tolerance: 1e-6
-#3fem.solver.tolerance: 1e-8
-#fem.solver.verbose: false 
-#fem.solver.newton.verbose: false 
-#fem.solver.newton.assemblesteps: 1 
-#fem.solver.newton.maxiterations: 50
-#fem.solver.newton.maxlineariterations: 100
-#fem.differenceoperator.eps: 1 
-#phasefield.fdjacobian.epsilon: 0 
-#phasefield.maximaltimesteps: 0
-##phasefield.mixed.theta: 0
-#phasefield.maxTimeStep: 1e-3
-
-# IMEX=1 ->tau implicit IMEX=0.5->semi implicit
-#phasefield.IMEX: 1 
-#3phasefield.firstStep: 1e-4
-
-#istl.preconditioning.method: ilu-0
-#istl.gmres.restart: 100
-#33istl.preconditioning.iterations: 1 
-#istl.preconditioning.relaxation: 1.1
-
-#oemsolver.gmres.restart: 1000
-
-#phasefield.timesteptolerance: -1 
 
 # Output
 #------------
