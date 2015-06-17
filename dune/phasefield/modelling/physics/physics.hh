@@ -29,13 +29,13 @@ class PhasefieldPhysics
     
     typedef double RangeFieldType;
 
-    using DomainType     = FieldVector< double, dimDomain >;
-    using FaceDomainType = FieldVector< double, dimDomain - 1 >;
-    using RangeType      = FieldVector< double, dimRange >;
-    using ThetaRangeType = FieldVector< double, dimThetaRange >;
-    using GradientType   = FieldVector< double, dimGradRange >;
-    using ThetaRangeType = FieldVector< double, dimThetaGradRange >;
-    using GradientType   = FieldVector< double, dimGradRange >;
+    using DomainType             = FieldVector< double, dimDomain >;
+    using FaceDomainType         = FieldVector< double, dimDomain - 1 >;
+    using RangeType              = FieldVector< double, dimRange >;
+    using ThetaRangeType         = FieldVector< double, dimThetaRange >;
+    using GradientType           = FieldVector< double, dimGradRange >;
+    using ThetaGradientRangeType = FieldVector< double, dimThetaGradRange >;
+    using GradientRangeType      = FieldVector< double, dimGradRange >;
 
     using JacobianRangeType      = FieldMatrix< double, dimRange, dimDomain >;
     using FluxRangeType          = FieldMatrix< double, dimRange, dimDomain >;
@@ -74,9 +74,8 @@ class PhasefieldPhysics
   
     inline void jacobian ( const RangeType& u, JacobianFluxRangeType& a) const;
 
-    inline double maxSpeed ( const DomainType& n, const RangeType& u ) const;
-  
-    inline double stiffSource ( const DomainType& x,
+ 
+    inline double stiffSource ( const DomainType& xglobal,
                                 const double time,
                                 const RangeType& u,
                                 const GradientRangeType& du,
@@ -112,7 +111,9 @@ class PhasefieldPhysics
 	  inline void boundaryallenCahn ( const RangeType& u,
                                     const JacobianRangeImp& du,
                                     ThetaJacobianRangeType& f ) const;
-
+    
+    inline double maxSpeed ( const DomainType& n, const RangeType& u ) const;
+ 
     template< class JacobianRangeImp>
     inline void tension ( const RangeType& u,
                           const JacobianRangeImp& du,
