@@ -42,8 +42,8 @@ public:
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     A_(Fem::Parameter::getValue<double>("phasefield.A")),
     rhofactor_( Fem::Parameter::getValue<double> ("phasefield.rhofactor")),
-    rho1_( Fem::Parameter::getValue<double> ("phasefield.mwp1")),
-    rho2_( Fem::Parameter::getValue<double> ("phasefield.mwp2")),
+    rho1_( Fem::Parameter::getValue<double> ("phasefield.mwpliq")),
+    rho2_( Fem::Parameter::getValue<double> ("phasefield.mwpvap")),
     phiscale_(Fem::Parameter::getValue<double> ("phasefield.phiscale")),
     radius_(Fem::Parameter::getValue<double>("phasefield.radius")),
     shift_(Fem::Parameter::getValue<double>("phasefield.shift",0.)),
@@ -168,7 +168,7 @@ inline void TanhProblem<GridType,RangeProvider>
  
    for(int i=1;i<=dimension;i++)
    {
-     res[i]=v;
+      res[i]=v;
    }
    if(dimension==2)
      res[2]=0;
@@ -219,6 +219,10 @@ inline void TanhProblem<GridType,RangeProvider>
     }
     
 #else
+  for(int i=1;i<=dimension;i++)
+    {
+      res[i]*=rho;
+    }
 #if NONCONTRANS
 #else
     res[dimension+1]*=res[0];
