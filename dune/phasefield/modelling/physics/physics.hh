@@ -21,7 +21,7 @@ class PhasefieldPhysics
    typedef Thermodynamics ThermodynamicsType;
  
   public:
-    enum{ phaseId = dimDomain+1} ;
+    enum { phaseId = dimDomain + 1 };
     enum { dimRange = dimDomain + 2 };
     enum { dimThetaRange =  2 };
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
@@ -29,104 +29,95 @@ class PhasefieldPhysics
     
     typedef double RangeFieldType;
 
-    typedef FieldVector< double, dimDomain >                  DomainType;
-    typedef FieldVector< double, dimDomain - 1 >              FaceDomainType;
-    typedef FieldVector< double, dimRange >                   RangeType;
-    typedef FieldVector< double, dimThetaRange >              ThetaRangeType;
-    typedef FieldVector< double, dimGradRange >               GradientType;
-    typedef FieldVector< double, dimThetaGradRange >          ThetaGradientRangeType;
-    typedef FieldMatrix< double, dimRange, dimDomain >        JacobianRangeType;                          
-    typedef FieldMatrix< double, dimRange, dimDomain >        FluxRangeType;
-    typedef FieldVector< double, dimGradRange >               GradientRangeType;
+    using DomainType     = FieldVector< double, dimDomain >;
+    using FaceDomainType = FieldVector< double, dimDomain - 1 >;
+    using RangeType      = FieldVector< double, dimRange >;
+    using ThetaRangeType = FieldVector< double, dimThetaRange >;
+    using GradientType   = FieldVector< double, dimGradRange >;
+    using ThetaRangeType = FieldVector< double, dimThetaGradRange >;
+    using GradientType   = FieldVector< double, dimGradRange >;
 
-   typedef FieldMatrix< double, dimThetaRange, dimDomain >    ThetaJacobianRangeType;
-   typedef FieldMatrix< double, dimGradRange, dimDomain >    JacobianFluxRangeType;
+    using JacobianRangeType      = FieldMatrix< double, dimRange, dimDomain >;
+    using FluxRangeType          = FieldMatrix< double, dimRange, dimDomain >;
+    using ThetaJacobianRangeType = FieldMatrix< double, dimThetaRange, dimDomain >;
+    using JacobianFluxRangeType  = FieldMatrix< double, dimGradRange, dimDomain >;
 
   protected:
     const ThermodynamicsType& thermoDynamics_;
-  public:
-  PhasefieldPhysics(const ThermodynamicsType& thermodyn):
-    thermoDynamics_(thermodyn),
-    delta_(Dune::Fem::Parameter::getValue<double>("phasefield.delta")),
-    deltaInv_(1./delta_)
-  {
-  }
- 
-  inline void conservativeToPrimitive( const RangeType& cons, RangeType& prim ) const;
- 
-  template< class JacobianRangeImp >
-  inline void totalEnergy( const RangeType& cons, 
-                           const JacobianRangeImp& grad,
-                           double& kin,
-                           double& therm,
-                           double& surf,
-                           double& total) const;
-  
-  inline void chemPotAndReaction( const RangeType& cons, 
-																	const JacobianRangeType& du,
-                                  double& mu,
-																	double& reaction ) const;
-
-	inline void pressureAndReaction( const RangeType& cons, 
-																	 double& p,
-																	 double& reaction ) const;
-  
-  inline void analyticalFlux( const RangeType& u, JacobianRangeType& f ) const;
-  
-  inline void jacobian( const RangeType& u, JacobianFluxRangeType& a) const;
-
-  inline double maxSpeed( const DomainType& n, const RangeType& u ) const;
-  
-  inline double stiffSource(const DomainType& x,
-                            const double time,
-                            const RangeType& u,
-								            const GradientRangeType& du,
-								            const ThetaRangeType& theta,
-								            const ThetaJacobianRangeType& dtheta,
-								            const JacobianRangeType& jacU,
-                            RangeType& f) const;
- 
-  inline double stiffSource(const DomainType& x,
-                            const double time,
-                            const RangeType& u,
-								            const GradientRangeType& du,
-                            RangeType& f) const;
- 
-  template< class JacobianRangeImp >
-	inline void diffusion( const RangeType& u,
-												 const JacobianRangeImp& du,
-												 JacobianRangeType& f ) const;
-  template< class JacobianRangeImp >
-	inline void boundarydiffusion( const RangeType& u,
-												 const JacobianRangeImp& du,
-												 JacobianRangeType& f ) const;
-  
-  //f|phi-div(f|nabla phi)
-  template< class JacobianRangeImp >
-	inline void allenCahn( const RangeType& u,
-												 const JacobianRangeImp& du,
-												 ThetaJacobianRangeType& f ) const;
-   //f|phi-div(f|nabla phi)
-  template< class JacobianRangeImp >
-	inline void boundaryallenCahn( const RangeType& u,
-												 const JacobianRangeImp& du,
-												 ThetaJacobianRangeType& f ) const;
- 
-  template< class JacobianRangeImp>
-  inline void tension( const RangeType& u,
-                       const JacobianRangeImp& du,
-                       GradientRangeType& tens) const;
 
   public:
+    PhasefieldPhysics(const ThermodynamicsType& thermodyn):
+      thermoDynamics_(thermodyn)
+      {}
+ 
+    inline void conservativeToPrimitive ( const RangeType& cons,
+                                          RangeType& prim ) const;
+ 
+    template< class JacobianRangeImp >
+    inline void totalEnergy ( const RangeType& cons,
+                              const JacobianRangeImp& grad,
+                              double& kin,
+                              double& therm,
+                              double& surf,
+                              double& total) const;
 
-	inline double delta()    const { return delta_;}
-	inline double deltaInv() const { return deltaInv_;}
-	inline double mu1()      const { abort(); return 1.;}
-	inline double mu2()      const { abort(); return 1.;}
+    inline void chemPotAndReaction ( const RangeType& cons,
+                                     const JacobianRangeType& du,
+                                     double& mu,
+                                     double& reaction ) const;
+
+	  inline void pressureAndReaction ( const RangeType& cons,
+                                      double& p,
+                                      double& reaction ) const;
   
-  protected:
-	const double delta_; 
-	double deltaInv_;
+    inline void analyticalFlux ( const RangeType& u, JacobianRangeType& f ) const;
+  
+    inline void jacobian ( const RangeType& u, JacobianFluxRangeType& a) const;
+
+    inline double maxSpeed ( const DomainType& n, const RangeType& u ) const;
+  
+    inline double stiffSource ( const DomainType& x,
+                                const double time,
+                                const RangeType& u,
+                                const GradientRangeType& du,
+                                const ThetaRangeType& theta,
+                                const ThetaJacobianRangeType& dtheta,
+                                const JacobianRangeType& jacU,
+                                RangeType& f) const;
+ 
+    inline double stiffSource ( const DomainType& x,
+                                const double time,
+                                const RangeType& u,
+                                const GradientRangeType& du,
+                                RangeType& f) const;
+ 
+    template< class JacobianRangeImp >
+	  inline void diffusion ( const RangeType& u,
+                            const JacobianRangeImp& du,
+                            JacobianRangeType& f ) const;
+
+    template< class JacobianRangeImp >
+	  inline void boundarydiffusion ( const RangeType& u,
+                                    const JacobianRangeImp& du,
+                                    JacobianRangeType& f ) const;
+  
+    //f|phi-div(f|nabla phi)
+    template< class JacobianRangeImp >
+	  inline void allenCahn ( const RangeType& u,
+                            const JacobianRangeImp& du,
+                            ThetaJacobianRangeType& f ) const;
+
+    //f|phi-div(f|nabla phi)
+    template< class JacobianRangeImp >
+	  inline void boundaryallenCahn ( const RangeType& u,
+                                    const JacobianRangeImp& du,
+                                    ThetaJacobianRangeType& f ) const;
+
+    template< class JacobianRangeImp>
+    inline void tension ( const RangeType& u,
+                          const JacobianRangeImp& du,
+                          GradientRangeType& tens) const;
+
  };
 }
 
