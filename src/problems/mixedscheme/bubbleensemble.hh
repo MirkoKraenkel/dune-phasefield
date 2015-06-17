@@ -258,7 +258,11 @@ inline void BubbleEnsemble<GridType,RangeProvider>
    
    for(int i=1;i<=dimension;i++)
    {
+#if MIXED
      res[i]=v;
+#else
+     res[i]=v*rho;
+#endif
    }
   res[dimension+1]=phi;
 
