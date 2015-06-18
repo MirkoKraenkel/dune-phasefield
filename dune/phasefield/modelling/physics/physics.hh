@@ -18,7 +18,7 @@ namespace Dune{
 template<int dimDomain, class Thermodynamics>
 class PhasefieldPhysics
 {
-   typedef Thermodynamics ThermodynamicsType;
+  typedef Thermodynamics ThermodynamicsType;
  
   public:
     enum { phaseId = dimDomain + 1 };
@@ -27,7 +27,7 @@ class PhasefieldPhysics
     enum { dimThetaGradRange = dimThetaRange*dimDomain };
     enum { dimGradRange = dimRange * dimDomain };
     
-    typedef double RangeFieldType;
+    using RangeFieldType         = double;
 
     using DomainType             = FieldVector< double, dimDomain >;
     using FaceDomainType         = FieldVector< double, dimDomain - 1 >;
@@ -52,7 +52,7 @@ class PhasefieldPhysics
  
     inline void conservativeToPrimitive ( const RangeType& cons,
                                           RangeType& prim ) const;
- 
+
     template< class JacobianRangeImp >
     inline void totalEnergy ( const RangeType& cons,
                               const JacobianRangeImp& grad,
@@ -74,7 +74,7 @@ class PhasefieldPhysics
   
     inline void jacobian ( const RangeType& u, JacobianFluxRangeType& a) const;
 
- 
+
     inline double stiffSource ( const DomainType& xglobal,
                                 const double time,
                                 const RangeType& u,
