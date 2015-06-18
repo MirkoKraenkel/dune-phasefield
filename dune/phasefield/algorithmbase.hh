@@ -490,7 +490,7 @@ public:
         if( timeProvider.timeStepValid())
           { 
             writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
-          }         l
+          }
         //checkPointer.write(timeProvider);
         //statistics
         mindt = (ldt<mindt) ? ldt : mindt;
