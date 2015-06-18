@@ -1,7 +1,7 @@
 #ifndef PHASEFIELD_MIXPROBLEM_HH
 #define PHASEFIELD_MIXPROBLEM_HH
 #include <dune/common/version.hh>
-
+#include <random>
 // dune-fem includes
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/space/common/functionspace.hh>
@@ -11,7 +11,7 @@
 #if SURFACE
 #include <dune/phasefield/modelling/thermodsurface.hh>
 #else
-#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
+//#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
 #endif
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
@@ -143,14 +143,17 @@ inline void MixProblem<GridType,RangeProvider>
   for( int ii = 0; ii < dimension ; ++ii)
     phi*=cos(2*M_PI*arg[ii]);
 
-  phi+=0.5;
+  double rnd=(double)rand()/RAND_MAX;
+  
+  phi=0.5+0.45*(rnd-0.5);
+  //phi+=0.5; 
   res[dimension+1]=phi;
 
 
 #if MIXED     
   for( int ii = 0 ; ii<dimension; ++ ii)
     {
-      res[dimension+4+ii]=-2*M_PI*sin(2*M_PI*arg[ii]);
+      res[dimension+4+ii]=0;//<F2>-2*M_PI*sin(2*M_PI*arg[ii]);
 #if LAMBDASCHEME
       res[2*dimension+4+ii]=thermodyn_.h2(rho)*res[dimension+4+ii];
 #endif
