@@ -413,12 +413,18 @@ public:
 
       // start first time step with prescribed fixed time step 
 	    // if it is not 0 otherwise use the internal estimate
-			if ( fixedTimeStep_ > 1e-20 || firstTimeStep >1e-20)
-			  timeProvider.init( fixedTimeStep_ );
-		  else
-      {
-        timeProvider.init();
-      }
+      if ( fixedTimeStep_ > 1e-20 )
+       {
+          timeProvider.init( fixedTimeStep_ );
+        }
+      else if ( firstTimeStep > 1e-20)
+        {
+          timeProvider.init( firstTimeStep );
+	      }
+      else
+        {
+          timeProvider.init();
+        }
      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
     else
@@ -431,7 +437,7 @@ public:
       computeResidual( U,Uold,timeProvider,eocDataOutput);      
     }
     else
-    for( ; timeProvider.time() < endTime && timeProvider.timeStep()<maximalTimeSteps;  )
+    for( ; timeProvider.time() < endTime && timeProvider.timeStep()<maximalTimeSteps && timeStepError > timeStepTolerance_;  )
     { 
       const double tnow  = timeProvider.time();
       const double ldt   = timeProvider.deltaT();
@@ -458,11 +464,15 @@ public:
 			  }
 
       double timeStepEst=timeStepEstimate();
-      timeStepError=stepError(U,Uold);
-      timeStepError/=ldt;
-
-      if( timeStepError <= timeStepTolerance_)
-        break;
+      if( timeProvider.timeStepValid())
+        {
+          timeStepError=stepError(U,Uold);
+          timeStepError/=ldt;
+        }
+      else
+        {
+          timeStepError=1E20;
+        }
 
       if( (printCount > 0) && (counter % printCount == 0))
 			  {
@@ -476,8 +486,11 @@ public:
          
           writeEnergy( timeProvider , energyfile, ils_iterations, ldt);
         }
-
-        writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
+        
+        if( timeProvider.timeStepValid())
+          { 
+            writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
+          }         l
         //checkPointer.write(timeProvider);
         //statistics
         mindt = (ldt<mindt) ? ldt : mindt;
