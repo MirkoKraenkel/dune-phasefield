@@ -64,9 +64,9 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   EstimatorType           estimator_;
   EstimatorDataType       estimatorData_;
   double                  surfaceEnergy_;
-  bool                    stepconverged_;
   int                     maxNewtonIter_;
   double                  timestepfactor_;
+  double                  maxTimeStep_;
 
   public:
   //Constructor
@@ -81,9 +81,9 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       estimator_( solution_, grid_, model()),
       estimatorData_( "estimator", estimator_, gridPart_, space_.order() ),
       surfaceEnergy_(0.),
-      stepconverged_(false),
       maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("phasefield.maxNewtonIterations") ),
-      timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor"))
+      timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor")),
+      maxTimeStep_( Dune::Fem::Parameter::getValue<double>("phasefield.maxTimeStep"))
       {
         start_.clear();
       }
@@ -96,9 +96,10 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 
     void reduceTimeStep( TimeProviderType& timeProvider, double ldt)
       {
-        double factor=0.5;
-        double newtime=std::min(factor*ldt,timeStepEstimate());
-        timeProvider.provideTimeStepEstimate( newtime);
+        timestepfactor_*=0.5;
+        //double newtime=std::min(factor*ldt,timeStepEstimate());
+        timeProvider.provideTimeStepEstimate(timeStepEstimate() );
+        std::cout<<"ReducedTimeStep= "<<timeProvider.deltaT()<<"\n";
         //timeProvider.invalidateTimeStep();
       }
 
@@ -111,9 +112,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 	  {
       const double time=timeProvider.time();
       const double deltaT=timeProvider.deltaT();
-
       DiscreteFunctionType& U=solution();
-      //DiscreteFunctionType& Uold=oldsolution();
+      DiscreteFunctionType& Uold=oldsolution();
 
       dgOperator_.setPreviousTimeStep(U);
       dgOperator_.setTime(time);
@@ -135,18 +135,24 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
         {
            std::cout<<"no convergence!"<<"\n";
            std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
-           abort(); 
+           timeProvider.invalidateTimeStep();
+           reduceTimeStep( timeProvider, deltaT);
+           U.assign(Uold);
         }
      if (fixedTimeStep_>1e-20)
         {
         }
-     else if( newton_iterations >  5 )
+     else if( newton_iterations > maxNewtonIter_ )
         {
           reduceTimeStep( timeProvider , deltaT );
         }
      else if( newton_iterations < 2 )
         {
-          timeProvider.provideTimeStepEstimate( 2*timeStepEstimate());
+
+          timestepfactor_*=2;
+
+          timeProvider.provideTimeStepEstimate( timeStepEstimate() );
+
         }
       else
         {
@@ -173,7 +179,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
 
   double timeStepEstimate()
   {
-    return timestepfactor_*dgOperator_.timeStepEstimate();
+    return std::min( maxTimeStep_, timestepfactor_*dgOperator_.timeStepEstimate());
   }
 
   using BaseType::space;
