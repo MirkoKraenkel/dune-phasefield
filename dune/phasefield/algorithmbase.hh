@@ -564,7 +564,7 @@ public:
   //compute Error between old and NewTimeStep
   inline double stepError(DiscreteFunctionType uOld, DiscreteFunctionType& uNew)
 	{
-    std::vector<unsigned int> comp{ 1,2 };
+    std::vector<unsigned int> comp{ dimensionworld+1 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
     return l2norm.distance(uOld, uNew);
