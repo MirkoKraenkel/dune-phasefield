@@ -80,12 +80,13 @@ public:
     evaluate( t, x, res );
   }
 
+#include "balanced.cc"
   template< class DiscreteFunctionType >
   void finalizeSimulation( DiscreteFunctionType& variablesToOutput,
                            const int eocloop) const
   {}
 
-
+  
   const ThermodynamicsType& thermodynamics() const {return thermodyn_;}
   void printmyInfo( std::string filename ) const {}
   inline double endtime() const { return endTime_; }
@@ -158,10 +159,9 @@ inline void TanhProblem<GridType,RangeProvider>
   double phi=-0.5*tanhr+0.5;
 
   
-
-  //double rho=thermodyn_.evalRho(phi);
-  double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
-  
+  double rho=evalRho(phi);
+ // double rho=(rhodiff)*(-0.5*tanhrho+0.5)+rho1_;
+  //double rho=evalRho(phi); 
   double v=veloright_*cos(2*M_PI*arg[0]);//-veloleft_)*(peak)+veloleft_;
   //rho
   res[0]= rho;
@@ -178,7 +178,7 @@ inline void TanhProblem<GridType,RangeProvider>
  
 #if MIXED
   double dFdphi=0;// thermodyn_.reactionSource(rho,phi); 
-  double dFdrho=0;//thermodyn_.chemicalPotential(rho, 0);
+  double dFdrho=0;// thermodyn_.chemicalPotential(rho, 0);
   double sigma=0.5*drtanhr;
   double laplacePhi=0.5*drdrtanhr;
   if(arg[0]<0.)
@@ -191,16 +191,16 @@ inline void TanhProblem<GridType,RangeProvider>
   double rhoInv=thermodyn_.h2(rho);            //1./rho;
   double hprime=thermodyn_.h2prime(rho);//-1./(rho*rho);
   //mu
-  res[dimension+2]=0.5*v*v+dFdrho-delta_*rhoInv *0.5*sigma*sigma;
+  res[dimension+2]=0;//0.5*v*v+dFdrho-delta_*rhoInv *0.5*sigma*sigma;
   //tau
-  res[dimension+3]=dFdphi-delta_*rhoInv*laplacePhi+hprime*gradrho*sigma;
+  res[dimension+3]=0;//dFdphi-delta_*rhoInv*laplacePhi+hprime*gradrho*sigma;
   //sigma_x
   res[dimension+4]=sigma;
 #else
   //mu
-  res[dimension+2]=0.5*v*v+dFdrho;
+  res[dimension+2]=0;0.5*v*v+dFdrho;
   //tau
-  res[dimension+3]=dFdphi-delta_*laplacePhi;
+  res[dimension+3]=0;dFdphi-delta_*laplacePhi;
   //sigma_x
   res[dimension+4]=sigma;
 #endif
