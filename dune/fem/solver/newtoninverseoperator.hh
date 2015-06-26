@@ -4,7 +4,7 @@
 #define TIMING 0
 #include <cfloat>
 #include <iostream>
-
+#include <limits>
 #include <dune/fem/io/parameter.hh>
 #include <dune/fem/operator/common/operator.hh>
 #include <dune/fem/operator/common/differentiableoperator.hh>
@@ -32,7 +32,7 @@ namespace Dune
 
       virtual double linAbsTolParameter ( const double &tolerance )  const
       {
-        return Parameter::getValue< double >( "fem.solver.newton.linabstol", tolerance / 8 );
+        return Parameter::getValue< double >( "fem.solver.newton.linabstol",-1 );
       }
 
       virtual double linReductionParameter ( const double &tolerance ) const
@@ -69,19 +69,61 @@ namespace Dune
 
     class NewtonControlDefault
     {
-      public:
-       NewtonControlDefault()
-       :assemblesteps_( Parameter::getValue< int >( "fem.solver.newton.assemblesteps",1)) 
-       {}
+    public:
+      NewtonControlDefault(double newtonTol):
+      newtonTol_(newtonTol),
+      assemblesteps_( Parameter::getValue< int >( "fem.solver.newton.assemblesteps",1)),
+      gamma_( Parameter::getValue<double>( "fem.solver.newton.gamma", 1)),
+      fac_( Parameter::getValue<double>("fem.solver.newton.etafactor",1)),
+      minEta_( Parameter::getValue<double>( "fem.solver.newton.minEta",newtonTol/8)),
+      choice_( Parameter::getValue<int>("fem.solver.newton.choice",1)) 
+      {}
+       
+      double etaStart() const
+      {
+        return Parameter::getValue< double >( "fem.solver.newton.linreduction",newtonTol_/8  );
+      }
+
+      // return forcing term for residual of inner solver)
+      double eta( double deltaOld, double deltaNow, double reduction) const
+      {
+        if(choice_==1)
+          {
+            return eta1( deltaOld,deltaNow,reduction);
+          }
+        else if(choice_==2)
+          {
+            return eta2( deltaOld,deltaNow);
+          }
+        else
+          {
+            return minEta_;
+          }
+       } 
+      bool calcJacobian(int iterations, double  reduction) const
+      {
+        return (iterations%assemblesteps_==0);
+      }
+
+     private:
+
+      double eta1( double deltaOld,double deltaNow, double reduction) const
+      {
+        return std::max( std::abs(deltaNow-reduction)/deltaOld, minEta_);
+      }
+
+      double eta2( double deltaOld,double deltaNow) const
+      {
+        return std::max( fac_*std::pow(deltaNow/deltaOld,gamma_), minEta_);
+      }
 
 
-       bool calcJacobian(int iterations, double  reduction) const
-       {
-         return (iterations%assemblesteps_==0);
-       }
-
-      private:
+      double newtonTol_;
       int assemblesteps_;
+      double gamma_;
+      double fac_;
+      double minEta_;
+      int choice_;
     };
   
     // NewtonInverseOperator
@@ -137,7 +179,8 @@ namespace Dune
         linVerbose_( parameter.linearSolverVerbose() ),
         matrixout_( parameter.matrixout()),
         maxIterations_( parameter.maxIterationsParameter() ),
-        maxLinearIterations_( parameter.maxLinearIterationsParameter() )
+        maxLinearIterations_( parameter.maxLinearIterationsParameter() ),
+        control_( tolerance_ )
       {}
 
       /** constructor
@@ -161,6 +204,7 @@ namespace Dune
       virtual void operator() ( const DomainFunctionType &u, RangeFunctionType &w ) const;
 
       int iterations () const { return iterations_; }
+
       int linearIterations () const { return linearIterations_; }
 
       bool converged () const
@@ -172,7 +216,7 @@ namespace Dune
 
     private:
       const OperatorType &op_;
-      const double tolerance_, linAbsTol_, linReduction_;
+      mutable double tolerance_, linAbsTol_, linReduction_;
       const bool verbose_;
       const bool linVerbose_;
       const bool matrixout_;
@@ -195,63 +239,78 @@ namespace Dune
       ::operator() ( const DomainFunctionType &u, RangeFunctionType &w ) const
     {
       DomainFunctionType residual( u );
+      DomainFunctionType resOld(u);
       RangeFunctionType dw( w );
-      RangeFunctionType wbacktrack( w );
+      RangeFunctionType dwOld( w );
+      RangeFunctionType wbacktrack(w);
       JacobianOperatorType jOp( "jacobianOperator", dw.space(), u.space() );
-      //double oldDelta;
-      
+      double oldDelta;
+      double eta=control_.etaStart();
+
       // compute initial residual
+      //F(x_0)      
       op_( w, residual );
       residual -= u;
+      // remember residual
+      resOld.assign(residual);
+      // ||F(x_0)||
       delta_ = std::sqrt( residual.scalarProductDofs( residual ) );
-      //oldDelta=delta_;
-  
+      oldDelta=delta_;
+      
       for( iterations_ = 0, linearIterations_ = 0; converged() && (delta_ > tolerance_); ++iterations_ )
       {
         if( verbose_ )
           std::cerr << "Newton iteration " << iterations_ << ": |residual| = " << delta_ << std::endl;
 
         // evaluate operator's jacobian
-       if( control_.calcJacobian(iterations_, delta_))
-       {
-#if TIMING
-          Dune::FemTimer::start();
-#endif
+        if( control_.calcJacobian(iterations_, delta_))
+        {
           op_.jacobian( w, jOp );
-#if TIMING
-          std::cout<<"Assemble ="<<Dune::FemTimer::stop()<<"\n";
-#endif
-       }
-#if 1 
-if( matrixout_ )
+        }
+        //for debugging 
+        if( matrixout_ )
         { 
           jOp.matrix().print(std::cout);
         }
-#endif
-   // David: With this factor, the tolerance of CGInverseOp is the absolute
-        //        rather than the relative error
-        //        (see also dune-fem/dune/fem/solver/inverseoperators.hh)
+        
         const int remLinearIts = maxLinearIterations_ - linearIterations_;
-        const LinearInverseOperatorType jInv( jOp, linReduction_, linAbsTol_, remLinearIts, linVerbose_ );
-
+        
+        if( verbose_ )
+          std::cout<<"eta= "<<eta<<"\n";
+        
+        const LinearInverseOperatorType jInv( jOp, eta ,linAbsTol_, maxLinearIterations_,linVerbose_ );
         dw.clear();
-#if TIMING
-        Dune::FemTimer::start();
-#endif
+
+        //solve the system 
+        //dw=s_0 
         jInv( residual, dw );
-#if TIMING
-        std::cout<<"Solve ="<<Dune::FemTimer::stop()<<"\n";
-#endif
+
+        //||F(x_0)+F'(x_0)s_0||
+        double linred=jInv.achievedreduction();
+
         linearIterations_ += jInv.iterations();
+
+        //x_1
         w -= dw;
+
+        //F(x_1)
         op_( w, residual );
         residual -= u;
+
+        //||F(x_1)||
         delta_ = std::sqrt( residual.scalarProductDofs( residual ) );
-#if   0
+
+        if( verbose_) 
+          std::cout<<"delta= "<<delta_<<"\t oldDelta= "<<oldDelta<<"\t linred= "<<linred<<std::endl;
+
+        eta=std::min(control_.eta(oldDelta,delta_,linred),eta);
+
+        oldDelta=delta_;
+ #if   0 
         double damping=0.5;
-        if( iterations_ > 0)    
+        if( iterations_ > 1)    
         {      
-          while( delta_>oldDelta)
+          while( delta_>(1-(1-eta)*1e-4)*oldDelta )
             {
               
               w.assign(wbacktrack);
@@ -261,7 +320,7 @@ if( matrixout_ )
               residual -= u;
               delta_ = std::sqrt( residual.scalarProductDofs( residual ) );
               std::cout<<"deltaBacktrack="<<delta_<<"\n"; 
-              abort();
+              eta=1-damping*(1-eta); 
         }
 }
 
