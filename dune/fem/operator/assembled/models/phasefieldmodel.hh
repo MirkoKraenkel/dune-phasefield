@@ -188,7 +188,7 @@ inline void PhasefieldModel< Grid,Problem>
     surfaceEnergy+=Filter::sigma(vu,i)*Filter::sigma(vu,i);
   }
   
-  surfaceEnergy*=h2(rho);
+  surfaceEnergy*=h2(rho)*delta();
   
   kin=rho*0.5*kineticEnergy;
   surfaceEnergy*=0.5;
