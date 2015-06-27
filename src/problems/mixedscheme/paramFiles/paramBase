@@ -39,8 +39,8 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-phasefield.eocSteps: 1 
-phasefield.printCount: 10
+phasefield.eocSteps: 3
+phasefield.printCount: 1
 phasefield.verbose: 1 
 
 # create a file with sampled values of the numerical solution
@@ -76,9 +76,9 @@ fem.loadbalancing.step: 2
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 0 
+phasefield.startLevel: 2 
 
 
 phasefield.startTime: 0 
-phasefield.endTime: 2 
+phasefield.endTime: 5000 
 
