@@ -67,6 +67,36 @@ namespace Dune
       }
     };
 
+    class NewtonBackTrackDefault
+    {
+      public:
+        NewtonBackTrackDefault()
+        {}
+            
+      double btFunction(double theta)
+        {
+          return a_*theta*theta+b_*theta+c_;
+        }
+      
+      double btFunctionCritPt()
+        {
+          return -2*a_/b_;
+        }
+
+      double newTheta()
+        {
+          return std::min( btFunctionCritPt() , std::min( btFunction(thetaMin_) , btFunction(thetaMax_) ) );
+        }
+      
+        
+      private:
+        double thetaMin_,thetaMax_;
+        double a_,b_,c_,t_;
+    };
+
+
+
+
     class NewtonControlDefault
     {
     public:
@@ -305,8 +335,7 @@ namespace Dune
 
         eta=std::min(control_.eta(oldDelta,delta_,linred),eta);
 
-        oldDelta=delta_;
- #if   0 
+ #if  1 
         double damping=0.5;
         if( iterations_ > 1)    
         {      
@@ -322,7 +351,9 @@ namespace Dune
               std::cout<<"deltaBacktrack="<<delta_<<"\n"; 
               eta=1-damping*(1-eta); 
         }
-}
+        oldDelta=delta_;
+
+     }
 
         oldDelta=delta_;
 #endif
