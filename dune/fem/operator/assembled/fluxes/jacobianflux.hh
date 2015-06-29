@@ -267,8 +267,8 @@ void  JacobianFlux<Model>
       gLeft[ 0 ][ 0 ]=-0.5*factorImp_*vNormalEn;
       gRight[ 0 ][ 0 ]=0.5*factorImp_*vNormalNb;
        //[[mu]]
-      gLeft[ 0 ][ dimDomain+2 ]=imexFactor_*numViscMu_*area;
-      gRight[ 0 ][ dimDomain+2 ]=-imexFactor_*numViscMu_*area;
+      gLeft[ 0 ][ dimDomain+2 ]=factorImp_*numViscMu_*area;
+      gRight[ 0 ][ dimDomain+2 ]=-factorImp_*numViscMu_*area;
       //[[rho]]
       gLeft[ 0 ][ 0 ]+=factorImp_*numVisc_*area;
       gRight[ 0 ][ 0 ]-=factorImp_*numVisc_*area;
