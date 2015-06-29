@@ -7,7 +7,7 @@
 #include<dune/fem/io/parameter.hh>
 
 #include "../phasefieldfilter.hh"
-#define LAPLACE  1
+#define LAPLACE 0 
 template<class Grid, class Problem>
 class PhasefieldModel
 {
@@ -360,14 +360,14 @@ inline void PhasefieldModel< Grid, Problem>
     {
       for( int jj = 0; jj < dimDomain; ++ jj )
         {
-          du[ ii ][ jj ][ ii ]=mu1*dphi[ 0 ][ jj ];
-          du[ ii ][ ii ][ jj ]=mu1*dphi[ 0 ][ jj ];
+          du[ ii ][ jj ][ ii ]=0.5*mu1*dphi[ 0 ][ jj ];
+          du[ ii ][ ii ][ jj ]=0.5*mu1*dphi[ 0 ][ jj ];
         }
       for( int jj=0 ; jj < dimDomain ; ++jj ) 
         {
           du[ ii ][ jj ][ jj ]+=mu2*dphi[ 0 ][ ii ];
         }
-     du[ ii ][ ii ][ ii ]+=mu2*dphi[ 0 ] [ ii ];
+     du[ ii ][ ii ][ ii ]+=0.5*mu1*dphi[ 0 ] [ ii ];
     }
 #endif
 } 
@@ -413,19 +413,17 @@ inline void PhasefieldModel< Grid, Problem>
       diffusion[1+ii][jj]=mu2*dvu[1+ii][jj];
       
 #else
-  abort();
-  double mu1=problem_.thermodynamics().mu1();
  
   for(int ii = 0 ; ii < dimDomain ; ++ii )
     {
       for(int jj = 0; jj < dimDomain ; ++ jj)
         {
-          Filter::dvelocity(diffusion,ii,ii)+=mu2*Filter::dvelocity(dvu,jj,jj);
+          diffusion[ 1 +ii ][ ii ]+=mu2*dvu[ 1+jj ][ jj ];
         }
 
       for(int jj=0; jj<dimDomain ; ++jj )
         {
-          Filter::dvelocity(diffusion,ii,jj)+=mu1*0.5*(Filter::dvelocity(dvu,ii,jj)+Filter::dvelocity(dvu,jj,ii));
+         diffusion[ 1+ii][ jj ]+=mu1*0.5*(dvu[ ii+1 ][ jj ]+dvu[ 1+jj ][ ii ]);
         } 
       }
 #endif
