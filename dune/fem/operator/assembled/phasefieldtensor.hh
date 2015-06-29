@@ -290,7 +290,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
    
           for( size_t ll = 0; ll<dimDomain; ++ll)
             { 
-              flux[ 1+kk ][ 0 ]+=factorImp_*(duMid[ 1 + kk ][ kk ] - duMid[ 1 + ll ][ kk ])*vuMid[ 1 + ll ]*phi_[ jj ][ 0 ];
+              flux[ 1+kk ][ 0 ]+=factorImp_*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])*vuMid[ 1 + ll ]*phi_[ jj ][ 0 ];
               flux[ 1+kk ][ 1+ll ]+=factorImp_*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])* phi_[ jj ][ 0 ]*vuMid[0];
               flux[ 1+kk ][ 1+kk ]+=factorImp_*( dphi_[ jj ][ 0 ][ ll ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
               flux[ 1+kk ][ 1+ll ]-=factorImp_*( dphi_[ jj ][ 0 ][ kk ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
