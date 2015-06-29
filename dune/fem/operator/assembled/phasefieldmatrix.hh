@@ -531,7 +531,7 @@ PhasefieldJacobianOperator< DiscreteFunction, Model, Flux,  Jacobian>
    
               for( size_t ll = 0; ll<dimDomain; ++ll)
                 { 
-                  flux[ 1+kk ][ 0 ]+=0.5*(duMid[ 1 + kk ][ kk ] - duMid[ 1 + ll ][ kk ])*vuMid[ 1 + ll ]*phi[ jj ][ 0 ];
+                  flux[ 1+kk ][ 0 ]+=0.5*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])*vuMid[ 1 + ll ]*phi[ jj ][ 0 ];
                   flux[ 1+kk ][ 1+ll ]+=0.5*(duMid[ 1 + kk ][ ll ] - duMid[ 1 + ll ][ kk ])* phi[ jj ][ 0 ]*vuMid[0];
                   flux[ 1+kk ][ 1+kk ]+=0.5*( dphi[ jj ][ 0 ][ ll ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
                   flux[ 1+kk ][ 1+ll ]-=0.5*( dphi[ jj ][ 0 ][ kk ] )*vuMid[ 1 + ll ]*vuMid[ 0 ];
