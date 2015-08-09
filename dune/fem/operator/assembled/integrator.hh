@@ -86,7 +86,7 @@ class PhasefieldMixedIntegrator
   void setDeltaT ( const double deltat) { deltaT_=deltat; deltaTInv_=1./deltaT_; }
 
   double timeStepEstimate () { return std::min( maxSpeed_,lipschitzC()); }
-  
+
   double maxSpeed() { return maxSpeed_; }
 
   double lipschitzC() { return model_.lipschitzC(); }
@@ -382,18 +382,18 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
 
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
-  
+
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
   const double localMinArea=std::min(areaNb_,areaEn_);
   const double penaltyFactor = intersectionArea / localMinArea;
   const double localMaxSpeed =  std::max( model_.maxSpeed( normal , vuOldEn ), model_.maxSpeed( normal , vuOldNb ) );
- 
+
   double viscFactor=localMaxSpeed*localMinArea/intersectionArea;
   if(time_==0.0)
     viscFactor=0;
   maxSpeed_=std::min(localMinArea/localMaxSpeed,maxSpeed_);
-  lastSpeed_=maxSpeed_; 
+  lastSpeed_=maxSpeed_;
 
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;
@@ -460,16 +460,16 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
 
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
-  
+
   const double penaltyFactor = intersectionArea /  areaEn_; 
-  const double localMaxSpeed = model_.maxSpeed(normal,vuOldEn); 
-  
+  const double localMaxSpeed = model_.maxSpeed(normal,vuOldEn);
+
   double viscFactor = localMaxSpeed*areaEn_/intersectionArea; 
   if( time_==0. )
     viscFactor=0;
 
   maxSpeed_=std::min( areaEn_/localMaxSpeed,maxSpeed_);
-  lastSpeed_=maxSpeed_; 
+  lastSpeed_=maxSpeed_;
   const DomainType xgl = intersectionGeometry.global(x);
   model_.dirichletValue( time_,xgl, bndValue);
 
