@@ -160,8 +160,15 @@ namespace Dune
     
     bool coarsen( int index ) const
     {
-      return ( sigmaIndicator_[ index ] > localsize_[ index ]
-              && rhoIndicator_[ index ] < coarsen_*rhoTol_);
+      if( rhoTol_>0)
+      {
+        return ( sigmaIndicator_[ index ] >2*localsize_[ index ]
+                  && rhoIndicator_[ index ] < coarsen_*rhoTol_);
+      }
+      else
+      {
+        return ( sigmaIndicator_[ index ] > 2*localsize_[ index ]);
+      }
     }
     
     double computeIndicator()
