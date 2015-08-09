@@ -103,7 +103,7 @@ namespace Dune
       NewtonControlDefault(double newtonTol):
       newtonTol_(newtonTol),
       assemblesteps_( Parameter::getValue< int >( "fem.solver.newton.assemblesteps",1)),
-      gamma_( Parameter::getValue<double>( "fem.solver.newton.gamma", 1)),
+      gamma_( Parameter::getValue<double>( "fem.solver.newton.gamma", 2)),
       fac_( Parameter::getValue<double>("fem.solver.newton.etafactor",1)),
       minEta_( Parameter::getValue<double>( "fem.solver.newton.minEta",newtonTol/8)),
       choice_( Parameter::getValue<int>("fem.solver.newton.choice",1)) 
@@ -305,8 +305,6 @@ namespace Dune
         
         const int remLinearIts = maxLinearIterations_ - linearIterations_;
         
-        if( verbose_ )
-          std::cout<<"eta= "<<eta<<"\n";
         
         const LinearInverseOperatorType jInv( jOp, eta ,linAbsTol_, maxLinearIterations_,linVerbose_ );
         dw.clear();
@@ -317,7 +315,13 @@ namespace Dune
 
         //||F(x_0)+F'(x_0)s_0||
         double linred=jInv.achievedreduction();
-
+  
+        DomainFunctionType residualtmp(residual);
+        RangeFunctionType dFs(dw);
+        jOp(dw,dFs);
+        residualtmp-=dFs;
+        double myRed=std::sqrt( residualtmp.scalarProductDofs(residualtmp ));
+        
         linearIterations_ += jInv.iterations();
 
         //x_1
@@ -331,11 +335,11 @@ namespace Dune
         delta_ = std::sqrt( residual.scalarProductDofs( residual ) );
 
         if( verbose_) 
-          std::cout<<"delta= "<<delta_<<"\t oldDelta= "<<oldDelta<<"\t linred= "<<linred<<std::endl;
+          std::cout<<"delta= "<<delta_<<"\t oldDelta= "<<oldDelta<<"\t linred= "<<linred<<"\t eta= "<<eta<<std::endl;
 
-        eta=std::min(control_.eta(oldDelta,delta_,linred),eta);
+        eta=std::min(control_.eta(oldDelta,delta_,linred),0.9);
 
- #if  1 
+ #if  0
         double damping=0.5;
         if( iterations_ > 1)    
         {      
@@ -351,13 +355,12 @@ namespace Dune
               std::cout<<"deltaBacktrack="<<delta_<<"\n"; 
               eta=1-damping*(1-eta); 
         }
-        oldDelta=delta_;
 
-     }
-
-        oldDelta=delta_;
-#endif
       }
+
+     #endif
+      oldDelta=delta_;
+     }
       if( verbose_ )
         std::cerr << "Newton iteration " << iterations_ << ": |residual| = " << delta_ << std::endl;
     }
