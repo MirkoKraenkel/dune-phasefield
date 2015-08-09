@@ -259,21 +259,23 @@ public:
       }
 
      Uold.assign(U); 
- #endif 
- }
+#endif 
+  }
 
-  
+  template<class stream>
   void step ( TimeProviderType& timeProvider,
 						  int& newton_iterations,
 						  int& ils_iterations,
 						  int& max_newton_iterations,
-						  int& max_ils_iterations)
+						  int& max_ils_iterations,
+              stream& str)
 	{
  	  BaseType::asImp().step( timeProvider,
                             newton_iterations,
                             ils_iterations,
                             max_newton_iterations,
-                            max_ils_iterations);
+                            max_ils_iterations,
+                            str);
   }
 
   double timeStepEstimate()
@@ -452,7 +454,7 @@ public:
 					estimateMarkAdapt( adaptManager );
 		
 			step( timeProvider, newton_iterations, ils_iterations, 
-            max_newton_iterations, max_ils_iterations);
+            max_newton_iterations, max_ils_iterations,energyfile);
    
       // Check that no NAN have been generated
 			if (! U.dofsValid()) 
@@ -564,7 +566,7 @@ public:
   //compute Error between old and NewTimeStep
   inline double stepError(DiscreteFunctionType uOld, DiscreteFunctionType& uNew)
 	{
-    std::vector<unsigned int> comp{ dimensionworld+1 };
+    std::vector<unsigned int> comp{ dimDomain+1 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
     return l2norm.distance(uOld, uNew);
