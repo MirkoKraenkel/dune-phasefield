@@ -188,14 +188,13 @@ inline void PhasefieldModel< Grid,Problem>
     surfaceEnergy+=Filter::sigma(vu,i)*Filter::sigma(vu,i);
   }
   
-  surfaceEnergy*=h2(rho)*delta();
+  surfaceEnergy*=h2(rho);
   
   kin=rho*0.5*kineticEnergy;
   surfaceEnergy*=0.5;
   surfaceEnergy*=problem_.thermodynamics().delta();
 
   therm=problem_.thermodynamics().helmholtz(rho,phi);
-  therm+=surfaceEnergy;
 
   total=therm+kin+surfaceEnergy;
   surf=surfaceEnergy;
@@ -318,7 +317,6 @@ inline double PhasefieldModel< Grid, Problem>
     for( int ii = 0 ; ii<dimDomain ; ++ii)
       unormal+=u[1+ii]*normal[ii];
     double c=problem_.thermodynamics().a(u[0],u[dimDomain+1])*normal.two_norm2();
-
     return std::abs(unormal)+std::sqrt(c);
 }
 
