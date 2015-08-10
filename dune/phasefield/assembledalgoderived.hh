@@ -103,12 +103,13 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
         //timeProvider.invalidateTimeStep();
       }
 
-
+    template<class stream>
     void step ( TimeProviderType& timeProvider,
-		  				  int& newton_iterations,
-			  			  int& ils_iterations,
-				  		  int& max_newton_iterations,
-					  	  int& max_ils_iterations)
+                int& newton_iterations,
+                int& ils_iterations,
+                int& max_newton_iterations,
+                int& max_ils_iterations,
+                stream& str)
 	  {
       const double time=timeProvider.time();
       const double deltaT=timeProvider.deltaT();
@@ -135,6 +136,8 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
         {
            std::cout<<"no convergence!"<<"\n";
            std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
+           str.close();
+           abort();
            timeProvider.invalidateTimeStep();
            reduceTimeStep( timeProvider, deltaT);
            U.assign(Uold);
@@ -149,7 +152,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
      else if( newton_iterations < 2 )
         {
 
-          timestepfactor_*=2;
+          timestepfactor_*=1.5;
 
           timeProvider.provideTimeStepEstimate( timeStepEstimate() );
 
@@ -177,7 +180,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     am.adapt();
   }
 
-  double timeStepEstimate()
+  double timeStepEstimate ()
   {
     return std::min( maxTimeStep_, timestepfactor_*dgOperator_.timeStepEstimate());
   }
@@ -206,6 +209,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       double kineticEnergy;
       double chemicalEnergy; 
       double surfaceEnergy;
+      double speed = dgOperator_.maxSpeed();
       double energyIntegral =energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
       str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"
         <<energyIntegral<<"\t"
@@ -213,7 +217,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
         <<kineticEnergy<<"\t"
         <<surfaceEnergy<<"\t"
         <<iter<<"\t"
-        <<dt<<"\n";
+        <<speed<<"\n";
     } 
   }
  
