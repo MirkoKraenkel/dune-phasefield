@@ -13,9 +13,9 @@ using namespace Dune;
 // Thermodynamics
 
 #include "thermodynamicsinterface.hh"
-//thermodynamics with balanced phases, see balancedthermo.mw
+
 class BalancedThermodynamics:
-  public Thermodynamics<BalancedThermodynamics>
+public Thermodynamics<BalancedThermodynamics>
 {
   typedef Thermodynamics<BalancedThermodynamics> BaseType;
 
@@ -35,21 +35,22 @@ class BalancedThermodynamics:
   {
     lipschitzC_=1/(4*A_*reaction_/(delta_));
   }
+
 #if RHO_H2CONSTMODEL
-  inline double h( double rho ) const
+  inline double h ( double rho ) const
   {
     return rho;
   }
   
-  inline double h2( double rho) const
+  inline double h2 ( double rho) const
   {
-    return 1.;
+    return 1./rho;
+  }
 
- }
-
-  inline double h2prime( double rho ) const
+  inline double h2prime ( double rho ) const
   {
-    return 0;
+    double rho2=rho*rho;
+    return -1./rho2 ;
   }
 #include "InvRhoSources/maple.cc"
 
@@ -75,11 +76,7 @@ class BalancedThermodynamics:
 #if UNBALMODEL
 #include "AltAltSources/maple.cc"
 #else
-#if TAYLOR 
 #include "CoquelTaylorSources/maple.cc"
-#else
-#include "ConstRhoSources/maple.cc"
-#endif
 #endif
 #endif
 
