@@ -147,10 +147,11 @@ namespace Dune
     
     bool refine( int index ) const
     {
+
       if( rhoTol_>0)      
       {
-        return  ( sigmaIndicator_[ index ] < localsizeFactor_*localsize_[ index ]
-                || rhoIndicator_[ index ] > rhoTol_);
+          return  ( sigmaIndicator_[ index ] < localsizeFactor_*localsize_[ index ]
+                    ||  rhoIndicator_[ index ] > rhoTol_);
       }
       else
       {
@@ -211,7 +212,7 @@ namespace Dune
           
           if( refine( index ) )
           {
-	        
+
             if(entity.level()<maxLevel_)
 		        {
               grid_.mark( 1 , entity );
@@ -220,7 +221,7 @@ namespace Dune
             }
 
             IntersectionIteratorType end = gridPart_.iend( entity );
-		          
+          if(secondNb_)
             for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
 		        {
               const IntersectionType &intersection = *inter;
@@ -236,9 +237,9 @@ namespace Dune
                   mark_[ indexnb ] = 1;
                   ++marked;
                 }
-// loop over second neigbors
+                // loop over second neigbors
                 IntersectionIteratorType end = gridPart_.iend( outside );
-                if(secondNb_)
+                if( false /*secondNb_*/)
                   for(IntersectionIteratorType inter2 = gridPart_.ibegin( outside ); inter2!=end; ++inter2)
                   {
                     const IntersectionType &intersection2=*inter2;
@@ -265,13 +266,19 @@ namespace Dune
               if( entity.level()>minLevel_ )
               {
                 grid_.mark( -1 , entity );
-                mark_[ index ] = -1;
               }
             }
 	          else
             {
-	            grid_.mark( 0 , entity );
-              mark_[ index ] = 0;
+	            if(mark_[index]!=1)
+              {
+                grid_.mark( 0 , entity );
+                mark_[ index ] = 0;
+              }
+              else
+              {
+                mark_[ index ] = -12;
+              }
             }
 	        }
         }
@@ -348,7 +355,7 @@ namespace Dune
       sigmaIndicator_[ index ]=indicatedsize;
       return normsigma;
     }
-  
+
     //jumEstimator for density
     void estimaterhojumpLocal ( const ElementType &entity , const LocalFunctionType &uLocal )
     {
@@ -362,39 +369,39 @@ namespace Dune
       double indLocMax=-1E100;
       double indLocMin= 1E100;
       
-    for( int qp = 0; qp < numQuadraturePoints; ++qp )
-    {
-      DomainType xEn=quad.point( qp );
-      uLocal.evaluate(quad[qp],range);
-      const double rhoqp=range[0];
-      indLocMax=std::max( indLocMax , rhoqp );
-      indLocMin=std::min( indLocMin , rhoqp );
-	    
-    }
-
-    const IntersectionIteratorType iend = gridPart_.iend( entity );
-    
-    for ( IntersectionIteratorType nb = gridPart_.ibegin( entity);nb!=iend; ++nb)
-    {
-      const IntersectionType& intersection = *nb;
-      if( intersection.neighbor() )
+      for( int qp = 0; qp < numQuadraturePoints; ++qp )
       {
-        ElementPointerType outp = intersection.outside();
-        const ElementType& outside = *outp;
-        const int outsideIndex = indexSet_.index( outside );
+        DomainType xEn=quad.point( qp );
+        uLocal.evaluate(quad[qp],range);
+        const double rhoqp=range[4];
 
-        if( outside.partitionType() == Dune::GhostEntity ||
+        indLocMax=std::max( indLocMax , rhoqp );
+        indLocMin=std::min( indLocMin , rhoqp );
+      }
+
+      const IntersectionIteratorType iend = gridPart_.iend( entity );
+    
+      for ( IntersectionIteratorType nb = gridPart_.ibegin( entity);nb!=iend; ++nb)
+      {
+        const IntersectionType& intersection = *nb;
+        if( intersection.neighbor() )
+        {
+          ElementPointerType outp = intersection.outside();
+          const ElementType& outside = *outp;
+          const int outsideIndex = indexSet_.index( outside );
+
+          if( outside.partitionType() == Dune::GhostEntity ||
             entity.level() > outside.level() ||
-            (entity.level() == outside.level() && insideIndex < outsideIndex ) )
-        {  
-          const LocalFunctionType uNbLocal = uh_.localFunction( outside );
-          ElementQuadratureType quadNb( entity, 2*(dfSpace_.order() )+1);
-          const int numQuadraturePointsNb = quadNb.nop();
+              (entity.level() == outside.level() && insideIndex < outsideIndex ) )
+          {
+            const LocalFunctionType uNbLocal = uh_.localFunction( outside );
+            ElementQuadratureType quadNb( entity, 2*(dfSpace_.order() )+1);
+            const int numQuadraturePointsNb = quadNb.nop();
 
-          double indLocNbMax=-1E100;
-          double indLocNbMin= 1E100;
+            double indLocNbMax=-1E100;
+            double indLocNbMin= 1E100;
             
-          for( int qpNb=0; qpNb<numQuadraturePointsNb; ++qpNb)
+            for( int qpNb=0; qpNb<numQuadraturePointsNb; ++qpNb)
             {
               DomainType xNb=quadNb.point( qpNb );
               uNbLocal.evaluate( xNb, rangeNb );
