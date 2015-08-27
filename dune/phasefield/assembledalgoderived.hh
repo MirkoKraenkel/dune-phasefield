@@ -65,43 +65,36 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   EstimatorDataType       estimatorData_;
   double                  surfaceEnergy_;
   int                     maxNewtonIter_;
+  int                     maxLinearIter_;
   double                  timestepfactor_;
   double                  maxTimeStep_;
 
   public:
   //Constructor
   AssembledAlgorithm( GridType& gridImp):
-      BaseType( gridImp ),
-      integrator_( *model_ ,space()),
-      pfOperator_( integrator_, space()),
-      dgOperator_( pfOperator_, space()),
-      boundaryCorrection_( *model_ , space()),
-      start_( "start", space() ),
-      pressure_( "pressure", energyspace()),
-      estimator_( solution_, grid_, model()),
-      estimatorData_( "estimator", estimator_, gridPart_, space_.order() ),
-      surfaceEnergy_(0.),
-      maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("phasefield.maxNewtonIterations") ),
-      timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor")),
-      maxTimeStep_( Dune::Fem::Parameter::getValue<double>("phasefield.maxTimeStep"))
-      {
-        start_.clear();
-      }
+    BaseType( gridImp ),
+    integrator_( *model_ ,space()),
+    pfOperator_( integrator_, space()),
+    dgOperator_( pfOperator_, space()),
+    boundaryCorrection_( *model_ , space()),
+    start_( "start", space() ),
+    pressure_( "pressure", energyspace()),
+    estimator_( solution_, grid_, model()),
+    estimatorData_( "estimator", estimator_, gridPart_, space_.order() ),
+    surfaceEnergy_(0.),
+    maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("phasefield.maxNewtonIterations") ),
+    maxLinearIter_( Dune::Fem::Parameter::getValue<int>("phasefield.maxLinearIterations") ),
+    timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor")),
+    maxTimeStep_( Dune::Fem::Parameter::getValue<double>("phasefield.maxTimeStep"))
+    {
+      start_.clear();
+    }
 
     IOTupleType getDataTuple (){ return IOTupleType( &solution(), &estimatorData_,&pressure_, this->energy());}
 
     DiscreteScalarType&  getpressure(){ return pressure_;}
 
     void initializeSolver ( typename BaseType::TimeProviderType& timeProvider){}
-
-    void reduceTimeStep( TimeProviderType& timeProvider, double ldt)
-      {
-        timestepfactor_*=0.5;
-        //double newtime=std::min(factor*ldt,timeStepEstimate());
-        timeProvider.provideTimeStepEstimate(timeStepEstimate() );
-        std::cout<<"ReducedTimeStep= "<<timeProvider.deltaT()<<"\n";
-        //timeProvider.invalidateTimeStep();
-      }
 
     template<class stream>
     void step ( TimeProviderType& timeProvider,
@@ -133,79 +126,79 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       max_ils_iterations    = std::max(max_ils_iterations,ils_iterations);
           
       if( !invOp.converged() )
-        {
-           std::cout<<"no convergence!"<<"\n";
-           std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
-           str.close();
-           abort();
-           timeProvider.invalidateTimeStep();
-           reduceTimeStep( timeProvider, deltaT);
-           U.assign(Uold);
-        }
-     if (fixedTimeStep_>1e-20)
-        {
-        }
-     else if( newton_iterations > maxNewtonIter_ )
-        {
-          reduceTimeStep( timeProvider , deltaT );
-        }
-     else if( newton_iterations < 2 )
-        {
+      {
+        std::cout<<"no convergence!"<<"\n";
+        std::cout<<"NewtonIterations: "<<newton_iterations<<" ( "<<ils_iterations<<" )  with deltaT="<<deltaT;
+        str<<" aborted at T = "<<time<<"\n";
+        str.close();
+        abort();
+        //timeProvider.invalidateTimeStep();
+        //reduceTimeStep( timeProvider, deltaT);
+        //U.assign(Uold);
+      }
 
-          timestepfactor_*=1.5;
 
-          timeProvider.provideTimeStepEstimate( timeStepEstimate() );
-
-        }
+      if (fixedTimeStep_>1e-20)
+      {
+      }
       else
+      {
+        if( newton_iterations > maxNewtonIter_ || ils_iterations > maxLinearIter_ )
         {
-          timeProvider.provideTimeStepEstimate( timeStepEstimate() );
+          timestepfactor_*=0.5;
+          std::cout<<"ReducedTimeStep= "<<timestepfactor_<<std::endl;
         }
+        else if( newton_iterations < 2 && deltaT < maxTimeStep_ )
+        {
+          timestepfactor_*=1.5;
+          std::cout<<"IncreaseTimeStep= "<<timestepfactor_<<std::endl;
+        }
+        double timeesti=timeStepEstimate();
+        timeProvider.provideTimeStepEstimate( timeesti );
+      }
     }
-	  
-  void estimateMarkAdapt( AdaptationManagerType& am)
-  {
-    estimate();
     
-    adapt(am);
-  }
+    void estimateMarkAdapt( AdaptationManagerType& am)
+    {
+      estimate();
+      adapt(am);
+    }
   
-  void estimate()
-  {
-    estimator_.estimateAndMark(tolerance_);
-  }
-  
-  void adapt( AdaptationManagerType& am)
-  {
-    am.adapt();
-  }
+    void estimate()
+    {
+      estimator_.estimateAndMark(tolerance_);
+    }
 
-  double timeStepEstimate ()
-  {
-    return std::min( maxTimeStep_, timestepfactor_*dgOperator_.timeStepEstimate());
-  }
+    void adapt( AdaptationManagerType& am)
+    {
+      am.adapt();
+    }
 
-  using BaseType::space;
-  using BaseType::energyspace;
-  using BaseType::gridSize;
-  using BaseType::oldsolution;
-  using BaseType::solution;
-  using BaseType::energy;
-  using BaseType::dataPrefix;
-  using BaseType::problem;
-  using BaseType::model;
- 
+    double timeStepEstimate ()
+    {
+      return std::min( maxTimeStep_, timestepfactor_*dgOperator_.timeStepEstimate());
+    }
 
+    using BaseType::space;
+    using BaseType::energyspace;
+    using BaseType::gridSize;
+    using BaseType::oldsolution;
+    using BaseType::solution;
+    using BaseType::energy;
+    using BaseType::dataPrefix;
+    using BaseType::problem;
+    using BaseType::model;
 
-  template<class Stream>
-  void writeEnergy( TimeProviderType& timeProvider,
-                    Stream& str,
-                    int iter,
-                    double dt)
-  {
-    DiscreteScalarType* totalenergy = energy();
-    DiscreteScalarType&  pressure=getpressure();
-    { 
+    template<class Stream>
+    void writeEnergy ( TimeProviderType& timeProvider,
+                       Stream& str,
+                       int iter,
+                       double dt)
+    {
+
+      DiscreteScalarType* totalenergy = energy();
+      DiscreteScalarType&  pressure=getpressure();
+
       double kineticEnergy;
       double chemicalEnergy; 
       double surfaceEnergy;
@@ -217,28 +210,28 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
         <<kineticEnergy<<"\t"
         <<surfaceEnergy<<"\t"
         <<iter<<"\t"
-        <<speed<<"\n";
-    } 
-  }
+        <<dt<<"\n";
+    }
  
-  virtual void writeData( DataWriterType& eocDataOutput,
-                          TimeProviderType& timeProvider,
-                          const bool reallyWrite )
-	{
-    DiscreteScalarType* totalenergy = energy();
-    DiscreteScalarType&  pressure=getpressure();
-    if( reallyWrite )
-		{
+    virtual void writeData( DataWriterType& eocDataOutput,
+                            TimeProviderType& timeProvider,
+                            const bool reallyWrite )
+	  {
+      DiscreteScalarType* totalenergy = energy();
+      DiscreteScalarType&  pressure=getpressure();
+      if( reallyWrite )
+		  {
 
-	    double kineticEnergy;
-      double chemicalEnergy;
-      double surfaceEnergy;
-      //double energyIntegral = 
-      energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
-   }
-	 // write the data
-   eocDataOutput.write( timeProvider );
-	}
+	      double kineticEnergy;
+        double chemicalEnergy;
+        double surfaceEnergy;
+        energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
+      }
+
+      // write the data
+      eocDataOutput.write( timeProvider );
+	  }
+
 };
 }//end namespace Dune
 
