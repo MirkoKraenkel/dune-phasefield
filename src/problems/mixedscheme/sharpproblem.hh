@@ -155,34 +155,34 @@ inline void SharpProblem<GridType,RangeProvider>
   double deltaInv=sqrt(A_)/(delta_*phiscale_);
 #endif  
 
-     double phi=0;
-     double rho=rho1_;
-     double v=veloleft_;
-  
-    if( arg[ 0 ]>0.3 && arg[ 0 ]<0.7 &&  arg[ 1 ]>0.3 && arg[ 1 ]<0.7) 
-      {
-        phi=1;
-        rho=rho2_;
-        v=veloright_;
-      }
-    else
-      {
-        phi=0;
-        rho=rho1_;
-        veloleft_;
-      }
+  double phi=0;
+  double rho=rho1_;
+  double v=veloleft_;
+
+  if( arg[ 0 ]>0.3 && arg[ 0 ]<0.7 &&  arg[ 1 ]>0.1 && arg[ 1 ]<0.9)
+  {
+    phi=1;
+    rho=rho2_;
+    v=veloright_;
+  }
+  else
+  {
+    phi=0;
+    rho=rho1_;
+    veloleft_;
+  }
   //rho
   res[0]= rho;
  
-   for(int i=1;i<=dimension;i++)
-   {
-     res[i]=v;
-   }
-   if(dimension==2)
-     res[2]=0;
+  for(int i=1;i<=dimension;i++)
+  {
+    res[i]=v;
+  }
+  if(dimension==2)
+    res[2]=0;
 
   
-   res[dimension+1]=phi;
+  res[dimension+1]=phi;
  
 #if MIXED
   double sigma=0;
@@ -207,14 +207,14 @@ inline void SharpProblem<GridType,RangeProvider>
   res[dimension+4+dimension]=0;
 #endif
   if(dimension==2)
-    {
-      //sigma_y
-      res[dimension+5]=0.;
+  {
+    //sigma_y
+    res[dimension+5]=0.;
 #if LAMBDASCHEME
-      //alpha_x
-      res[dimension+7]=0.;
+    //alpha_x
+    res[dimension+7]=0.;
 #endif
-    }
+  }
     
 #else
 #if NONCONTRANS
