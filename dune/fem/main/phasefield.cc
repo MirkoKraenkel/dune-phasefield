@@ -20,10 +20,8 @@
 
 
 
-/**
- * @return 0 we don't program bugs. :)
- */
-int main(int argc, char ** argv, char ** envp) {        
+int main(int argc, char ** argv, char ** envp)
+{ 
 
   /* Initialize MPI (always do this even if you are not using MPI) */
   Dune::Fem::MPIManager :: initialize( argc, argv );

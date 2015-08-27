@@ -97,8 +97,8 @@ struct SchemeTraits< false ,Polorder, GridImp >
     typedef MixedProblemGenerator< HostGridType > ProblemGeneratorType;
     
     // use problem specific initialize method since some problems do different things
-		const std::string Flux="Phasefieldflux";
-    Dune::GridPtr<HostGridType> gridptr = ProblemGeneratorType :: initializeGrid( Flux );
+		const std::string problemName="PhasefieldProblem\n";
+    Dune::GridPtr<HostGridType> gridptr = ProblemGeneratorType :: initializeGrid( problemName );
     
     // get grid reference 
     typedef ParallelGrid< HostGridType > GridType;
