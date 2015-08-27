@@ -45,7 +45,7 @@ class PhasefieldMaker:
     self.makeform(flagframe,self.vals,self.flagentries) 
     self.msgvar=StringVar()
     self.msgvar.set('welcome')
-    self.mymsg = Message( master, textvariable=self.msgvar,width=250).pack()
+    mymsg = Message( master, textvariable=self.msgvar,width=250).pack()
     self.cleanbutton= Button( master, text="Clean!", command=self.clean)
     self.cleanbutton.pack(side=BOTTOM)
   
