@@ -76,7 +76,7 @@ public Thermodynamics<BalancedThermodynamics>
 #if UNBALMODEL
 #include "AltAltSources/maple.cc"
 #else
-#include "CoquelTaylorSources/maple.cc"
+#include "PhasefieldvanderWaalsSources/maple.cc"
 #endif
 #endif
 
