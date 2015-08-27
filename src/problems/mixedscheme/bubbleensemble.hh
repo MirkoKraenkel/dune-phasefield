@@ -63,23 +63,23 @@ public:
 
   void readDataFile(std::string filename)
   {
-     std::ifstream bubblefile;
-     std::string tmp;
-     bubblefile.open(filename.c_str());
-     double a;
+    std::ifstream bubblefile;
+    std::string tmp;
+    bubblefile.open(filename.c_str());
+    double a;
      
-     if(! bubblefile )
-     {
-       std::cout<<"There was a problem opening the file\n";
-       abort();
-     }
-     else
-     {
+    if(! bubblefile )
+    {
+      std::cout<<"There was a problem opening the file\n";
+      abort();
+    }
+    else
+    {
       while(  bubblefile >> a )
-        {
-          std::cout<<a<<"\n";
-          bubblevector_.push_back(a);
-        }
+      {
+        std::cout<<a<<"\n";
+        bubblevector_.push_back(a);
+      }
 
       numBubbles_=bubblevector_.size()/(dimension+1);
       bubblefile.close();
@@ -205,8 +205,6 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 #endif 
   const int offset=dimension+1;
 
-//#if( true std::abs(arg[0]-0.5)> 0.1)
-  {
   for(size_t i=0 ; i<numBubbles_ ;++i)
   { 
 
@@ -235,46 +233,46 @@ inline void BubbleEnsemble<GridType,RangeProvider>
  
   
     if( r < radius+(0.5*width) )
+    {
+      if(r < radius-(0.5*width) )
       {
-        if(r < radius-(0.5*width) )
-          {//Inside bubble
-            phi=0;
-            rho=mwpvap(0.);
+        //Inside bubble
+        phi=0;
+        rho=mwpvap(0.);
 #if MIXED
-            //mu
-            res[dimension+2]=dFdrho;
-            //tau
-            res[dimension+3]=dFdphi;
+        //mu
+        res[dimension+2]=dFdrho;
+        //tau
+        res[dimension+3]=dFdphi;
 #endif 
-            continue;
-          }
-        else
-          {
-            phi=phiscale_*0.5*( -tanhr )+0.5;
-            double rhodiff=mwpliq(0.)-mwpvap(0.);
-            rho=evalRho(phi);
-            //std::cout<<"( phi , rho )= ( "<< phi <<" , "<< rho <<" )\n";
-           ///rho= rhodiff*phi+mwpvap(0.);
-#if MIXED
-            for( int ii=0 ; ii< dimension ;++ii)
-              res[dimension+4+ii]=-0.5*dtanhr*(1/width2)*dxdi(vector,ii);
-            //mu
-            res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho);
-            //tau
-            res[dimension+3]=thermodyn_.reactionSource(rho,phi,phi);
-#endif
-            continue;
-          }
-        }
+        continue;
       }
-     }
-  
+      else
+      {
+        phi=phiscale_*0.5*( -tanhr )+0.5;
+        //double rhodiff=mwpliq(0.)-mwpvap(0.);
+        rho=evalRho(phi);
+        //rho= rhodiff*phi+mwpvap(0.);
+#if MIXED
+        for( int ii=0 ; ii< dimension ;++ii)
+          res[dimension+4+ii]=-0.5*dtanhr*(1/width2)*dxdi(vector,ii);
+
+        //mu
+        res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho);
+        //tau
+        res[dimension+3]=thermodyn_.reactionSource(rho,phi,phi);
+#endif
+        continue;
+      }
+    }
+  }
+
   double v=0;
   //rho
-  res[0]= rho;
+  //res[0]= rho;
   res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho); 
-   for(int i=1;i<=dimension;i++)
-   {
+  for(int i=1;i<=dimension;i++)
+  {
 #if MIXED
      res[i]=v;
 #else
