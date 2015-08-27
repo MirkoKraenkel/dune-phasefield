@@ -50,12 +50,14 @@ public:
     mwpliq_( Fem::Parameter::getValue<double> ("phasefield.mwpliq")),
     mwpvap_( Fem::Parameter::getValue<double> ("phasefield.mwpvap")),
     phiscale_(Fem::Parameter::getValue<double> ("phasefield.phiscale")),
+    rhofactor_(Fem::Parameter::getValue<double>("phasefield.rhofactor")),
     bubblefilename_(Fem::Parameter::getValue<std::string>("phasefield.bubbles")),
     bubblevector_(0),
     thermodyn_()
     {
       distortion_[0]=1;
-      distortion_[1]=1.;
+      distortion_[1]=1;
+
       readDataFile( bubblefilename_ );
     }      
 
@@ -92,7 +94,7 @@ public:
 
   // print info 
   void printInitInfo() const;
-
+#include "balanced.cc"
   // source implementations 
   inline bool hasStiffSource() { return true; }
   inline bool hasNonStiffSource() { return false; }
@@ -151,6 +153,7 @@ public:
   double mwpliq_;
   double mwpvap_;
   const double phiscale_;
+  const double rhofactor_;
   std::string bubblefilename_; 
   std::vector<double> bubblevector_;
   const ThermodynamicsType thermodyn_;
@@ -179,40 +182,51 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 {
   double phi; 
   double width=6*delta_;
-  double width2=delta_;
+  double width2=0.5*delta_;
 #if SURFACE
 #else
   width/=sqrt(A_);
 #endif
-  //phi\approx 0
-  phi=0.5-phiscale_*0.5;
-  double rho=mwpliq_;
+  //Outside: phi=1
+  phi=1;
+  // double rho= rhofactor_*(tanh(-50*(arg[0]-0.19))+1)+mwpliq(0.);
+  double rho=mwpliq(0.);
+
 #if MIXED 
   for(int ii = 0; ii < dimension ; ++ii)
     res[dimension+4+ii]=0.;
 
   double dFdphi= 0;
-  double dFdrho=0;
- //mu
- res[dimension+2]=dFdrho;
+  double dFdrho=thermodyn_.chemicalPotential(rho,phi, rho);
+  //mu
+  res[dimension+2]=dFdrho;
   //tau
- res[dimension+3]=dFdphi;
+  res[dimension+3]=dFdphi;
 #endif 
   const int offset=dimension+1;
 
+//#if( true std::abs(arg[0]-0.5)> 0.1)
+  {
   for(size_t i=0 ; i<numBubbles_ ;++i)
   { 
+
     DomainType center;
+    double mirror;
     for(int ii = 0 ; ii <dimension ; ++ ii)
       center[ii]=bubblevector_[i*offset+ii];
+
+    if( arg[0]>0.5)
+      center[0]=1-center[0];  
+
     double radius=bubblevector_[dimension+(i*offset)];
-  
+
     DomainType vector=center;
     vector-=arg;
     double r=mynorm(vector);
     
     //0 if r big;
-    double tanr=tanh((radius-r) * (1 /width2 ));
+    double tanr=tanh((radius-r) * (1/width2 ));
+    //double tanrho=tanh((radius-r)*(1/(width2*rhofactor_)));
     double tanhr=tanr;
     double dtanr=1+tanr*tanr;
     double dtanhr=1-tanhr*tanhr; 
@@ -220,12 +234,12 @@ inline void BubbleEnsemble<GridType,RangeProvider>
     double ddtanhr=-2*tanhr*dtanhr;
  
   
-    if( r < radius+(0.5*width))
+    if( r < radius+(0.5*width) )
       {
-        if( r < radius-(0.5*width))
+        if(r < radius-(0.5*width) )
           {//Inside bubble
-            phi=0.5+0.5*phiscale_;
-            rho=mwpvap_;
+            phi=0;
+            rho=mwpvap(0.);
 #if MIXED
             //mu
             res[dimension+2]=dFdrho;
@@ -236,26 +250,29 @@ inline void BubbleEnsemble<GridType,RangeProvider>
           }
         else
           {
-            phi=phiscale_*0.5*( tanhr )+0.5;
-            double rhodiff=mwpvap_-mwpliq_;
-            rho=(rhodiff)*(0.5*tanhr+0.5)+mwpliq_;
+            phi=phiscale_*0.5*( -tanhr )+0.5;
+            double rhodiff=mwpliq(0.)-mwpvap(0.);
+            rho=evalRho(phi);
+            //std::cout<<"( phi , rho )= ( "<< phi <<" , "<< rho <<" )\n";
+           ///rho= rhodiff*phi+mwpvap(0.);
 #if MIXED
             for( int ii=0 ; ii< dimension ;++ii)
               res[dimension+4+ii]=-0.5*dtanhr*(1/width2)*dxdi(vector,ii);
             //mu
-            res[dimension+2]=0;
+            res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho);
             //tau
-            res[dimension+3]=0;
+            res[dimension+3]=thermodyn_.reactionSource(rho,phi,phi);
 #endif
             continue;
           }
         }
       }
-      
+     }
+  
   double v=0;
   //rho
   res[0]= rho;
-   
+  res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho); 
    for(int i=1;i<=dimension;i++)
    {
 #if MIXED
