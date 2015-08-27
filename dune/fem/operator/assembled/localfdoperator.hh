@@ -67,7 +67,7 @@ class LocalFDOperator
   double timeStepEstimate()  { return myOperator_.timeStepEstimate(); }
 
   double maxSpeed() { return myOperator_.integrator().maxSpeed(); }
-  
+  double lastSpeed() { return myOperator_.integrator().lastSpeed();} 
   double lipschitzC() { return myOperator_.integrator().lipschitzC(); }
 
   void setPreviousTimeStep( DiscreteFunctionType& uOld)  { myOperator_.integrator().setPreviousTimeStep( uOld ); }
