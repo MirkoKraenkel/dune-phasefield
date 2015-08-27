@@ -8,15 +8,12 @@
 #include <dune/fem/misc/bartonnackmaninterface.hh>
 #include <dune/fem/io/file/datawriter.hh>
 #include <dune/fem/space/common/adaptmanager.hh>
-//#include <dune/fem/base/base.hh>
-#include <dune/fem/operator/common/automaticdifferenceoperator.hh>
-//Note Problen should be independent of Operator/Scheme
-//#include<dune/phasefield/assembledtraits.hh>
 
 
 // include std libs
 #include <iostream>
 #include <string>
+
 // fem includes
 #include <dune/fem/misc/l2norm.hh>
 #include <dune/fem/misc/componentl2norm.hh>
@@ -29,7 +26,6 @@
 #include <dune/fem-dg/operator/adaptation/estimatorbase.hh>
 #include <dune/fem/space/discontinuousgalerkin/localrestrictprolong.hh>
 #include <dune/fem-dg/operator/adaptation/adaptation.hh>
-//post processing
 
 
 
@@ -42,8 +38,8 @@ namespace Dune{
 //
 /////////////////////////////////////////////////////////////////////////////
 
-struct EocDataOutputParameters :   /*@LST1S@*/
-  public Dune::Fem::LocalParameter<Dune::Fem::DataWriterParameters,EocDataOutputParameters>
+struct EocDataOutputParameters :
+public Dune::Fem::LocalParameter<Dune::Fem::DataWriterParameters,EocDataOutputParameters>
 {
   std::string loop_;
   EocDataOutputParameters(int loop, const std::string& name) {
@@ -93,7 +89,6 @@ public:
   //Problem Dependent Type
 	typedef typename Traits :: InitialDataType             InitialDataType;
 	typedef typename Traits :: ModelType                   ModelType;
-//	typedef typename Traits :: FluxType                    FluxType;
   
   //discrete spaces
   typedef typename Traits::DiscreteSpaceType       DiscreteSpaceType;
@@ -107,7 +102,6 @@ public:
   
   typedef typename DiscreteSpaceType::FunctionSpaceType FunctionSpaceType;
 
-  //Operator
  
   //Adaptation
   typedef typename Traits :: RestrictionProlongationType RestrictionProlongationType;
@@ -121,9 +115,10 @@ public:
 
 	////type of IOTuple 
   typedef typename Traits::IOTupleType IOTupleType;
-  // type of data 
-  // writer 
+
+  // type of data writer
   typedef Dune::Fem::DataOutput< GridType,IOTupleType >    DataWriterType;
+  // type of checkpointer
   typedef Dune::Fem::CheckPointer< GridType >   CheckPointerType;
 
 	// type of ime provider organizing time for time loops 
@@ -148,6 +143,7 @@ protected:
   const InitialDataType*  problem_;
   ModelType*              model_;
   AdaptationHandlerType*  adaptationHandler_;
+  mutable CheckPointerType* checkPointer_;
   Timer                   overallTimer_;
   unsigned int      eocId_;
   double tolerance_;
@@ -174,7 +170,8 @@ public:
 	  energy_( Fem :: Parameter :: getValue< bool >("phasefield.energy", false) ? new DiscreteScalarType("energy",energyspace()) : nullptr ),
 		problem_( ProblemGeneratorType::problem() ),
     model_( new ModelType( problem() ) ),
-    adaptationHandler_( 0 ),
+    adaptationHandler_( nullptr ),
+    checkPointer_( nullptr ),
     overallTimer_(),
     eocId_( -1 ),
     tolerance_(Fem::Parameter :: getValue< double >("phasefield.adaptTol", 100)),
@@ -199,6 +196,8 @@ public:
     model_=0;
     delete adaptationHandler_ ;
 		adaptationHandler_ = 0;
+    delete checkPointer_;
+    checkPointer_=0;
   }
 
 	//some acces methods
@@ -223,6 +222,14 @@ public:
 		return problem_->dataPrefix(); 
 	}
 	
+  CheckPointerType& checkPointer( TimeProviderType& timeProvider ) const
+  {
+    if( checkPointer_== nullptr )
+      checkPointer_=new CheckPointerType( grid_, timeProvider );
+
+    return *checkPointer_;
+  }
+
   const InitialDataType& problem () const 
   { 
     assert( problem_ ); 
@@ -431,7 +438,7 @@ public:
     }
     else
     {
-      checkPointer.restoreData( grid_, "checkpoint" ); 
+      bool restored=restoreFromCheckPoint( timeProvider );
     }
 
     if(computeResidual_)
@@ -493,7 +500,7 @@ public:
           { 
             writeData( eocDataOutput , timeProvider , eocDataOutput.willWrite( timeProvider ) );
           }
-        //checkPointer.write(timeProvider);
+        checkPointer.write(timeProvider);
         //statistics
         mindt = (ldt<mindt) ? ldt : mindt;
         maxdt = (ldt>maxdt) ? ldt : maxdt;
@@ -553,6 +560,7 @@ public:
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
+
   inline double velocityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
     std::vector<unsigned int> comp;
@@ -572,7 +580,7 @@ public:
     return l2norm.distance(uOld, uNew);
 	}
 
-   void finalizeStep(TimeProviderType& timeProvider)
+  void finalizeStep(TimeProviderType& timeProvider)
 	{ 
 		DiscreteFunctionType& u = solution();
 		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ );
@@ -586,7 +594,22 @@ public:
 	}
 
 	//! restore all data from check point (overload to do something)
-	/*virtual*/ void restoreFromCheckPoint(TimeProviderType& timeProvider) {} 
+	bool restoreFromCheckPoint(TimeProviderType& timeProvider)
+  {
+    //add solution to persistence manager for check pointing
+    Dune::Fem::persistenceManager << solution_ ;
+
+    std::string checkPointRestartFile = "checkpoint";
+    // if check file is non-zero a restart is performed
+    if( checkPointRestartFile.size() > 0 )
+    {
+      // restore dat
+      checkPointer( timeProvider ).restoreData( grid_, checkPointRestartFile );
+      return false;
+    }
+
+    return true ;
+  }
 
 	//! write a check point (overload to do something)
 	void writeCheckPoint(TimeProviderType& timeProvider,
