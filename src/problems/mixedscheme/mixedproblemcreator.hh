@@ -38,16 +38,6 @@ struct MixedProblemGenerator
     // ****************************** END NUMERICAL FLUX ***************************
   };
 
-  static inline std::string advectionFluxName()
-  {
-    return "mixedFlux\n";
-  }
-
-  static inline std::string diffusionFluxName()
-  {
-    return "IP";
-  }
-
   static inline Dune::GridPtr<GridType>               
   initializeGrid( const std::string description )
   {
