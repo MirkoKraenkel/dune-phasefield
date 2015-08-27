@@ -72,31 +72,32 @@ public Dune::Fem::DifferentiableOperator < Jacobian >
     }
 
 
-  void setTime(const double time)  { myOperator_.setTime(time); }
+  void setTime (const double time)  { myOperator_.setTime(time); }
   
-  double getTime(){return myOperator_.getTime(); }
+  double getTime (){return myOperator_.getTime(); }
 
-  void setDeltaT( const double deltat) { myOperator_.setDeltaT(deltat); }
+  void setDeltaT ( const double deltat) { myOperator_.setDeltaT(deltat); }
 
-  double getDeltaT() {return myOperator_.getDeltaT(); }
+  double getDeltaT () { return myOperator_.getDeltaT(); }
 
-  double timeStepEstimate()  { return myOperator_.timeStepEstimate(); }
+  double timeStepEstimate () { return myOperator_.timeStepEstimate();}
 
-  double maxSpeed() { return myOperator_.integrator().maxSpeed(); }
+  double maxSpeed (){ return myOperator_.integrator().maxSpeed(); }
   
-  double lipschitzC() { return myOperator_.integrator().lipschitzC(); }
+  double lastSpeed (){ return myOperator_.integrator().lastSpeed();}
+  double lipschitzC (){ return myOperator_.integrator().lipschitzC(); }
 
-  void setPreviousTimeStep( DiscreteFunctionType& uOld)  { myOperator_.integrator().setPreviousTimeStep( uOld ); }
+  void setPreviousTimeStep ( DiscreteFunctionType& uOld)  { myOperator_.integrator().setPreviousTimeStep( uOld ); }
 
-  IntegratorType& integrator() const { return myOperator_.integrator();}
+  IntegratorType& integrator () const { return myOperator_.integrator();}
   //DiscreteFunctionType& getPreviousTimeStep() { return myOperator_.getPreviousTimeStep(); }
   
-  const DiscreteFunctionSpaceType& space() const { return myOperator_.space();}
+  const DiscreteFunctionSpaceType& space () const { return myOperator_.space();}
   
-  const ModelType& model() const { return myOperator_.integrator().model(); }
+  const ModelType& model () const { return myOperator_.integrator().model(); }
 
  
-  void jacobian(const DiscreteFunctionType &u, JacobianOperatorType &jOp) const;
+  void jacobian ( const DiscreteFunctionType &u, JacobianOperatorType &jOp ) const;
    
   
  protected: 
