@@ -34,7 +34,7 @@ public:
 
 
   double numericalFlux( const DomainType& normal, 
-                        const double area,
+                        const double viscFactor,
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
@@ -230,7 +230,7 @@ double MixedFlux<Model>
 template< class Model >
 double MixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
-                const double area,              
+                const double viscFactor,
                 const double penaltyFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
@@ -274,14 +274,19 @@ double MixedFlux<Model>
     //Filter::rho(gLeft)=vNormalEn-vNormalNb;
     Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
     Filter::rho(gLeft)*=-0.5;
-     
+    //[[ mu ]]
     double viscmu=Filter::mu(jump);
+//    double vismu=model_.chemicalPotential(midEn[0],midEn[dim+1],midEn[0])-model_.chemicalPotential(midNb[0],midNb);
+
+
+
+    //[[ rho ]]
     double viscrho=Filter::rho( jump );
-    
-    Filter::rho( gLeft )+=numVisc_*area*viscrho;
+
+    Filter::rho( gLeft )+=numVisc_*viscFactor*viscrho;
     Filter::rho( gRight )=Filter::rho( gLeft );
-    
-    Filter::rho( gLeft )+=numViscMu_*area*viscmu;
+ 
+    Filter::rho( gLeft )+=numViscMu_*viscFactor*viscmu;
     Filter::rho( gRight )=Filter::mu( gLeft );
     //----------------------------------------------------------------
     
