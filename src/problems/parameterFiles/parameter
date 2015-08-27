@@ -1,11 +1,11 @@
-fem.resolvevariables: 1
+fem.resolvevariables3: 1
 # DATA WRITER
 #------------
 fem.prefix: ./test_data # specify directory for data output (is created if not exists)
 fem.io.datafileprefix: phase # prefix data data files 
-fem.io.savestep:1 #save data every time interval
+fem.io.savestep: 1e-2 #save data every time interval
 fem.io.savecount: 0   # save every i-th ste
-fem.io.checkpointstep: 0
+fem.io.checkpointstep: 100
 phasefield.eocOutputPath: $(fem.prefix)
 phasefield.energyfile: $(fem.prefix)/energy
 # GRID SOLUTION
@@ -27,12 +27,12 @@ paramfile: ./paramFiles/paramBase
 
 phasefield.restart: false 
 phasefield.calcresidual: false 
-phasefield.interpolinitial: true 
+phasefield.interpolinitial: false 
 
 #phasefield.diffusionTimeStep:1 
 phasefield.energy: true
 phasefield.additionalvariables: true  
-phasefield.radius: 0.5
+phasefield.radius: 0.5 
 phasefield.bubbles: ../InputFiles/1bubble.txt 
 phasefield.phiscale: 1 
 phasefield.rhofactor:1
@@ -40,11 +40,12 @@ phasefield.rhofactor:1
 
 # PROBLEM PHYSICS
 #---------------
+
 phasefield.reactionrate: 1
 phasefield.delta: 0.05
 
 #surface tension coefficient
-phasefield.A:1
+phasefield.A:1e-7
 
 #coefficient for homogenuos free energy part
 phasefield.beta:1
@@ -52,12 +53,11 @@ phasefield.beta:1
 #hight of first minimum of the double well
 phasefield.alpha: 0
 phasefield.gravity: 0.0
-#viscosity coefficients
-phasefield.mu1_vap: 0.1
-phasefield.mu2_vap: 0.1
-phasefield.mu1_liq: 1
-phasefield.mu2_liq: 1 
-
+#viscosity coefficiets
+phasefield.mu1_vap: 0.006
+phasefield.mu2_vap: -0.004
+phasefield.mu1_liq: 0.006
+phasefield.mu2_liq: -0.004
 
 #velocities vor Riemann-Problem
 phasefield.veloright:0
@@ -67,15 +67,21 @@ phasefield.veloleft:0
 phasefield.rho0: 1.5 
 
 ##maxwell points
-#phasefield.mwpvap: 0.8924834528 
-phasefield.mwpvap: 1. 
-#phasefield.mwpliq: 1.686282197
-phasefield.mwpliq: 2 
-
+#CoquelThermo, A=0.1, r=0.25
+phasefield.mwpvap: 0.9066872850 
+phasefield.mwpliq: 1.726697594
+#RealThermo A=0.1,r=0.25
+#phasefield.mwpvap: 0.04681895921
+#phasefield.mwpliq: 0.7322787037
+#for pichoff
+#phasefield.mwpvap: 0.04
+#phasefield.mwpliq: 0.75
+#paramfile: ../parameterFiles/paramWater_T_0.88572638372
 
 #maxwell points vdw theta=0.85
-#phasefield.mwp1: 0.1065766549
-#phasefield.mwp2: 0.6023801090
+#phasefield.mwpvap: 0.04778445347
+#phasefield.mwpliq: 0.7372021764
+
 
 #phasefield.mwp2: 1.657270212
 #phasefield.mwp2: 3.793667900 
@@ -86,7 +92,7 @@ phasefield.mwpliq: 2
 phasefield.addvisc: 0 
 phasefield.oldvisc: 0 
 phasefield.nonconvisc:0  
-phasefield.penalty: 10 
+phasefield.penalty: 0.015 
 phasefield.acpenalty: 0 
 phasefield.ipswitch: 0 
 

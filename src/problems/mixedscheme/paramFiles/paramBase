@@ -39,9 +39,9 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-phasefield.eocSteps: 3
-phasefield.printCount: 1
-phasefield.verbose: 1 
+phasefield.eocSteps: 1 
+phasefield.printCount: 10
+phasefield.verbose: 0 
 
 # create a file with sampled values of the numerical solution
 phasefield.sampleAlongLine: 0
@@ -61,24 +61,23 @@ fem.adaptation.coarsenPercent: 0.2
 # finest level that should be present
 fem.adaptation.coarsestLevel: 0 
 fem.adaptation.finestLevel: 7 
-phasefield.adaptTol: 0.5 
-phasefield.adaptive.maxh: 0.05
-phasefield.adaptive.ifelements: 4 
+phasefield.adaptTol: 0.25 
+phasefield.adaptive.maxh: 0.049
+phasefield.adaptive.ifelements: 6 
 fem.adaptation.markingStrategy: grad 
 phasefield.adaptive.secondneighbors: false 
 phasefield.adaptive.maxsigma: true 
 #refine if indicator> localsizefactor*localsize
 phasefield.adaptive.localsizefactor: 1 
-phasefield.adaptive.rhoTol: 0.0
-
+phasefield.adaptive.rhoTol: -100
 fem.adaptation.adaptcount: 1  # after this many time step, 0 disables adaptation
 fem.loadbalancing.step: 2 
 
  DOMAIN CONFIGURATION
 #---------------------
-phasefield.startLevel: 2 
+phasefield.startLevel: 0 
 
 
 phasefield.startTime: 0 
-phasefield.endTime: 5000 
+phasefield.endTime: 10 
 
