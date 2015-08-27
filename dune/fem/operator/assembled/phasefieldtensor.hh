@@ -482,11 +482,13 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
 
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
+  DomainType unitnormal=normal;
+  unitnormal/=intersectionArea;
   const double localMinArea=std::min(areaNb_,areaEn_);
   const double penaltyFactor = intersectionArea/std::min(areaEn_,areaNb_);
-  const double localMaxSpeed =  std::max( model_.maxSpeed( normal , uOldEn_[pt] ), model_.maxSpeed( normal , uOldNb_[pt] ) );
-  double localwidth = localMaxSpeed*localMinArea/intersectionArea;
-
+  const double localMaxSpeed =  std::max( model_.maxSpeed( unitnormal , uOldEn_[pt] ), model_.maxSpeed( unitnormal , uOldNb_[pt] ) );
+  
+  double localwidth = 0.5*localMinArea*lastSpeed_;
  
   jacFlux_.numericalFlux( normal,
                           localwidth,
@@ -658,7 +660,7 @@ void PhasefieldMixedTensor<DiscreteFunction ,  Model, Flux,JacFlux >
   const double intersectionArea = normal.two_norm();
   const double penaltyFactor = intersectionArea /  areaEn_;
   const double localMaxSpeed = model_.maxSpeed( normal , uOldEn_[ pt ] );
-  const double localwidth = localMaxSpeed*areaEn_/intersectionArea;
+  const double localwidth = areaEn_*lastSpeed_; 
 
 
   const double weightInside=quadInside.weight( pt );
