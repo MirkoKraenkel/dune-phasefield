@@ -92,7 +92,7 @@ class DGOperator
 
   double timeStepEstimate() { return integrator_.timeStepEstimate();}
 
-  
+  double lastSpeed () { return integrator_.lastSpeed();}
   void setEntity ( const EntityType& entity ) const
   {
     integrator_.setEntity( entity );
