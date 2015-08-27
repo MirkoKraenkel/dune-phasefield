@@ -79,7 +79,7 @@ class PhasefieldModel
                                 RangeFieldType& tau) const;
 
     inline double maxSpeed( const DomainType& normal,
-                             const RangeType& u) const ;
+                            const RangeType& u) const;
     
     // this gives an estimation of the lipschitz constant of the rhs of the phasefield equation
     inline double lipschitzC() const
@@ -114,12 +114,13 @@ class PhasefieldModel
     {
       return problem_.thermodynamics().pressure( rho , phi );
     }
+
     inline RangeFieldType h2 ( double rho ) const
     {
       return  problem_.thermodynamics().h2( rho );
     }
 
-    inline RangeFieldType h2prime( double rho ) const
+    inline RangeFieldType h2prime ( double rho ) const
     {
       return problem_.thermodynamics().h2prime( rho );
     }
@@ -133,6 +134,7 @@ class PhasefieldModel
     {
       return problem_.thermodynamics().delta();
     }
+
     inline double deltaInv () const
     {
       return problem_.thermodynamics().deltaInv();
@@ -140,7 +142,8 @@ class PhasefieldModel
 
 
   private:
-    inline void  diffFactors (const RangeFieldType phi, double& mu1, double& mu2 ) const
+
+    inline void diffFactors (const RangeFieldType phi, double& mu1, double& mu2 ) const
     {
       mu2 = phi*problem_.thermodynamics().mu2Liq()+(1-phi)*problem_.thermodynamics().mu2Vap();
       mu1 = phi*problem_.thermodynamics().mu1Liq()+(1-phi)*problem_.thermodynamics().mu1Vap();
@@ -207,8 +210,10 @@ inline void PhasefieldModel< Grid,Problem>
                  const DomainType& xgl,
                  RangeType& s ) const
 {
- s=0.;
- s[dimDomain]=vu[0]*force_;
+  s=0.;
+  //Gravity
+  s[1]=vu[0]*force_;
+
 #if PROBLEM==6 
   double x=xgl[0];
   s[1]=problem_.veloSource(x);
@@ -313,11 +318,15 @@ inline double PhasefieldModel< Grid, Problem>
 ::maxSpeed( const DomainType& normal,
             const RangeType& u) const
 {
-    double unormal(0.);
-    for( int ii = 0 ; ii<dimDomain ; ++ii)
-      unormal+=u[1+ii]*normal[ii];
-    double c=problem_.thermodynamics().a(u[0],u[dimDomain+1])*normal.two_norm2();
-    return std::abs(unormal)+std::sqrt(c);
+  RangeType unitnormal=u;
+
+  double unormal(0.);
+  for( int ii = 0 ; ii<dimDomain ; ++ii)
+    unormal+=u[1+ii]*normal[ii];
+
+  double c=problem_.thermodynamics().a(u[0],u[dimDomain+1])*normal.two_norm2();
+
+  return std::abs(unormal)+std::sqrt(c);
 }
 
 template< class Grid, class Problem>
@@ -351,7 +360,7 @@ inline void PhasefieldModel< Grid, Problem>
   for( int ii=0 ; ii < dimDomain  ; ++ii)
     {
       for(int jj=0 ; jj < dimDomain ; ++jj )
-        du[ ii ][ ii ][ jj ] = mu2*dphi[ 0 ][ jj ];
+        du[ ii ][ ii ][ jj ] = mu1*dphi[ 0 ][ jj ];
     }
 #else
   for( int ii=0 ; ii < dimDomain  ; ++ii)
@@ -408,7 +417,7 @@ inline void PhasefieldModel< Grid, Problem>
 #if LAPLACE 
    for(int ii = 0 ; ii < dimDomain ; ++ii )
     for(int jj = 0; jj < dimDomain ; ++ jj)
-      diffusion[1+ii][jj]=mu2*dvu[1+ii][jj];
+      diffusion[1+ii][jj]=mu1*dvu[1+ii][jj];
       
 #else
  
