@@ -269,7 +269,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 
   double v=0;
   //rho
-  //res[0]= rho;
+  res[0]= rho;
   res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho); 
   for(int i=1;i<=dimension;i++)
   {
