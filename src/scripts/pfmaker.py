@@ -12,6 +12,8 @@ class PhasefieldMaker:
     flagframe.pack()
     listframe=Frame(master)
     listframe.pack()
+    listframe2=Frame(master)
+    listframe2.pack()
     entryframe=Frame(master)
     entryframe.pack()
     messageframe=Frame(master)
@@ -31,10 +33,15 @@ class PhasefieldMaker:
       self.programms.append(line.rstrip('\n'))
     self.programms
     progfile.close()
-    self.listbox = Listbox( listframe , selectmode=MULTIPLE)
+    self.listbox = Listbox( listframe , selectmode=MULTIPLE, exportselection=0)
     self.listbox.pack(side=LEFT)
     for item in self.programms:
       self.listbox.insert(END, item)
+    self.listbox2 = Listbox( listframe2 , selectmode=MULTIPLE, exportselection=0)
+    self.listbox2.pack(side=LEFT)
+    self.thermlist=['COQUEL', 'REAL', 'PFVDW']
+    for item in self.thermlist:
+        self.listbox2.insert(END, item)
     self.var = StringVar() 
     for item in self.cxxflags:
       var=IntVar()
@@ -86,21 +93,25 @@ class PhasefieldMaker:
     
     flag+=flag2
     idxs = self.listbox.curselection()
+    therms = self.listbox2.curselection() 
     
     for ind in idxs:
-      index=int(ind)
-      p=self.programms[index]
-      outfile=p+'_make.out'
-      execstring= 'make '+flag+p+' &>'+outfile
-      self.updateMsg(execstring)
-      subprocess.call(['make clean'],shell=True)
-      compiled=self.makecall(( execstring , outfile ))
+      for term in therms:
+        index=int(ind)
+        index2=int(term)
+        thermflag='THERMO='+self.thermlist[(index2)]
+        p=self.programms[index]
+        outfile=p+'_make.out'
+        execstring= 'make '+flag+' '+thermflag+' '+p + ' &>'+outfile
+        self.updateMsg(execstring)
+        subprocess.call(['make clean'],shell=True)
+        compiled=self.makecall(( execstring , outfile ))
       
-      if compiled == 0:
-        realname=p+'P_'+str(self.flagentries['POLORDER'].get())+'_PROB_'+str(self.flagentries['PROBLEM'].get())
-        subprocess.call(['mv '+p+' '+realname],shell=True)
-        self.compiled.append( realname ) 
-        self.updateMsg('succeeded')
+        if compiled == 0:
+            realname=p+'_'+self.thermlist[index2]+'_P'+str(self.flagentries['POLORDER'].get())+'_PROB'+str(self.flagentries['PROBLEM'].get())
+            subprocess.call(['mv '+p+' '+realname],shell=True)
+            self.compiled.append( realname ) 
+            self.updateMsg('succeeded')
     pickle.dump( outdict, open("flags.p", "wb")) 
     pickle.dump( self.compiled, open("compiled.p","wb"))
   

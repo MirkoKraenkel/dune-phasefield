@@ -94,8 +94,14 @@ public:
 
   // print info 
   void printInitInfo() const;
-#include "balanced.cc"
-  // source implementations 
+#if THERMO==COQUEL
+#include <dune/phasefield/modelling/CoquelTaylorSources/coquelTaylorRho.cc>
+#elif THERMO==REAL
+#include <dune/phasefield/modelling/CoquelTaylorSources/realRho.cc>
+#elif THERMO==PFVDW
+#include <dune/phasefield/modelling/PhasefieldvanderWaalsSources/phasefieldvanderWaalsRho.cc>
+#endif
+// source implementations 
   inline bool hasStiffSource() { return true; }
   inline bool hasNonStiffSource() { return false; }
   // this is the initial data

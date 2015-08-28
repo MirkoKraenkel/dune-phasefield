@@ -75,8 +75,12 @@ public Thermodynamics<BalancedThermodynamics>
   }
 #if UNBALMODEL
 #include "AltAltSources/maple.cc"
-#else
-#include "PhasefieldvanderWaalsSources/maple.cc"
+#elif THERMO==COQUEL
+#include "CoquelTaylorSources/coquelTaylormaple.cc"
+#elif THERMO==REAL
+#include "CoquelTaylorSources/realmaple.cc"
+#elif THERMO==PFVDW
+#include "PhasefieldvanderWaalsSources/phasefieldvanderWaalsmaple.cc"
 #endif
 #endif
 

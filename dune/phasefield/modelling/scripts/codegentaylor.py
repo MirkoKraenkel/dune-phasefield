@@ -3,22 +3,58 @@ import os,subprocess, sys
 
 folders = { 1:'../CoquelTaylorSources/' , 2:'../CoquelTaylorSources/', 3:'../PhasefieldvanderWaalsSources/'}
 
-files = { 1:'realCODEGEN.mpl', 2:'coquelTaylorCODEGEN.mpl',3:'phasefieldvanderWaalsCODEGEN.mpl'}
+files = { 1:'real' , 2:'coquelTaylor' , 3:'phasefieldvanderWaals' }
 
 namelist = [' helmholtz', ' pressure', ' a']
 namelist2 = [ ' reactionSource',' dphireactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential']
+namelist3= [' mwpliq', ' mwpvap', ' evalRho']
 
 
 
 number=int(sys.argv[1])
 
-inputfile=folders[number]+files[number]
+inputfile=folders[number]+files[number]+'CODEGEN.mpl'
 
-subprocess.call( ['rm maple.cc'],shell=True)
-subprocess.call( ['maple '+inputfile],shell=True )
+maplefile=files[number]+'maple.cc'
+auxfile=files[number]+'mapleaux.cc'
 
-f=open( 'maple.cc')
-fnew=open( 'maplenew.cc','w')
+subprocess.call( ['rm '+maplefile] , shell=True)
+subprocess.call( ['maple '+inputfile] , shell=True )
+
+
+rhofile=files[number]+'Rho.cc'
+auxrhofile=files[number]+'Rhoaux.cc'
+
+frho=open( rhofile )
+frhonew=open(  auxrhofile,'w' )
+flag= -1
+
+
+for line in frho:
+    if line[0]=='#':
+    
+        frhonew.write('\n')
+  
+    else:
+        for name in namelist3:
+            if line.find(name) !=-1:
+                flag=1 
+                break 
+        
+        if flag==1:
+            newline='inline double'+name+' ( double x ) const\n'
+            frhonew.write( newline )
+            flag=-1
+        else:
+            frhonew.write( line )
+
+
+subprocess.call( ['mv '+auxrhofile+' '+folders[number]+'/'+rhofile], shell=True)
+subprocess.call( ['rm '+rhofile], shell=True )
+
+           
+f=open( maplefile )
+fnew=open( auxfile ,'w')
 flag = -1 
 
 for line in f:
@@ -57,6 +93,7 @@ for line in f:
       
       fnew.write( newline )
 
-subprocess.call( ['mv maplenew.cc '+folders[number]+'/maple.cc'], shell=True)
-subprocess.call( ['rm maple.cc'], shell=True )
+subprocess.call( ['mv '+auxfile+' '+folders[number]+'/'+maplefile], shell=True)
+subprocess.call( ['rm '+maplefile], shell=True )
+
 
