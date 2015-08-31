@@ -113,13 +113,13 @@ typedef SharpProblem< GridSelector :: GridType,
         >PhaseProblemType;
 #endif
 #elif PROBLEM==6
-#include "../mixedscheme/sourceproblem.hh"
+#include "../mixedscheme/handleproblem.hh"
 #if MIXED
-typedef SourceProblem< GridSelector :: GridType,
+typedef HandleProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
         >PhaseProblemType;
 #else
-typedef SourceProblem< GridSelector :: GridType,
+typedef HandleProblem< GridSelector :: GridType,
         RangeTypeProvider< GridSelector::GridType::dimensionworld,false>
         >PhaseProblemType;
 #endif
