@@ -65,6 +65,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
   EstimatorDataType       estimatorData_;
   double                  surfaceEnergy_;
   int                     maxNewtonIter_;
+  int                     minNewtonIter_;
   int                     maxLinearIter_;
   double                  timestepfactor_;
   double                  maxTimeStep_;
@@ -83,6 +84,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
     estimatorData_( "estimator", estimator_, gridPart_, space_.order() ),
     surfaceEnergy_(0.),
     maxNewtonIter_( Dune::Fem::Parameter::getValue<int>("phasefield.maxNewtonIterations") ),
+    minNewtonIter_( Dune::Fem::Parameter::getValue<int>("phasefield.minNewtonIterations") ),
     maxLinearIter_( Dune::Fem::Parameter::getValue<int>("phasefield.maxLinearIterations") ),
     timestepfactor_( Dune::Fem::Parameter::getValue<double>("phasefield.timestepfactor")),
     maxTimeStep_( Dune::Fem::Parameter::getValue<double>("phasefield.maxTimeStep"))
@@ -148,9 +150,10 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
           timestepfactor_*=0.5;
           std::cout<<"ReducedTimeStep= "<<timestepfactor_<<std::endl;
         }
-        else if( newton_iterations < 2 && deltaT < maxTimeStep_ )
+        else if( newton_iterations < minNewtonIter_ && deltaT < maxTimeStep_ )
         {
-          timestepfactor_*=1.5;
+          if(timestepfactor_*1.5<1)
+            timestepfactor_*=1.5;
           std::cout<<"IncreaseTimeStep= "<<timestepfactor_<<std::endl;
         }
         double timeesti=timeStepEstimate();
