@@ -99,7 +99,7 @@ class PhasefieldMaker:
       for term in therms:
         index=int(ind)
         index2=int(term)
-        thermflag='THERMO='+self.thermlist[(index2)]
+        thermflag='THERMO='+str(index2+1)
         p=self.programms[index]
         outfile=p+'_make.out'
         execstring= 'make '+flag+' '+thermflag+' '+p + ' &>'+outfile
