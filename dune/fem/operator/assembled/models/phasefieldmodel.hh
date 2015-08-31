@@ -212,7 +212,7 @@ inline void PhasefieldModel< Grid,Problem>
 {
   s=0.;
   //Gravity
-  s[1]=vu[0]*force_;
+  s[dimDomain+1]=vu[0]*force_;
 
 #if PROBLEM==6 
   double x=xgl[0];
