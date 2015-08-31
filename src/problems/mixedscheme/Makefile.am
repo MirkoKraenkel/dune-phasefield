@@ -17,7 +17,7 @@ GRIDTYPE = ALUGRID_CUBE
 GRIDDIM = 2 
 POLORDER = 2 
 PROBLEM = 2 # check ./problemtype.hh
-
+THERMO = 1
 FLUX = 1 # check ./problemcreator.hh
 
 AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$(GRIDDIM) \
@@ -28,7 +28,7 @@ AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)
 check_PROGRAMS = phasefield phasefield_fd phasefield_split phasefield_split_fd  phasefield_split_fd_dq phasefield_split_fd_tl phasefield_ub_split phasefield_lambda
 
 phasefield_SOURCES = $(SOURCES)
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL  -DSURFACE -DCOUPLING -DTAYLOR -DIMPLICITTAU
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DSURFACE -DCOUPLING -DTAYLOR -DIMPLICITTAU
 
 phasefield_split_SOURCES = $(SOURCES)
 phasefield_split_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE  -DCOUPLING -DSPLIT -DIMPLICITTAU
