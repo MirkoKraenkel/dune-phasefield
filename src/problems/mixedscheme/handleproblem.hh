@@ -182,13 +182,13 @@ inline void HandleProblem<GridType,RangeProvider>
 
 
 
-  double tanhr=-tanh( -( r - myradius )*deltaInv );
+  double tanhr=tanh( -( r - myradius )*deltaInv );
   double tanhrho=-tanh( -( r - myradius )*rhofactor_*deltaInv );
 
 
   //(1-tanh^2)/delta
-  double drtanhr=-deltaInv*(1-tanhr*tanhr);
-  double drdrtanhr=tanhr*drtanhr;
+  double drtanhr=deltaInv*(1-tanhr*tanhr);
+  double drdrtanhr=-tanhr*drtanhr;
   //-2/delta^2 *(tanh*(1-tanh^2)
   drdrtanhr*=-2*deltaInv;
   double phi=-0.5*phiscale_*tanhr+0.5;
