@@ -94,11 +94,11 @@ public:
 
   // print info 
   void printInitInfo() const;
-#if THERMO==COQUEL
+#if THERMO == 1
 #include <dune/phasefield/modelling/CoquelTaylorSources/coquelTaylorRho.cc>
-#elif THERMO==REAL
+#elif THERMO == 2
 #include <dune/phasefield/modelling/CoquelTaylorSources/realRho.cc>
-#elif THERMO==PFVDW
+#elif THERMO == 3
 #include <dune/phasefield/modelling/PhasefieldvanderWaalsSources/phasefieldvanderWaalsRho.cc>
 #endif
 // source implementations 
@@ -187,16 +187,16 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double phi; 
-  double width=6*delta_;
+  double width=delta_;
   double width2=0.5*delta_;
 #if SURFACE
 #else
   width/=sqrt(A_);
 #endif
   //Outside: phi=1
-  phi=1;
-  // double rho= rhofactor_*(tanh(-50*(arg[0]-0.19))+1)+mwpliq(0.);
-  double rho=mwpliq(0.);
+  res[dimension+1]=1;
+   double rho= rhofactor_*(tanh(-50*(arg[0]-0.19))+1)+mwpliq(0.);
+  //double rho=mwpliq(0.);
 
 #if MIXED 
   for(int ii = 0; ii < dimension ; ++ii)
@@ -210,7 +210,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
   res[dimension+3]=dFdphi;
 #endif 
   const int offset=dimension+1;
-
+  double bubblephi;
   for(size_t i=0 ; i<numBubbles_ ;++i)
   { 
 
@@ -219,8 +219,6 @@ inline void BubbleEnsemble<GridType,RangeProvider>
     for(int ii = 0 ; ii <dimension ; ++ ii)
       center[ii]=bubblevector_[i*offset+ii];
 
-    if( arg[0]>0.5)
-      center[0]=1-center[0];  
 
     double radius=bubblevector_[dimension+(i*offset)];
 
@@ -229,53 +227,27 @@ inline void BubbleEnsemble<GridType,RangeProvider>
     double r=mynorm(vector);
     
     //0 if r big;
-    double tanr=tanh((radius-r) * (1/width2 ));
+    double tanr=tanh((radius-r) * (1/width ));
     //double tanrho=tanh((radius-r)*(1/(width2*rhofactor_)));
     double tanhr=tanr;
     double dtanr=1+tanr*tanr;
     double dtanhr=1-tanhr*tanhr; 
     double ddtanr=2*tanr*dtanr;
     double ddtanhr=-2*tanhr*dtanhr;
+    bubblephi=0.5*(tanr+1);   
+    res[dimension+1]-=bubblephi;
+    for( int ii=0 ; ii< dimension ;++ii)
+      res[dimension+4+ii]+=-0.5*dtanhr*(1/width)*dxdi(vector,ii);
+
  
-  
-    if( r < radius+(0.5*width) )
-    {
-      if(r < radius-(0.5*width) )
-      {
-        //Inside bubble
-        phi=0;
-        rho=mwpvap(0.);
-#if MIXED
-        //mu
-        res[dimension+2]=dFdrho;
-        //tau
-        res[dimension+3]=dFdphi;
-#endif 
-        continue;
-      }
-      else
-      {
-        phi=phiscale_*0.5*( -tanhr )+0.5;
-        //double rhodiff=mwpliq(0.)-mwpvap(0.);
-        rho=evalRho(phi);
-        //rho= rhodiff*phi+mwpvap(0.);
-#if MIXED
-        for( int ii=0 ; ii< dimension ;++ii)
-          res[dimension+4+ii]=-0.5*dtanhr*(1/width2)*dxdi(vector,ii);
-
-        //mu
-        res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho);
-        //tau
-        res[dimension+3]=thermodyn_.reactionSource(rho,phi,phi);
-#endif
-        continue;
-      }
-    }
+     continue;
+      
+    
   }
-
-  double v=0;
+  
+ double v=0;
   //rho
-  res[0]= rho;
+  res[0]= evalRho( res[dimension+1] );
   res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho); 
   for(int i=1;i<=dimension;i++)
   {
@@ -285,7 +257,6 @@ inline void BubbleEnsemble<GridType,RangeProvider>
      res[i]=v*rho;
 #endif
    }
-  res[dimension+1]=phi;
 
 #if MIXED || NONCONTRANS  
 #else
