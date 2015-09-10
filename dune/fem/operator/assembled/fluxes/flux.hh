@@ -38,8 +38,10 @@ public:
                         const double penaltyFactor,
                         const RangeType& vuEn,
                         const RangeType& vuN,
-                        const RangeType& vuEnOld,
-                        const RangeType& vuNbOld,
+                        const RangeType& vuEnMid,
+                        const RangeType& vuNbMid,
+                        const RangeType& vuEnMid2,
+                        const RangeType& vuNbMid2,
                         RangeType& gLeft,
                         RangeType& gRight) const;
 
@@ -236,28 +238,32 @@ double MixedFlux<Model>
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuEnMid,
                 const RangeType& vuNbMid,
+                const RangeType& vuEnMid2,
+                const RangeType& vuNbMid2,
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-    RangeType valEn,valNb,midEn,midNb,jump,mean,jumpNew;
+    RangeType valEn,valNb,midEn,midNb,midEn2,midNb2,jump,mean,jumpNew,jumpImex;
     valEn=vuEn;
     valNb=vuNb;
     double integrationElement=normal.two_norm();
- 
     gLeft=0.;
     gRight=0.;
 
-
     midEn=vuEnMid;
     midNb=vuNbMid;
+    midEn2=vuEnMid2;
+    midNb2=vuNbMid2;
+
     jump = midEn;
     jump-= midNb;
     mean = midEn ;
     mean+= midNb;
     mean*=0.5;
-   
     jumpNew=valEn;
     jumpNew-=valNb;
+    jumpImex=midEn2;
+    jumpImex-=midNb2;
     //rho-------------------------------------------------------------
  
     double vNormalEn(0.),vNormalNb(0.);
@@ -296,12 +302,12 @@ double MixedFlux<Model>
       { 
         //F_2=F_{2.1}+F_{2.2}
         //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-        Filter::velocity(gLeft,i)-=Filter::mu(jumpNew)*normal[i]*Filter::rho(midEn)*0.5;
-        Filter::velocity(gRight,i)-=Filter::mu(jumpNew)*normal[i]*Filter::rho(midNb)*0.5;
+        Filter::velocity(gLeft,i)-=Filter::mu(jumpImex)*normal[i]*Filter::rho(midEn)*0.5;
+        Filter::velocity(gRight,i)-=Filter::mu(jumpImex)*normal[i]*Filter::rho(midNb)*0.5;
 
         //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
-        Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valEn)*0.5;
-        Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(valNb)*0.5;
+        Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn2)*0.5;
+        Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb2)*0.5;
       } 
     
     //----------------------------------------------------------------
