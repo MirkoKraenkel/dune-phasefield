@@ -548,14 +548,15 @@ public:
   
   inline double densityError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-    std::vector<unsigned int> comp{ 0};
+    std::vector<unsigned int> comp{ 0 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
+
   inline double phasefieldError ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
-    std::vector<unsigned int> comp{ 0 , 1, dimDomain +1 };
+    std::vector<unsigned int> comp{  dimDomain+1 };
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp );
     double error = l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
@@ -570,11 +571,14 @@ public:
     double error =   l2norm.distance(problem().fixedTimeFunction(timeProvider.time()),u);
     return error;
 	}
-  
+
   //compute Error between old and NewTimeStep
   inline double stepError(DiscreteFunctionType uOld, DiscreteFunctionType& uNew)
 	{
-    std::vector<unsigned int> comp{ dimDomain+1 };
+    std::vector<unsigned int> comp{0};
+    for (int i = 0 ; i < dimDomain ; ++i)
+      comp.push_back(1+i);
+    comp.push_back( dimDomain+1 )
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
     return l2norm.distance(uOld, uNew);
@@ -584,13 +588,22 @@ public:
 	{ 
 		DiscreteFunctionType& u = solution();
 		bool doFemEoc = problem().calculateEOC( timeProvider, u, eocId_ );
-
-		// ... and print the statistics out to a file
+    std::vector<double> errors;
+		errors.push_back(phasefieldError(timeProvider, u));
+    errors.push_back(velocityError(timeProvider,u));
+    errors.push_back(densityError(timeProvider,u));
+    errors.push_back(0.);
+    errors.push_back(0.);
+    errors.push_back(0.);
+    // ... and print the statistics out to a file
 		if( doFemEoc )
-			Fem::FemEoc::setErrors(eocId_, phasefieldError(timeProvider, u));
-	
-		delete adaptationHandler_;
-		adaptationHandler_ = 0;
+    {
+      Fem::FemEoc::setErrors(eocId_,errors);
+    }
+
+    delete adaptationHandler_;
+
+    adaptationHandler_ = 0;
 	}
 
 	//! restore all data from check point (overload to do something)
