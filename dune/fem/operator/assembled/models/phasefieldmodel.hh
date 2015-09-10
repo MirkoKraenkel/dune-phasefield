@@ -7,7 +7,7 @@
 #include<dune/fem/io/parameter.hh>
 
 #include "../phasefieldfilter.hh"
-#define LAPLACE 0 
+#define LAPLACE 1 
 template<class Grid, class Problem>
 class PhasefieldModel
 {
@@ -48,6 +48,7 @@ class PhasefieldModel
     // additional Source for the whole syten eg. for 
     // generatring exact solutions
     inline void systemSource ( const double time,
+                               const double deltaT,
                                const RangeType& vu,
                                const DomainType& xgl,
                                RangeType& s) const;
@@ -142,8 +143,7 @@ class PhasefieldModel
 
 
   private:
-
-    inline void diffFactors (const RangeFieldType phi, double& mu1, double& mu2 ) const
+   inline void diffFactors (const RangeFieldType phi, double& mu1, double& mu2 ) const
     {
       mu2 = phi*problem_.thermodynamics().mu2Liq()+(1-phi)*problem_.thermodynamics().mu2Vap();
       mu1 = phi*problem_.thermodynamics().mu1Liq()+(1-phi)*problem_.thermodynamics().mu1Vap();
@@ -206,21 +206,34 @@ inline void PhasefieldModel< Grid,Problem>
 template< class Grid, class Problem>
 inline void PhasefieldModel< Grid,Problem>
 ::systemSource ( const double time,
+                 const double deltaT,
                  const RangeType& vu,
                  const DomainType& xgl,
                  RangeType& s ) const
 {
   s=0.;
-  //Gravity
-  s[dimDomain]=vu[0]*force_;
-
-#if 0 
-PROBLEM==6 
+#if PROBLEM==1
   double x=xgl[0];
-  s[1]=problem_.veloSource(x);
-  s[2]=problem_.phiSource(x);
+  double tn=time+diffquotthresh_*deltaT;
+#if GRIDDIM==1
+  double y=1.;
+  s[0]=0.5*(problem_.thermodynamics().rhsRho(time,x,y)+problem_.thermodynamics().rhsRho(tn,x,y));
+  s[1]=0.5*(problem_.thermodynamics().rhsV1(time,x,y)+problem_.thermodynamics().rhsV1(tn,x,y));
+  s[2]=0.5*(problem_.thermodynamics().rhsPhi(time,x,y)+problem_.thermodynamics().rhsPhi(tn,x,y));
+#else
+  double y=xgl[1];
+  s[0]=0.5*(problem_.thermodynamics().rhsRho(time,x,y) + problem_.thermodynamics().rhsRho(tn,x,y));
+  s[1]=0.5*(problem_.thermodynamics().rhsV1(time,x,y)  + problem_.thermodynamics().rhsV1(tn,x,y) );
+  s[2]=0.5*(problem_.thermodynamics().rhsV2(time,x,y)  + problem_.thermodynamics().rhsV2(tn,x,y) );
+  s[3]=0.5*(problem_.thermodynamics().rhsPhi(time,x,y) + problem_.thermodynamics().rhsPhi(tn,x,y));
+#endif
+
+# else
+ //Gravity
+  s[dimDomain]=vu[0]*force_;
 #endif
 }
+
 
 template<class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem >
