@@ -209,7 +209,7 @@ void DGOperator<DiscreteFunction, Integrator>
         else if (  intersection.boundary())
           {
             //boundaryElement=true;
-            const int quadOrderEn = uLocal.order() + wLocal.order();
+            const int quadOrderEn = 2*uLocal.order() + 1;
 
             FaceQuadratureType quadInside( space().gridPart(), intersection, quadOrderEn, FaceQuadratureType::INSIDE );
 
@@ -259,7 +259,7 @@ void DGOperator<DiscreteFunction, Integrator>
                        const LocalFunctionType& uNeighbor,
                        LocalFunctionType& wLocal) const
 {
-  const int quadOrderEn = 2*std::max(uLocal.order(), wLocal.order())+2;
+  const int quadOrderEn = 2*std::max(uLocal.order(), wLocal.order())+1;
   typedef Dune::Fem::IntersectionQuadrature< FaceQuadratureType, conforming > IntersectionQuadratureType; 
   typedef typename IntersectionQuadratureType::FaceQuadratureType QuadratureImp;
 
