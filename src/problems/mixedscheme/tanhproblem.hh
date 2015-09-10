@@ -52,6 +52,8 @@ public:
     veloleft_(Fem::Parameter::getValue<double>("phasefield.veloleft")),
     thermodyn_()
     {
+      std::cout<<"liq: "<<rholiq_<<"\n";
+      std::cout<<"vap: "<<rhovap_<<"\n";
     }
 
 
@@ -80,8 +82,14 @@ public:
   {
     evaluate( t, x, res );
   }
+#if THERMO == 1
+#include <dune/phasefield/modelling/CoquelTaylorSources/coquelTaylorRho.cc>
+#elif THERMO == 2
+#include <dune/phasefield/modelling/CoquelTaylorSources/realRho.cc>
+#elif THERMO == 3
+#include <dune/phasefield/modelling/PhasefieldvanderWaalsSources/phasefieldvanderWaalsRho.cc>
+#endif
 
-#include "balanced.cc"
   template< class DiscreteFunctionType >
   void finalizeSimulation( DiscreteFunctionType& variablesToOutput,
                            const int eocloop) const
@@ -137,7 +145,7 @@ inline void TanhProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
 
-  double rhodiff=mwpliq(0.)-mwpvap(0.);
+  double rhodiff=rholiq_-rhovap_;
   const double rhomean=1;//0.5*(rhovap_+rholiq_);
 
 #if SURFACE
@@ -147,7 +155,7 @@ inline void TanhProblem<GridType,RangeProvider>
 #endif  
   double r=std::abs( arg[dimension-1]);//+0.025*sin(4*M_PI*arg[0]);
   double tanhr=-tanh( -( r-radius_ )*deltaInv );
-  double tanhrho=-tanh( -( r-(radius_+shift_))*rhofactor_*deltaInv );
+  double tanhrho=-tanh( -( r-radius_)*deltaInv );
 
   double velopos=r-(radius_+(delta_/rhomean));
   double peak=exp(-velopos*velopos*deltaInv*deltaInv);
@@ -157,11 +165,11 @@ inline void TanhProblem<GridType,RangeProvider>
   double drdrtanhr=tanhr*drtanhr;
   //-2/delta^2 *(tanh*(1-tanh^2)
   drdrtanhr*=-2*deltaInv;
-  double phi=-0.5*phiscale_*tanhr+0.5;
-
+  //double phi=1-0.5*(-tanhr+1);
+  double phi=0.5*tanhr+0.5;
   
   double rho=evalRho(phi);
-  //double rho=(rhodiff)*(0.5*-tanhrho+0.5)+rhovap_;
+  //double rho=(rhodiff)*(0.5*tanhrho+0.5)+rhovap_;
 
   //rho
   res[0]= rho;
@@ -177,7 +185,7 @@ inline void TanhProblem<GridType,RangeProvider>
 #if MIXED
   double dFdphi= thermodyn_.reactionSource(rho,phi,phi);
   double dFdrho= thermodyn_.chemicalPotential(rho,phi,rho);
-  double sigma=0.5*phiscale_*drtanhr;
+  double sigma=0.5*drtanhr;
   double laplacePhi=0.5*drdrtanhr;
   if(arg[0]<0.)
     {

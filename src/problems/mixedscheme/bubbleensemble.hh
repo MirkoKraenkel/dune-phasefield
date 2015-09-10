@@ -8,11 +8,7 @@
 
 // local includes
 
-#if SURFACE
 #include <dune/phasefield/modelling/thermodsurface.hh>
-#else
-#include <dune/phasefield/modelling/thermodynamicsbalancedphases.hh>
-#endif
 
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
 
