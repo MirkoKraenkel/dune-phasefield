@@ -69,8 +69,7 @@ public PhasefieldMixedIntegrator<DiscreteFunction,Model,Flux>
   PhasefieldMixedTensor(const ModelType &model,
       const DiscreteFunctionSpaceType &space)
     :BaseType(model,space),
-    jacFlux_(model),
-    imexFactor_( Dune::Fem::Parameter::getValue<double>("phasefield.IMEX"))
+    jacFlux_(model)
     {}
 
     template<class Quad>
@@ -148,13 +147,14 @@ public PhasefieldMixedIntegrator<DiscreteFunction,Model,Flux>
   using BaseType::lastSpeed_;
   using BaseType::factorImp_;
   using BaseType::factorExp_;
+  using BaseType::factorImp2_;
+  using BaseType::factorExp2_;
   using BaseType::areaEn_;
   using BaseType::areaNb_;
   using BaseType::outflow_;
 
   private:
   const JacobianFluxType jacFlux_;
-  const double imexFactor_;
   mutable RangeVectorType uEn_,uOldEn_,uNb_,uOldNb_;
   mutable JacobianVectorType duEn_,duOldEn_,duNb_,duOldNb_;
   mutable BasefunctionStorage phi_;
@@ -248,12 +248,12 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
   duMid.axpy(factorExp_,duOldEn_[pt]);
 
   //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
-  vuImEx.axpy(imexFactor_,uEn_[pt]);
-  vuImEx.axpy(1-imexFactor_,uOldEn_[pt]);
+  vuImEx.axpy(factorImp2_,uEn_[pt]);
+  vuImEx.axpy(factorExp2_,uOldEn_[pt]);
       
   //(1+theta)/2*DU^n+(1-theta)/2*DU^(n-1)
-  duImEx.axpy(imexFactor_,duEn_[pt]);
-  duImEx.axpy(1-imexFactor_,duOldEn_[pt]);
+  duImEx.axpy(factorImp2_,duEn_[pt]);
+  duImEx.axpy(factorExp2_,duOldEn_[pt]);
  
   //mu
   RangeFieldType dphimu(0.);
@@ -270,12 +270,9 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
       //(rho,rho)
       flux[0][0]=deltaTInv_*phi_[ jj ][0];
       //(v2,rho) gravity
-      RangeType source;
       DomainType xgl(0.);
       RangeType baseFunc(0.);
       baseFunc[0]=phi_[jj][0];
-      model_.systemSource(time_,baseFunc, xgl,source);
-//      flux[2][0]+=source[2];
 
       for( size_t kk = 0 ; kk < dimDomain ; ++kk )
         {
@@ -300,11 +297,11 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
           //(v,rho,mu*)
           flux[ 1+kk ][ 0 ]+=factorImp_*phi_[ jj ][ 0 ]*duImEx[ 2 + dimDomain ][ kk ];
           //(v,rho*,mu)
-          flux[ 1+kk ][ dimDomain+2]+=imexFactor_*vuMid[ 0 ]*dphi_[ jj ][ 0 ][ kk ];
+          flux[ 1+kk ][ dimDomain+2]+=factorImp2_*vuMid[ 0 ]*dphi_[ jj ][ 0 ][ kk ];
           //(v,phi,tau*)
           flux[ 1+kk][ dimDomain+1]-=factorImp_*vuImEx[ dimDomain + 3 ]*dphi_[ jj ][0][ kk ];
           //(v,phi*,tau)               
-          flux[ 1+kk][ dimDomain+3]-=imexFactor_*phi_[ jj ][ 0 ]*duMid[ dimDomain + 1 ][ kk ] ;
+          flux[ 1+kk][ dimDomain+3]-=factorImp2_*phi_[ jj ][ 0 ]*duMid[ dimDomain + 1 ][ kk ] ;
           //\nabla phi_phi\cdot v
           flux[ dimDomain+1 ][ dimDomain+1 ]+=factorImp_*dphi_[ jj ][0][kk]*vuMid[ 1+ kk];
           //\nabla phi \cdot phi_v
@@ -318,9 +315,9 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
 #endif
  
           //(sigma,gradphi)
-          flux[ dimDomain+4+kk ][ dimDomain+1 ]-=dphi_[ jj ][ 0 ][ kk ];
+          flux[ dimDomain+4+kk ][ dimDomain+1 ]-=factorImp2_*dphi_[ jj ][ 0 ][ kk ];
           //(sigma,sigma)
-          flux[ dimDomain+4+kk ][ dimDomain+4+kk]=phi_[ jj ][ 0 ];
+          flux[ dimDomain+4+kk ][ dimDomain+4+kk]=factorImp2_*phi_[ jj ][ 0 ];
 
 #if LAMBDASCHEME
           //(tau, gradlambda)
@@ -343,7 +340,7 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
           flux[ dimDomain+1 ][ dimDomain+1]+=phi_[jj][0]*deltaTInv_;
 
           //(phi_tau rho)/ rho*rho
-          flux[ dimDomain+1 ][ dimDomain+3 ]=model_.reactionFactor()*imexFactor_*phi_[ jj ][ 0 ]*vuMid[ 0 ]/(vuMid[0]*vuMid[0]);
+          flux[ dimDomain+1 ][ dimDomain+3 ]=model_.reactionFactor()*factorImp2_*phi_[ jj ][ 0 ]*vuMid[ 0 ]/(vuMid[0]*vuMid[0]);
 
           //tau
           RangeFieldType dphitau(0.);
@@ -359,10 +356,10 @@ void PhasefieldMixedTensor<DiscreteFunction , Model, Flux , JacFlux >
           //(mu,phi)
           flux[ dimDomain+2 ][ dimDomain+1 ]=-1*dphimu*phi_[ jj ][ 0];
           //(mu,mu)
-          flux[ dimDomain+2 ][ dimDomain+2 ]=imexFactor_*phi_[ jj ][ 0 ];
+          flux[ dimDomain+2 ][ dimDomain+2 ]=factorImp2_*phi_[ jj ][ 0 ];
         
          //(tau,tau)
-          flux[ dimDomain+3 ][ dimDomain+3 ]+=imexFactor_*phi_[ jj ][ 0 ];
+         flux[ dimDomain+3 ][ dimDomain+3 ]+=factorImp2_*phi_[ jj ][ 0 ];
 
           DiffusionType du;
 
@@ -464,11 +461,11 @@ void PhasefieldMixedTensor<DiscreteFunction, Model, Flux,JacFlux >
   vuMidNb.axpy( factorImp_ , uNb_[ pt ] );
   vuMidNb.axpy( factorExp_ , uOldNb_[ pt ]);
 
-  vuImExEn.axpy( imexFactor_ , uEn_[ pt ] );
-  vuImExEn.axpy( 1-imexFactor_ , uOldEn_[ pt ] );
+  vuImExEn.axpy( factorImp2_ , uEn_[ pt ] );
+  vuImExEn.axpy( factorExp2_ , uOldEn_[ pt ] );
 
-  vuImExNb.axpy( imexFactor_ , uNb_[ pt ] );
-  vuImExNb.axpy( 1-imexFactor_, uOldNb_[ pt ]);
+  vuImExNb.axpy( factorImp2_ , uNb_[ pt ] );
+  vuImExNb.axpy( factorExp2_, uOldNb_[ pt ]);
 
   duMidEn.axpy( factorImp_ , duEn_[ pt ] );
   duMidEn.axpy( factorExp_ , duOldEn_[ pt ] );
