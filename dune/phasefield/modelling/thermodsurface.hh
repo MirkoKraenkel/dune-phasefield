@@ -76,7 +76,13 @@ public Thermodynamics<BalancedThermodynamics>
 #if UNBALMODEL
 #include "AltAltSources/maple.cc"
 #elif THERMO==1
+#if PROBLEM==1
+#include <dune/phasefield/modelling/CoquelTaylorSources/coquelTaylorMmaple.cc>
+#include <dune/phasefield/modelling/CoquelTaylorSources/coquelTaylorMSource.cc>
+#include <dune/phasefield/modelling/CoquelTaylorSources/coquelTaylorMRho.cc>
+#else
 #include "CoquelTaylorSources/coquelTaylormaple.cc"
+#endif
 #elif THERMO==2
 #include "CoquelTaylorSources/realmaple.cc"
 #elif THERMO==3
