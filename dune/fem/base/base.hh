@@ -116,6 +116,7 @@ void compute(Algorithm& algorithm)
     const double h = Dune::Fem::GridWidth::calcGridWidth(algorithm.space().gridPart());
 
     algorithm.finalize( eocloop );
+#if EOC
     if( Dune::Fem::Parameter :: verbose() )
       Dune::Fem::FemEoc::write(h,grid.size(0), runTime, counter,avgTimeStep,minTimeStep,
                     maxTimeStep, total_newton_iterations, total_ils_iterations, 
@@ -124,18 +125,27 @@ void compute(Algorithm& algorithm)
       Dune::Fem::FemEoc::write(h,grid.size(0),runTime,counter,avgTimeStep,minTimeStep,
                     maxTimeStep,total_newton_iterations,total_ils_iterations,
                     max_newton_iterations, max_ils_iterations);
-   
+#else
+    if( Dune::Fem::Parameter :: verbose() )
+     Dune::Fem::FemEoc::write(maxTimeStep,grid.size(0), runTime, counter,avgTimeStep,minTimeStep,
+                    maxTimeStep, total_newton_iterations, total_ils_iterations,
+                    max_newton_iterations, max_ils_iterations, std::cout);
+    else
+      Dune::Fem::FemEoc::write(maxTimeStep,grid.size(0),runTime,counter,avgTimeStep,minTimeStep,
+                    maxTimeStep,total_newton_iterations,total_ils_iterations,
+                    max_newton_iterations, max_ils_iterations);
+#endif
     DataOutputType dataOutput( grid, dataTup );
 
  //       dataOutput.writeData(eocloop);
     // Refine the grid for the next EOC Step. If the scheme uses adaptation,
     // the refinement level needs to be set in the algorithms' initialize method.
-    if(eocloop < eocSteps-1)
+#if EOC
+if(eocloop < eocSteps-1)
     {
       Dune::Fem::GlobalRefine::apply(grid,Dune::DGFGridInfo<GridType>::refineStepsForHalf());
     }
-
-
+#endif
     } /***** END of EOC Loop *****/
   Dune::FemTimer::removeAll();
 }
