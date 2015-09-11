@@ -47,7 +47,6 @@ class PhasefieldMixedIntegrator
                               model_( model),
                               flux_( model ),
                               theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
-                              imexFactor_( Dune::Fem::Parameter::getValue<double>("phasefield.IMEX")),
                               time_(0.),
                               deltaT_(0.),
                               deltaTInv_(0.),
@@ -57,14 +56,13 @@ class PhasefieldMixedIntegrator
                               uOldLocal_(space),
                               uOldNeighbor_(space),
                               outflow_(Dune::Fem::Parameter::getValue<bool>("phasefield.outflow")),
-                              minArea_( std::numeric_limits<double>::max() )
+                              minArea_( std::numeric_limits<double>::max() ),
+                              rescale_(Dune::Fem::Parameter::getValue<bool>("phasefield.rescale")),
+                              precFactor_(1.)
       {
         uOld_.clear();
         factorImp_=0.5*(1+theta_);
         factorExp_=0.5*(1-theta_);
-        factorImp2_=0.5*(1+imexFactor_);
-        factorExp2_=0.5*(1-imexFactor_);
-        std::cout<<" factorImp= "<<factorImp_<<" factorImp2= "<<factorImp2_<<std::endl;
       }
   
   
@@ -87,7 +85,14 @@ class PhasefieldMixedIntegrator
   }
   
   void setTime ( const double time) { time_=time; }
-  void setDeltaT ( const double deltat) { deltaT_=deltat; deltaTInv_=1./deltaT_; }
+  void setDeltaT ( const double deltat)
+   
+    deltaT_=deltat;
+
+    deltaTInv_=1./deltaT_;
+    if( rescale_ )
+      precFactor_*=deltaTInv_;
+  }
 
   double timeStepEstimate () { return std::min( 1./maxSpeed_,lipschitzC()); }
 
@@ -133,7 +138,6 @@ class PhasefieldMixedIntegrator
   ModelType model_;    
   NumericalFluxType flux_;
   const double  theta_;
-  const double  imexFactor_;
   double time_;
   double deltaT_;
   double deltaTInv_;
@@ -148,9 +152,8 @@ class PhasefieldMixedIntegrator
   mutable double areaNb_;
   double factorImp_;
   double factorExp_;
-  double factorImp2_;
-  double factorExp2_;
-
+  bool rescale_;
+  double precFactor_;
 
 };
 
@@ -173,7 +176,7 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   const typename QuadratureType::CoordinateType &x = quadrature.point( pt );
   const double weight = quadrature.weight( pt )* geometry.integrationElement( x );
   const DomainType xgl = geometry.global(x);
-  RangeType vuOld,vuMid(0.), vuImEx(0.);
+  RangeType vuOld, vuMid(0.);
 
   //this should stay instide local Integral as it is operator specific
   uOldLocal_.evaluate( quadrature[ pt ], vuOld); 
@@ -182,21 +185,15 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   //(1+theta)/2*U^n+(1-theta)/2*U^(n-1)
   vuMid.axpy(factorImp_,vu);
   vuMid.axpy(factorExp_,vuOld);
-  //(1+theta2)/2*U^n+(1-theta2)/2*U^(n-1)
-  vuImEx.axpy( factorImp2_,vu);
-  vuImEx.axpy( factorExp2_,vuOld);
 
-  JacobianRangeType duOld,duMid(0.),duImEx(0.) ;
+  JacobianRangeType duOld,duMid(0.);
   uOldLocal_.jacobian( quadrature[ pt ], duOld);
 
   //(1+theta)/2*DU^n+(1-theta)/2*DU^(n-1)
   duMid.axpy(factorImp_,du);
   duMid.axpy(factorExp_,duOld);
-  //(1+theta2)/2*DU^n+(1-theta2)/2*DU^(n-1)
-  duImEx.axpy(factorImp2_,du);
-  duImEx.axpy(factorExp2_,duOld);
-
-
+  double precInv=1.;
+  
   RangeType  source(0.);
   model_.systemSource(time_,deltaT_,vuOld, xgl, source);
   //rho------------------------------------------------------------- 
@@ -210,9 +207,9 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   for(int ii = 0; ii <dimDomain ; ++ii )
   { 
     //sum d_i v_i 
-    div+=Filter::dvelocity(duMid, ii , ii );
+    div+=Filter::dvelocity( duMid, ii , ii );
     // sum d_i rho*v_i
-    gradrhodotv+=Filter::drho(duMid , ii )*Filter::velocity(vuMid, ii );
+    gradrhodotv+=Filter::drho( duMid , ii )*Filter::velocity( vuMid, ii );
   }
 
   Filter::rho(avu)+=div*Filter::rho(vuMid)+gradrhodotv;
@@ -234,11 +231,11 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
               *(Filter::dvelocity(duMid, ii , jj )-Filter::dvelocity( duMid, jj , ii));
 
     Filter::velocity( avu , ii )+=sgradv;
-    Filter::velocity( avu , ii )+=Filter::dmu( duImEx, ii);
+    Filter::velocity( avu , ii )+=precInv*Filter::dmu( duMid, ii);
     Filter::velocity( avu , ii )*=Filter::rho( vuMid);
 
     //-tau\nabla phi
-    Filter::velocity( avu , ii )-=Filter::tau( vuImEx )*Filter::dphi( duMid , ii );
+    Filter::velocity( avu , ii )-=precInv*Filter::tau( vuMid )*Filter::dphi( duMid , ii );
   }
   // A(dv) 
   model_.diffusion( vuMid, duMid , adu );
@@ -256,16 +253,16 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   { 
     transport+=Filter::velocity( vuMid , ii )*Filter::dphi(duMid, ii );
   }
-  Filter::phi( avu )+=transport+model_.reactionFactor()*Filter::tau( vuImEx )/Filter::rho(vuMid);
+  Filter::phi( avu )+=transport+model_.reactionFactor()*precInv*Filter::tau( vuMid )/Filter::rho(vuMid);
   //mu-----------------------------------------------------------------
   
   double dFdrho;
 //  model_.muSource(Filter::rho(vu),Filter::rho(vuOld),Filter::phi(vu),dFdrho);
-  model_.muSource(Filter::rho(vu),Filter::rho(vuOld),Filter::phi(vuImEx),dFdrho);
+  model_.muSource(Filter::rho(vu),Filter::rho(vuOld),Filter::phi( vuMid ),dFdrho);
 
 
 
-  Filter::mu(avu)=Filter::mu( vuImEx );
+  Filter::mu(avu)=precFactor_*Filter::mu( vuMid );
   Filter::mu(avu)-=dFdrho;
   RangeFieldType usqr(0.) , uOldsqr(0.) , sigmasqr(0.) , sigmaOldsqr(0.);
 
@@ -309,11 +306,11 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
 #else
  model_.tauSource( Filter::phi(vu),
                     Filter::phi(vuOld),
-                    Filter::rho(vuImEx),
+                    Filter::rho(vuMid),
                     dFdphi);
 
 #endif
-  Filter::tau( avu )=Filter::tau( vuImEx );
+  Filter::tau( avu )=precFactor_*Filter::tau( vuMid );
   Filter::tau( avu )-=dFdphi;
 
   RangeFieldType divsigma(0.), gradrhosigma(0.);
@@ -328,7 +325,7 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
       gradrhosigma+=Filter::sigma( vuMid, ii )*Filter::drho( duMid, ii)* model_.h2prime( Filter::rho( vuMid ) );
 #endif
 #else
-      divsigma+=Filter::dsigma( duMid, ii , ii );
+      divsigma+=precInv*Filter::dsigma( duMid, ii , ii );
 #endif
     }
 #if RHOMODEL && !LAMBDASCHEME
@@ -343,7 +340,7 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   for( int ii = 0 ; ii < dimDomain ; ++ii) 
   {
     //sigma^n
-    Filter::sigma( avu , ii )=Filter::sigma( vu , ii );
+    Filter::sigma( avu , ii )=precFactor_*Filter::sigma( vu , ii );
     //\nabla\phi^n
     Filter::sigma( avu , ii )-=Filter::dphi( du , ii );
 #if RHOMODEL && LAMBDASCHEME
@@ -403,19 +400,6 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   duMidNb.axpy( factorImp_ , duNb );
   duMidNb.axpy( factorExp_ , duOldNb );
 
-  vuMidEn2.axpy( factorImp2_ , vuEn );
-  vuMidEn2.axpy( factorExp2_ , vuOldEn );
-
-  vuMidNb2.axpy( factorImp2_ , vuNb );
-  vuMidNb2.axpy( factorExp2_ , vuOldNb);
-
-  duMidEn2.axpy( factorImp2_ , duEn );
-  duMidEn2.axpy( factorExp2_ , duOldEn );
-
-  duMidNb2.axpy( factorImp_ , duNb );
-  duMidNb2.axpy( factorExp2_ , duOldNb );
-
-
   const typename FaceQuadratureType::LocalCoordinateType &x = quadInside.localPoint( pt );
   const DomainType normal = intersection.integrationOuterNormal( x );
 
@@ -435,12 +419,11 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
   fluxRet=flux_.numericalFlux( normal,
                               viscFactor,
                               penaltyFactor,
+                              precFactor_,
                               vuEn,
                               vuNb,
                               vuMidEn,  
                               vuMidNb, 
-                              vuMidEn2,
-                              vuMidNb2,
                               avuLeft,
                               avuRight); 
  

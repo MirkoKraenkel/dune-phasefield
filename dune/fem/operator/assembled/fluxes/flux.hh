@@ -36,12 +36,11 @@ public:
   double numericalFlux( const DomainType& normal, 
                         const double viscFactor,
                         const double penaltyFactor,
+                        const double precFactor_,
                         const RangeType& vuEn,
-                        const RangeType& vuN,
+                        const RangeType& vuNb,
                         const RangeType& vuEnMid,
                         const RangeType& vuNbMid,
-                        const RangeType& vuEnMid2,
-                        const RangeType& vuNbMid2,
                         RangeType& gLeft,
                         RangeType& gRight) const;
 
@@ -234,36 +233,30 @@ double MixedFlux<Model>
 ::numericalFlux( const DomainType& normal,
                 const double viscFactor,
                 const double penaltyFactor,
+                const double precFactor,
                 const RangeType& vuEn, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuNb, // needed for calculation of sigma which is fully implicit
                 const RangeType& vuEnMid,
                 const RangeType& vuNbMid,
-                const RangeType& vuEnMid2,
-                const RangeType& vuNbMid2,
                 RangeType& gLeft,
                 RangeType& gRight) const
   {
-    RangeType valEn,valNb,midEn,midNb,midEn2,midNb2,jump,mean,jumpNew,jumpImex;
+    RangeType valEn,valNb,midEn,midNb,jumpMid,jumpNew;
     valEn=vuEn;
     valNb=vuNb;
     double integrationElement=normal.two_norm();
+    double precInv=1.;
     gLeft=0.;
     gRight=0.;
 
     midEn=vuEnMid;
     midNb=vuNbMid;
-    midEn2=vuEnMid2;
-    midNb2=vuNbMid2;
 
-    jump = midEn;
-    jump-= midNb;
-    mean = midEn ;
-    mean+= midNb;
-    mean*=0.5;
+    jumpMid = midEn;
+    jumpMid-= midNb;
+
     jumpNew=valEn;
     jumpNew-=valNb;
-    jumpImex=midEn2;
-    jumpImex-=midNb2;
     //rho-------------------------------------------------------------
  
     double vNormalEn(0.),vNormalNb(0.);
@@ -277,17 +270,13 @@ double MixedFlux<Model>
       }
     
     //F_1=-0.5*( \rho^+*v^+\cdot n^+ -\rho^-*v-\cdot n^+)  
-    //Filter::rho(gLeft)=vNormalEn-vNormalNb;
     Filter::rho(gLeft)=vNormalEn*Filter::rho(midEn)-vNormalNb*Filter::rho(midNb);
     Filter::rho(gLeft)*=-0.5;
     //[[ mu ]]
-    double viscmu=Filter::mu(jump);
-//    double vismu=model_.chemicalPotential(midEn[0],midEn[dim+1],midEn[0])-model_.chemicalPotential(midNb[0],midNb);
-
-
+    double viscmu=Filter::mu( jumpMid );
 
     //[[ rho ]]
-    double viscrho=Filter::rho( jump );
+    double viscrho=Filter::rho( jumpMid );
 
     Filter::rho( gLeft )+=numVisc_*viscFactor*viscrho;
     Filter::rho( gRight )=Filter::rho( gLeft );
@@ -302,12 +291,12 @@ double MixedFlux<Model>
       { 
         //F_2=F_{2.1}+F_{2.2}
         //F_{2.1}=-(\mu^+-\mu^-)*n[i]*\rho^+*0.5;
-        Filter::velocity(gLeft,i)-=Filter::mu(jumpImex)*normal[i]*Filter::rho(midEn)*0.5;
-        Filter::velocity(gRight,i)-=Filter::mu(jumpImex)*normal[i]*Filter::rho(midNb)*0.5;
+        Filter::velocity(gLeft,i)-=precInv*Filter::mu(jumpMid)*normal[i]*Filter::rho(midEn)*0.5;
+        Filter::velocity(gRight,i)-=precInv*Filter::mu(jumpMid)*normal[i]*Filter::rho(midNb)*0.5;
 
         //F_{2.2}=+(\phi^+-\phi^-)*n[i]*\tau
-        Filter::velocity(gLeft,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midEn2)*0.5;
-        Filter::velocity(gRight,i)+= Filter::phi(jump)*normal[i]*Filter::tau(midNb2)*0.5;
+        Filter::velocity(gLeft,i)+= Filter::phi(jumpMid)*normal[i]*precInv*Filter::tau(midEn)*0.5;
+        Filter::velocity(gRight,i)+= Filter::phi(jumpMid)*normal[i]*precInv*Filter::tau(midNb)*0.5;
       } 
     
     //----------------------------------------------------------------
@@ -318,8 +307,8 @@ double MixedFlux<Model>
         //F_{3.1}
      
         //-(\phi^+-\phi^-)*n[i]*v[i]*0.5 
-        Filter::phi(gLeft)-=Filter::phi(jump)*normal[i]*Filter::velocity(midEn,i)*0.5;
-        Filter::phi(gRight)-=Filter::phi(jump)*normal[i]*Filter::velocity(midNb,i)*0.5;
+        Filter::phi(gLeft)-=Filter::phi(jumpMid)*normal[i]*Filter::velocity(midEn,i)*0.5;
+        Filter::phi(gRight)-=Filter::phi(jumpMid)*normal[i]*Filter::velocity(midNb,i)*0.5;
           
         //tau 
         //F_{3.2}
@@ -334,7 +323,7 @@ double MixedFlux<Model>
 #else
         //F_{3.2}
         //(\sigma^+-\sigma^-)\cdot n * 0.5
-        laplaceFlux+=Filter::sigma(jump,i)*normal[i]*0.5;
+        laplaceFlux+=precInv*Filter::sigma(jumpMid,i)*normal[i]*0.5;
 #endif        
       }  
     //----------------------------------------------------------------
@@ -343,7 +332,7 @@ double MixedFlux<Model>
     double penaltyTerm=acpenalty_;
     penaltyTerm*=penaltyFactor;
     penaltyTerm*=integrationElement;
-    penaltyTerm*=Filter::phi(jump);
+    penaltyTerm*=Filter::phi(jumpMid);
 
     Filter::tau(gLeft)-=model_.delta()*(laplaceFlux+penaltyTerm);
     Filter::tau(gRight)=Filter::tau( gLeft );
