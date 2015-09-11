@@ -16,7 +16,7 @@ GRIDTYPE = ALUGRID_CUBE
 #GRIDTYPE = ALBERTAGRID
 GRIDDIM = 2 
 POLORDER = 2 
-PROBLEM = 2 # check ./problemtype.hh
+PROBLEM = 1 # check ./problemtype.hh
 THERMO = 1
 FLUX = 1 # check ./problemcreator.hh
 
@@ -25,17 +25,20 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefield_fd phasefield_split phasefield_split_fd  phasefield_split_fd_dq phasefield_split_fd_tl phasefield_ub_split phasefield_lambda
+check_PROGRAMS = phasefield phasefield_fd phasefield_Time phasefield_fdTime 
 
 phasefield_SOURCES = $(SOURCES)
-phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DSURFACE -DCOUPLING -DTAYLOR -DIMPLICITTAU
+phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DCOUPLING -DTAYLOR -DEOC
 
-phasefield_split_SOURCES = $(SOURCES)
-phasefield_split_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE  -DCOUPLING -DSPLIT -DIMPLICITTAU
-
+phasefield_Time_SOURCES = $(SOURCES)
+phasefield_Time_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DCOUPLING -DTAYLOR
 
 phasefield_fd_SOURCES = $(SOURCES) 
-phasefield_fd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DFD -DTAYLOR -DIMPLICITTAU
+phasefield_fd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DFD -DTAYLOR -DEOC
+
+phasefield_fd_SOURCES = $(SOURCES) 
+phasefield_fd_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DFD -DTAYLORR
+
 
 #phasefield_fd_dq_SOURCES = $(SOURCES)
 #phasefield_fd_dq_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DSURFACE -DFD -DDIFFQUOT -DIMPLICITTAU
