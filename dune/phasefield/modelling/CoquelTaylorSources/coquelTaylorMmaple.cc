@@ -91,6 +91,30 @@ old-12.0)*t10+0.1*t54*t21-0.1*t54*t27)*t41/12.0);
 }
 
 
+inline double drhoreactionSource ( double rho ,double phi ,double old ) const
+{
+  double t10;
+  double t11;
+  double t16;
+  double t22;
+  double t3;
+  double t30;
+  double t4;
+  double t5;
+  {
+    t3 = 0.5*phi+0.5*old;
+    t4 = t3*t3;
+    t5 = t4*t4;
+    t10 = 30.0*t5-60.0*t4*t3+30.0*t4;
+    t11 = log(rho);
+    t16 = 0.6931471805599453+0.15E1*t11;
+    t22 = 360.0*t4-0.18E3*phi-0.18E3*old+60.0;
+    t30 = pow(phi-old,2.0);
+    return(0.1*t10*t11-0.1*t10*t16+(0.1*t22*t11-0.1*t22*t16)*t30/24.0);
+  }
+}
+
+
 inline double chemicalPotential ( double rho ,double phi ,double old ) const
 {
   double t1;
