@@ -42,6 +42,8 @@ public:
     endTime_ ( Fem::Parameter::getValue<double>( "phasefield.endTime",1.0 )), 
     delta_(Fem::Parameter::getValue<double>( "phasefield.delta" )),
     A_(Fem::Parameter::getValue<double>("phasefield.A")),
+    deltaT_( Fem::Parameter::getValue<double>("fixedTimeStep",0)),
+    rescale_( Fem::Parameter::getValue<bool>("phasefield.rescale")),
     thermodyn_()
     {
     }
@@ -91,6 +93,8 @@ public:
   const double endTime_;
   const double delta_;
   double A_;
+  double deltaT_;
+  bool rescale_;
   const ThermodynamicsType thermodyn_;
   
 };
@@ -112,6 +116,10 @@ template <class GridType,class RangeProvider>
 inline void ManufacturedProblem<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
+  double scale=1;
+  if(rescale_)
+    scale*=deltaT_;
+  
   double x=arg[0];
 #if GRIDDIM==1 
   double y=1.;
@@ -119,9 +127,9 @@ inline void ManufacturedProblem<GridType,RangeProvider>
   res[0]=thermodyn_.exactrho(t,x,y);
   res[1]=thermodyn_.exactv1(t,x,y);
   res[2]=thermodyn_.exactphi(t,x,y);
-  res[3]=thermodyn_.exactmu(t,x,y);
-  res[4]=thermodyn_.exacttau(t,x,y);
-  res[5]=thermodyn_.exactsigma1(t,x,y);
+  res[3]=scale*thermodyn_.exactmu(t,x,y);
+  res[4]=scale*thermodyn_.exacttau(t,x,y);
+  res[5]=scale*thermodyn_.exactsigma1(t,x,y);
 #else
   double y=arg[1];
   res[0]=thermodyn_.exactrho(t,x,y);
