@@ -86,7 +86,7 @@ class PhasefieldMixedIntegrator
   
   void setTime ( const double time) { time_=time; }
   void setDeltaT ( const double deltat)
-   
+  { 
     deltaT_=deltat;
 
     deltaTInv_=1./deltaT_;

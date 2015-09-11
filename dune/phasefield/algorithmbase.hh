@@ -578,7 +578,7 @@ public:
     std::vector<unsigned int> comp{0};
     for (int i = 0 ; i < dimDomain ; ++i)
       comp.push_back(1+i);
-    comp.push_back( dimDomain+1 )
+    comp.push_back( dimDomain+1 );
     Fem::ComponentL2Norm< GridPartType > l2norm(gridPart_, comp ,POLORDER);
     
     return l2norm.distance(uOld, uNew);
