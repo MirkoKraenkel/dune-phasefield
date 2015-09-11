@@ -7,7 +7,7 @@ folders = { 1:'../CoquelTaylorSources/' , 2:'../CoquelTaylorSources/', 3:'../Pha
 files = { 1:'real' , 2:'coquelTaylor' , 3:'phasefieldvanderWaals', 4:'coquelTaylorM'}
 
 namelist  = [' helmholtz', ' pressure', ' a']
-namelist2 = [ ' reactionSource',' dphireactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential']
+namelist2 = [ ' reactionSource',' dphireactionSource',' drhoreactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential']
 namelist3 = [' mwpliq', ' mwpvap', ' exactrho', ' exactv1', ' exactv2', ' exactphi',' exactsigma1',' exactsigma2', ' exactmu',' exacttau']
 namelist4 = [' rhsRho', ' rhsV1', ' rhsV2', ' rhsPhi'] 
 
