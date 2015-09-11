@@ -39,8 +39,8 @@ gridsol.usegridsolution: false
 # GENERAL SETTINGS
 #-----------------
 
-phasefield.eocSteps: 1 
-phasefield.printCount: 10
+phasefield.eocSteps: 3  
+phasefield.printCount: 0 
 phasefield.verbose: 0 
 
 # create a file with sampled values of the numerical solution
