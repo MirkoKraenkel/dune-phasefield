@@ -24,8 +24,8 @@ class PhasefieldRunner:
     self.params=[ 'paramfile','phasefield.delta','phasefield.mu1','phasefield.mu2','phasefield.endTime', 'fixedTimeStep',
                   'fem.prefix','phasefield.startLevel','phasefield.reactionrate','phasefield.alpha',
                   'phasefield.beta','phasefield.A', 'phasefield.rhofactor','phasefield.addvisc',
-                  'phasefield.muvisc','phasefield.acpenalty','phasefield.gravity','phasefield.timestepfactor','phasefield.shift','phasefield.veloleft','phasefield.veloright']
-    self.defaults=['*.log', '0.05','0.1','0.1','10','0','','0','1','0.','1','0.1','0',0,1,1,0.,1,0,0 ,0]
+                  'phasefield.muvisc','phasefield.acpenalty','phasefield.gravity','phasefield.timestepfactor','phasefield.rescale']
+    self.defaults=['*.log', '0.01','0.1','0.1','1','0','','0','1','0.','1','0.002','0',1,0., 1,0.,1,'false']
     
     self.paramEntries=self.makeform(paramframe,self.params)
     
@@ -73,7 +73,7 @@ class PhasefieldRunner:
     idxs = self.listbox.curselection()
     index=int(idxs[0])
     p=self.programms[index]
-    outfile='./Data_'+myday+'/'+self.paramEntries['fem.prefix'].get()
+    outfile='/disk1/Data_'+myday+'/'+self.paramEntries['fem.prefix'].get()
     paramstring=''
     paramstring+='fem.prefix:'+outfile+'_'+p+' '
     execstring ='./'+p+' '+paramstring+' paramfile:'+self.paramEntries['paramfile'].get()
@@ -101,7 +101,6 @@ class PhasefieldRunner:
     
     #execstring ='/opt/openmpi/bin/mpiexec -n 4 '+p+' '+paramstring+'paramfile:parameter_gui'
     #execstring ='/opt/openmpi/bin/mpiexec -n 4  xterm -e gdb --args '+p+' '+paramstring+'paramfile:parameter_gui'
-    #execstring ='./'+p+' '+paramstring+'paramfile:parameter_gui &>'+outfile+p+'.out'
     execstring ='./'+p+' '+paramstring+'paramfile:../parameterFiles/parameter'
     #execstring ='./'+p+' '+paramstring+'paramfile:../parameterFiles/parameter &> '+outfile+p+ '.out'
     #
