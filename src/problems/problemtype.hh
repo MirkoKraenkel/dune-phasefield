@@ -33,15 +33,21 @@ struct RangeTypeProvider<dimension,false>
 // AVAILABLE PROBLEMS
 ///////////////////////////////////////
 #if PROBLEM==1
-#include "travellingwave.hh"
-#ifdef MIXED
-typedef TravelProblem< GridSelector :: GridType, 
- RangeTypeProvider<GridSelector::GridType::dimensionworld,true> 
- >  PhaseProblemType;
+#include "../mixedscheme/manufacturedproblem.hh"
+#if MIXED
+typedef ManufacturedProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > PhaseProblemType;
+#if SPLIT
+typedef NvStManufacturedProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > NvStPhaseProblemType;
+typedef AcManufacturedProblem< GridSelector :: GridType,
+        RangeTypeProvider< GridSelector::GridType::dimensionworld,true>
+        > AcPhaseProblemType;
+#endif
 #else
-typedef TravelProblem< GridSelector :: GridType, 
- RangeTypeProvider<GridSelector::GridType::dimensionworld,false> 
- >  PhaseProblemType;
+#error
 #endif
 #elif PROBLEM==2
 #include "../mixedscheme/bubbleensemble.hh"
