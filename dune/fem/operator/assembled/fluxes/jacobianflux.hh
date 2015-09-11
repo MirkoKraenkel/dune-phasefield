@@ -30,7 +30,6 @@ public:
     numVisc_(Dune::Fem::Parameter::getValue<double>("phasefield.addvisc",0)),
     numViscMu_(Dune::Fem::Parameter::getValue<double>("phasefield.muvisc",0)),
     theta_(Dune::Fem::Parameter::getValue<double>("phasefield.mixed.theta")),
-    imexFactor_(Dune::Fem::Parameter::getValue<double>("phasefield.IMEX")),
     factorImp_(0.5*(1+theta_))
     {
 
@@ -114,8 +113,7 @@ private:
   const double numVisc_;
   const double numViscMu_;
   const double theta_;
-  const double imexFactor_;
-  double factorImp_;
+  const double factorImp_;
 };
 
 
@@ -215,12 +213,12 @@ void  JacobianFlux<Model>
 
 
            //(\rho_j,\mu*,\v_i)
-          gLeft[ 1 + ii ][ 0 ]=-factorImp_*jumpImEx[ dimDomain + 2 ]*normal[ ii ];
+          gLeft[ 1 + ii ][ 0 ]=-factorImp_*jump[ dimDomain + 2 ]*normal[ ii ];
           //(\rho*,\mu_j,\v_i)
-          gLeft[ 1 + ii ][ dimDomain + 2 ]=-imexFactor_*normal[ ii ]*midEn[ 0 ];
-          gRight[ 1 + ii ][ dimDomain + 2 ]=imexFactor_*normal[ ii ]*midEn[ 0 ]; 
+          gLeft[ 1 + ii ][ dimDomain + 2 ]=-factorImp_*normal[ ii ]*midEn[ 0 ];
+          gRight[ 1 + ii ][ dimDomain + 2 ]=factorImp_*normal[ ii ]*midEn[ 0 ];
           //(\phi*,\tau_j,v_i)
-          gLeft[ 1 + ii ][ dimDomain + 3 ]=jump[ dimDomain + 1 ]*normal[ ii ]*imexFactor_;
+          gLeft[ 1 + ii ][ dimDomain + 3 ]=jump[ dimDomain + 1 ]*normal[ ii ]*factorImp_;
           //(\phi_j,\tau*,v_i)
           gLeft[ 1 + ii ][ dimDomain + 1] =factorImp_*normal[ ii ]*vuEnImEx[ dimDomain + 3 ];
           gRight[ 1 + ii ][ dimDomain + 1 ]=-factorImp_*normal[ ii ]*vuEnImEx[ dimDomain + 3 ];

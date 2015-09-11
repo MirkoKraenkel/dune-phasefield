@@ -54,17 +54,17 @@ class PhasefieldModel
                                RangeType& s) const;
 
 
-    inline void  muSource ( const RangeFieldType rho,
-                            const RangeFieldType rhoOld,
-                            const RangeFieldType phi,
-                            RangeFieldType& mu) const;
+    inline void muSource ( const RangeFieldType rho,
+                           const RangeFieldType rhoOld,
+                           const RangeFieldType phi,
+                           RangeFieldType& mu) const;
 
-    inline void  drhomuSource ( const RangeFieldType rho,
+    inline void drhomuSource ( const RangeFieldType rho,
                                 const RangeFieldType rhoOld,
                                 const RangeFieldType phi,
                                 RangeFieldType& mu) const;
 
-    inline void  dphimuSource ( const RangeFieldType rho,
+    inline void dphimuSource ( const RangeFieldType rho,
                                 const RangeFieldType rhoOld,
                                 const RangeFieldType phi,
                                 RangeFieldType& mu) const;
@@ -78,6 +78,12 @@ class PhasefieldModel
                                 const RangeFieldType phiOld,
                                 const RangeFieldType rho,
                                 RangeFieldType& tau) const;
+
+    inline void drhotauSource ( const RangeFieldType phi,
+                                const RangeFieldType phiOld,
+                                const RangeFieldType rho,
+                                RangeFieldType& tau) const;
+
 
     inline double maxSpeed( const DomainType& normal,
                             const RangeType& u) const;
@@ -313,6 +319,7 @@ inline void PhasefieldModel< Grid, Problem>
    tau=problem_.thermodynamics().reactionSource(rhoOld,phiOld);
 #endif 
 }
+
 template< class Grid, class Problem > 
 inline void PhasefieldModel< Grid, Problem>
 ::dphitauSource ( RangeFieldType phi,
@@ -324,6 +331,20 @@ inline void PhasefieldModel< Grid, Problem>
   tau=problem_.thermodynamics().dphireactionSource(rho,phi,phiOld);
 #else
   tau=problem_.thermodynamics().dphireactionSource(rho,phiOld);
+#endif
+}
+
+template< class Grid, class Problem >
+inline void PhasefieldModel< Grid, Problem>
+::drhotauSource ( RangeFieldType phi,
+                  RangeFieldType phiOld,
+                  RangeFieldType rho,
+                  RangeFieldType& tau) const
+{
+#if TAYLOR
+  tau=problem_.thermodynamics().drhoreactionSource(rho,phi,phiOld);
+#else
+  tau=problem_.thermodynamics().drhoreactionSource(rho,phiOld);
 #endif
 }
 
