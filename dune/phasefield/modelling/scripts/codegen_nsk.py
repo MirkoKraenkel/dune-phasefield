@@ -1,12 +1,18 @@
+#! /usr/bin/env python
 import os,subprocess, sys
-namelist = [' helmholtz',' chemicalPotential',' drhochemicalPotential',' pressure', ' a']
+namelist = [' helmholtz',' pressure', ' a']
+namelist2= [' drhochemicalPotential',' chemicalPotential']
 inputfile='../KortewegSources/kortewegCODEGEN.mpl'
-print(inputfile)
-subprocess.call( ['rm maple.c'],shell=True)
+
+
+subprocess.call( ['rm nskmaple.cc'],shell=True)
 subprocess.call( ['maple '+inputfile],shell=True )
-f=open( 'maple.c')
-fnew=open( 'maplenew.c','w')
-flag = False
+
+
+
+f=open( 'nskmaple.cc')
+fnew=open( 'maplenew.cc','w')
+flag = -1 
 for line in f:
   if line[0]=='#':
     fnew.write('\n')
@@ -15,13 +21,22 @@ for line in f:
     newline = newline1.replace('cst','cst_')
     for name in namelist:
       if newline.find( name ) != -1:
-        flag=True
+        flag=1
         break 
-    if flag:   
+    for name2 in namelist2:
+      if newline.find( name2 ) !=-1:
+        flag=2
+        break
+
+    if flag==1:   
       newline = 'inline double'+name+' ( double rho ) const\n'
       fnew.write(newline)
-      flag=False
+      flag=-1
+    elif flag==2:
+      newline = 'inline double'+name2+' ( double rho ,double old ) const\n'
+      fnew.write(newline)
+      flag=-1
     else:
       fnew.write( newline )
-subprocess.call( ['mv maplenew.c ../KortewegSources/maple.c'], shell=True)
-subprocess.call( ['rm maple.c'], shell=True)
+
+subprocess.call( ['mv maplenew.cc ../KortewegSources/nskmaple.cc'], shell=True)
