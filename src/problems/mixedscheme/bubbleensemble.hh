@@ -95,7 +95,7 @@ public:
 #elif THERMO == 2
 #include <dune/phasefield/modelling/CoquelTaylorSources/realRho.cc>
 #elif THERMO == 3
-#include <dune/phasefield/modelling/PhasefieldvanderWaalsSources/phasefieldvanderWaalsRho.cc>
+#include <dune/phasefield/modelling/PhasefieldvanderWaalsSources/pfvdWaalRho.cc>
 #endif
 // source implementations 
   inline bool hasStiffSource() { return true; }
@@ -184,11 +184,6 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 {
   double phi; 
   double width=delta_;
-  double width2=0.5*delta_;
-#if SURFACE
-#else
-  width/=sqrt(A_);
-#endif
   //Outside: phi=1
   res[dimension+1]=1;
    double rho= rhofactor_*(tanh(-50*(arg[0]-0.19))+1)+mwpliq(0.);
@@ -222,9 +217,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
     vector-=arg;
     double r=mynorm(vector);
     
-    //0 if r big;
     double tanr=tanh((radius-r) * (1/width ));
-    //double tanrho=tanh((radius-r)*(1/(width2*rhofactor_)));
     double tanhr=tanr;
     double dtanr=1+tanr*tanr;
     double dtanhr=1-tanhr*tanhr; 
