@@ -28,28 +28,34 @@
 #include <dune/fem/solver/petscsolver.hh>
 #endif
 
+#if NSK
+#include <dune/fem/operator/assembled/nskintegrator.hh>
+#else
 #include <dune/fem/operator/assembled/integrator.hh>
+#endif
+
 #include <dune/fem/operator/assembled/mixedoperator.hh>
 
 #if MATRIXFREE
 #include <dune/fem/util/oemwrapper.hh>
-#include <dune/fem/operator/assembled/mixedoperator.hh>
 #elif FD 
 #include <dune/fem/operator/assembled/localfdoperator.hh>
 #elif COUPLING 
+#if NSK
+#include <dune/fem/operator/assembled/fluxes/nskjacobianflux.hh>
+#include <dune/fem/operator/assembled/nsktensor.hh>
+#else
 #include <dune/fem/operator/assembled/fluxes/jacobianflux.hh>
 #include <dune/fem/operator/assembled/phasefieldtensor.hh>
+#endif
+
 #include <dune/fem/operator/assembled/matrixoperator.hh>
-#elif NSK
-#include <dune/fem/operator/assembled/nskmatrix.hh>
-#else
-#include <dune/fem/operator/assembled/mixedopjacobian.hh>
 #endif
 
 //adaptation
-//#include <dune/fem/adaptation/jumpestimator.hh>
+
 #include <dune/fem/adaptation/rhosigmaestimator.hh>
-//#include <dune/fem/adaptation/mixedestimator.hh>
+
 
 template <class GridImp,
           class ProblemGeneratorImp,int polOrd>             
@@ -91,18 +97,23 @@ struct MixedAlgorithmTraits
   typedef typename Dune::Fem::ISTLBlockVectorDiscreteFunction<DiscreteScalarSpaceType> DiscreteScalarType;
   typedef Dune::Fem::ISTLLinearOperator< DiscreteFunctionType, DiscreteFunctionType > JacobianOperatorType;
 #if FD 
+#if NSK
+  using PhasefieldIntegratorType=NSKIntegrator< DiscreteFunctionType, ModelType, FluxType >;
+#else
   using PhasefieldIntegratorType=PhasefieldMixedIntegrator< DiscreteFunctionType, ModelType, FluxType >;
+#endif 
   using PhasefieldOperatorType=DGOperator< DiscreteFunctionType ,PhasefieldIntegratorType >;
   using DiscreteOperatorType= LocalFDOperator<PhasefieldOperatorType , JacobianOperatorType>;
-#else 
+#else
 #if NSK
-  typedef NSKJacobianOperator<DiscreteFunctionType,ModelType,FluxType,JacobianOperatorType>  DiscreteOperatorType;
+  using JacFluxType=NskJacobianFlux<ModelType>;
+  using PhasefieldIntegratorType=NskMixedTensor<DiscreteFunctionType,ModelType,FluxType,JacFluxType>;
 #else
   using JacFluxType=JacobianFlux<ModelType>;
   using PhasefieldIntegratorType=PhasefieldMixedTensor<DiscreteFunctionType,ModelType,FluxType,JacFluxType>;
+#endif
   using PhasefieldOperatorType=DGOperator< DiscreteFunctionType,PhasefieldIntegratorType> ;
   using DiscreteOperatorType=MatrixOperator<PhasefieldOperatorType,PhasefieldIntegratorType,JacobianOperatorType>;
-#endif
 #endif
 
 
@@ -137,7 +148,9 @@ typedef PhasefieldJacobianOperator<DiscreteFunctionType,ModelType,FluxType,Jacob
 	typedef MixedEstimator<DiscreteFunctionType,ModelType> EstimatorType;
   typedef Dune::Fem::LocalFunctionAdapter<EstimatorType> EstimatorDataType;
   //Pointers for (rho,v,phi,mu,tau,sigma) and (pressure,totalenergy)
-  typedef Dune::tuple< DiscreteFunctionType*,EstimatorDataType*,DiscreteScalarType*, DiscreteScalarType*> IOTupleType; 
+  //typedef Dune::tuple< DiscreteFunctionType*,EstimatorDataType*,DiscreteScalarType*, DiscreteScalarType*> IOTupleType; 
+  typedef Dune::tuple< DiscreteFunctionType*,DiscreteFunctionType*,DiscreteScalarType*, DiscreteScalarType*> IOTupleType; 
+
 
   // type of restriction/prolongation projection for adaptive simulations 
   typedef Dune :: Fem::RestrictProlongDefault< DiscreteFunctionType > RestrictionProlongationType;
