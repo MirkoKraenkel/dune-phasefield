@@ -4,13 +4,13 @@ import os,subprocess, sys
 folders = { 1:'../CoquelTaylorSources/' , 2:'../CoquelTaylorSources/', 3:'../PhasefieldvanderWaalsSources/', 4:
 '../CoquelTaylorSources/'}
 
-files = { 1:'real' , 2:'coquelTaylor' , 3:'phasefieldvanderWaals', 4:'coquelTaylorM'}
+files = { 1:'real' , 2:'coquelTaylor' , 3:'pfvdWaal', 4:'coquelTaylorM'}
 
 namelist  = [' helmholtz', ' pressure', ' a']
 namelist2 = [ ' reactionSource',' dphireactionSource',' drhoreactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential']
-namelist3 = [' mwpliq', ' mwpvap', ' exactrho', ' exactv1', ' exactv2', ' exactphi',' exactsigma1',' exactsigma2', ' exactmu',' exacttau']
+namelist3 = [' exactrho', ' exactv1', ' exactv2', ' exactphi',' exactsigma1',' exactsigma2', ' exactmu',' exacttau']
 namelist4 = [' rhsRho', ' rhsV1', ' rhsV2', ' rhsPhi'] 
-
+namelist5 = [' mwpliq', ' mwpvap', ' evalRho']
 
 number=int(sys.argv[1])
 
@@ -30,36 +30,36 @@ sourcefile=files[number]+'Source.cc'
 auxsourcefile=files[number]+'Sourceaux.cc'
 
 
+if number==4:
+    fSource=open( sourcefile )
+    fSourceNew=open( auxsourcefile, 'w')
+    flag=-1
 
-fSource=open( sourcefile )
-fSourceNew=open( auxsourcefile, 'w')
-flag=-1
-
-for line in fSource:
-    if line[0]=='#':
+    for line in fSource:
+        if line[0]=='#':
     
-        fSourceNew.write('\n')
+            fSourceNew.write('\n')
   
-    else:
-     
-        l1= line.replace('delta','delta_')
-        l2 = l1.replace('A','A_')
-        l3 = l2.replace('visc1','mu1Liq_')
-    
-        for name in namelist4:
-            if l3.find(name) !=-1:
-                flag=1 
-                break 
-        
-        if flag==1:
-            newline='inline double'+name+' (double t, double x, double y ) const\n'
-            fSourceNew.write( newline )
-            flag=-1
         else:
-            fSourceNew.write( l3 )
+     
+            l1= line.replace('delta','delta_')
+            l2 = l1.replace('A','A_')
+            l3 = l2.replace('visc1','mu1Liq_')
+    
+            for name in namelist4:
+                if l3.find(name) !=-1:
+                    flag=1 
+                    break 
+        
+            if flag==1:
+                newline='inline double'+name+' (double t, double x, double y ) const\n'
+                fSourceNew.write( newline )
+                flag=-1
+            else:
+                fSourceNew.write( l3 )
 
-subprocess.call( ['mv '+auxsourcefile+' '+folders[number]+'/'+sourcefile], shell=True)
-subprocess.call( ['rm '+sourcefile], shell=True )
+    subprocess.call( ['mv '+auxsourcefile+' '+folders[number]+'/'+sourcefile], shell=True)
+    subprocess.call( ['rm '+sourcefile], shell=True )
 
 
 
@@ -83,9 +83,17 @@ for line in frho:
             if l3.find(name) !=-1:
                 flag=1 
                 break 
-        
+        for name in namelist5:
+            if l3.find(name) !=-1:
+                flag=2
+                break
+
         if flag==1:
             newline='inline double'+name+' (double t, double x, double y ) const\n'
+            frhonew.write( newline )
+            flag=-1
+        elif flag==2:
+            newline='inline double'+name+' ( double x ) const\n'
             frhonew.write( newline )
             flag=-1
         else:
