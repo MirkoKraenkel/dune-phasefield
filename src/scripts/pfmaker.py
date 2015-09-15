@@ -26,7 +26,11 @@ class PhasefieldMaker:
       self.vals=pickle.load(open("flags.p","rb"))
     else:
       self.vals=dict(zip(self.flags,self.defaults))
-    self.compiled=pickle.load(open("compiled.p","rb"))
+    COMPILEDPATH='./compiled.p'
+    if os.path.isfile(COMPILEDPATH):
+      self.compiled=pickle.load(open("compiled.p","rb"))
+    else:
+      self.compiled=dict()
     self.programms=[]
     progfile=open('progs.txt')
     for line in progfile:
@@ -39,7 +43,12 @@ class PhasefieldMaker:
       self.listbox.insert(END, item)
     self.listbox2 = Listbox( listframe2 , selectmode=MULTIPLE, exportselection=0)
     self.listbox2.pack(side=LEFT)
-    self.thermlist=['COQUEL', 'REAL', 'PFVDW']
+    self.thermlist=[]
+    if os.path.isfile('./thermo.txt'):
+      thermfile=open('thermo.txt')
+      for line in thermfile:
+        self.thermlist.append(line.rstrip('\n'))
+      thermfile.close()
     for item in self.thermlist:
         self.listbox2.insert(END, item)
     self.var = StringVar() 
