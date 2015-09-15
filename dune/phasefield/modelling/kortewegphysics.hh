@@ -124,7 +124,7 @@ class PhasefieldPhysics
 }
 
 #if NSK 
-#include "physicsnsk_inline1d.hh"
+#include "physics/physicsnsk_inline1d.hh"
 //#include "physicsnsk_inline2d.hh"
 #else
 #error
