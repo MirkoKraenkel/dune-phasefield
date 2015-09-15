@@ -86,7 +86,8 @@ public Thermodynamics<BalancedThermodynamics>
 #elif THERMO==2
 #include "CoquelTaylorSources/realmaple.cc"
 #elif THERMO==3
-#include "PhasefieldvanderWaalsSources/phasefieldvanderWaalsmaple.cc"
+#include <dune/phasefield/modelling/PhasefieldvanderWaalsSources/pfvdWaalmaple.cc>
+#include <dune/phasefield/modelling/PhasefieldvanderWaalsSources/pfvdWaalRho.cc>
 #endif
 #endif
 

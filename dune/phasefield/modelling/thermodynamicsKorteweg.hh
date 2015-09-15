@@ -1,5 +1,5 @@
-#ifndef THERMODYNAMICSBALANCEDPHASES_HH
-#define THERMODYNAMICSBALANCEDPHASES_HH
+#ifndef THERMODYNAMICS_KORTEWEG_HH
+#define THERMODYNAMICS_KORTEWEG_HH
 
 // system include
 #include <cmath>
@@ -15,41 +15,40 @@ using namespace Dune;
 
 #include "thermodynamicsinterface.hh"
 //thermodynamics with balanced phases, see balancedthermo.mw
-class BalancedThermodynamics:
-  public Thermodynamics<BalancedThermodynamics>
+class NskThermodynamics:
+  public Thermodynamics<NskThermodynamics>
 {
-  typedef Thermodynamics<BalancedThermodynamics> BaseType;
+  typedef Thermodynamics<NskThermodynamics> BaseType;
 
   public:
-  BalancedThermodynamics():
+  NskThermodynamics():
     BaseType(),
     delta_( Dune::Fem::Parameter::getValue<double>( "phasefield.delta" ) ),
     deltaInv_( 1./delta_ ),
-    mu1_( Dune::Fem::Parameter::getValue<double>("phasefield.mu1") ),
-    mu2_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2") ),
-    cst_( Dune::Fem::Parameter::getValue<double>("korteweg.c") ),
-    theta_( Dune::Fem::Parameter::getValue<double>( "korteweg.theta") ),
-    reaction_( Dune::Fem::Parameter::getValue<double>( "phasefield.reactionrate") )
+    mu1Liq_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1_liq" ) ),
+    mu2Liq_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2_liq") ),
+    mu1Vap_(Dune::Fem::Parameter::getValue<double>( "phasefield.mu1_vap" ) ),
+    mu2Vap_( Dune::Fem::Parameter::getValue<double>("phasefield.mu2_vap") ),
+    theta_( Dune::Fem::Parameter::getValue<double>( "korteweg.theta") )
   {
   }
-#include "KortewegSources/maple.c"
+#include "KortewegSources/nskmaple.cc"
 
   public:
 
   inline double delta()    const { return delta_; }
   inline double deltaInv() const { return deltaInv_; }
-  inline double mu1()      const { return mu1_; }
-  inline double mu2()      const { return mu2_; }
+  inline double mu1Liq()      const { return mu1Liq_; }
+  inline double mu2Liq()      const { return mu2Liq_; }
+  inline double mu1Vap()      const { return mu1Vap_; }
+  inline double mu2Vap()      const { return mu2Vap_; }
   inline double theta()    const { return theta_;}
-  inline double cst()      const { return cst_;}
   private:
   mutable double  delta_;
   mutable double  deltaInv_;
   mutable double  epsilon_;
-  mutable double  mu1_,mu2_;
-  mutable double cst_;
-  mutable double theta_;
-  mutable double  reaction_;
+  mutable double  mu1Liq_,mu1Vap_,mu2Liq_,mu2Vap_;
+  mutable double  theta_;
 
 };
 
