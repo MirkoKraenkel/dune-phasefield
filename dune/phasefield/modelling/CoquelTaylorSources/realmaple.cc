@@ -512,6 +512,30 @@ t138*t418+t148*t438)/24.0);
 }
 
 
+inline double drhoreactionSource ( double rho ,double phi ,double old ) const
+{
+  double t10;
+  double t11;
+  double t13;
+  double t17;
+  double t22;
+  double t3;
+  double t4;
+  double t5;
+  {
+    t3 = 0.5*phi+0.5*old;
+    t4 = t3*t3;
+    t5 = t4*t4;
+    t10 = 30.0*t5-60.0*t4*t3+30.0*t4;
+    t11 = log(rho);
+    t13 = 0.882498173E1+0.289445110522E2*t11;
+    t17 = 0.2889626582E2+0.950205321859E1*t11;
+    t22 = 360.0*t4-0.18E3*phi-0.18E3*old+60.0;
+    return(t10*t13-t10*t17+(t22*t13-t22*t17)*(phi-old)/24.0);
+  }
+}
+
+
 inline double chemicalPotential ( double rho ,double phi ,double old ) const
 {
   double t1;
