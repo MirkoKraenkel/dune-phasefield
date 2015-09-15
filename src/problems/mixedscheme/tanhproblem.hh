@@ -148,11 +148,7 @@ inline void TanhProblem<GridType,RangeProvider>
   double rhodiff=rholiq_-rhovap_;
   const double rhomean=1;//0.5*(rhovap_+rholiq_);
 
-#if SURFACE
   double deltaInv=1./delta_;
-#else  
-  double deltaInv=sqrt(A_)/(delta_*phiscale_);
-#endif  
   double r=std::abs( arg[dimension-1]);//+0.025*sin(4*M_PI*arg[0]);
   double tanhr=-tanh( -( r-radius_ )*deltaInv );
   double tanhrho=-tanh( -( r-radius_)*deltaInv );
