@@ -23,10 +23,11 @@ drhoPotential := proc (rho, phi, old, mid) options operator, arrow; diff(CCProc(
 dphiPotential := proc (rho, phi, old, mid) options operator, arrow; diff(CCProc(rho, phi, old), phi) end proc; dphimuproc := makeproc(dphiPotential(rho, phi, old), [rho, phi, old]); dphichemicalPotential := optimize(dphimuproc); C(dphichemicalPotential, filename = outstring, ansi);
 Pproc := makeproc(P2(rho, phi), [rho, phi]); pressure := optimize(Pproc); C(pressure, filename = outstring, ansi);
 wavespeed := proc (rho, phi) options operator, arrow; sqrt(diff(Pressure(rho, phi), rho)) end proc; wproc := makeproc(simplify(wavespeed(rho, phi)), [rho, phi]); a := optimize(wproc); C(a, filename = outstring, ansi);
-rsol := proc (t, x, y) options operator, arrow; .5*cos(2*Pi*t)*cos(2*Pi*x)+1.5 end proc; exactrho := makeproc(rsol(t, x, y), [t, x, y]); exactrho := optimize(exactrho); C(exactrho, filename = outstring2, ansi);
-v1sol := proc (t, x, y) options operator, arrow; cos(2*Pi*t)*sin(2*Pi*x) end proc; exactv1 := makeproc(v1sol(t, x, y), [t, x, y]); exactv1 := optimize(exactv1); C(exactv1, filename = outstring2, ansi);
-v2sol := proc (t, x, y) options operator, arrow; 0 end proc; exactv2 := makeproc(v2sol(t, x, y), [t, x, y]); exactv2 := optimize(exactv2); C(exactv2, filename = outstring2, ansi);
 psol := proc (t, x, y) options operator, arrow; .5*cos(2*Pi*t)*cos(2*Pi*x)+.5 end proc; exactphi := makeproc(psol(t, x, y), [t, x, y]); exactphi := optimize(exactphi); C(exactphi, filename = outstring2, ansi);
+v1sol := proc (t, x, y) options operator, arrow; cos(2*Pi*t)*sin(2*Pi*x) end proc; exactv1 := makeproc(v1sol(t, x, y), [t, x, y]); exactv1 := optimize(exactv1); C(exactv1, filename = outstring2, ansi);
+v2sol := proc (t, x, y) options operator, arrow; cos(2*Pi*t)*sin(2*Pi*x) end proc; exactv2 := makeproc(v2sol(t, x, y), [t, x, y]); exactv2 := optimize(exactv2); C(exactv2, filename = outstring2, ansi);
+
+rsol := proc (t, x, y) options operator, arrow; solproc1(psol(t, x, y)) end proc; .5*cos(2*Pi*t)*cos(2*Pi*x)+1.5; exactrho := makeproc(rsol(t, x, y), [t, x, y]); exactrho := optimize(exactrho); C(exactrho, filename = outstring2, ansi);
 dtr := diff(rsol(t, x, y), t);
 divrv := diff(rsol(t, x, y)*v1sol(t, x, y), x)+diff(rsol(t, x, y)*v2sol(t, x, y), y);
 dxphi := diff(psol(t, x, y), x); dyphi := diff(psol(t, x, y), y);
