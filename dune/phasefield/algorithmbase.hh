@@ -514,8 +514,9 @@ public:
         else
           timeProvider.next();
 
-        Uold.assign(U);
-     
+        //Uold.assign(U);
+        Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(timeProvider.time()), Uold);
+
     }		/*end of timeloop*/
  
     // write last time step  
