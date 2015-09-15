@@ -8,6 +8,7 @@
 #include <dune/fem/solver/newtoninverseoperator.hh>
 //post processing
 #include <dune/fem/operator/assembled/energyconverter.hh>
+
 #include <dune/phasefield/util/cons2prim.hh>
 #include <dune/fem/operator/assembled/boundary.hh>
 
@@ -92,7 +93,9 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       start_.clear();
     }
 
-    IOTupleType getDataTuple (){ return IOTupleType( &solution(), &estimatorData_,&pressure_, this->energy());}
+//  IOTupleType getDataTuple (){ return IOTupleType( &solution(), &estimatorData_,&pressure_, this->energy());}
+    IOTupleType getDataTuple (){ return IOTupleType( &solution(), &oldsolution(),&pressure_, this->energy());}
+
 
     DiscreteScalarType&  getpressure(){ return pressure_;}
 
