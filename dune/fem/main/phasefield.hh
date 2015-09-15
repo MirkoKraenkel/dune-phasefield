@@ -28,6 +28,7 @@
 #if NSK
 #include <src/problems/korteweg/nskproblemcreator.hh>
 #include <src/problems/kortewegmixed/mixednskproblemcreator.hh>
+#include <dune/phasefield/assembledalgoderived.hh>
 #else
 #if MIXED
 #if SPLIT
