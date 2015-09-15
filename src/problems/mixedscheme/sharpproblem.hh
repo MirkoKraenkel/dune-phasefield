@@ -149,11 +149,7 @@ inline void SharpProblem<GridType,RangeProvider>
 
   double rhodiff=rho2_-rho1_; 
   double rhomean=0.5*(rho2_+rho1_);
-#if SURFACE
   double deltaInv=rhomean/(delta_*phiscale_);
-#else  
-  double deltaInv=sqrt(A_)/(delta_*phiscale_);
-#endif  
 
   double phi=0;
   double rho=rho1_;
