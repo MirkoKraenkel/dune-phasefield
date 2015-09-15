@@ -11,7 +11,6 @@
 
 #include <dune/phasefield/modelling/thermodynamicsKorteweg.hh>
 
-
 #include <dune/fem-dg/models/defaultprobleminterfaces.hh>
 
 
@@ -35,8 +34,7 @@ public:
   typedef typename FunctionSpaceType :: RangeFieldType    RangeFieldType;
   typedef typename FunctionSpaceType :: RangeType         RangeType;
 
-//   typedef TestThermodynamics ThermodynamicsType;
-  typedef BalancedThermodynamics ThermodynamicsType; 
+  typedef NskThermodynamics ThermodynamicsType;
 
   TanhBubbleProblem() : 
     myName_( "Mixedtest Heatproblem" ),
@@ -54,7 +52,7 @@ public:
 
 
   // initialize A and B 
-  double init(const bool returnA ) const ;
+  double init(const bool returnA ) const;
 
   // print info 
   void printInitInfo() const;
@@ -63,7 +61,7 @@ public:
   inline bool hasStiffSource() { return true; }
   inline bool hasNonStiffSource() { return false; }
   // this is the initial data
-  inline void evaluate( const DomainType& arg , RangeType& res ) const 
+  inline void evaluate( const DomainType& arg , RangeType& res ) const
   {
     evaluate( 0.,arg ,res);
   }
@@ -161,7 +159,7 @@ inline void TanhBubbleProblem<GridType, RangeProvider >
    
  
 #if MIXED
-  double dFdrho=thermodyn_.chemicalPotential(rho);
+  double dFdrho=thermodyn_.chemicalPotential(rho,rho);
   double sigma=0.5*drtanhr;
   double gradrho=-0.5*(rho2_-rho1_)*drtanhr;
   double laplacePhi=0.5*drdrtanhr;
