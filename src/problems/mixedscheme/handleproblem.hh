@@ -146,13 +146,7 @@ inline void HandleProblem<GridType,RangeProvider>
   double rhodiff=mwpliq(0.)-mwpvap(0.);
   const double rhomean=1;//0.5*(rhovap_+rholiq_);
 
-   
-
-#if SURFACE
   double deltaInv=1./delta_;
-#else  
-  double deltaInv=sqrt(A_)/(delta_*phiscale_);
-#endif  
   double k=length_;
   double r=0.;
   double z=sqrt(radius1_*radius1_ - std::pow( pos1_-(0.5+0.5*k),2));
