@@ -7,7 +7,7 @@
 #include<dune/fem/io/parameter.hh>
 
 #include "../nskfilter.hh"
-#define LAPLACE  1
+#define LAPLACE 1 
 template<class Grid, class Problem>
 class NSKModel
 {
@@ -31,7 +31,9 @@ class NSKModel
     //contructor
   public:
     NSKModel( const ProblemType& problem):
-      problem_(problem)
+      problem_(problem),
+      force_(Dune::Fem::Parameter::getValue<double>("phasefield.gravity",0)),
+      diffquotthresh_(Dune::Fem::Parameter::getValue<double>("phasefield.diffquotthresh"))
   {}
 
 
@@ -45,32 +47,59 @@ class NSKModel
     // additional Source for the whole syten eg. for 
     // generatring exact solutions
     inline void systemSource ( const double time,
+                               const double deltaT,
+                               const RangeType& vu,
                                const DomainType& xgl,
                                RangeType& s) const;
 
 
-    inline void  muSource ( const RangeFieldType rho,
-                            const RangeFieldType rhoOld,
-                            RangeFieldType& mu) const;
+    inline void muSource ( const RangeFieldType rho,
+                           const RangeFieldType rhoOld,
+                           RangeFieldType& mu) const;
 
-    inline void  drhomuSource ( const RangeFieldType rho,
+    inline void drhomuSource ( const RangeFieldType rho,
                                 const RangeFieldType rhoOld,
                                 RangeFieldType& mu) const;
+;
 
+
+    inline double maxSpeed( const DomainType& normal,
+                            const RangeType& u) const;
+    
+    // this gives an estimation of the lipschitz constant of the rhs of the phasefield equation
+    inline double lipschitzC() const
+    {
+      return 1;
+    }
 
     inline void dirichletValue ( const double time,
                                  const DomainType& xglobal,
                                  RangeType& g) const;
-    inline double diffusion () const
-    { 
-      return problem_.thermodynamics().mu1();
-    }
+
 
     template< class JacobianVector>
-    inline void scalar2vectorialDiffusion ( const JacobianVector& dphi , DiffusionTensorType& diffusion ) const; 
-    inline void diffusion ( JacobianRangeType& vu,
-                            JacobianRangeType& diffusion) const;
-    
+    inline void scalar2vectorialDiffusion ( const RangeType& vu,
+                                            const JacobianVector& dphi,
+                                            DiffusionTensorType& diffusion ) const;
+
+    template< class JacobianRange >
+    inline void diffusion ( const RangeType& vu,
+                            const JacobianRange& dvu,
+                            JacobianRange& diffusion) const;
+
+    template< class JacobianRange >
+    inline void diffusionprime ( const RangeType& vu,
+                                 const JacobianRange& dvu,
+                                 JacobianRange& diffusion) const;
+
+
+
+
+    inline RangeFieldType pressure (double rho , double phi) const
+    {
+      return problem_.thermodynamics().pressure( rho  );
+    }
+
 
     inline double reactionFactor () const
     { 
@@ -81,6 +110,7 @@ class NSKModel
     {
       return problem_.thermodynamics().delta();
     }
+
     inline double deltaInv () const
     {
       return problem_.thermodynamics().deltaInv();
@@ -88,8 +118,34 @@ class NSKModel
 
 
   private:
-    const ProblemType& problem_;
+   inline void diffFactors (const RangeFieldType phi, double& mu1, double& mu2 ) const
+    {
+      mu2 = phi*problem_.thermodynamics().mu2Liq()+(1-phi)*problem_.thermodynamics().mu2Vap();
+      mu1 = phi*problem_.thermodynamics().mu1Liq()+(1-phi)*problem_.thermodynamics().mu1Vap();
+    }
 
+    inline void diffFactorsPrime (const RangeFieldType phi, double& mu1, double& mu2 ) const
+    {
+      mu2 = problem_.thermodynamics().mu2Liq()-problem_.thermodynamics().mu2Vap();
+      mu1 = problem_.thermodynamics().mu1Liq()-problem_.thermodynamics().mu1Vap();
+    }
+
+    template< class JacobianRange >
+    inline void diffusion ( const RangeFieldType& mu1,
+                            const RangeFieldType& mu2,
+                            const RangeType& vu,
+                            const JacobianRange& dvu,
+                            JacobianRange& diffusion) const;
+
+    template< class JacobianVector>
+    inline void scalar2vectorialDiffusion ( const RangeFieldType& mu1,
+                                            const RangeFieldType& mu2,
+                                            const JacobianVector& dphi,
+                                            DiffusionTensorType& diffusion ) const;
+ 
+    const ProblemType& problem_;
+    const double force_;
+    const double diffquotthresh_;
 };
 
 template< class Grid, class Problem>
@@ -124,11 +180,14 @@ inline void NSKModel< Grid,Problem>
 template< class Grid, class Problem>
 inline void NSKModel< Grid,Problem>
 ::systemSource ( const double time,
+                 const double deltaT,
+                 const RangeType& vu,
                  const DomainType& xgl,
                  RangeType& s ) const
 {
   s=0.;
 }
+
 
 template<class Grid, class Problem > 
 inline void NSKModel< Grid, Problem >
@@ -137,7 +196,8 @@ inline void NSKModel< Grid, Problem >
              RangeFieldType& mu) const
 {
 
-  mu=problem_.thermodynamics().chemicalPotential(rho);
+  mu=problem_.thermodynamics().chemicalPotential(rho,rhoOld);
+
 }
 template<class Grid, class Problem > 
 inline void NSKModel< Grid, Problem >
@@ -146,9 +206,25 @@ inline void NSKModel< Grid, Problem >
                  RangeFieldType& mu ) const
 
 {
-  mu=problem_.thermodynamics().drhochemicalPotential(rhoOld);
+  mu=problem_.thermodynamics().drhochemicalPotential(rho,rhoOld);
 }
 
+
+template< class Grid, class Problem >
+inline double NSKModel< Grid, Problem>
+::maxSpeed( const DomainType& normal,
+            const RangeType& u) const
+{
+  RangeType unitnormal=u;
+
+  double unormal(0.);
+  for( int ii = 0 ; ii<dimDomain ; ++ii)
+    unormal+=u[1+ii]*normal[ii];
+
+  double c=problem_.thermodynamics().a(u[0])*normal.two_norm2();
+
+  return std::abs(unormal)+std::sqrt(c);
+}
 
 template< class Grid, class Problem>
 inline void NSKModel< Grid,Problem>
@@ -157,61 +233,101 @@ inline void NSKModel< Grid,Problem>
   problem_.evaluate(time,xglobal,g);
 }
 
-
-template< class Grid, class Problem > 
+template< class Grid, class Problem >
 template< class JacobianVector>
 inline void NSKModel< Grid, Problem>
-::scalar2vectorialDiffusion( const JacobianVector& dphi,DiffusionTensorType& du) const
+::scalar2vectorialDiffusion( const RangeType& vu ,const JacobianVector& dphi,DiffusionTensorType& du) const
 {
+  double mu1,mu2;
+  diffFactors( vu[0], mu1, mu2);
+  scalar2vectorialDiffusion( mu1, mu2, dphi, du);
+}
 
-  double mu1=0.5*problem_.thermodynamics().mu1();
-  double mu2=problem_.thermodynamics().mu2();
+template< class Grid, class Problem >
+template< class JacobianVector>
+inline void NSKModel< Grid, Problem>
+::scalar2vectorialDiffusion ( const RangeFieldType& mu1,
+                              const RangeFieldType& mu2,
+                              const JacobianVector& dphi,
+                              DiffusionTensorType& du) const
+{
+  //du[i][j][k]
+  
+#if  LAPLACE
   for( int ii=0 ; ii < dimDomain  ; ++ii)
     {
-#if  LAPLACE
       for(int jj=0 ; jj < dimDomain ; ++jj )
-        du[ ii ][ ii ][ jj ] = mu2*dphi[ 0 ][ jj ];
+        du[ ii ][ ii ][ jj ] = mu1*dphi[ 0 ][ jj ];
+    }
 #else
-// full diffusion
+  for( int ii=0 ; ii < dimDomain  ; ++ii)
+    {
       for( int jj = 0; jj < dimDomain; ++ jj )
         {
-          du[ ii ][ jj ][ ii ]=mu1*dphi[ 0 ][ jj ];
-          du[ ii ][ ii ][ jj ]=mu1*dphi[ 0 ][ jj ];
+          du[ ii ][ jj ][ ii ]=0.5*mu1*dphi[ 0 ][ jj ];
+          du[ ii ][ ii ][ jj ]=0.5*mu1*dphi[ 0 ][ jj ];
         }
       for( int jj=0 ; jj < dimDomain ; ++jj ) 
         {
           du[ ii ][ jj ][ jj ]+=mu2*dphi[ 0 ][ ii ];
         }
-     du[ ii ][ ii ][ ii ]+=mu2*dphi[ 0 ] [ ii ];
+     du[ ii ][ ii ][ ii ]+=0.5*mu1*dphi[ 0 ] [ ii ];
+    }
 #endif
-}
 } 
 
 template< class Grid, class Problem > 
+template< class JacobianRange >
 inline void NSKModel< Grid, Problem>
-::diffusion( JacobianRangeType& dvu,
-    JacobianRangeType& diffusion) const
+::diffusion ( const RangeType& vu,
+              const JacobianRange& dvu,
+              JacobianRange& diff) const
+{
+  double mu1(0.),mu2(0.);
+  diffFactors( vu[dimDomain+1], mu1, mu2);
+  diffusion( mu1 , mu2 , vu , dvu , diff );
+}
+
+template< class Grid, class Problem >
+template< class JacobianRange >
+inline void NSKModel< Grid, Problem>
+::diffusionprime ( const RangeType& vu,
+                   const JacobianRange& dvu,
+                   JacobianRange& diff) const
+{
+  double mu1(0.),mu2(0.);
+  diffFactorsPrime( vu[dimDomain+1] , mu1 , mu2 );
+  diffusion( mu1 , mu2 , vu , dvu , diff );
+}
+
+
+template< class Grid, class Problem >
+template< class JacobianRange >
+inline void NSKModel< Grid, Problem>
+::diffusion ( const RangeFieldType& mu1,
+              const RangeFieldType& mu2,
+              const RangeType& vu,
+              const JacobianRange& dvu,
+              JacobianRange& diffusion) const
 {
   diffusion=0;
- double mu2=problem_.thermodynamics().mu2();
-
 #if LAPLACE 
    for(int ii = 0 ; ii < dimDomain ; ++ii )
     for(int jj = 0; jj < dimDomain ; ++ jj)
-     Filter::dvelocity(diffusion,ii,jj )=mu2*Filter::dvelocity(dvu,ii,jj);
+      diffusion[1+ii][jj]=mu1*dvu[1+ii][jj];
+      
 #else
-  double mu1=problem_.thermodynamics().mu1();
  
   for(int ii = 0 ; ii < dimDomain ; ++ii )
     {
       for(int jj = 0; jj < dimDomain ; ++ jj)
         {
-          Filter::dvelocity(diffusion,ii,ii)+=mu2*Filter::dvelocity(dvu,jj,jj);
+          diffusion[ 1 +ii ][ ii ]+=mu2*dvu[ 1+jj ][ jj ];
         }
 
       for(int jj=0; jj<dimDomain ; ++jj )
         {
-          Filter::dvelocity(diffusion,ii,jj)+=mu1*0.5*(Filter::dvelocity(dvu,ii,jj)+Filter::dvelocity(dvu,jj,ii));
+         diffusion[ 1+ii][ jj ]+=mu1*0.5*(dvu[ ii+1 ][ jj ]+dvu[ 1+jj ][ ii ]);
         } 
       }
 #endif
