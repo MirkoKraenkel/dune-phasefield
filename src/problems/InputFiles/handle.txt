@@ -1,0 +1,4 @@
+phasefield.p1: 0.67
+phasefield.p2: 0.25
+phasefield.k: 0.13
+phasefield.r1: 0.13
