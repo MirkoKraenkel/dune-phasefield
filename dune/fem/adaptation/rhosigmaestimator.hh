@@ -191,10 +191,8 @@ namespace Dune
       int marked = 0;
       if (tolerance < 0)
       {
-        const IteratorType end = dfSpace_.end();
-        for( IteratorType it = dfSpace_.begin(); it != end; ++it )
+        for( const  auto& entity : dfSpace_ )
         {
-          const ElementType &entity = *it;
           grid_.mark( 1, entity );
           ++marked;
       	}
@@ -203,10 +201,8 @@ namespace Dune
       {
       	// loop over all elements
         const IteratorType end = dfSpace_.end();
-        for( IteratorType it = dfSpace_.begin(); it != end; ++it )
+        for( const auto& entity: dfSpace_)
         {
-          
-          const ElementType &entity = *it;
           int index=indexSet_.index(entity);
           //double gridFactor = Sigmaindicator_[index];
           
@@ -221,18 +217,19 @@ namespace Dune
             }
 
             IntersectionIteratorType end = gridPart_.iend( entity );
-          if(secondNb_)
-            for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
-		        {
-              const IntersectionType &intersection = *inter;
+            
+            if(secondNb_)
+              for( IntersectionIteratorType inter = gridPart_.ibegin( entity ); inter != end; ++inter )
+		          { 
+                const IntersectionType &intersection = *inter;
               
-              if( intersection.neighbor() )
-			        {
-			          const ElementPointerType poutside = intersection.outside();
-			          const ElementType &outside = *poutside;
-                int indexnb=indexSet_.index(outside);
-                if(outside.level()<maxLevel_ );
+                if( intersection.neighbor() )
 			          {
+			            const ElementType &outside = intersection.outside();
+                  
+                  int indexnb=indexSet_.index(outside);
+                  if(outside.level()<maxLevel_ );
+			            {
                   grid_.mark( 1 , outside );
                   mark_[ indexnb ] = 1;
                   ++marked;
@@ -246,8 +243,7 @@ namespace Dune
 
                     if(intersection2.neighbor())
                     {
-                      const ElementPointerType poutside2 = intersection2.outside();
-			                const ElementType &outside2 = *poutside2;
+			                const ElementType &outside2 = intersection2.outside();
                       int indexnb2 = indexSet_.index(outside2);
                       if(outside.level()<maxLevel_ );
 			                {
@@ -386,8 +382,7 @@ namespace Dune
         const IntersectionType& intersection = *nb;
         if( intersection.neighbor() )
         {
-          ElementPointerType outp = intersection.outside();
-          const ElementType& outside = *outp;
+          const ElementType& outside = intersection.outside();
           const int outsideIndex = indexSet_.index( outside );
 
           if( outside.partitionType() == Dune::GhostEntity ||

@@ -1,6 +1,5 @@
 #ifndef PHASEFIELD_MATRIXOPERATOR_HH
 #define PHASEFIELD_MATRIXOPERATOR_HH      
-#warning "VISTING EDGES ONLY ONES DOES NOT WORK WITH VARIABLE VICOSITY"
 
 // Dune::Fem includes
 #include <dune/fem/function/localfunction/temporary.hh>
@@ -272,7 +271,7 @@ MatrixOperator< Operator , Tensor, Jacobian >
 {
   Dune::Fem::DiagonalAndNeighborStencil<DiscreteFunctionSpaceType,DiscreteFunctionSpaceType> stencil(space(),space());
   jOp.reserve(stencil);
-  jOp.clear();
+  jOp.matrix().clear();
   
   //intialize visited marker
   visited_.resize( indexSet_.size(0));
@@ -290,15 +289,14 @@ MatrixOperator< Operator , Tensor, Jacobian >
   assembler_.resizeBaseStorageNb( numDofs ); 
   
   const IteratorType end = dfSpace.end();
-  for( IteratorType it = dfSpace.begin(); it != end; ++it )
+  for( const auto& entity : dfSpace )
   {
-    const EntityType &entity = *it;
     const GeometryType geometry = entity.geometry();
     const LocalFunctionType uLocal = u.localFunction( entity );
 
     //initialize uOld
     integrator().setEntity( entity );
-    LocalMatrixType jLocal( dfSpace, dfSpace);//= jOp.localMatrix( entity, entity );
+    LocalMatrixType jLocal( dfSpace, dfSpace);
     jLocal.init(entity,entity);
     jLocal.clear();
     RealLocalMatrixType realLocal=jOp.localMatrix( entity, entity);
@@ -325,7 +323,7 @@ MatrixOperator< Operator , Tensor, Jacobian >
         if( intersection.neighbor() )
           {
             EntityPointerType ep = intersection.outside();
-            const EntityType& neighbor = *ep ;
+            const EntityType& neighbor = ep ;
             const GeometryType geometryNb = neighbor.geometry();
 
             if( !visited_[ indexSet_.index( neighbor ) ])

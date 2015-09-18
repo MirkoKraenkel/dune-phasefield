@@ -144,12 +144,10 @@ void DGOperator<DiscreteFunction, Integrator>
   integrator_.setSpeed(); 
   // iterate over grid 
   const IteratorType end = space().end();
-  for( IteratorType it = space().begin(); it != end; ++it )
+  //for( IteratorType it = space().begin(); it != end; ++it )
+  for( const auto& entity: space())
   {
    
-    //bool boundaryElement=false;
-    // get entity (here element) 
-    const EntityType &entity = *it;
     // get elements geometry
     const GeometryType& geometry=entity.geometry();
     // get local representation of the discrete functions 
@@ -182,8 +180,7 @@ void DGOperator<DiscreteFunction, Integrator>
 
         if ( intersection.neighbor() ) 
         {
-          const EntityPointerType pOutside = intersection.outside(); // pointer to outside element.
-          const EntityType &neighbor = *pOutside;
+          const EntityType &neighbor = intersection.outside();
 
           setNeighbor(neighbor);
 

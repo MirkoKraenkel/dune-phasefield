@@ -457,8 +457,6 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
 {
 
   size_t boundaryIndex=intersection.boundaryId();
-  typedef typename IntersectionType::Geometry  IntersectionGeometryType;
-  const IntersectionGeometryType &intersectionGeometry = intersection.geometry();
 
   RangeType vuOldEn(0.),vuMidEn(0.), bndValue(0.);
   JacobianRangeType duOldEn(0.),duMidEn(0.);
@@ -480,13 +478,14 @@ void PhasefieldMixedIntegrator<DiscreteFunction, Model,Flux>
 
   // compute penalty factor
   const double intersectionArea = normal.two_norm();
+  DomainType unitnormal=normal;
+  unitnormal/=intersectionArea;
+  const double localMinArea=areaEn_;
+  const double penaltyFactor = intersectionArea / localMinArea;
+  const double localMaxSpeed =  model_.maxSpeed( unitnormal , vuOldEn );
 
-  const double penaltyFactor = intersectionArea /  areaEn_; 
-  const double localMaxSpeed = model_.maxSpeed(normal,vuOldEn);
-
-  double viscFactor =  areaEn_*lastSpeed_;
-  const DomainType xgl = intersectionGeometry.global(x);
-  model_.dirichletValue( time_,xgl, bndValue);
+  double viscFactor=0.5*localMinArea*lastSpeed_;
+  maxSpeed_=std::max(localMaxSpeed*intersectionArea/localMinArea,maxSpeed_);
 
   JacobianRangeType dvalue(0.),advalue(0.);
   double fluxRet;

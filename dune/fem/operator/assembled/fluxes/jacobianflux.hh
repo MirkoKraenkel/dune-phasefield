@@ -341,7 +341,6 @@ void JacobianFlux<Model>::diffPhiDiffusionFlux ( const DomainType& normal,
                                                 RangeType& bLeft,
                                                 RangeType& bRight) const
 {
-  double integrationElement=normal.two_norm();
   //[u]\otimes n 
   JacobianRangeType jumpNormal(0);
   auto jump=vuEn;
@@ -417,7 +416,6 @@ void JacobianFlux<Model>::diffPhiBoundaryFlux ( const DomainType& normal,
                                                 JacobianRangeType& aLeft,
                                                 RangeType& bLeft) const
 {
-  double integrationElement=normal.two_norm();
   //[u]\otimes n 
   JacobianRangeType jumpNormal(0);
   auto jump=vuEn;
