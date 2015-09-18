@@ -149,23 +149,21 @@ inline void TanhProblem<GridType,RangeProvider>
   const double rhomean=1;//0.5*(rhovap_+rholiq_);
 
   double deltaInv=1./delta_;
+  double wInv=deltaInv*phiscale_;
   double r=std::abs( arg[dimension-1]);//+0.025*sin(4*M_PI*arg[0]);
-  double tanhr=-tanh( -( r-radius_ )*deltaInv );
-  double tanhrho=-tanh( -( r-radius_)*deltaInv );
+  double tanhr=tanh( ( r-radius_ )*wInv );
+  double tanhrho=-tanh( -( r-radius_)*wInv );
 
   double velopos=r-(radius_+(delta_/rhomean));
   double peak=exp(-velopos*velopos*deltaInv*deltaInv);
 
   //(1-tanh^2)/delta
-  double drtanhr=-deltaInv*(1-tanhr*tanhr);
-  double drdrtanhr=tanhr*drtanhr;
-  //-2/delta^2 *(tanh*(1-tanh^2)
-  drdrtanhr*=-2*deltaInv;
-  //double phi=1-0.5*(-tanhr+1);
+  double drtanhr=wInv*(1-tanhr*tanhr);
+  double drdrtanhr=-2*wInv*tanhr*drtanhr;
+
   double phi=0.5*tanhr+0.5;
   
   double rho=evalRho(phi);
-  //double rho=(rhodiff)*(0.5*tanhrho+0.5)+rhovap_;
 
   //rho
   res[0]= rho;
@@ -182,7 +180,8 @@ inline void TanhProblem<GridType,RangeProvider>
   double dFdphi= thermodyn_.reactionSource(rho,phi,phi);
   double dFdrho= thermodyn_.chemicalPotential(rho,phi,rho);
   double sigma=0.5*drtanhr;
-  double laplacePhi=0.5*drdrtanhr;
+  double laplacePhi=thermodyn_.delta()*0.5*drdrtanhr;
+
   if(arg[0]<0.)
     {
       sigma*=-1;
@@ -202,7 +201,7 @@ inline void TanhProblem<GridType,RangeProvider>
   //mu
   res[dimension+2]=dFdrho;
   //tau
-  res[dimension+3]=dFdphi-delta_*A_*laplacePhi;
+  res[dimension+3]=dFdphi-laplacePhi;
   //sigma_x
   res[dimension+4]=sigma;
 #endif
