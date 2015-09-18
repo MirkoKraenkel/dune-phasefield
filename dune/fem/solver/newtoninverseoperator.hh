@@ -70,9 +70,14 @@ namespace Dune
     class NewtonBackTrackDefault
     {
       public:
-        NewtonBackTrackDefault()
+        NewtonBackTrackDefault():
+        thetaMin_(0.1),
+        thetaMax_(0.5)
         {}
-            
+
+      //
+      void set(double a, double b,double c ){a_=a;b_=b;c_=c;}
+
       double btFunction(double theta)
         {
           return a_*theta*theta+b_*theta+c_;
@@ -80,18 +85,27 @@ namespace Dune
       
       double btFunctionCritPt()
         {
-          return -2*a_/b_;
+          return b_/(2*a_);
         }
 
       double newTheta()
         {
-          return std::min( btFunctionCritPt() , std::min( btFunction(thetaMin_) , btFunction(thetaMax_) ) );
+          double res;
+          if (btFunction( thetaMin_ ) < btFunction(thetaMax_))
+            res=thetaMin_;
+          else
+            res=thetaMax_;
+
+          if( btFunction(btFunctionCritPt())<btFunction(res) && btFunctionCritPt() <thetaMax_ && btFunctionCritPt()>thetaMin_)
+            return btFunctionCritPt();
+          else
+            return res;
         }
       
         
       private:
         double thetaMin_,thetaMax_;
-        double a_,b_,c_,t_;
+        double a_,b_,c_;
     };
 
 
@@ -210,7 +224,8 @@ namespace Dune
         matrixout_( parameter.matrixout()),
         maxIterations_( parameter.maxIterationsParameter() ),
         maxLinearIterations_( parameter.maxLinearIterationsParameter() ),
-        control_( tolerance_ )
+        control_( tolerance_ ),
+        failed_( false )
       {}
 
       /** constructor
@@ -229,6 +244,7 @@ namespace Dune
         matrixout_( parameter.matrixout()),
         maxIterations_( parameter.maxIterationsParameter() ),
         maxLinearIterations_( parameter.maxLinearIterationsParameter() )
+        failed_( false ),
       {}
 
       virtual void operator() ( const DomainFunctionType &u, RangeFunctionType &w ) const;
@@ -241,7 +257,7 @@ namespace Dune
       {
         // check for finite |residual| - this also works for -ffinite-math-only (gcc)
         const bool finite = (delta_ < std::numeric_limits< DomainFieldType >::max());
-        return finite && (iterations_ < maxIterations_) && (linearIterations_ < maxLinearIterations_);
+        return finite  && (iterations_ < maxIterations_) && (linearIterations_ < maxLinearIterations_) && !failed_;
       }
 
     private:
@@ -256,7 +272,9 @@ namespace Dune
       mutable int iterations_;
       mutable int linearIterations_;
       ControlType control_;
-      
+      mutable boole failed_;
+      mutable NewtonBackTrackDefault backtrack_;
+
     };
 
 
@@ -303,62 +321,70 @@ namespace Dune
           jOp.matrix().print(std::cout);
         }
         
-        const int remLinearIts = maxLinearIterations_ - linearIterations_;
-        
         
         const LinearInverseOperatorType jInv( jOp, eta ,linAbsTol_, maxLinearIterations_,linVerbose_ );
         dw.clear();
 
         //solve the system 
-        //dw=s_0 
+        //dw=-s_k
         jInv( residual, dw );
 
-        //||F(x_0)+F'(x_0)s_0||
+        //linred=||F(x_k)+F'(x_k)s_k||< eta_k
         double linred=jInv.achievedreduction();
   
-        DomainFunctionType residualtmp(residual);
-        RangeFunctionType dFs(dw);
-        jOp(dw,dFs);
-        residualtmp-=dFs;
-        double myRed=std::sqrt( residualtmp.scalarProductDofs(residualtmp ));
-        
         linearIterations_ += jInv.iterations();
 
-        //x_1
+        RangeFunctionType dFx(w);
+        dFx.clear();
+        //F'(x_k)s_k
+
+        jOp(dw,dFx);
+        dFx*=-1;
+        double dFxdots=dFx.scalarProductDofs(residual);
+
+        //x_k+s_k
         w -= dw;
 
-        //F(x_1)
+
+        //F(x_k-sk))
         op_( w, residual );
         residual -= u;
 
-        //||F(x_1)||
+        //||F(x_k+s_k))||
         delta_ = std::sqrt( residual.scalarProductDofs( residual ) );
-
-        if( verbose_) 
-          std::cout<<"delta= "<<delta_<<"\t oldDelta= "<<oldDelta<<"\t linred= "<<linred<<"\t eta= "<<eta<<std::endl;
 
         eta=std::min(control_.eta(oldDelta,delta_,linred),0.9);
 
- #if  0
-        double damping=0.5;
-        if( iterations_ > 1)    
-        {      
+#if  1
+        int count=0;
+        double damping=0.9;
+        if( iterations_ > 0)
+        {
           while( delta_>(1-(1-eta)*1e-4)*oldDelta )
             {
+              if(count>10)
+                {
+                  std::cout<<"Backtracking Failed!\n";
+                  failed_=true;
+                }
+              backtrack_.set(delta_-2*dFxdots ,2*dFxdots , oldDelta);
               
               w.assign(wbacktrack);
-              damping/=2.;
-              w.axpy(-1*damping,dw); 
+              damping=backtrack_.newTheta();
+
+              w.axpy(-1*damping,dw);
               op_( w, residual );
+
               residual -= u;
               delta_ = std::sqrt( residual.scalarProductDofs( residual ) );
-              std::cout<<"deltaBacktrack="<<delta_<<"\n"; 
-              eta=1-damping*(1-eta); 
+              eta=1-damping*(1-eta);
+              count++;
         }
 
       }
 
-     #endif
+#endif
+      wbacktrack.assign(w);
       oldDelta=delta_;
      }
       if( verbose_ )
