@@ -1,5 +1,5 @@
 
-inline double exactphi (double t, double x, double y ) const
+inline double evalRho (double t, double x, double y ) const
 {
   double t3;
   double t6;
@@ -11,7 +11,7 @@ inline double exactphi (double t, double x, double y ) const
 }
 
 
-inline double exactv1 (double t, double x, double y ) const
+inline double evalRho (double t, double x, double y ) const
 {
   double t3;
   double t6;
@@ -23,7 +23,7 @@ inline double exactv1 (double t, double x, double y ) const
 }
 
 
-inline double exactv2 (double t, double x, double y ) const
+inline double evalRho (double t, double x, double y ) const
 {
   double t3;
   double t6;
@@ -35,7 +35,7 @@ inline double exactv2 (double t, double x, double y ) const
 }
 
 
-inline double exactrho (double t, double x, double y ) const
+inline double evalRho (double t, double x, double y ) const
 {
   double t10;
   double t11;
@@ -57,7 +57,7 @@ inline double exactrho (double t, double x, double y ) const
   }
 }
 
-inline double exactsigma2 (double t, double x, double y ) const
+inline double evalRho (double t, double x, double y ) const
 {
   {
     return(0);
@@ -65,7 +65,7 @@ inline double exactsigma2 (double t, double x, double y ) const
 }
 
 
-inline double exactsigma1 (double t, double x, double y ) const
+inline double evalRho (double t, double x, double y ) const
 {
   {
     return(-0.1E1*cos(2.0*0.3141592653589793E1*t)*sin(2.0*0.3141592653589793E1*
@@ -74,7 +74,7 @@ x)*0.3141592653589793E1);
 }
 
 
-inline double exacttau (double t, double x, double y ) const
+inline double evalRho (double t, double x, double y ) const
 {
   {
     return(0.2*A_*(4.0*pow(0.5*cos(2.0*0.3141592653589793E1*t)*cos(2.0*
@@ -143,7 +143,7 @@ cos(2.0*0.3141592653589793E1*x)+0.5,3.0)-30.0*pow(0.5*cos(2.0*
 }
 
 
-inline double exactmu (double t, double x, double y ) const
+inline double evalRho (double t, double x, double y ) const
 {
   {
     return(0.1*(6.0*pow(0.5*cos(2.0*0.3141592653589793E1*t)*cos(2.0*
