@@ -113,7 +113,7 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       const double deltaT=timeProvider.deltaT();
       DiscreteFunctionType& U=solution();
       DiscreteFunctionType& Uold=oldsolution();
-
+      Uold.assign(U);
       dgOperator_.setPreviousTimeStep(U);
       dgOperator_.setTime(time);
       dgOperator_.setDeltaT(deltaT);
@@ -208,7 +208,6 @@ class AssembledAlgorithm: public PhasefieldAlgorithmBase< GridImp,AlgorithmTrait
       double kineticEnergy;
       double chemicalEnergy; 
       double surfaceEnergy;
-      double speed = dgOperator_.maxSpeed();
       double energyIntegral =energyconverter(solution(),model(),*totalenergy,pressure,kineticEnergy,chemicalEnergy,surfaceEnergy);
       str<<std::setprecision( 20 )<<timeProvider.time()<<"\t"
         <<energyIntegral<<"\t"
