@@ -127,10 +127,19 @@ public:
 
   inline double dxdi( const DomainType& x , const int i) const
   {
-   return distortion_[i]*x[i]/mynorm(x);
- //     return x[i]/x.two_norm();
+    return distortion_[i]*x[i]/mynorm(x);
   }
 
+  inline double dxdidi( const DomainType& x , const int i) const
+  {
+    double norm=mynorm(x);
+    double a=distortion_[i];
+    double res=1-a*x[i]*x[i]/(norm*norm);
+    res*=a;
+    res/=norm;
+
+    return res;
+  }
 
   template< class DiscreteFunctionType >
   void finalizeSimulation( DiscreteFunctionType& variablesToOutput,
@@ -183,11 +192,12 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 :: evaluate( const double t, const DomainType& arg, RangeType& res ) const 
 {
   double phi; 
-  double width=delta_;
+  double width=1/delta_;
+  width*=phiscale_;
   //Outside: phi=1
   res[dimension+1]=1;
-   double rho= rhofactor_*(tanh(-50*(arg[0]-0.19))+1)+mwpliq(0.);
-  //double rho=mwpliq(0.);
+  // double rho= rhofactor_*(tanh(-50*(arg[0]-0.19))+1)+mwpliq(0.);
+  double rho=mwpliq(0.);
 
 #if MIXED 
   for(int ii = 0; ii < dimension ; ++ii)
@@ -202,6 +212,7 @@ inline void BubbleEnsemble<GridType,RangeProvider>
 #endif 
   const int offset=dimension+1;
   double bubblephi;
+  double laplace(0.);
   for(size_t i=0 ; i<numBubbles_ ;++i)
   { 
 
@@ -217,27 +228,34 @@ inline void BubbleEnsemble<GridType,RangeProvider>
     vector-=arg;
     double r=mynorm(vector);
     
-    double tanr=tanh((radius-r) * (1/width ));
+    double tanr=tanh((radius-r) * (width ));
     double tanhr=tanr;
-    double dtanr=1+tanr*tanr;
     double dtanhr=1-tanhr*tanhr; 
-    double ddtanr=2*tanr*dtanr;
     double ddtanhr=-2*tanhr*dtanhr;
     bubblephi=0.5*(tanr+1);   
     res[dimension+1]-=bubblephi;
-    for( int ii=0 ; ii< dimension ;++ii)
-      res[dimension+4+ii]+=-0.5*dtanhr*(1/width)*dxdi(vector,ii);
 
- 
-     continue;
-      
-    
+    for( int ii=0 ; ii< dimension ;++ii)
+    {
+      res[dimension+4+ii]+=-0.5*dtanhr*(width)*dxdi(vector,ii);
+      laplace+=dxdidi(vector,ii);
+    }
+
+    laplace*=thermodyn_.delta()*ddtanhr*(width*width);
+
+    continue;
   }
-  
- double v=0;
+  phi=res[dimension+1];
+  double v=0;
+
   //rho
-  res[0]= evalRho( res[dimension+1] );
+  rho=evalRho(phi);
+  rho+=rhofactor_*(tanh(-50*(arg[0]-0.19))+1);
+
+  res[0]=rho;
   res[dimension+2]=thermodyn_.chemicalPotential(rho,phi,rho); 
+  res[dimension+3]=thermodyn_.reactionSource(rho,phi,phi)+laplace;
+
   for(int i=1;i<=dimension;i++)
   {
 #if MIXED
