@@ -1,7 +1,1 @@
 phasefield
-phasefieldcoupling
-phasefieldfd
-phasefieldfdrho
-phasefieldfdlambda
-phasefieldmfree
-phasefieldoem
