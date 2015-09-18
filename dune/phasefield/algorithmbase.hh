@@ -265,7 +265,7 @@ public:
        Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(timeprovider.time()), U);
       }
 
-     Uold.assign(U); 
+    Uold.assign(U);
 #endif 
   }
 
@@ -436,10 +436,6 @@ public:
         }
      writeData( eocDataOutput, timeProvider, eocDataOutput.willWrite( timeProvider ) );
     }
-    else
-    {
-      bool restored=restoreFromCheckPoint( timeProvider );
-    }
 
     if(computeResidual_)
     {
@@ -495,6 +491,8 @@ public:
          
           writeEnergy( timeProvider , energyfile, ils_iterations, ldt);
         }
+       Uold.axpy(1,U);
+       Uold*=0.5;
         
         if( timeProvider.timeStepValid())
           { 
@@ -514,11 +512,11 @@ public:
         else
           timeProvider.next();
 
-        //Uold.assign(U);
-        Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(timeProvider.time()), Uold);
+        // Uold.assign(U);
+        //Dune::Fem::DGL2ProjectionImpl::project(problem().fixedTimeFunction(timeProvider.time()), Uold);
 
     }		/*end of timeloop*/
- 
+
     // write last time step  
 		writeData( eocDataOutput, timeProvider, true );
     energyfile.close();
@@ -531,7 +529,7 @@ public:
 		// prepare the fixed time step for the next eoc loop
 		fixedTimeStep_ /= fixedTimeStepEocLoopFactor_; 
 	}
-  
+
   void computeResidual ( DiscreteFunctionType& U, 
                          DiscreteFunctionType& Uold,
                          TimeProviderType& timeProvider,
@@ -540,6 +538,7 @@ public:
     BaseType::asImp().computeResidual( U,Uold,timeProvider,eocDataOutput);      
  
   }
+
   inline double error ( TimeProviderType& timeProvider , DiscreteFunctionType& u )
 	{
     Fem::L2Norm< GridPartType > l2norm(gridPart_);
