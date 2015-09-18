@@ -25,10 +25,14 @@ AM_CPPFLAGS = $(USE_OMP) -I../../problems/phase  $(ALL_PKG_CPPFLAGS) -DGRIDDIM=$
               -DFLUX=$(FLUX) 
 AM_LDFLAGS = $(ALL_PKG_LDFLAGS) $(LAPACK_LDFLAGS) $(USE_OMP)              
 
-check_PROGRAMS = phasefield phasefield_fd phasefield_Time phasefield_fdTime 
+check_PROGRAMS = phasefield phasefieldbicg phasefield_fd phasefield_Time phasefield_fdTime 
 
 phasefield_SOURCES = $(SOURCES)
 phasefield_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DCOUPLING -DTAYLOR -DEOC
+
+phasefieldbicg_SOURCES = $(SOURCES)
+phasefieldbicg_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DCOUPLING -DTAYLOR -DBICG -DEOC
+
 
 phasefield_Time_SOURCES = $(SOURCES)
 phasefield_Time_CPPFLAGS = $(AM_CPPFLAGS) -DPOLORDER=$(POLORDER) -DMIXED -DWANT_ISTL -DTHERMO=$(THERMO) -DCOUPLING -DTAYLOR
