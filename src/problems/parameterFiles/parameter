@@ -33,7 +33,7 @@ phasefield.interpolinitial: false
 phasefield.energy: true
 phasefield.additionalvariables: true  
 phasefield.radius: 0.4
-phasefield.bubbles: ../InputFiles/4bubbles.txt 
+phasefield.bubbles: ../InputFiles/1bubble.txt 
 phasefield.phiscale: 1 
 phasefield.rhofactor:1
 paramfile: ../InputFiles/handle.txt
@@ -54,13 +54,13 @@ phasefield.beta:1
 phasefield.alpha: 0
 phasefield.gravity: 0.0
 #viscosity coefficiets
-phasefield.mu1_vap: 0.0125 
+phasefield.mu1_vap: 0.125 
 #0.06
-phasefield.mu2_vap: 0.0125
+phasefield.mu2_vap: 0.125
 #-0.04
-phasefield.mu1_liq: 0.0125
+phasefield.mu1_liq: 0.125
 #0.06
-phasefield.mu2_liq: 0.0125
+phasefield.mu2_liq: 0.125
 #-0.04
 
 #velocities vor Riemann-Problem
@@ -96,7 +96,7 @@ phasefield.mwpliq: 2.
 phasefield.addvisc: 0 
 phasefield.oldvisc: 0 
 phasefield.nonconvisc:0  
-phasefield.penalty: 0.01 
+phasefield.penalty: 0.1 
 phasefield.acpenalty:0 
 phasefield.ipswitch: 0 
 
@@ -107,15 +107,16 @@ phasefield.outflow: false
 # 1D
 # ------
 #fem.io.macroGridFile_1d: ../macrogrids/longcube1d.dgf
-#fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
-fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
+fem.io.macroGridFile_1d: ../macrogrids/unitcube1.dgf
+
+#fem.io.macroGridFile_1d: ../macrogrids/1dtorus.dgf
 
 # 2D
 # ------
-#fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
+fem.io.macroGridFile_2d: ../macrogrids/unitcube2.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/ball.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcylinder.dgf
-fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
+#fem.io.macroGridFile_2d: ../macrogrids/2dtorus.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/2dcube.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/unitcube2_unstr.dgf
 #fem.io.macroGridFile_2d: ../macrogrids/test2.dgf

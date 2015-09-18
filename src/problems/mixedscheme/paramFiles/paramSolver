@@ -1,15 +1,15 @@
 # SOLVER
 #-------
 phasefield.maxNewtonIterations: 6 
-phasefield.minNewtonIterations: 2
+phasefield.minNewtonIterations: 1 
 phasefield.maxLinearIterations: 100 
 fem.ode.tolerance: 1e-54
 fem.solver.matrixout: false 
 fem.solver.newton.tolerance: 1e-6 #fem.solver.tolerance: 1e-1
-fem.solver.verbose: false
-fem.solver.newton.verbose: false 
-fem.solver.newton.linabstol: 1e-16 
-fem.solver.newton.linreduction: 1e-6
+fem.solver.verbose: false 
+fem.solver.newton.verbose: true 
+fem.solver.newton.linabstol: -1e-8 
+fem.solver.newton.linreduction: 1e-3
 fem.solver.newton.assemblesteps: 1 
 fem.solver.newton.maxiterations: 40
 fem.solver.newton.maxlineariterations: 1000
@@ -17,16 +17,16 @@ fem.solver.newton.choice: 2
 fem.solver.newton.minEta: 1e-10
 fem.differenceoperator.eps: 1 
 phasefield.fdjacobian.epsilon: 0
-#phasefield.maximaltimesteps: 1 
+#phasefield.maximaltimesteps: 1
 phasefield.mixed.theta: 0 
-phasefield.maxTimeStep: 5e-3
+phasefield.maxTimeStep: 1e-3
 
 phasefield.IMEX:0
 
 phasefield.firstStep: 1e-7
 phasefield.timestepfactor: 1
-istl.preconditioning.method: jacobi 
-istl.gmres.restart: 400
+istl.preconditioning.method:  jacobi
+istl.gmres.restart: 40
 istl.preconditioning.iterations: 1 
 istl.preconditioning.relaxation: 1.1
 
@@ -34,4 +34,4 @@ oemsolver.gmres.restart: 1000
 phasefield.iterationtolerance: 1e-7
 phasefield.timesteptolerance:  -1 
 phasefield.diffquotthresh:  1
-fixedTimeStepEocLoopFactor: 2 
+fixedTimeStepEocLoopFactor: 1 
