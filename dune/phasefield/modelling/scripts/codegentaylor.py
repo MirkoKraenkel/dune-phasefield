@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 import os,subprocess, sys
 
-folders = { 1:'../CoquelTaylorSources/' , 2:'../CoquelTaylorSources/', 3:'../PhasefieldvanderWaalsSources/', 4:
-'../CoquelTaylorSources/'}
+folders = { 1:'../CoquelTaylorSources/' , 2:'../CoquelTaylorSources/', 3:'../CoquelTaylorSources/', 4:'../CoquelTaylorSources/', 5:'../PhasefieldvanderWaalsSources/'}
 
-files = { 1:'real' , 2:'coquelTaylor' , 3:'pfvdWaal', 4:'coquelTaylorM'}
+files = { 1:'real' , 2:'coquelTaylor' , 3:'coquelTaylorM',  4: 'stiffenedgas' , 5 :'pfvdWaal' }
+
 
 namelist  = [' helmholtz', ' pressure', ' a']
-namelist2 = [ ' reactionSource',' dphireactionSource',' drhoreactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential']
+namelist2 = [' reactionSource',' dphireactionSource',' drhoreactionSource',' chemicalPotential',' dphichemicalPotential',' drhochemicalPotential']
 namelist3 = [' exactrho', ' exactv1', ' exactv2', ' exactphi',' exactsigma1',' exactsigma2', ' exactmu',' exacttau']
 namelist4 = [' rhsRho', ' rhsV1', ' rhsV2', ' rhsPhi'] 
 namelist5 = [' mwpliq', ' mwpvap', ' evalRho']
@@ -15,6 +15,7 @@ namelist5 = [' mwpliq', ' mwpvap', ' evalRho']
 number=int(sys.argv[1])
 
 inputfile=folders[number]+files[number]+'CODEGEN.mpl'
+
 
 maplefile=files[number]+'maple.cc'
 auxfile=files[number]+'mapleaux.cc'
@@ -30,7 +31,7 @@ sourcefile=files[number]+'Source.cc'
 auxsourcefile=files[number]+'Sourceaux.cc'
 
 
-if number==4:
+if number==3:
     fSource=open( sourcefile )
     fSourceNew=open( auxsourcefile, 'w')
     flag=-1
@@ -57,9 +58,8 @@ if number==4:
                 flag=-1
             else:
                 fSourceNew.write( l3 )
-
-    subprocess.call( ['mv '+auxsourcefile+' '+folders[number]+'/'+sourcefile], shell=True)
-    subprocess.call( ['rm '+sourcefile], shell=True )
+    subprocess.call( ['mv '+auxsourcefile+' '+sourcefile], shell=True)
+#    subprocess.call( ['rm '+sourcefile], shell=True )
 
 
 
@@ -98,10 +98,9 @@ for line in frho:
             flag=-1
         else:
             frhonew.write( l3 )
+ 
 
-
-subprocess.call( ['mv '+auxrhofile+' '+folders[number]+'/'+rhofile], shell=True)
-subprocess.call( ['rm '+rhofile], shell=True )
+subprocess.call( ['mv '+auxrhofile+' '+rhofile], shell=True)
 
            
 f=open( maplefile )
@@ -144,7 +143,7 @@ for line in f:
       
       fnew.write( newline )
 
-subprocess.call( ['mv '+auxfile+' '+folders[number]+'/'+maplefile], shell=True)
-subprocess.call( ['rm '+maplefile], shell=True )
+subprocess.call( ['mv '+auxfile+' '+maplefile], shell=True)
+#subprocess.call( ['rm '+maplefile], shell=True )
 
 
