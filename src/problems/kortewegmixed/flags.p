@@ -1,0 +1,16 @@
+(dp0
+S'GRIDTYPE'
+p1
+S'SPGRID'
+p2
+sS'PROBLEM'
+p3
+S'1'
+p4
+sS'GRIDDIM'
+p5
+g4
+sS'POLORDER'
+p6
+g4
+s.
