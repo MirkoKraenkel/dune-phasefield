@@ -83,8 +83,8 @@ for line in frho:
             if l3.find(name) !=-1:
                 flag=1 
                 break 
-        for name in namelist5:
-            if l3.find(name) !=-1:
+        for name2 in namelist5:
+            if l3.find(name2) !=-1:
                 flag=2
                 break
 
@@ -93,7 +93,7 @@ for line in frho:
             frhonew.write( newline )
             flag=-1
         elif flag==2:
-            newline='inline double'+name+' ( double x ) const\n'
+            newline='inline double'+name2+' ( double x ) const\n'
             frhonew.write( newline )
             flag=-1
         else:
