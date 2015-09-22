@@ -243,8 +243,8 @@ namespace Dune
         linVerbose_( parameter.linearSolverVerbose() ),
         matrixout_( parameter.matrixout()),
         maxIterations_( parameter.maxIterationsParameter() ),
-        maxLinearIterations_( parameter.maxLinearIterationsParameter() )
-        failed_( false ),
+        maxLinearIterations_( parameter.maxLinearIterationsParameter() ),
+        failed_( false )
       {}
 
       virtual void operator() ( const DomainFunctionType &u, RangeFunctionType &w ) const;
@@ -272,7 +272,7 @@ namespace Dune
       mutable int iterations_;
       mutable int linearIterations_;
       ControlType control_;
-      mutable boole failed_;
+      mutable bool failed_;
       mutable NewtonBackTrackDefault backtrack_;
 
     };
