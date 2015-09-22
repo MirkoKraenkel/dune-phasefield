@@ -148,37 +148,29 @@ inline void HandleProblem<GridType,RangeProvider>
 
   double deltaInv=1./delta_;
   double k=length_;
-  double r=0.;
+  double r,r1,r2,r3;
   double z=sqrt(radius1_*radius1_ - std::pow( pos1_-(0.5+0.5*k),2));
 
   double radius2 = sqrt( z*z + std::pow( (0.5-0.5*k)-pos2_, 2));
   double myradius;
   // drop1
-  if( arg[1] < 0.5-0.5*k )
-    {  
-      DomainType vector{ 0.5,pos2_ };
-      vector-=arg;
-      r=vector.two_norm();
-      myradius=radius2;
-    }
-  else if( arg[1] > 0.5+0.5*k )
-    {
-      DomainType vector{ 0.5,pos1_ };
-      vector-=arg;
-      r=vector.two_norm();
-      myradius=radius1_;
-    }
+  DomainType vector{ 0.5,pos2_ };
+  vector-=arg;
+  r1=vector.two_norm();
+
+  DomainType vector2{ 0.5,pos1_ };
+  vector2-=arg;
+  r2=vector2.two_norm();
+
+  r3=std::abs( arg[0]-0.5 );
+  if( std::abs(arg[1]-0.5)<0.2 )
+    r=std::min(r1-radius1_,std::min( r2-radius2,r3-z));
   else
-    {
-      r=std::abs( arg[0]-0.5 );
-      myradius=z;
-    }
+    r=std::min(r1-radius1_, r2-radius2);
 
 
-
-  double tanhr=tanh( -( r - myradius )*deltaInv );
-  double tanhrho=-tanh( -( r - myradius )*rhofactor_*deltaInv );
-
+  double tanhr=tanh( -( r  )*deltaInv );
+  double tanhrho=-tanh( -( r )*rhofactor_*deltaInv );
 
   //(1-tanh^2)/delta
   double drtanhr=deltaInv*(1-tanhr*tanhr);
@@ -187,7 +179,6 @@ inline void HandleProblem<GridType,RangeProvider>
   drdrtanhr*=-2*deltaInv;
   double phi=-0.5*phiscale_*tanhr+0.5;
 
-  
   double rho=evalRho(phi);
   //double rho=(rhodiff)*(0.5*-tanhrho+0.5)+rhovap_;
 
