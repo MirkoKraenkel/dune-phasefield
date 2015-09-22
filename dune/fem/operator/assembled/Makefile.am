@@ -1,17 +1,21 @@
 SUBDIRS = fluxes models
 # install these headers
 assembleddir=$(top_srcdir)/dune/fem/operator/assembled
-assembled_HEADERS=  phasefieldfilter.hh \
-										mixedoperator.hh \
-										localdfoperator.hh \
+assembled_HEADERS=  boundary.hh \
 										energyconverter.hh \
-										boundary.hh \
+										integrator.hh \
+										localfdoperator.hh \
 										matrixhelper.hh \
+										mixedoperator.hh \
 										nskfilter.hh \
 										nskmatrixhelper.hh \
+										nskintegrator.hh \
 										nskmatrix.hh \
+										nsktensor.hh \
+										phasefieldfilter.hh \
 										phasefieldjacobian.hh \
-										phasefieldmatrix.hh 
+										phasefieldmatrix.hh \
+										phasefieldtensor.hh
 
 
 #USE_OMP=-fopenmp

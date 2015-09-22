@@ -27,7 +27,9 @@ AC_CONFIG_FILES([
   dune/phasefield/Makefile
   dune/phasefield/modelling/Makefile
   dune/phasefield/modelling/physics/Makefile
+  dune/phasefield/modelling/CoquelTaylorSources/Makefile
   dune/phasefield/util/Makefile
+  dune/fem/Makefile  
   dune/fem/adaptation/Makefile
   dune/fem/base/Makefile
   dune/fem/util/Makefile
@@ -35,6 +37,7 @@ AC_CONFIG_FILES([
   dune/fem/main/Makefile
   dune/fem/fluxes/Makefile
   dune/fem/operator/Makefile
+  dune/fem/operator/common/Makefile
   dune/fem/operator/korteweg/Makefile
   dune/fem/operator/assembled/Makefile
   dune/fem/operator/assembled/fluxes/Makefile
